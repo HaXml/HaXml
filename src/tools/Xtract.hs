@@ -4,13 +4,13 @@
 module Main where
 import System (getArgs, exitWith, ExitCode(..))
 import IO
-import Char         (toUpper)
+import Char         (toLower)
 import List         (isSuffixOf)
 
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Parse         (xmlParse)
 import Text.XML.HaXml.Html.Parse    (htmlParse)
-import Text.XML.HaXml.Xtract.Parse  (parseXtract)
+import Text.XML.HaXml.Xtract.Parse  (xtract)
 import Text.PrettyPrint.HughesPJ    (render, vcat, hcat, empty)
 import Text.XML.HaXml.Pretty        (content)
 import Text.XML.HaXml.Html.Generate (htmlprint)
@@ -29,25 +29,20 @@ main =
 --                           return ((if isHTML x
 --                                    then htmlParse x else xmlParse x) c))
 --                  files
-        xmlSelection  = parseXtract pattern
-        htmlSelection = parseXtract (map toUpper pattern)
     in
 --  findcontents >>= \cs->
 --  ( hPutStrLn stdout . render . vcat
 --  . map (vcat . map content . selection . getElem)) cs
-
     mapM_ (\x-> do c <- (if x=="-" then getContents else readFile x)
                    ( if isHTML x then
                           hPutStrLn stdout . render . htmlprint .
-                          dfilter htmlSelection . getElem . htmlParse x
+                          xtract (map toLower pattern) . getElem . htmlParse x
                      else hPutStrLn stdout . render . format .
-                          dfilter xmlSelection  . getElem . xmlParse x) c)
+                          xtract pattern . getElem . xmlParse x) c)
           files
 
 getElem (Document _ _ e _) = CElem e
 isHTML x = ".html" `isSuffixOf` x  ||  ".htm"  `isSuffixOf` x
-
-dfilter f = \x-> f x x
 
 format [] = empty
 format cs@(CString _ _:_) = hcat . map content $ cs
