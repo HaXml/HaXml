@@ -67,13 +67,16 @@ install-filesonly-nhc98: libs $(INSTALLDIR)
 	cp $(TOOLSET) $(INSTALLDIR)
 install-ghc: install-filesonly-ghc
 	`cat ghcpkgcmd` --remove-package=HaXml || true
-	`cat ghcpkgcmd` --add-package <pkg.conf
+	`cat ghcpkgcmd` --add-package <pkg.conf || \
+	`cat ghcpkgcmd` register HaXml.cabal
 install-nhc98: install-filesonly-nhc98
 install-tools-hugs: toolset-hugs $(INSTALLDIR)
 	cp $(patsubst ../../%, %, ${TOOLSET}) $(INSTALLDIR)
 
 # update the sources if necessary
 $(LIBSRCS) $(TOOLSRCS) Makefile Text/PrettyPrint/HughesPJ.hs: %: ../../src/%
+	cp $< $@
+HaXml.cabal: ../../HaXml.cabal
 	cp $< $@
 
 
