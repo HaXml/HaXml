@@ -1,6 +1,5 @@
 THISPKG	= HaXml
 SEARCH	= -package base
-EXTRA_H_FLAGS	= +RTS -K6M -RTS
 
 SRCS	= \
 	Text/XML/HaXml.hs Text/XML/HaXml/Combinators.hs Text/XML/HaXml/Lex.hs \
