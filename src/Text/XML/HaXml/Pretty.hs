@@ -24,7 +24,7 @@ module Text.XML.HaXml.Pretty
 import Prelude hiding (maybe,either)
 import Maybe hiding (maybe)
 import List (intersperse)
-import Char (isSpace)
+--import Char (isSpace)
 import Text.PrettyPrint.HughesPJ
 import Text.XML.HaXml.Types
 
@@ -248,7 +248,7 @@ pubidliteral (PubidLiteral s)
 systemliteral (SystemLiteral s)
     | '"' `elem` s             = text "'" <> text s <> text "'"
     | otherwise                = text "\"" <> text s <> text "\""
-chardata s                     = if all isSpace s then empty else text s
+chardata s                     = {-if all isSpace s then empty else-} text s
 cdsect c                       = text "<![CDATA[" <> chardata c <> text "]]>"
 
 ----
