@@ -11,6 +11,7 @@ module Text.XML.HaXml
   , module Text.XML.HaXml.Validate
   , module Text.XML.HaXml.Wrappers
   , module Text.XML.HaXml.Verbatim
+  , module Text.XML.HaXml.Escape
   , render
   , version
   ) where
@@ -24,9 +25,10 @@ import Text.XML.HaXml.Html.Parse  (htmlParse)
 import Text.XML.HaXml.Validate    (validate)
 import Text.XML.HaXml.Wrappers    (fix2Args,processXmlWith)
 import Text.XML.HaXml.Verbatim
+import Text.XML.HaXml.Escape
 
 import Text.PrettyPrint.HughesPJ  (render)
 
--- | The version of the library (currently "1.09").
+-- | The version of the library (currently "1.10").
 version :: String
-version  = "1.09"
+version  = "1.10"
