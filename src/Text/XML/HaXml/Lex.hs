@@ -142,7 +142,7 @@ emit tok p = forcep p `seq` (p,tok)
 forcep (Pn f n m i) = m `seq` n
 
 lexerror :: String -> Posn -> a
-lexerror s p = error ("Lexical error in  "++show p++": "++s++"\n")
+lexerror s p = error ("Lexical error in  "++show p++":\n  "++s)
 
 addcol :: Int -> Posn -> Posn
 addcol n (Pn f r c i) = Pn f r (c+n) i
@@ -177,7 +177,8 @@ prefixes :: String -> String -> Bool
 (x:xs) `prefixes`   []   = False --error "unexpected EOF in prefix"
 
 accumulateUntil (c:cs) tok acc pos  p  [] k =
-    lexerror ("unexpected EOF while looking for "++c:cs++" after "++show pos) p
+    lexerror ("unexpected EOF while looking for closing token "++c:cs
+              ++"\n  to match the opening token at "++show pos) p
 accumulateUntil (c:cs) tok acc pos  p (s:ss) k
     | c==s && cs `prefixes` ss  = emit (TokFreeText (reverse acc)) pos:
                                   emit tok p: skip (length cs) (addcol 1 p) ss k
