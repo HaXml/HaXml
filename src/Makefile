@@ -1,5 +1,5 @@
 SOFTWARE = HaXml
-VERSION  = 1.08b
+VERSION  = 1.09
 
 LIBSRCS = \
 	Text/XML/HaXml.hs Text/XML/HaXml/Combinators.hs Text/XML/HaXml/Lex.hs \
@@ -47,22 +47,24 @@ endif
 all: libs toolset
 libs: libHSHaXml.a
 toolset: $(TOOLSET)
-install-ghc: libs
+install-filesonly-ghc: libs
 	cp libHSHaXml.a HSHaXml.o `cat ghclibdir`
 	-rm -r `cat ghcincdir`/HaXml
 	mkdir `cat ghcincdir`/HaXml
 	cp interfaces.tar `cat ghcincdir`/HaXml
 	cd `cat ghcincdir`/HaXml; tar xf interfaces.tar; rm interfaces.tar
-	ghc-pkg --remove-package=HaXml || true
-	ghc-pkg --add-package <pkg.conf
 	cp $(TOOLSET) `cat ../prefix`
-install-nhc98:
+install-filesonly-nhc98: libs
 	cp libHSHaXml.a `cat nhc98libdir`/`harch`
 	-rm -r `cat nhc98incdir`/HaXml
 	mkdir `cat nhc98incdir`/HaXml
 	cp interfaces.tar `cat nhc98incdir`/HaXml
 	cd `cat nhc98incdir`/HaXml; tar xf interfaces.tar; rm interfaces.tar
 	cp $(TOOLSET) `cat ../prefix`
+install-ghc: install-filesonly-ghc
+	ghc-pkg --remove-package=HaXml || true
+	ghc-pkg --add-package <pkg.conf
+install-nhc98: install-filesonly-nhc98
 
 # update the sources if necessary
 $(LIBSRCS) $(TOOLSRCS) Makefile Text/PrettyPrint/HughesPJ.hs: %: ../../src/%

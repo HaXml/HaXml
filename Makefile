@@ -24,20 +24,22 @@ TOOLSRCS = \
 	src/tools/Canonicalise.hs src/tools/MkOneOf.hs
 
 AUX =	configure Makefile src/Makefile src/pkg.conf docs/* examples/* \
-	README LICENSE COPYRIGHT script/echo.c
+	README LICENSE COPYRIGHT script/echo.c rpm.spec
 ALLFILES = $(SRCS) $(TOOLSRCS) $(AUX)
 
-.PHONY: all libs tools haddock
+.PHONY: all libs tools haddock install register
 
 COMPILERS = $(shell cat obj/compilers)
 LIBS  = $(patsubst %, libs-%, $(COMPILERS))
 TOOLS = $(patsubst %, tools-%, $(COMPILERS))
 INSTALL = $(patsubst %, install-%, $(COMPILERS))
+FILESONLY = $(patsubst %, install-filesonly-%, $(COMPILERS))
 
 all: $(LIBS) $(TOOLS)
 libs: $(LIBS)
 tools: $(TOOLS)
 install: $(INSTALL)
+install-filesonly: $(FILESONLY)
 libs-ghc:
 	cd obj/ghc; $(MAKE) HC=$(shell cat obj/ghccmd) libs
 libs-nhc98:
@@ -50,6 +52,10 @@ install-ghc:
 	cd obj/ghc; $(MAKE) HC=$(shell cat obj/ghccmd) install-ghc
 install-nhc98:
 	cd obj/nhc98; $(MAKE) HC=nhc98 install-nhc98
+install-filesonly-ghc:
+	cd obj/ghc; $(MAKE) HC=$(shell cat obj/ghccmd) install-filesonly-ghc
+install-filesonly-nhc98:
+	cd obj/nhc98; $(MAKE) HC=nhc98 install-filesonly-nhc98
 haddock:
 	for file in $(SRCS); \
 		do cpp -P -traditional -D__NHC__ $$file >$$file.uncpp; \
@@ -66,6 +72,7 @@ srcDist: $(ALLFILES)
 	-rm -rf $(SOFTWARE)-$(VERSION)/docs/CVS
 	-rm -rf $(SOFTWARE)-$(VERSION)/examples/CVS
 	-rm -rf $(SOFTWARE)-$(VERSION)/examples/SMIL/CVS
+	-rm -rf $(SOFTWARE)-$(VERSION)/examples/OpenOffice.org/CVS
 	tar cf $(SOFTWARE)-$(VERSION).tar $(SOFTWARE)-$(VERSION)
 	rm -rf $(SOFTWARE)-$(VERSION)
 	gzip $(SOFTWARE)-$(VERSION).tar
@@ -74,6 +81,10 @@ zipDist: $(ALLFILES)
 	rm -f $(SOFTWARE)-$(VERSION).zip
 	mkdir $(SOFTWARE)-$(VERSION)
 	tar cf - $(ALLFILES) | ( cd $(SOFTWARE)-$(VERSION); tar xf - )
+	-rm -rf $(SOFTWARE)-$(VERSION)/docs/CVS
+	-rm -rf $(SOFTWARE)-$(VERSION)/examples/CVS
+	-rm -rf $(SOFTWARE)-$(VERSION)/examples/SMIL/CVS
+	-rm -rf $(SOFTWARE)-$(VERSION)/examples/OpenOffice.org/CVS
 	zip -r $(SOFTWARE)-$(VERSION).zip $(SOFTWARE)-$(VERSION)
 	rm -rf $(SOFTWARE)-$(VERSION)
 
