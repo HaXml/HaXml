@@ -44,6 +44,7 @@ data StructType =
     | List1 StructType			-- ^ Non-empty lists.
     | Tuple [StructType]
     | OneOf [StructType]
+    | Any				-- ^ XML's contentspec allows ANY
     | String
     | Defined Name
     deriving Eq
@@ -62,6 +63,7 @@ instance Show StructType where
                                     . foldr1 (.) (intersperse (showChar '|')
                                                               (map shows ss))
                                     . showChar ')'
+    showsPrec p (Any)             = showString "ANY"
     showsPrec p (String)          = showString "#PCDATA"
     showsPrec p (Defined (Name n _)) = showString n
 
@@ -122,6 +124,7 @@ ppST (Tuple sts) = parens (commaList (map ppST sts))
 ppST (OneOf sts) = parens (text "OneOf" <> text (show (length sts)) <+>
                            hsep (map ppST sts))
 ppST  String     = text "String"
+ppST  Any        = text "ANYContent"
 ppST (Defined n) = ppHName n
 
 -- constructor and components
@@ -162,12 +165,13 @@ name_ n    = Name n (mangle n ++ "_")
 -- | Prefix an attribute enumeration type name with its containing element
 --   name.
 name_a :: String -> String -> Name
-name_a e n = Name n (mangle e ++ "_" ++ mangle n)
+name_a e n = Name n (mangle e ++ "_" ++ map decolonify n)
 
 -- | Prefix an attribute enumeration constructor with its element-tag name,
 --   and its enumeration type name.
 name_ac :: String -> String -> String -> Name
-name_ac e t n = Name n (mangle e ++ "_" ++ mangle t ++ "_" ++ mangle n)
+name_ac e t n = Name n (mangle e ++ "_" ++ map decolonify t
+                                 ++ "_" ++ map decolonify n)
 
 -- | Prefix a field name with its enclosing element name.
 name_f :: String -> String -> Name

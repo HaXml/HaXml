@@ -158,6 +158,8 @@ mkFrElem n sts vs inner =
                            <+> cvo
             (String)    -> text "definite fromText" <+> text "\"text\" \"" <>
                                                  ppXName n <> text "\"" <+> cvo
+            (Any)       -> text "definite fromElem" <+> text "\"ANY\" \"" <>
+                                                 ppXName n <> text "\"" <+> cvo
             (Defined m) -> text "definite fromElem" <+>
 				 text "\"<" <> ppXName m <> text ">\" \"" <>
                                                  ppXName n <> text "\"" <+> cvo
@@ -179,6 +181,7 @@ mkToElem sts vs =
         (Tuple ss)      -> text "toElem" <+> v
         (OneOf ss)      -> text "toElem" <+> v
         (String)        -> text "toText" <+> v
+        (Any)           -> text "toElem" <+> v
         (Defined m)     -> text "toElem" <+> v
         (Defaultable _ _)  -> text "nyi_toElem_Defaultable" <+> v
 
@@ -264,6 +267,7 @@ mkFrAux keeprest attrs cs = foldr frAux inner cs
           (Tuple ss)     -> text "nyi_fromText_Tuple"
           (OneOf ss)     -> text "fromElem" <+> cvo
           (String)       -> text "fromText" <+> cvo
+          (Any)          -> text "fromElem" <+> cvo
           (Defined m)    -> text "fromElem" <+> cvo
         )
     failpat sts =
@@ -275,6 +279,7 @@ mkFrAux keeprest attrs cs = foldr frAux inner cs
                   (Tuple ss)  -> text "nyi_failpat_Tuple"
                   (OneOf ss)  -> text "_"
                   (String)    -> text "_"
+                  (Any)       -> text "_"
                   (Defined m) -> text "_"
         in parens (hcat (intersperse comma (map fp sts++[text "_"])))
     succpat sts vs =
@@ -286,6 +291,7 @@ mkFrAux keeprest attrs cs = foldr frAux inner cs
                   (Tuple ss)  -> text "nyi_succpat_Tuple"
                   (OneOf ss)  -> text "Just" <+> v
                   (String)    -> text "Just" <+> v
+                  (Any)       -> text "Just" <+> v
                   (Defined m) -> text "Just" <+> v
         in parens (hcat (intersperse comma (zipWith sp sts vs++[rest])))
 

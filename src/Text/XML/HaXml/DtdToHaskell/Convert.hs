@@ -18,6 +18,8 @@ type Db = [(String,Record)]
 
 ---- Build a database of DTD decls then convert them to typedefs ----
 ---- (Done in two steps because we need to merge ELEMENT and ATTLIST decls.)
+---- Apparently multiple ATTLIST decls for the same element are permitted,
+---- although only one ELEMENT decl for it is allowed.
 dtd2TypeDef :: [MarkupDecl] -> [TypeDef]
 dtd2TypeDef mds = 
   (concatMap convert . reverse . database []) mds
@@ -32,7 +34,7 @@ dtd2TypeDef mds =
         (AttList (AttListDecl n as)) ->
           case lookup n db of
             Nothing -> database ((n, R as EMPTY):db) ms
-            (Just (R _ cs)) -> database (replace n (R as cs) db) ms
+            (Just (R a cs)) -> database (replace n (R (a++as) cs) db) ms
     --  (MarkupPE _ m') -> database db (m':ms)
         _ -> database db ms
 
@@ -48,7 +50,8 @@ convert :: (String, Record) -> [TypeDef]
 convert (n, R as cs) =
     case cs of
       EMPTY                   -> modifier None []
-      ANY                     -> error "NYI: contentspec of ANY"
+      ANY                     -> modifier None [[Any]]
+                                 --error "NYI: contentspec of ANY"
       (Mixed PCDATA)          -> modifier None [[String]]
       (Mixed (PCDATAplus ns)) -> modifier Star ([String]: map ((:[]) . Defined . name) ns)
       (ContentSpec cp)        ->
@@ -92,6 +95,7 @@ mkData tss  fs aux n  = [DataDef aux n fs (map (mkConstr n) tss)]
     flatten String       = "Str"
     flatten (OneOf sts)  = {-"OneOf" ++ show (length sts) ++ "_" ++-}
                             concat (intersperse "_" (map flatten sts))
+    flatten Any          = "Any"
     flatten (Defined (Name _ n))  = n
 
 mkAttrDef e (AttDef n StringType def) =

@@ -15,7 +15,7 @@ module Text.XML.HaXml.Xml2Haskell
   , XmlAttrType(..)
   -- * Parsing and printing helper functions
   , choice, definite, many, fromText, toText
-  , List1(..)
+  , List1(..), ANYContent(..)
   , maybeToAttr, defaultToAttr
   , definiteA, defaultA, possibleA, fromAttrToStr, toAttrFrStr
   , Defaultable(..)
@@ -83,6 +83,7 @@ hPutXml h x = do
     deCont [] = error "no XML content generated"
     deCont _  = error "too much XML content generated"
 
+
 ---- Conversion operations on generated types ----
 
 -- | The XmlContent class promises that an XML content element can be
@@ -100,6 +101,7 @@ class XmlAttributes a where
 class XmlAttrType a where
     fromAttrToTyp :: String -> Attribute -> Maybe a
     toAttrFrTyp   :: String -> a -> Maybe Attribute
+
 
 
 ---- Useful variants of "fromElem" ----
@@ -219,16 +221,18 @@ attr2str (AttValue xs) =
     in concatMap f xs
         
 
-{-
 ---- New types ----
-
-data OneOf2 a b     = OneOfTwo a   | TwoOfTwo b
-     deriving (Eq, Show)
-data OneOf3 a b c   = OneOfThree a | TwoOfThree b | ThreeOfThree c
-     deriving (Eq, Show)
-data OneOf4 a b c d = OneOfFour a  | TwoOfFour b  | ThreeOfFour c | FourOfFour d
-     deriving (Eq, Show)
+{-
+data OneOf2 a b
+data OneOf3 a b c
+data OneOf4 a b c d
+    ... etc are now defined (with instances) in module OneOfN.
 -}
+
+-- | A type corresponding to XML's ANY contentspec
+--data ANYContent = forall a . XmlContent a => ANYContent a
+data ANYContent = ANYContent  deriving (Eq,Show)
+
 
 -- | The List1 type represents lists with at least one element.
 --   It is required for DTD content models that use + as a modifier.
@@ -279,6 +283,10 @@ instance (XmlContent a) => XmlContent (List1 a) where
         ([], _)  -> (Nothing, c0)
         (xs, cn) -> (Just (NonEmpty xs), cn)
     toElem (NonEmpty xs) = concatMap toElem xs
+
+instance XmlContent ANYContent where
+    fromElem c0 = (Just ANYContent, [])
+    toElem ANYContent = []
 
 {-
 instance (XmlContent a, XmlContent b) => XmlContent (OneOf2 a b) where
