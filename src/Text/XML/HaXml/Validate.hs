@@ -9,6 +9,7 @@ import Text.XML.HaXml.Combinators (multi,tag,iffind,literal,none,o)
 import Text.XML.HaXml.Xml2Haskell (attr2str)
 import Maybe (fromMaybe,isNothing,fromJust)
 import List (intersperse,nub,(\\))
+import Char (isSpace)
 
 #if defined(__GLASGOW_HASKELL__) || defined(__HUGS__)
 -- real finite map, if it is available
@@ -142,6 +143,7 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
 
     excludeText elem (CElem _: cs) = excludeText elem cs
     excludeText elem (CMisc _: cs) = excludeText elem cs
+    excludeText elem (CString _ s: cs) | all isSpace s = excludeText elem cs
     excludeText elem (_:  cs) =
         ["Element <"++elem++"> contains text/references but should not."]
     excludeText elem [] = []
@@ -209,7 +211,14 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
         else (cpError elem cp++errs, ns)
 
     choice elem ns cps =  -- return only those parses that don't give any errors
-        [ rem | ([],rem) <- map (\cp-> checkCP elem cp ns) cps ]
+        [ rem | ([],rem) <- map (\cp-> checkCP elem (definite cp) ns) cps ]
+        where definite (TagName n Query)  = TagName n None
+              definite (Choice cps Query) = Choice cps None
+              definite (Seq cps Query)    = Seq cps None
+              definite (TagName n Star)   = TagName n Plus
+              definite (Choice cps Star)  = Choice cps Plus
+              definite (Seq cps Star)     = Seq cps Plus
+              definite x                  = x
     sequence elem ns cps =  -- accumulate errors down the sequence
         foldl (\(es,ns) cp-> let (es',ns') = checkCP elem cp ns
                              in (es++es', ns'))
