@@ -83,8 +83,16 @@ many from cs =
                     in (a:as, cs1)
 
 fromText :: [Content] -> (Maybe String, [Content])
-fromText (CString _ s: cs) = (Just s, cs)
-fromText cs                = (Nothing, cs)
+fromText c =
+  case c of
+    (CString _ s: cs)        -> more s cs
+    (CRef (RefChar s): cs)   -> more ('&':s++";") cs
+    (CRef (RefEntity s): cs) -> more ('&':s++";") cs
+    (CMisc _: cs)            -> more "" cs
+    _                        -> (Nothing,c)
+  where more s cs = case fromText cs of
+                        (Nothing, _)   -> (Just s, cs)
+                        (Just s', cs') -> (Just (s++s'), cs')
 
 toText :: String -> [Content]
 toText s = [CString False s]
@@ -160,8 +168,11 @@ attr2str (AttValue xs) =
 ---- New types ----
 
 data OneOf2 a b     = OneOfTwo a   | TwoOfTwo b
+     deriving (Eq, Show)
 data OneOf3 a b c   = OneOfThree a | TwoOfThree b | ThreeOfThree c
+     deriving (Eq, Show)
 data OneOf4 a b c d = OneOfFour a  | TwoOfFour b  | ThreeOfFour c | FourOfFour d
+     deriving (Eq, Show)
 
 
 ---- Needed instances ----
