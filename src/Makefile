@@ -1,5 +1,4 @@
 SOFTWARE = HaXml
-VERSION  = 1.09
 
 LIBSRCS = \
 	Text/XML/HaXml.hs Text/XML/HaXml/Combinators.hs Text/XML/HaXml/Lex.hs \
@@ -49,7 +48,9 @@ all: libs toolset
 libs: libHSHaXml.a
 toolset: $(TOOLSET)
 install-filesonly-ghc: libs $(INSTALLDIR)
-	cp libHSHaXml.a HSHaXml.o `cat ghclibdir`
+	cp libHSHaXml.a `cat ghclibdir`
+	-ranlib `cat ghclibdir`/libHSHaXml.a	# ignore if fails on Linux
+	-cp HSHaXml.o `cat ghclibdir`		# file may not exist on MacOS X
 	-rm -r `cat ghcincdir`/HaXml
 	mkdir `cat ghcincdir`/HaXml
 	cp interfaces.tar `cat ghcincdir`/HaXml
@@ -57,14 +58,15 @@ install-filesonly-ghc: libs $(INSTALLDIR)
 	cp $(TOOLSET) $(INSTALLDIR)
 install-filesonly-nhc98: libs $(INSTALLDIR)
 	cp libHSHaXml.a `cat nhc98libdir`/`harch`
+	-ranlib `cat nhc98libdir`/`harch`/libHSHaXml.a
 	-rm -r `cat nhc98incdir`/HaXml
 	mkdir `cat nhc98incdir`/HaXml
-	cp interfaces.tar `cat nhc98incdir`/HaXml
-	cd `cat nhc98incdir`/HaXml; tar xf interfaces.tar; rm interfaces.tar
+	cp interfaces.tar `cat nhc98incdir`/packages/HaXml
+	cd `cat nhc98incdir`/packages/HaXml; tar xf interfaces.tar; rm interfaces.tar
 	cp $(TOOLSET) $(INSTALLDIR)
 install-ghc: install-filesonly-ghc
-	ghc-pkg --remove-package=HaXml || true
-	ghc-pkg --add-package <pkg.conf
+	`cat ghcpkgcmd` --remove-package=HaXml || true
+	`cat ghcpkgcmd` --add-package <pkg.conf
 install-nhc98: install-filesonly-nhc98
 install-tools-hugs: toolset-hugs $(INSTALLDIR)
 	cp $(patsubst ../../%, %, ${TOOLSET}) $(INSTALLDIR)
@@ -78,7 +80,7 @@ $(LIBSRCS) $(TOOLSRCS) Makefile Text/PrettyPrint/HughesPJ.hs: %: ../../src/%
 libHSHaXml.a: $(LIBSRCS)
 	$(COMPILE) $(LIBSRCS)
 	ar r libHSHaXml.a $(LIBOBJS)
-	ld -r --whole-archive -o HSHaXml.o libHSHaXml.a		# for GHCi only
+	-ld -r --whole-archive -o HSHaXml.o libHSHaXml.a	# for GHCi only
 	tar cf interfaces.tar `find Text -name *.hi -print`
 
 
