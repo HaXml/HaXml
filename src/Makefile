@@ -1,5 +1,5 @@
 SOFTWARE = HaXml
-VERSION  = 1.07
+VERSION  = 1.08
 
 LIBSRCS = \
 	Text/XML/HaXml.hs Text/XML/HaXml/Combinators.hs Text/XML/HaXml/Lex.hs \
@@ -9,15 +9,14 @@ LIBSRCS = \
 	Text/XML/HaXml/Xml2Haskell.hs Text/XML/HaXml/Haskell2Xml.hs \
 	Text/XML/HaXml/Html/Generate.hs Text/XML/HaXml/Html/Parse.hs \
 	Text/XML/HaXml/Html/Pretty.hs \
-	Text/ParserCombinators/HuttonMeijerWallace.hs \
-	Text/PrettyPrint/HughesPJ.hs
+	Text/XML/HaXml/Xtract/Combinators.hs \
+	Text/XML/HaXml/Xtract/Lex.hs \
+	Text/XML/HaXml/Xtract/Parse.hs \
+	Text/ParserCombinators/HuttonMeijerWallace.hs
 
 LIBOBJS = $(patsubst %.hs, %.o, $(LIBSRCS))
 
 TOOLSRCS = \
-	Text/XML/HaXml/Xtract/Combinators.hs \
-	Text/XML/HaXml/Xtract/Lex.hs \
-	Text/XML/HaXml/Xtract/Parse.hs \
 	Text/XML/HaXml/DtdToHaskell/TypeDef.hs \
 	Text/XML/HaXml/DtdToHaskell/Convert.hs \
 	Text/XML/HaXml/DtdToHaskell/Instance.hs \
@@ -29,11 +28,11 @@ TOOLSET = \
 	../../Canonicalise ../../MkOneOf
 
 # The caller *must* set the HC variable.
-COMPILER = $(findstring ghc, $(HC))
+COMPILER := $(findstring ghc, $(HC))
 ifeq "$(COMPILER)" "ghc"
-COMPILE  = hmake -HC=$(HC) -I. -package lang -package data -package-name HaXml
+COMPILE  = hmake -HC=$(HC) -I. $(shell cat ghcpkgs) -package-name HaXml
 endif
-COMPILER = $(findstring nhc98, $(HC))
+COMPILER := $(findstring nhc98, $(HC))
 ifeq "$(COMPILER)" "nhc98"
 COMPILE  = hmake -HC=$(HC) -I. -K4M +CTS -H8M -CTS
 endif
@@ -59,7 +58,7 @@ install-nhc98:
 	cd `cat nhc98incdir`/HaXml; tar xf interfaces.tar; rm interfaces.tar
 
 # update the sources if necessary
-$(LIBSRCS) $(TOOLSRCS) Makefile: %: ../../src/%
+$(LIBSRCS) $(TOOLSRCS) Makefile Text/PrettyPrint/HughesPJ.hs: %: ../../src/%
 	cp $< $@
 
 
@@ -72,8 +71,7 @@ libHSHaXml.a: $(LIBOBJS)
 
 # library APIs
 $(LIBOBJS): %.o : %.hs
-	$(COMPILE) Text/XML/HaXml.hs   Text/XML/HaXml/Xml2Haskell.hs
-	$(COMPILE) Text/XML/HaXml/Haskell2Xml.hs   Text/XML/HaXml/OneOfN.hs
+	$(COMPILE) $<
 
 
 # standalone tools
