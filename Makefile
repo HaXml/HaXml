@@ -1,21 +1,21 @@
 SOFTWARE = HaXml
-VERSION  = 1.06
+VERSION  = 1.07b
 
 SRCS = \
-	src/Text/Xml/HaXml.hs src/Text/Xml/HaXml/Combinators.hs \
-	src/Text/Xml/HaXml/Lex.hs \
-	src/Text/Xml/HaXml/Parse.hs src/Text/Xml/HaXml/Pretty.hs \
-	src/Text/Xml/HaXml/Types.hs src/Text/Xml/HaXml/Validate.hs \
-	src/Text/Xml/HaXml/Wrappers.hs src/Text/Xml/HaXml/OneOfN.hs \
-	src/Text/Xml/HaXml/Xml2Haskell.hs src/Text/Xml/HaXml/Haskell2Xml.hs \
-	src/Text/Xml/HaXml/Html/Generate.hs src/Text/Xml/HaXml/Html/Parse.hs \
-	src/Text/Xml/HaXml/Html/Pretty.hs \
-	src/Text/Xml/HaXml/Xtract/Combinators.hs \
-	src/Text/Xml/HaXml/Xtract/Lex.hs \
-	src/Text/Xml/HaXml/Xtract/Parse.hs \
-	src/Text/Xml/HaXml/DtdToHaskell/TypeDef.hs \
-	src/Text/Xml/HaXml/DtdToHaskell/Convert.hs \
-	src/Text/Xml/HaXml/DtdToHaskell/Instance.hs \
+	src/Text/XML/HaXml.hs src/Text/XML/HaXml/Combinators.hs \
+	src/Text/XML/HaXml/Lex.hs \
+	src/Text/XML/HaXml/Parse.hs src/Text/XML/HaXml/Pretty.hs \
+	src/Text/XML/HaXml/Types.hs src/Text/XML/HaXml/Validate.hs \
+	src/Text/XML/HaXml/Wrappers.hs src/Text/XML/HaXml/OneOfN.hs \
+	src/Text/XML/HaXml/Xml2Haskell.hs src/Text/XML/HaXml/Haskell2Xml.hs \
+	src/Text/XML/HaXml/Html/Generate.hs src/Text/XML/HaXml/Html/Parse.hs \
+	src/Text/XML/HaXml/Html/Pretty.hs \
+	src/Text/XML/HaXml/Xtract/Combinators.hs \
+	src/Text/XML/HaXml/Xtract/Lex.hs \
+	src/Text/XML/HaXml/Xtract/Parse.hs \
+	src/Text/XML/HaXml/DtdToHaskell/TypeDef.hs \
+	src/Text/XML/HaXml/DtdToHaskell/Convert.hs \
+	src/Text/XML/HaXml/DtdToHaskell/Instance.hs \
 	src/Text/ParserCombinators/HuttonMeijerWallace.hs \
 	src/Text/PrettyPrint/HughesPJ.hs
 TOOLSRCS = \
@@ -23,7 +23,7 @@ TOOLSRCS = \
 	src/tools/Canonicalise.hs src/tools/MkOneOf.hs
 
 AUX =	configure Makefile src/Makefile src/pkg.conf docs/* examples/* \
-	README LICENSE COPYRIGHT
+	README LICENSE COPYRIGHT script/echo.c
 ALLFILES = $(SRCS) $(TOOLSRCS) $(AUX)
 
 .PHONY: all libs tools haddock
@@ -38,17 +38,17 @@ libs: $(LIBS)
 tools: $(TOOLS)
 install: $(INSTALL)
 libs-ghc:
-	cd obj/ghc; make HC=ghc libs
+	cd obj/ghc; $(MAKE) HC=ghc libs
 libs-nhc98:
-	cd obj/nhc98; make HC=nhc98 libs
+	cd obj/nhc98; $(MAKE) HC=nhc98 libs
 tools-ghc:
-	cd obj/ghc; make HC=ghc toolset
+	cd obj/ghc; $(MAKE) HC=ghc toolset
 tools-nhc98:
-	cd obj/nhc98; make HC=nhc98 toolset
+	cd obj/nhc98; $(MAKE) HC=nhc98 toolset
 install-ghc:
-	cd obj/ghc; make HC=ghc install-ghc
+	cd obj/ghc; $(MAKE) HC=ghc install-ghc
 install-nhc98:
-	cd obj/nhc98; make HC=nhc98 install-nhc98
+	cd obj/nhc98; $(MAKE) HC=nhc98 install-nhc98
 haddock:
 	for file in $(SRCS); \
 		do cpp -P -traditional -D__NHC__ $$file >$$file.uncpp; \
