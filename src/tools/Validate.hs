@@ -2,13 +2,13 @@ module Main where
 
 import System (getArgs)
 import IO
+import List   (isSuffixOf)
+import Maybe  (fromJust)
 
-import XmlTypes     (Document(..),Content(..))
-import XmlParse     (xmlParse,dtdParse)
-import XmlLib       (fix2Args)
-import XmlValidate  (validate)
-import List         (isSuffixOf)
-import Maybe        (fromJust)
+import Text.Xml.HaXml.Types     (Document(..),Content(..))
+import Text.Xml.HaXml.Parse     (xmlParse,dtdParse)
+import Text.Xml.HaXml.Validate  (validate)
+import Text.Xml.HaXml.Wrappers  (fix2Args)
 
 -- This is a fairly trivial application that reads a DTD from a file,
 -- an XML document from another file (or stdin), and writes any validation

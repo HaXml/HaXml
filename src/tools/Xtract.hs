@@ -1,25 +1,20 @@
-module Main where
 ------------------------------------------------------------
 -- The Xtract tool - an XML-grep.
 ------------------------------------------------------------ 
+module Main where
 import System (getArgs, exitWith, ExitCode(..))
 import IO
 import Char         (toUpper)
-
-import XmlTypes
-import XmlParse     (xmlParse)
-import XmlHtmlParse (htmlParse)
-import XtractParseNew  (parseXtract)
-import Pretty       (render, vcat)
-import XmlPP        (content)
-import XmlHtmlGen   (htmlprint)
-
-#if !defined(__HASKELL98__)
-import HPutStrLn
-import IsSuffixOf   (isSuffixOf)
-#else
 import List         (isSuffixOf)
-#endif
+
+import Text.Xml.HaXml.Types
+import Text.Xml.HaXml.Parse         (xmlParse)
+import Text.Xml.HaXml.Html.Parse    (htmlParse)
+import Text.Xml.HaXml.Xtract.Parse  (parseXtract)
+import Text.PrettyPrint.HughesPJ    (render, vcat)
+import Text.Xml.HaXml.Pretty        (content)
+import Text.Xml.HaXml.Html.Generate (htmlprint)
+
 
 main =
   getArgs >>= \args->

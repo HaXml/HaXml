@@ -10,14 +10,13 @@ import System
 import IO
 import List (nub,takeWhile,dropWhile)
 
-import XmlTypes
-import XmlLib    (fix2Args)
-import XmlParse  (dtdParse)
-import DtdToTypeDefPP
-import Pretty (render,vcat)
-#if defined(__HBC__)
-import IOMisc (hPutStrLn)
-#endif
+import Text.Xml.HaXml.Wrappers   (fix2Args)
+import Text.Xml.HaXml.Types      (DocTypeDecl(..))
+import Text.Xml.HaXml.Parse      (dtdParse)
+import Text.Xml.HaXml.DtdToHaskell.TypeDef  (TypeDef,ppTypeDef,mangle)
+import Text.Xml.HaXml.DtdToHaskell.Convert  (dtd2TypeDef)
+import Text.Xml.HaXml.DtdToHaskell.Instance (mkInstance)
+import Text.PrettyPrint.HughesPJ (render,vcat)
 
 main =
   fix2Args >>= \(inf,outf)->
@@ -26,10 +25,11 @@ main =
   ( if outf=="-" then return stdout
     else openFile outf WriteMode ) >>= \o->
   let (DTD name _ markup) = (getDtd . dtdParse inf) content
-      decls = (nub . dtd2typedef) markup
+      decls = (nub . dtd2TypeDef) markup
       realname = if null name then mangle (trim inf) else mangle name
   in
-  do hPutStrLn o ("module DTD_"++realname++" where\n\nimport Xml2Haskell")
+  do hPutStrLn o ("module DTD_"++realname
+                  ++" where\n\nimport Text.Xml.HaXml.Xml2Haskell")
      hPutStrLn o "\n\n{-Type decls-}\n"
      (hPutStrLn o . render . vcat . map ppTypeDef) decls
      hPutStrLn o "\n\n{-Instance decls-}\n"
@@ -44,4 +44,3 @@ trim name | '/' `elem` name  = (trim . tail . dropWhile (/='/')) name
           | '.' `elem` name  = takeWhile (/='.') name
           | otherwise        = name
 
---render = foldr (.) id . map showsTypeDef . nub
