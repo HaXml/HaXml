@@ -21,7 +21,7 @@ set AR=C:\DEV\MinGW\bin\ar.exe
 set LD=C:\DEV\ghc\ghc-6.2\gcc-lib\ld.exe
 
 rem    Source directory for HaXml:
-set SRC=C:\DEV\Haskell\lib\HaXml-1.11\src
+set SRC=C:\DEV\Haskell\lib\HaXml-1.12\src
 
 rem    Two very long lines (500-600 chars) follow here.  
 rem    They should not need changing.

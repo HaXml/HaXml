@@ -21,6 +21,12 @@ Options to configure are:
 Complaints to:  :-)
     Malcolm.Wallace@cs.york.ac.uk
 
+P.S.
+    For those building on Windows /without/ Cygwin, you can avoid the need
+    for configure/make steps by simply running the minimal build script in
+        Build.bat
+    You will need to edit it for the location of your compiler etc.
+
 ----
 What this package contains:
 

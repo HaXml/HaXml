@@ -24,11 +24,11 @@
 
 <center><h3><a name="what">What is HaXml?</a></h3></center>
 <p>
-<b>HaXml</b> is a collection of utilities for using
-<a href="http://www.haskell.org">Haskell</a> and
-<a href="http://www.w3.org/TR/REC-xml">XML</a>
-together.  Its basic facilities include:
-
+<b>HaXml</b> is a collection of utilities for parsing, filtering,
+transforming, and generating
+<a href="http://www.w3.org/TR/REC-xml">XML</a> documents using
+<a href="http://www.haskell.org">Haskell</a>.  Its basic facilities
+include:
 <ul>
 <li> a parser for XML,
 <li> a separate error-correcting parser for HTML,
@@ -110,10 +110,10 @@ Some additional info about using the various facilities is here:
 <center><h3><a name="downloads">Downloads</a></h3></center>
 <p>
 <b>Current version:</b>
-HaXml-1.11, release date 2004.01.23<br>
+HaXml-1.12, release date 2004.05.18<br>
 By HTTP:
-<a href="http://www.haskell.org/HaXml/HaXml-1.11.tar.gz">.tar.gz</a>,
-<a href="http://www.haskell.org/HaXml/HaXml-1.11.zip">.zip</a>.
+<a href="http://www.haskell.org/HaXml/HaXml-1.12.tar.gz">.tar.gz</a>,
+<a href="http://www.haskell.org/HaXml/HaXml-1.12.zip">.zip</a>.
 <br>
 By FTP: 
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/">
@@ -167,34 +167,27 @@ of your compiler etc.
 <hr>
 <center><h3><a name="news">Recent news</a></h3></center>
 <p>
-The latest version (1.11) has the following features and fixes:<br>
+The latest version (1.12) has the following features and fixes:<br>
 <ul>
-<li> Fix a tiny but embarrassing bug in the previous fix for complex
-     DTDs being translated by DtdToHaskell.  It broke on a very simple
-     DTD like<br>
-     &nbsp;&nbsp;&nbsp;&nbsp;<tt>&lt;!ELEMENT A (B|C)&gt;</tt><br>
-     which became sequence<br>
-     &nbsp;&nbsp;&nbsp;&nbsp;<tt>data A = A B C</tt><br>
-     instead of choice<br>
-     &nbsp;&nbsp;&nbsp;&nbsp;<tt>data A = AB B | AC C</tt><br>
+<li> The licence has changed.  Previously covered by the Artistic Licence,
+     we have now converted to the LGPL for all the library code, and GPL
+     for the standalone tools.
+<li> Now includes a minimal Build.bat script for Windows, so you can
+     avoid any need for Cygwin utilities and get by with just GHC
+     and Mingw.
+<li> Fix a bug in DtdToHaskell, whereby an auxiliary datatype introduced
+     by the translation into Haskell could (in certain circumstances)
+     cause an extra layer of element tag nesting on the output (via the
+     'toElem' method).
+<li> Fixed the parsing of entity/character references in the error-correcting
+     HTML parser.
+<li> Changes in the signatures of Xml2Haskell (made in version 1.09)
+     have now been mirrored in the converse library, Haskell2Xml.
+     Thus, there are new functions <tt>readXml</tt> and
+     <tt>showXml</tt> converting to/from Strings, <tt>hGetXml</tt>
+     and <tt>hPutXml</tt> use file Handles, and the old functions using
+     filenames are renamed to <tt>fReadXml</tt> and <tt>fWriteXml</tt>.
 </ul>
-<p>
-The previous version (1.10) has the following features and fixes:<br>
-<ul>
-<li> All being well, HaXml now works again for Hugs (versions &ge;
-     September 2003).  The library sources are installed using
-     <em>hugs-package</em>, and the tools are installed as scripts
-     for <em>runhugs</em>.
-<li> Fixed the internal (and external) representations of XML character
-     references.
-<li> New combinators to `escape' and `unescape' reserved XML characters in
-     text and attribute values has been contributed by George Russell.
-     (e.g. to convert "&lt;" into "&amp;lt;".)
-<li> Bugfixes to DtdToHaskell: A DTD content specification of the form<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;<tt>&lt;!ELEMENT A (B*,(C|(D?,E*)))&gt;</tt><br>
-     was incorrectly translated to the Haskell<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;<tt>data A = A [B] (OneOf3 C (Maybe D) [E])</tt><br>     but the new (correct) translation is<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;<tt>data A = A [B] (OneOf2 C (Maybe D,[E]))</tt><br></ul>
 
 <br>
 <a href="changelog.html">Complete Changelog</a><br>
@@ -259,6 +252,10 @@ your requirements.)
     fully statically-typed transformation of XML documents, thus
     guaranteeing correctness, and what is more, it is also faster
     than the untyped XSLT!
+<li>The <a href="http://www.xcerpt.org/">Xcerpt project</a> uses HaXml
+    to create another rule-based query and transformation language for XML,
+    inspired by logic programming, and based on positional selection rather
+    than navigational selection.
 <li>Ulf Wiger describes an Erlang toolkit for XML:
     <a href="http://www.erlang.se/euc/00/">XMerL</a>
 <li>The Java world has adopted the ideas from <em>DtdToHaskell</em> into

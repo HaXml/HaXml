@@ -1,5 +1,5 @@
 SOFTWARE = HaXml
-VERSION  = 1.11
+VERSION  = 1.12
 
 SRCS = \
 	src/Text/XML/HaXml.hs src/Text/XML/HaXml/Combinators.hs \
@@ -24,7 +24,7 @@ TOOLSRCS = \
 	src/tools/Canonicalise.hs src/tools/MkOneOf.hs
 
 AUX =	configure Makefile src/Makefile src/pkg.conf docs/* examples/* \
-	README LICENSE COPYRIGHT script/echo.c rpm.spec
+	README LICENCE* COPYRIGHT script/echo.c rpm.spec Build.bat
 ALLFILES = $(SRCS) $(TOOLSRCS) $(AUX)
 # These files in CVS are NOT included in the src distribution.
 NOT =	Makefile.inc Makefile.nhc98 src/Makefile.inc src/Makefile.nhc98

@@ -2,7 +2,7 @@
 #       configure -- prepare to compile/install the HaXml package
 #       author:   Malcolm.Wallace@cs.york.ac.uk, August 2002
 
-VERSION="1.11"
+VERSION="1.12"
 
 if [ -f obj/prefix ]
 then INSTALLDIR=`cat obj/prefix`
@@ -261,6 +261,7 @@ then
   fi
   echo $GHCLIBDIR >obj/ghc/ghclibdir
   echo $GHCINCDIR >obj/ghc/ghcincdir
+  echo ghc-pkg-$GHCVERSION >obj/ghc/ghcpkgcmd
   echo ${BUILDWITH-ghc} >obj/ghccmd
   cp -Rp src/Text src/tools src/Makefile src/pkg.conf obj/ghc
   if [ "$GHCNUM" -ge "504" ]
