@@ -23,7 +23,7 @@ mkInstance (DataDef aux n fs []) =
                   <+> frpat <+> text "[]):rest) =" $$
              nest 4 (text "(Just" <+> frretval <> text ", rest)") $$
              text "fromElem (CMisc _:rest) = fromElem rest" $$
-             text "fromElem (CString s:rest) | all isSpace s = fromElem rest" $$
+             text "fromElem (CString _ s:rest) | all isSpace s = fromElem rest" $$
              text "fromElem rest = (Nothing, rest)"
            $$
              text "toElem" <+> topatval <+> text "=" $$
@@ -46,7 +46,7 @@ mkInstance (DataDef False n fs [(n0,sts)]) =
                                <> text ", rest)")
                     ) $$
              text "fromElem (CMisc _:rest) = fromElem rest" $$
-             text "fromElem (CString s:rest) | all isSpace s = fromElem rest" $$
+             text "fromElem (CString _ s:rest) | all isSpace s = fromElem rest" $$
              text "fromElem rest = (Nothing, rest)"
            $$
              text "toElem" <+> parens (mkCpat n0 topat vs) <+> text "=" $$
@@ -85,7 +85,7 @@ mkInstance (DataDef aux n fs cs) =
                          <+> frpat <+> text "c0):rest) =" ) $$
              mkFrAux aux frattr cs $$
              text "fromElem (CMisc _:rest) = fromElem rest" $$
-             text "fromElem (CString s:rest) | all isSpace s = fromElem rest" $$
+             text "fromElem (CString _ s:rest) | all isSpace s = fromElem rest" $$
              text "fromElem rest = (Nothing, rest)"
            $$
              if aux then vcat (map (mkToAux mixattrs) cs)
