@@ -7,7 +7,7 @@
        when an attribute includes a double quote.
    (2) representing XML which contains non-ASCII characters as ASCII.
    -}
-module Escape(
+module Text.XML.HaXml.Escape(
    xmlEscape,
       -- :: XmlEscaper -> Element -> Element
    xmlUnEscape,
