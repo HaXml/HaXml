@@ -49,8 +49,8 @@ False `gives` _ = []
 --   errors in the document with respect to its DTD.
 --
 --   If you have several documents to validate against a single DTD,
---   then you will gain efficiency by `freezing-in' the DTD by partial
---   application, e.g. "checkMyDTD = validate myDTD".
+--   then you will gain efficiency by freezing-in the DTD through partial
+--   application, e.g. @checkMyDTD = validate myDTD@.
 validate :: DocTypeDecl -> Element -> [String]
 validate dtd' elem = valid elem
   where

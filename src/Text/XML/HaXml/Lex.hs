@@ -1,18 +1,10 @@
-module Text.Xml.HaXml.Lex
-  ( xmlLex         -- :: String -> String -> [Token]
-  , xmlReLex       -- :: Posn   -> String -> [Token]
-  , posInNewCxt    -- :: String -> Posn
-  , Posn(..)
-  , TokenT(..)
-  , Token
-  , Special(..)
-  , Section(..)
-  ) where
-
+-- | You don't normally need to use this Lex module directly - it is
+--   called automatically by the parser.
+--
 -- This is a hand-written lexer for tokenising the text of an XML
 -- document so that it is ready for parsing.  It attaches position
 -- information in (line,column) format to every token.  The main
--- entry point is xmlLex.  A secondary entry point, xmlReLex, is
+-- entry point is 'xmlLex'.  A secondary entry point, 'xmlReLex', is
 -- provided for when the parser needs to stuff a string back onto
 -- the front of the text and re-tokenise it (typically when expanding
 -- macros).
@@ -20,14 +12,32 @@ module Text.Xml.HaXml.Lex
 -- As one would expect, the lexer is essentially a small finite
 -- state machine.
 
+module Text.Xml.HaXml.Lex
+  (
+  -- * Entry points to the lexer
+    xmlLex         -- :: String -> String -> [Token]
+  , xmlReLex       -- :: Posn   -> String -> [Token]
+  , posInNewCxt    -- :: String -> Posn
+  -- * Token and position types
+  , Token
+  , Posn(..)
+  , TokenT(..)
+  , Special(..)
+  , Section(..)
+  ) where
+
 import Char
 
 data Where = InTag | NotInTag
     deriving (Eq)
 
+-- | All tokens are paired up with a source position.
 type Token = (Posn, TokenT)
 
-data Posn = Pn String Int Int (Maybe Posn) -- filename, line, column, incl.point
+-- | Source positions contain a filename, line, column, and an
+--   inclusion point, which is itself another source position,
+--   recursively.
+data Posn = Pn String Int Int (Maybe Posn)
         deriving (Eq)
 
 instance Show Posn where
@@ -39,38 +49,39 @@ instance Show Posn where
                                     Just p  -> showString "\n    used by  " .
                                                shows p )
 
+-- | The basic token type.
 data TokenT =
-      TokCommentOpen		--     <!--
-    | TokCommentClose		--     -->
-    | TokPIOpen			--     <?
-    | TokPIClose		--     ?>
-    | TokSectionOpen		--     <![
-    | TokSectionClose		--     ]]>
-    | TokSection Section	--     CDATA INCLUDE IGNORE etc
-    | TokSpecialOpen		--     <!
-    | TokSpecial Special	--     DOCTYPE ELEMENT ATTLIST etc
-    | TokEndOpen		--     </
-    | TokEndClose		--     />
-    | TokAnyOpen		--     <
-    | TokAnyClose		--     >
-    | TokSqOpen			--     [
-    | TokSqClose		--     ]
-    | TokEqual			--     =
-    | TokQuery			--     ?
-    | TokStar			--     *
-    | TokPlus			--     +
-    | TokAmp			--     &
-    | TokSemi			--     ;
-    | TokHash			--     #
-    | TokBraOpen		--     (
-    | TokBraClose		--     )
-    | TokPipe			--     |
-    | TokPercent		--     %
-    | TokComma			--     ,
-    | TokQuote			--     '' or ""
-    | TokName      String	--     begins with letter
-    | TokFreeText  String	--     any character data
-    | TokNull			--     fake token
+      TokCommentOpen		-- ^   \<!--
+    | TokCommentClose		-- ^   -->
+    | TokPIOpen			-- ^   \<?
+    | TokPIClose		-- ^   ?>
+    | TokSectionOpen		-- ^   \<![
+    | TokSectionClose		-- ^   ]]>
+    | TokSection Section	-- ^   CDATA INCLUDE IGNORE etc
+    | TokSpecialOpen		-- ^   \<!
+    | TokSpecial Special	-- ^   DOCTYPE ELEMENT ATTLIST etc
+    | TokEndOpen		-- ^   \<\/
+    | TokEndClose		-- ^   \/>
+    | TokAnyOpen		-- ^   \<
+    | TokAnyClose		-- ^   >
+    | TokSqOpen			-- ^   [
+    | TokSqClose		-- ^   ]
+    | TokEqual			-- ^   =
+    | TokQuery			-- ^   ?
+    | TokStar			-- ^   *
+    | TokPlus			-- ^   +
+    | TokAmp			-- ^   &
+    | TokSemi			-- ^   ;
+    | TokHash			-- ^   #
+    | TokBraOpen		-- ^   (
+    | TokBraClose		-- ^   )
+    | TokPipe			-- ^   |
+    | TokPercent		-- ^   %
+    | TokComma			-- ^   ,
+    | TokQuote			-- ^   \'\' or \"\"
+    | TokName      String	-- ^   begins with letter
+    | TokFreeText  String	-- ^   any character data
+    | TokNull			-- ^   fake token
     deriving (Eq)
 
 data Special =
@@ -173,12 +184,21 @@ accumulateUntil (c:cs) tok acc pos  p (s:ss) k
     | otherwise  = accumulateUntil (c:cs) tok (s:acc) pos (addcol 1 p) ss k
 
 ----
+-- | @posInNewCxt name pos@ creates a new source position from an old one.
+--   It is used when opening a new file (e.g. a DTD inclusion), to denote
+--   the start of the file @name@, but retain the stacked information that
+--   it was included from the old @pos@.
 posInNewCxt :: String -> Maybe Posn -> Posn
 posInNewCxt name pos = Pn name 1 1 pos
 
+-- | The first argument to 'xmlLex' is the filename (used for source positions,
+--   especially in error messages), and the second is the string content of
+--   the XML file.
 xmlLex :: String -> String -> [Token]
 xmlLex filename = xmlAny [] (posInNewCxt ("file "++filename) Nothing)
 
+-- | 'xmlReLex' is used when the parser expands a macro (PE reference).
+--    The expansion of the macro must be re-lexed as if for the first time.
 xmlReLex :: Posn -> String -> [Token]
 xmlReLex p s
       | "INCLUDE"  `prefixes` s  = emit (TokSection INCLUDEx) p: k 7

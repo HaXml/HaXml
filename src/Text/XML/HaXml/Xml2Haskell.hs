@@ -1,23 +1,28 @@
+-- | This module provides the 'XmlContent' class and 'readXml' and 'writeXml'
+--   functions that you will need if you generate a module of Haskell
+--   datatype definitions from an XML DTD.  Use the DtdToHaskell
+--   program to generate both datatypes and instances of this class,
+--   then import this module to read and write values to and from XML files.
+
 module Text.Xml.HaXml.Xml2Haskell
-  ( readXml, writeXml
+  ( -- * Reading and writing XML data into a typed Haskell representation.
+    readXml, writeXml
+  -- * The enabling classes.
   , XmlContent(..)
   , XmlAttributes(..)
   , XmlAttrType(..)
+  -- * Parsing and printing helper functions
   , definite, many, fromText, toText
-  , Defaultable(..)
   , maybeToAttr, defaultToAttr
   , definiteA, defaultA, possibleA, fromAttrToStr, toAttrFrStr
+  , Defaultable(..)
   , str2attr, attr2str
-  , Element(..), Content(..)	-- fromXmlTypes
+  -- * Re-exports
+  , Element(..), Content(..)	-- from Text.Xml.HaXml.Types
   , catMaybes			-- from Maybe
+  -- * Auxiliary types
   , OneOf2(..), OneOf3(..), OneOf4(..)
   ) where
-
--- This module provides the XmlContent class and readXml/writeXml
--- functions that you will need if you generate a module of Haskell
--- data/newtype definitions from an XML DTD.  Use the MkDtd.hs
--- program to generate your datatypes, then import this module
--- to read and write them to/from XML files.
 
 import IO
 import Maybe    (catMaybes)
@@ -26,9 +31,10 @@ import Text.Xml.HaXml.Types
 import Text.Xml.HaXml.Pretty (document)
 import Text.Xml.HaXml.Parse  (xmlParse)
 
-readXml  :: XmlContent a => FilePath -> IO a
-writeXml :: XmlContent a => FilePath -> a -> IO ()
 
+-- | Read an XML document from a file and convert it to a fully-typed
+--   Haskell value.
+readXml  :: XmlContent a => FilePath -> IO a
 readXml fp = do
     f <- ( if fp=="-" then return stdin
            else openFile fp ReadMode )
@@ -36,6 +42,9 @@ readXml fp = do
     let (Document _ _ y) = xmlParse fp x
     return (maybe (error "XML value not found") id (fst (fromElem [CElem y])))
 
+-- | Write a fully-typed Haskell value to the given file as an XML
+--   document.
+writeXml :: XmlContent a => FilePath -> a -> IO ()
 writeXml fp x = do
     f <- ( if fp=="-" then return stdout
            else openFile fp WriteMode )
@@ -49,12 +58,18 @@ writeXml fp x = do
 
 ---- Conversion operations on generated types ----
 
+-- | The XmlContent class promises that an XML content element can be
+--   converted to and from a Haskell value.
 class XmlContent a where
     fromElem :: [Content] -> (Maybe a,[Content])
     toElem   :: a -> [Content]
+-- | The XmlAttributes class promises that a list of XML tag attributes
+--   can be converted to and from a Haskell value.
 class XmlAttributes a where
     fromAttrs :: [Attribute] -> a
     toAttrs   :: a -> [Attribute]
+-- | The XmlAttrType class promises that an attribute taking an XML enumerated
+--   type can be converted to and from a Haskell value.
 class XmlAttrType a where
     fromAttrToTyp :: String -> Attribute -> Maybe a
     toAttrFrTyp   :: String -> a -> Maybe Attribute
@@ -97,6 +112,9 @@ toText s = [CString False s]
 
 ---- Useful auxiliaries for "fromAttributes" ----
 
+-- | If an attribute is defaultable, then it either takes the default
+--   value (which is omitted from the output), or a non-default value
+--   (which obviously must be printed).
 data Defaultable a  = Default a    | NonDefault a    deriving (Eq,Show)
 
 searchMaybe :: (a -> Maybe b) -> [a] -> Maybe b

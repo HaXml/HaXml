@@ -1,7 +1,32 @@
-module Text.Xml.HaXml.Html.Generate where
-
--- These are just some common abbreviations for generating HTML
--- content within the XML transformation framework.
+-- | These are just some common abbreviations for generating HTML
+--   content within the XML transformation framework defined
+--   by "Text.Xml.HaXml.Combinators".
+module Text.Xml.HaXml.Html.Generate
+  ( -- * HTML construction filters
+  -- ** Containers
+    html
+  , hhead
+  , htitle
+  , hbody
+  , h1, h2, h3, h4
+  , hpara
+  , hdiv, hspan, margin
+  -- ** Anchors
+  , anchor, makehref, anchorname
+  -- ** Text style
+  , hpre
+  , hcentre
+  , hem, htt, hbold
+  , parens, bullet
+  -- ** Tables
+  , htable, hrow, hcol
+  -- ** Breaks, lines
+  , hbr, hhr
+  -- ** Attributes
+  , showattr, (!), (?)
+  -- * A simple HTML pretty-printer
+  , htmlprint
+  ) where
 
 import Char (isSpace)
 import List (partition)
@@ -12,10 +37,9 @@ import qualified Text.PrettyPrint.HughesPJ as Pretty
 
 ---- Constructor functions
 
---     :: CFilter
-hbr     = mkElem "BR" []
-
---     :: [CFilter] -> CFilter
+html, hhead, htitle, hbody, h1, h2, h3, h4, hpara, hpre, hcentre,
+    hem, htt, hbold, htable, hrow, hcol, hdiv, hspan, margin
+       :: [CFilter] -> CFilter
 html    = mkElem "HTML"
 hhead   = mkElem "HEAD"
 htitle  = mkElem "TITLE"
@@ -25,9 +49,6 @@ h2      = mkElem "H2"
 h3      = mkElem "H3"
 h4      = mkElem "H4"
 hpara   = mkElem "P"
-anchor  = mkElemAttr "A"
-makehref r   = anchor [ ("href",r) ]
-anchorname n = anchor [ ("name",n) ]
 hpre    = mkElem "PRE"
 hcentre = mkElem "CENTER"
 hem     = mkElem "EM"
@@ -42,6 +63,18 @@ hdiv   = mkElem "DIV"
 hspan  = mkElem "SPAN"
 margin = mkElemAttr "DIV" [("margin-left",("2em"!)),
                            ("margin-top", ("1em"!))]
+
+anchor      :: [(String, CFilter)] -> [CFilter] -> CFilter
+anchor       = mkElemAttr "A"
+
+makehref, anchorname :: CFilter -> [CFilter] -> CFilter
+makehref r   = anchor [ ("href",r) ]
+anchorname n = anchor [ ("name",n) ]
+
+
+hbr, hhr :: CFilter
+hbr       = mkElem "BR" []
+hhr       = mkElem "HR" []
 
 
 showattr, (!), (?) :: String -> CFilter

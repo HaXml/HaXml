@@ -1,7 +1,12 @@
-module Text.Xml.HaXml.Html.Pretty where
+-- | This is a separate pretty-printer for HTML documents, recognising
+--   some of the differences between HTML and true XML.
 
--- This is a separate pretty-printer for HTML documents, recognising
--- some of the differences between HTML and true XML.
+module Text.Xml.HaXml.Html.Pretty
+  ( document
+  , element
+  , attribute
+  , content
+  ) where
 
 import Prelude hiding (maybe,either)
 import Maybe hiding (maybe)

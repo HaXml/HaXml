@@ -1,28 +1,37 @@
+-- | The class 'Haskell2Xml' is a replacement for Read and Show: it provides
+--   textual conversions (to and from an XML representation) for your
+--   Haskell data values.  Use the tool
+--   DrIFT to derive this class for your own datatypes, then
+--   include this module where you want to use the facilities.
+--
+--   The methods 'toContents' and 'fromContents' convert a value to and from
+--   a generic internal representation of an XML document /without/ a DTD.
+--   The functions 'toXml' and 'fromXml' convert a value to and from a generic
+--   internal representation of an XML document /including/ a DTD.
+--   The functions 'readXml' and 'writeXml' do the conversion to and from
+--   the given filenames.
+--   The functions 'hReadXml' and 'hWriteXml' do the conversion to and from
+--   the given file handles.
+--   (See the type signatures.)
+
 module Text.Xml.HaXml.Haskell2Xml
-  ( Haskell2Xml(..)
-  , HType(..)
-  , Constr(..)
+  ( -- * Re-export the entire set of XML type definitions
+    module Text.Xml.HaXml.Types
+  -- * The class Haskell2Xml
+  , Haskell2Xml(..)
+  -- ** Conversion functions
   , toXml, toDTD, fromXml
+  -- ** IO functions
   , readXml, writeXml
   , hReadXml, hWriteXml
+  -- * Auxiliary types
+  , HType(..)
+  , Constr(..)
+  -- Convenience functions
   , mkElem , mkElemC
   , showConstr
-  , module Text.Xml.HaXml.Types
   , isPrefixOf
   ) where
-
--- The class Haskell2Xml is a replacement for Read and Show: it provides
--- textual conversions for your Haskell data values - use the packaged
--- version of DrIFT to derive this class for your own datatypes, then
--- include this module where you want to use the facilities.
---
--- The functions toXml and fromXml convert a value to and from a generic
--- internal representation of an XML document (including a DTD).
--- The functions readXml and writeXml do the conversion to and from
--- the given filenames.
--- The functions hReadXml and hWriteXml do the conversion to and from
--- the given file handles.
--- (See the type signatures.)
 
 import IO
 
@@ -34,13 +43,16 @@ import List(intersperse,isPrefixOf,isSuffixOf,partition)
 import Char (ord)
 
 
+-- | A concrete representation of any Haskell type.
 data HType =
       Maybe HType
     | List HType
     | Tuple [HType]
-    | Prim String String
+    | Prim String String	-- ^ separate Haskell name and Xml name
     | String
     | Defined String [HType] [Constr]
+	-- ^ A user-defined type has a name, a sequence of type variables,
+	--   and a set of constructors.
     deriving (Show)
 
 instance Eq HType where
@@ -52,6 +64,10 @@ instance Eq HType where
     (Defined n xs _) == (Defined m ys _)  =  n==m && xs==ys
     _          == _          =  False
 
+-- | A concrete representation of any user-defined Haskell constructor.
+--   The constructor has a name, and a sequence of component types.  The
+--   first sequence of types represents the minimum set of free type
+--   variables occurring in the (second) list of real component types.
 data Constr = Constr String [HType] [HType]
     deriving (Eq,Show)
 
@@ -68,14 +84,22 @@ atoi = foldl (\x y-> x*10 + ord y - ord '0') 0
 atoI :: String -> Integer
 atoI = foldl (\x y-> x*10 + toInteger (ord y) - toInteger (ord '0')) 0
 
+-- | A class to convert any Haskell value to and from an XML representation.
 class Haskell2Xml a where
+    -- | Determine the type of the Haskell value (to create a DTD).
     toHType      :: a -> HType
+    -- | Convert the Haskell value to a generic XML value.
     toContents   :: a -> [Content]
+    -- | Parse a Haskell value from a generic XML representation, returning
+    --   the value and the remainder of the XML.
     fromContents :: [Content] -> (a,[Content])
 
-    -- The following is used only to coerce lists of Char into String.
+    -- | This function is a dummy for most types: it is used /only/ in
+    --   the Char instance for coercing lists of Char into String.
     xToChar      :: a -> Char
     xToChar       = error "Haskell2Xml.xToChar used in error"
+    -- | This function is a dummy for most types: it is used /only/ in
+    --   the Char instance for coercing lists of Char into String.
     xFromChar    :: Char -> a
     xFromChar     = error "Haskell2Xml.xFromChar used in error"
 
@@ -197,6 +221,10 @@ mkElem x cs  = CElem (Elem (flat (toHType x) "") [] cs)
 mkElemC x cs = CElem (Elem x [] cs)
 
 
+-- | 'toDTD' converts a concrete representation of the Haskell type of
+--   a value (obtained by the method 'toHType') into a real DocTypeDecl.
+--   It ensures that PERefs are defined before they are used, and that no
+--   element or attribute-list is declared more than once.
 toDTD :: HType -> DocTypeDecl
 toDTD ht =
   DTD (toplevel ht) Nothing (macrosFirst (reverse (h2d True [] [] [ht])))
@@ -287,6 +315,8 @@ constrHtExpr (Constr s fv hts) = innerHtExpr (Tuple hts) None
 -- Exported user functions.
 ---------------------------
 
+-- | Convert any Haskell value to an XML document, including both DTD and
+--   content.
 toXml :: Haskell2Xml a => a -> Document
 toXml value =
   let ht = toHType value in
@@ -297,6 +327,8 @@ toXml value =
              (Defined _ _ _, cs) -> (Elem (flat ht "-XML") [] cs)
              (_,[CElem e]) -> e )
 
+-- | Read a Haskell value from an XML document, ignoring the DTD and
+--   using the Haskell result type to determine how to parse it.
 fromXml :: Haskell2Xml a => Document -> a
 fromXml (Document _ _ e@(Elem n _ cs))
   | "tuple" `isPrefixOf` n = fst (fromContents cs)
@@ -304,6 +336,7 @@ fromXml (Document _ _ e@(Elem n _ cs))
   | otherwise = fst (fromContents [CElem e])
 
 
+-- | Read a Haskell value from an XML document stored in a file.
 readXml  :: Haskell2Xml a => FilePath -> IO a
 readXml fp = do
     f <- openFile fp ReadMode 
@@ -311,17 +344,21 @@ readXml fp = do
     --hClose f
     return (fromXml (xmlParse fp content))
 
+-- | Write a Haskell value to the given file as an XML document.
 writeXml :: Haskell2Xml a => FilePath -> a -> IO ()
 writeXml fp v = do
     f <- openFile fp WriteMode 
     (hPutStrLn f . render . PP.document . toXml) v
     hClose f
 
+-- | Read a Haskell value from an XML document transmitted through the
+--   given 'Handle'.
 hReadXml  :: Haskell2Xml a => Handle -> IO a
 hReadXml f = do
     content <- hGetContents f
     return (fromXml (xmlParse "<unknown>" content))
 
+-- | Write a Haskell value to the given 'Handle' as an XML document.
 hWriteXml :: Haskell2Xml a => Handle -> a -> IO ()
 hWriteXml f v = (hPutStrLn f . render . PP.document . toXml) v
 

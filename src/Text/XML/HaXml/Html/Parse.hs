@@ -1,15 +1,15 @@
+-- | This is a parser for HTML documents.  Unlike for XML documents, it
+--   must include a certain amount of error-correction to account for
+--   HTML features like self-terminating tags, unterminated tags, and
+--   incorrect nesting.  The input is tokenised by the
+--   XML lexer (a separate lexer is not required for HTML).
+
+-- It uses a slightly extended version of the Hutton/Meijer parser
+-- combinators.
+
 module Text.Xml.HaXml.Html.Parse
   ( htmlParse
   ) where
-
--- This is a parser for HTML documents.  Unlike for XML documents, it
--- must include a certain amount of error-correction to account for
--- HTML features like self-terminating tags, unterminated tags, and
--- incorrect nesting.  The input has already been tokenised by the
--- XML lexer (a separate lexer is not required for HTML).
---
--- It uses a slightly extended version of the Hutton/Meijer parser
--- combinators.
 
 import Prelude hiding (either,maybe,sequence)
 import Maybe hiding (maybe)
@@ -31,6 +31,9 @@ debug :: Monad m => String -> m ()
 debug s = return ()
 #endif
 
+-- | The first argument is the name of the file, the second is the string
+--   contents of the file.  The result is the generic representation of
+--   an XML document.
 htmlParse :: String -> String -> Document
 htmlParse name = simplify . sanitycheck . papply document () . xmlLex name
 
