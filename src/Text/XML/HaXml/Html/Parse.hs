@@ -62,8 +62,8 @@ simplify (Document p st (Elem n avs cs)) =
     Document p st (Elem n avs (deepfilter simp cs))
   where
     simp (CElem (Elem "null" [] [])) = False
-    simp (CElem (Elem  n     _  [])) | n `elem` ["FONT","P","I","B","EM"
-                                                ,"TT","BIG","SMALL"] = False
+    simp (CElem (Elem  n     _  [])) | n `elem` ["font","p","i","b","em"
+                                                ,"tt","big","small"] = False
     simp (CString False s) | all isSpace s = False
     simp _ = True
     deepfilter p =
@@ -72,50 +72,50 @@ simplify (Document p st (Elem n avs cs)) =
                           _ -> c)
 
 -- opening any of these, they close again immediately
-selfclosingtags = ["IMG","HR","BR","META","COL","LINK","BASE"
-                  ,"PARAM","AREA","FRAME","INPUT"]
+selfclosingtags = ["img","hr","br","meta","col","link","base"
+                  ,"param","area","frame","input"]
 
 --closing this, implicitly closes any of those which are contained in it
 closeInnerTags =
-  [ ("UL",      ["LI"])
-  , ("OL",      ["LI"])
-  , ("DL",      ["DT","DD"])
-  , ("TR",      ["TH","TD"])
-  , ("DIV",     ["P"])
-  , ("THEAD",   ["TH","TR","TD"])
-  , ("TFOOT",   ["TH","TR","TD"])
-  , ("TBODY",   ["TH","TR","TD"])
-  , ("TABLE",   ["TH","TR","TD","THEAD","TFOOT","TBODY"])
-  , ("CAPTION", ["P"])
-  , ("TH",      ["P"])
-  , ("TD",      ["P"])
-  , ("LI",      ["P"])
-  , ("DT",      ["P"])
-  , ("DD",      ["P"])
-  , ("OBJECT",  ["P"])
-  , ("MAP",     ["P"])
-  , ("BODY",    ["P"])
+  [ ("ul",      ["li"])
+  , ("ol",      ["li"])
+  , ("dl",      ["dt","dd"])
+  , ("tr",      ["th","td"])
+  , ("div",     ["p"])
+  , ("thead",   ["th","tr","td"])
+  , ("tfoot",   ["th","tr","td"])
+  , ("tbody",   ["th","tr","td"])
+  , ("table",   ["th","tr","td","thead","tfoot","tbody"])
+  , ("caption", ["p"])
+  , ("th",      ["p"])
+  , ("td",      ["p"])
+  , ("li",      ["p"])
+  , ("dt",      ["p"])
+  , ("dd",      ["p"])
+  , ("object",  ["p"])
+  , ("map",     ["p"])
+  , ("body",    ["p"])
   ]
 
 --opening this, implicitly closes that
 closes :: Name -> Name -> Bool
-"A"  `closes` "A"   =  True
-"LI" `closes` "LI"  =  True
-"TH" `closes`  t    | t `elem` ["TH","TD"]      =  True
-"TD" `closes`  t    | t `elem` ["TH","TD"]      =  True
-"TR" `closes`  t    | t `elem` ["TH","TD","TR"] =  True
-"DT" `closes`  t    | t `elem` ["DT","DD"]      =  True
-"DD" `closes`  t    | t `elem` ["DT","DD"]      =  True
-"FORM"  `closes` "FORM"      = True
-"LABEL" `closes` "LABEL"     = True
-_       `closes` "OPTION"    = True
-"THEAD" `closes` t  | t `elem` ["COLGROUP"]          = True
-"TFOOT" `closes` t  | t `elem` ["THEAD","COLGROUP"]  = True
-"TBODY" `closes` t  | t `elem` ["TBODY","TFOOT","THEAD","COLGROUP"] = True
-"COLGROUP" `closes` "COLGROUP"  = True
-t `closes` "P"
-    | t `elem` ["P","H1","H2","H3","H4","H5","H6"
-               ,"HR","DIV","UL","DL","OL","TABLE"]  =  True
+"a"  `closes` "a"   =  True
+"li" `closes` "li"  =  True
+"th" `closes`  t    | t `elem` ["th","td"]      =  True
+"td" `closes`  t    | t `elem` ["th","td"]      =  True
+"tr" `closes`  t    | t `elem` ["th","td","tr"] =  True
+"dt" `closes`  t    | t `elem` ["dt","dd"]      =  True
+"dd" `closes`  t    | t `elem` ["dt","dd"]      =  True
+"form"  `closes` "form"      = True
+"label" `closes` "label"     = True
+_       `closes` "option"    = True
+"thead" `closes` t  | t `elem` ["colgroup"]          = True
+"tfoot" `closes` t  | t `elem` ["thead","colgroup"]  = True
+"tbody" `closes` t  | t `elem` ["tbody","tfoot","thead","colgroup"] = True
+"colgroup" `closes` "colgroup"  = True
+t `closes` "p"
+    | t `elem` ["p","h1","h2","h3","h4","h5","h6"
+               ,"hr","div","ul","dl","ol","table"]  =  True
 _ `closes` _ = False
 
 
@@ -177,7 +177,7 @@ document = do
     ms    <- many misc
     return (Document p emptyST (case map snd es of
                                   [e] -> e
-                                  es  -> Elem "HTML" [] (map CElem es)))
+                                  es  -> Elem "html" [] (map CElem es)))
 
 comment :: HParser Comment
 comment = do
