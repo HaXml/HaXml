@@ -2,9 +2,10 @@
 #       configure -- prepare to compile/install the HaXml package
 #       author:   Malcolm.Wallace@cs.york.ac.uk, August 2002
 
-VERSION="1.06"
+VERSION="1.07"
 
 # We need a working `echo' command: at least Solaris2.6 may not have it.
+CCC=${CC-gcc}
 case `echo -n hello | wc -c | ( read n ; echo $n )` in
     5) ;;
     *) echo "The builtin 'echo' command doesn't do '-n' - emulating it."
@@ -97,6 +98,28 @@ else  echo "found ${NHCVERSION}"
      fi
 fi
 
+if [ ! -z "$BUILDWITH" ]
+then
+  echo "  You want to build for only...  $BUILDWITH"
+  if [ "$BUILDWITH" = "ghc" ]
+  then
+    if [ -z "$GHCKNOWN" ]
+    then echo '   *** Did not find ghc - cannot continue.'
+         exit 1
+    else NHCKNOWN=
+    fi
+  else
+    if [ "$BUILDWITH" = "nhc98" ]
+    then
+      if [ -z "$NHCKNOWN" ]
+      then echo '   *** Did not find nhc98 - cannot continue.'
+           exit 1
+      else GHCKNOWN=
+      fi
+    fi
+  fi
+fi
+
 # Prepare to build.
 if [ ! -d obj ]
 then mkdir obj
@@ -112,7 +135,7 @@ then
   fi
   echo $GHCLIBDIR >obj/ghc/ghclibdir
   echo $GHCINCDIR >obj/ghc/ghcincdir
-  cp -a src/Text src/tools src/Makefile src/pkg.conf obj/ghc
+  cp -Rp src/Text src/tools src/Makefile src/pkg.conf obj/ghc
 fi
 if [ "$NHCKNOWN" != "" ]
 then
@@ -122,7 +145,7 @@ then
   fi
   echo $NHCLIBDIR >obj/nhc98/nhc98libdir
   echo $NHCINCDIR >obj/nhc98/nhc98incdir
-  cp -a src/Text src/tools src/Makefile obj/nhc98
+  cp -Rp src/Text src/tools src/Makefile obj/nhc98
 fi
 
 echo "Ready to build.  Type 'make' then (as root) 'make install'."
