@@ -322,7 +322,7 @@ constrHtExpr (Constr s fv hts) = innerHtExpr (Tuple hts) None
 toXml :: Haskell2Xml a => a -> Document
 toXml value =
   let ht = toHType value in
-  Document (Prolog Nothing (Just (toDTD ht)))
+  Document (Prolog Nothing [] (Just (toDTD ht)) [])
            emptyST
            (case (ht, toContents value) of
              (Tuple _, cs) -> (Elem (flat ht "") [] cs)
@@ -332,7 +332,7 @@ toXml value =
 -- | Read a Haskell value from an XML document, ignoring the DTD and
 --   using the Haskell result type to determine how to parse it.
 fromXml :: Haskell2Xml a => Document -> a
-fromXml (Document _ _ e@(Elem n _ cs))
+fromXml (Document _ _ _ e@(Elem n _ cs) _)
   | "tuple" `isPrefixOf` n = fst (fromContents cs)
   | "-XML"  `isSuffixOf` n = fst (fromContents cs)
   | otherwise = fst (fromContents [CElem e])

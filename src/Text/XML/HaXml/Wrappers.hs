@@ -52,7 +52,7 @@ processXmlWith f = do
   ( hPutStrLn o . render . ppContent . f . getContent . parse) input
 
   where
-    getContent (Document _ _ e) = CElem e
+    getContent (Document _ _ e _) = CElem e
 
     ppContent [CElem e] = element e
     ppContent []  = error "produced no output"

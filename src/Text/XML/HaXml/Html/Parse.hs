@@ -58,8 +58,8 @@ sanitycheck ((x,_,s@(Right (n,_):_)):xs) =
 ---- Document simplification ----
 
 simplify :: Document -> Document
-simplify (Document p st (Elem n avs cs)) =
-    Document p st (Elem n avs (deepfilter simp cs))
+simplify (Document p st (Elem n avs cs) ms) =
+    Document p st (Elem n avs (deepfilter simp cs) ms)
   where
     simp (CElem (Elem "null" [] [])) = False
     simp (CElem (Elem  n     _  [])) | n `elem` ["font","p","i","b","em"
@@ -177,7 +177,8 @@ document = do
     ms    <- many misc
     return (Document p emptyST (case map snd es of
                                   [e] -> e
-                                  es  -> Elem "html" [] (map CElem es)))
+                                  es  -> Elem "html" [] (map CElem es))
+                               ms)
 
 comment :: HParser Comment
 comment = do
@@ -199,10 +200,10 @@ cdsect = do
 prolog :: HParser Prolog
 prolog = do
     x <- maybe xmldecl
-    many misc
+    m1 <- many misc
     dtd <- maybe doctypedecl
-    many misc
-    return (Prolog x dtd)
+    m2 <- many misc
+    return (Prolog x m1 dtd m2)
 
 xmldecl :: HParser XMLDecl
 xmldecl = do

@@ -222,7 +222,7 @@ justDTD =
        if null ds then mzero
          else return (Just (DTD "extsubset" Nothing (concatMap extract ds)))
   ) +++
-  ( do (Prolog _ dtd) <- prolog
+  ( do (Prolog _ _ dtd _) <- prolog
        return dtd )
  where extract (ExtMarkupDecl m) = [m]
        extract (ExtConditionalSect (IncludeSect i)) = concatMap extract i
@@ -234,7 +234,7 @@ document = do
     e <- element `elserror` "no toplevel document element"
     ms <- many misc
     (_,ge) <- stget
-    return (Document p ge e)
+    return (Document p ge e ms)
 
 comment :: XParser Comment
 comment = do
@@ -256,10 +256,10 @@ cdsect = do
 prolog :: XParser Prolog
 prolog = do
     x <- maybe xmldecl
-    many misc
+    m1 <- many misc
     dtd <- maybe doctypedecl
-    many misc
-    return (Prolog x dtd)
+    m2 <- many misc
+    return (Prolog x m1 dtd m2)
 
 xmldecl :: XParser XMLDecl
 xmldecl = do

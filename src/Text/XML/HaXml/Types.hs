@@ -128,8 +128,8 @@ lookupST = lookup
 
 -- | The symbol table stored in a document holds all its general entity
 --   reference definitions.
-data Document = Document Prolog (SymTab EntityDef) Element
-data Prolog   = Prolog (Maybe XMLDecl) (Maybe DocTypeDecl)
+data Document = Document Prolog (SymTab EntityDef) Element [Misc]
+data Prolog   = Prolog (Maybe XMLDecl) [Misc] (Maybe DocTypeDecl) [Misc]
 data XMLDecl  = XMLDecl VersionInfo (Maybe EncodingDecl) (Maybe SDDecl) 
 data Misc     = Comment Comment
               | PI ProcessingInstruction

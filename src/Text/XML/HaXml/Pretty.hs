@@ -56,9 +56,11 @@ content   :: Content -> Doc
 
 ----
 
-document (Document p _ e)  = prolog p $$ element e
-prolog (Prolog x dtd)      = maybe xmldecl x $$
-                             maybe doctypedecl dtd
+document (Document p _ e m)= prolog p $$ element e $$ vcat (map misc m)
+prolog (Prolog x m1 dtd m2)= maybe xmldecl x $$
+                             vcat (map misc m1) $$
+                             maybe doctypedecl dtd $$
+                             vcat (map misc m2)
 xmldecl (XMLDecl v e sd)   = text "<?xml version='" <> text v <> text "'" <+>
                              maybe encodingdecl e <+>
                              maybe sddecl sd <+>

@@ -41,7 +41,7 @@ fReadXml fp = do
     f <- ( if fp=="-" then return stdin
            else openFile fp ReadMode )
     x <- hGetContents f
-    let (Document _ _ y) = xmlParse fp x
+    let (Document _ _ y _) = xmlParse fp x
     return (maybe (error "XML value not found") id (fst (fromElem [CElem y])))
 
 -- | Write a fully-typed Haskell value to the given file as an XML
@@ -56,29 +56,31 @@ fWriteXml fp x = do
 -- | Read a fully-typed XML document from a string.
 readXml :: XmlContent a => String -> Maybe a
 readXml s =
-    let (Document _ _ y) = xmlParse "string input" s in
+    let (Document _ _ y _) = xmlParse "string input" s in
     fst (fromElem [CElem y])
 -- | Convert a fully-typed XML document to a string.
 showXml :: XmlContent a => a -> String
 showXml x =
     case toElem x of
       [CElem y] ->
-          (render . document
-           . Document (Prolog (Just (XMLDecl "1.0" Nothing Nothing)) Nothing)
-                      emptyST) y
+          (render . document) $
+             Document (Prolog (Just (XMLDecl "1.0" Nothing Nothing))
+                              [] Nothing [])
+                      emptyST y []
       _ -> ""
 
 -- | Read a fully-typed XML document from a file handle.
 hGetXml :: XmlContent a => Handle -> IO a
 hGetXml h = do
     x <- hGetContents h
-    let (Document _ _ y) = xmlParse "file handle" x
+    let (Document _ _ y _) = xmlParse "file handle" x
     return (maybe (error "XML value not found") id (fst (fromElem [CElem y])))
 -- | Write a fully-typed XML document to a file handle.
 hPutXml :: XmlContent a => Handle -> a -> IO ()
 hPutXml h x = do
-    ( hPutStrLn h . render . document .
-      Document (Prolog Nothing Nothing) emptyST . deCont . toElem) x
+    ( hPutStrLn h . render . document
+      . (\y-> Document (Prolog Nothing [] Nothing []) emptyST y [])
+      . deCont . toElem) x
   where
     deCont [CElem x] = x
     deCont [] = error "no XML content generated"
