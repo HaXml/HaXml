@@ -20,7 +20,7 @@ main = do
                    else readFile dtdf )
   content     <- ( if xmlf=="-" then getContents else readFile xmlf )
   let dtd  = dtdParse dtdf dtdtext
-      Document _ _ xml  = xmlParse xmlf content
+      Document _ _ xml _  = xmlParse xmlf content
       errs = validate (fromJust dtd) xml
   mapM_ putStrLn errs
 

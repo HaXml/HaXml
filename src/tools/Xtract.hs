@@ -44,7 +44,7 @@ main =
                           dfilter xmlSelection  . getElem . xmlParse x) c)
           files
 
-getElem (Document _ _ e) = CElem e
+getElem (Document _ _ e _) = CElem e
 isHTML x = ".html" `isSuffixOf` x  ||  ".htm"  `isSuffixOf` x
 
 dfilter f = \x-> f x x
