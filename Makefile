@@ -1,5 +1,5 @@
 SOFTWARE = HaXml
-VERSION  = 1.08
+VERSION  = 1.08a
 
 SRCS = \
 	src/Text/XML/HaXml.hs src/Text/XML/HaXml/Combinators.hs \
@@ -62,6 +62,9 @@ srcDist: $(ALLFILES)
 	rm -f $(SOFTWARE)-$(VERSION).tar $(SOFTWARE)-$(VERSION).tar.gz
 	mkdir $(SOFTWARE)-$(VERSION)
 	tar cf - $(ALLFILES) | ( cd $(SOFTWARE)-$(VERSION); tar xf - )
+	-rm -rf $(SOFTWARE)-$(VERSION)/docs/CVS
+	-rm -rf $(SOFTWARE)-$(VERSION)/examples/CVS
+	-rm -rf $(SOFTWARE)-$(VERSION)/examples/SMIL/CVS
 	tar cf $(SOFTWARE)-$(VERSION).tar $(SOFTWARE)-$(VERSION)
 	rm -rf $(SOFTWARE)-$(VERSION)
 	gzip $(SOFTWARE)-$(VERSION).tar
