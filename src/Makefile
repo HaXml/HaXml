@@ -31,11 +31,11 @@ ifeq "$(COMPILER)" "nhc98"
 COMPILE  = hmake -HC=$(HC) -I. -K4M +CTS -H8M -CTS
 endif
 
-all: libs tools
+all: libs toolset
 libs: HaXml Haskell2Xml Xml2Haskell
-	ar cf libHSHaXml.a `find Text -name *.o -print`
+	ar r libHSHaXml.a `find Text -name *.o -print`
 	tar cf interfaces.tar `find Text -name *.hi -print`
-tools: ../../DtdToHaskell ../../Xtract ../../Validate ../../Canonicalise
+toolset: ../../DtdToHaskell ../../Xtract ../../Validate ../../Canonicalise
 
 
 # library APIs
