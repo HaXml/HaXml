@@ -1,6 +1,6 @@
 module DTD_SMIL20 where
 
-import Xml2Haskell
+import Text.Xml.HaXml.Xml2Haskell
 
 
 {-Type decls-}

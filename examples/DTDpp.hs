@@ -3,18 +3,13 @@ module Main where
 import System (getArgs)
 import IO
 import Maybe
+import List   (isSuffixOf)
 
-import XmlTypes     (DocTypeDecl(..))
-import XmlParse     (dtdParse)
-import XmlPP        (markupdecl)
-import XmlLib       (fix2Args)
-import Pretty       (render,vcat)
-#if defined(__HASKELL98__)
-import List         (isSuffixOf)
-#else
-import IsSuffixOf
-import HPutStrLn
-#endif
+import Text.Xml.HaXml.Types      (DocTypeDecl(..))
+import Text.Xml.HaXml.Parse      (dtdParse)
+import Text.Xml.HaXml.Pretty     (markupdecl)
+import Text.Xml.HaXml.Wrappers   (fix2Args)
+import Text.PrettyPrint.HughesPJ (render,vcat)
 
 -- This is another trivial application that reads an XML DTD from
 -- a file (or stdin) and writes it back to another file (or stdout).

@@ -1,6 +1,6 @@
 module DTypes where
 
-import Haskell2Xml hiding (Name)
+import Text.Xml.HaXml.Haskell2Xml hiding (Name)
 
 -- data types for a simple test program
 

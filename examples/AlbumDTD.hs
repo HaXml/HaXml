@@ -1,6 +1,6 @@
 module AlbumDTD where
 
-import Xml2Haskell
+import Text.Xml.HaXml.Xml2Haskell
 
 
 {-Type decls-}
