@@ -26,30 +26,28 @@ import Text.ParserCombinators.HuttonMeijerWallace
 import Monad hiding (sequence)
 
 
-#if defined(__NHC__)
-#if __NHC__ > 114
-import System.IO.Unsafe (unsafePerformIO)
-#else
-import IOExtras (unsafePerformIO)
-#endif
-#endif
-#if defined(__HBC__)
-import UnsafePerformIO
-#endif
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ > 502
+#if ( defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ > 502 ) || \
+    ( defined(__NHC__) && __NHC__ > 114 )
 import System.IO.Unsafe (unsafePerformIO)
 #elif defined(__GLASGOW_HASKELL__) || defined(__HUGS__)
 import IOExts (unsafePerformIO)
+#elif defined(__NHC__)
+import IOExtras (unsafePerformIO)
+#elif defined(__HBC__)
+import UnsafePerformIO
 #endif
 
 --  #define DEBUG
 
 #if defined(DEBUG)
-#if defined(__GLASGOW_HASKELL__) || defined(__HUGS__)
+#  if ( defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ > 502 ) || \
+      ( defined(__NHC__) && __NHC__ > 114 )
+import Debug.Trace(trace)
+#  elif defined(__GLASGOW_HASKELL__) || defined(__HUGS__)
 import IOExts(trace)
-#else
+#  elif defined(__NHC__) || defined(__HBC__)
 import NonStdTrace
-#endif
+#  endif
 debug :: a -> String -> a
 v `debug` s = trace s v
 #else
@@ -163,8 +161,12 @@ peRef p =
                                                         (Just pn)) val)
                                `debug` ("  reading from file "++f)
                          peRef p
-           (Just (PEDefExternalID (SYSTEM eid))) ->
-                      do peRef p
+           (Just (PEDefExternalID (SYSTEM (SystemLiteral f)))) ->
+                      do let val = unsafePerformIO (readFile f)
+                         reparse (xmlReLex (posInNewCxt ("file "++f)
+                                                        (Just pn)) val)
+                               `debug` ("  reading from file "++f)
+                         peRef p
            Nothing -> mzero `elserror` "PEReference use before definition" )
 
 blank :: Parser SymTabs Token a -> Parser SymTabs Token a
