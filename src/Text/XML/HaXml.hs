@@ -8,7 +8,6 @@ module Text.Xml.HaXml
   , module Text.Xml.HaXml.Pretty
   , module Text.Xml.HaXml.Html.Generate
   , module Text.Xml.HaXml.Html.Parse
-  , module Text.Xml.HaXml.Html.Pretty
   , module Text.Xml.HaXml.Validate
   , module Text.Xml.HaXml.Wrappers
   , render
@@ -20,8 +19,8 @@ import Text.Xml.HaXml.Parse       (xmlParse,dtdParse)
 import Text.Xml.HaXml.Pretty      (element)
 import Text.Xml.HaXml.Html.Generate
 import Text.Xml.HaXml.Html.Parse  (htmlParse)
-import Text.Xml.HaXml.Html.Pretty ()
 import Text.Xml.HaXml.Validate    (validate)
+import Text.Xml.HaXml.Wrappers    (fix2Args,processXmlWith)
 
 import Text.PrettyPrint.HughesPJ  (render)
 
