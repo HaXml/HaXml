@@ -32,8 +32,12 @@ which () {
 }
 
 case `uname -s` in
-  CYGWIN*) CYGWIN=true ;;	# /bin/true or /usr/bin/true
-  *)       CYGWIN=false ;;	# /bin/false or /usr/bin/false
+  CYGWIN*) CYGWIN=true	# /bin/true or /usr/bin/true
+           MINGW=false ;;
+  MINGW*)  CYGWIN=false	# /bin/false or /usr/bin/false
+           MINGW=true ;;
+  *)       CYGWIN=false
+           MINGW=false ;;
 esac
 
 # Process command-line arguments
@@ -99,6 +103,7 @@ else echo "found ${GHCVERSION}"
            GHCKNOWN=
      else  GHCLIBDIR=`ghc -v 2>&1 | head -2 | tail -1 | cut -c28- | head -1`
            if $CYGWIN; then GHCLIBDIR=`cygpath -u $GHCLIBDIR`; fi
+           if $MINGW; then GHCLIBDIR=`echo $GHCLIBDIR | tr '\\\\' '/'`; fi
            GHCLIBDIR=`dirname $GHCLIBDIR`
            GHCINCDIR=$GHCLIBDIR/imports
      fi
@@ -131,6 +136,7 @@ then
                GHCNUM="$GHC2NUM"
                GHCLIBDIR=`$GHCKNOWN -v 2>&1 | head -2 | tail -1 | cut -c28- | head -1`
                if $CYGWIN; then GHCLIBDIR=`cygpath -u $GHCLIBDIR`; fi
+               if $MINGW; then GHCLIBDIR=`echo $GHCLIBDIR | tr '\\\\' '/'`; fi
                GHCLIBDIR=`dirname $GHCLIBDIR`
                GHCINCDIR=$GHCLIBDIR/imports
           fi
@@ -280,7 +286,7 @@ then
 fi
 
 echo $INSTALLDIR >obj/prefix
-if $CYGWIN; then echo .exe >obj/exe; else touch obj/exe; fi
+if [ $CYGWIN -o $MINGW ]; then echo .exe >obj/exe; else touch obj/exe; fi
 
 
 echo "Ready to build.  Type 'make' then (as root) 'make install'."
