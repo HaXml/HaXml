@@ -1,3 +1,10 @@
+Please note:
+The example code in this directory may not always work with the
+current version of the the HaXml libraries.  What little time I have
+for maintenance goes into the main HaXml facilites, not into testing
+these small demonstration exercises.  Sorry.
+
+
 Parse/Pretty-Print example  (Canonicalise.hs)
 --------------------------
 To demonstrate parsing and pretty-printing, I wrote a simple in-out
@@ -53,4 +60,18 @@ and have a look at the resulting Haskell file.  This is a large
 multi-part DTD for the Synchronised Multimedia Integration Language,
 defined by the W3C.  As of 2000-11-16, our XML parser has been extended
 to deal with the external subset as fully as possible.
+
+DTDpp
+-----
+This little program is just a pretty-printer for an XML DTD - it
+inlines any included files and expands all PE references.  Its main
+use is to check that the HaXml parser can read a complicated DTD
+without errors.
+
+DebugLex
+--------
+Another little debugging program to help find errors in HaXml -
+this time in the lexer.  It prints a stream of lexed tokens (and
+their source positions) to stdout, so you can examine whether
+some complicated piece of syntax has confused the lexer.
 
