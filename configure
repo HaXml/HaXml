@@ -103,7 +103,7 @@ else echo "found ${GHCVERSION}"
      if [ "$GHCNUM" -lt "502" ]
      then  echo "    Warning: HaXml needs ghc-5.02 or later.  Ignoring ghc."
            GHCKNOWN=
-     else  GHCLIBDIR=`ghc -v 2>&1 | head -2 | tail -1 | cut -c28- | head -1`
+     else  GHCLIBDIR=`ghc -v 2>&1 | grep ' package config file: ' | head -1 | sed 's/.* package config file: //'`
            if $CYGWIN; then GHCLIBDIR=`cygpath -u $GHCLIBDIR`; fi
            if $MINGW; then GHCLIBDIR=`echo $GHCLIBDIR | tr '\\\\' '/'`; fi
            GHCLIBDIR=`dirname $GHCLIBDIR`
@@ -136,7 +136,7 @@ then
           else GHCKNOWN="$GHC2KNOWN"
                GHCVERSION="$GHC2VERSION"
                GHCNUM="$GHC2NUM"
-               GHCLIBDIR=`$GHCKNOWN -v 2>&1 | head -2 | tail -1 | cut -c28- | head -1`
+               GHCLIBDIR=`ghc -v 2>&1 | grep ' package config file: ' | head -1 | sed 's/.* package config file: //'`
                if $CYGWIN; then GHCLIBDIR=`cygpath -u $GHCLIBDIR`; fi
                if $MINGW; then GHCLIBDIR=`echo $GHCLIBDIR | tr '\\\\' '/'`; fi
                GHCLIBDIR=`dirname $GHCLIBDIR`
