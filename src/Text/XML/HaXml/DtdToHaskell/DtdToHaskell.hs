@@ -26,7 +26,8 @@ main =
       decls = (nub . dtd2typedef) markup
       realname = if null name then mangle (trim inf) else mangle name
   in
-  do hPutStrLn o ("module DTD_"++realname++" where\n\nimport Xml2Haskell")
+  do hPutStrLn o ("module DTD_"++realname
+                  ++" where\n\nimport Text.Xml.HaXml.Xml2Haskell")
      hPutStrLn o "\n\n{-Type decls-}\n"
      (hPutStrLn o . render . vcat . map ppTypeDef) decls
      hPutStrLn o "\n\n{-Instance decls-}\n"

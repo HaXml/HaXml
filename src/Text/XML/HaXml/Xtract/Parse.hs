@@ -11,8 +11,8 @@ import NonStdTrace (trace)
 #endif
 
 import Text.ParserCombinators.HuttonMeijerWallace hiding (bracket,elserror)
-import Text.Xml.Xtract.Lex
-import Text.Xml.Xtract.Combinators
+import Text.Xml.HaXml.Xtract.Lex
+import Text.Xml.HaXml.Xtract.Combinators
 import Text.Xml.HaXml.Combinators
 import List(isPrefixOf)
 

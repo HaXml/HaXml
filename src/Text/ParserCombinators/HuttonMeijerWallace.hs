@@ -175,9 +175,9 @@ stget       = P (\st inp-> [(st, st, inp)])
 
 reparse    :: [t] -> Parser s t ()
 reparse ts  = P (\st inp-> [((), st, ts++inp)])
-    -- ^ This is useful for recursively expanding macros.  When the
-    --   user-parser recognises a macro use, it can lookup the macro
-    --   expansion from the parse state, lex it, and then stuff the
-    --   lexed expansion back down into the parser.
+-- ^ This is useful for recursively expanding macros.  When the
+--   user-parser recognises a macro use, it can lookup the macro
+--   expansion from the parse state, lex it, and then stuff the
+--   lexed expansion back down into the parser.
 
 ------------------------------------------------------------------------------

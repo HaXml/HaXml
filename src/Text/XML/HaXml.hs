@@ -63,7 +63,7 @@ ppContent _   = error "produced more than one output"
 -- | This useful auxiliary checks the commandline arguments for two
 --   filenames, the input and output file respectively.  If either
 --   is missing, or is '-', then stdin and\/or stdout is used in its place.
-fix2Args :: IO ()
+fix2Args :: IO (String,String)
 fix2Args = do
   args <- getArgs
   case length args of
