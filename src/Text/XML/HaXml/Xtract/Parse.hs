@@ -1,10 +1,11 @@
-module Text.Xml.HaXml.Xtract.Parse (parseXtract) where
+-- | A parser for the Xtract command-language.  (The string input is
+--   tokenised internally by the lexer 'lexXtract'.)
+--   See <http://www.haskell.org/HaXml/Xtract.html> for the grammar that
+--   is accepted.
 
--- A parser for the Xtract command-language.  The input has already been
--- tokenised by the lexer lexXtract.  The parser uses the extended
--- Hutton/Meijer parser combinators.
--- Because the original Xtract grammar was left-recursive, we have
--- transformed it into a non-left-recursive form.
+--   Because the original Xtract grammar was left-recursive, we have
+--   transformed it into a non-left-recursive form.
+module Text.Xml.HaXml.Xtract.Parse (parseXtract) where
 
 #ifdef __NHC__
 import NonStdTrace (trace)
@@ -16,6 +17,9 @@ import Text.Xml.HaXml.Xtract.Combinators
 import Text.Xml.HaXml.Combinators
 import List(isPrefixOf)
 
+-- | The cool thing is that the Xtract command parser directly builds
+--   a higher-order 'DFilter' (see "Text.Xml.HaXml.Xtract.Combinators")
+--   which can be applied to an XML document without further ado.
 parseXtract :: String -> DFilter
 parseXtract = sanitycheck . papply xql () . lexXtract
 

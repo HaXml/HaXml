@@ -1,12 +1,17 @@
+-- | This is another hand-written lexer, this time for the Xtract
+--   command-language.  The entry point is lexXtract.  You don't
+--   normally need to use this module directly - the lexer is called
+--   automatically by the parser.  (We only expose this interface
+--   for debugging purposes.)
+--
+--   The Xtract command language is very like the XPath specification.
+
 module Text.Xml.HaXml.Xtract.Lex
   ( lexXtract
   , Posn(..)
   , TokenT(..)
   , Token
   ) where
-
--- This is another hand-written lexer, this time for the Xtract
--- command-language.  The entry point is lexXtract.
 
 import Char
 import List(isPrefixOf)

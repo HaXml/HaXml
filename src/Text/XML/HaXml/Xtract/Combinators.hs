@@ -1,38 +1,48 @@
+-- | This is a new set of XML combinators for Xtract, not standard,
+--   but based on the standard set in "Text.Xml.Haxml.Combinators".
+--   The main difference is that the Content Filter type becomes a
+--   Double Filter.  A Double Filter always takes the whole document
+--   as an extra argument, so you can start to traverse it again from
+--   any inner location within the document tree.
+--
+--   The new combinators definitions are derived from the old ones.
+--   New names are derived from the old by surrounding with the letter @o@,
+--   or by doubling the operator symbols.
+
 module Text.Xml.HaXml.Xtract.Combinators where
 
 import Text.Xml.HaXml.Types
 import Text.Xml.HaXml.Combinators
 
----- new XML combinators for Xtract (not standard) ----
 
--- double content filter - takes document root + local subtree.
+-- | double content filter - takes document root + local subtree.
 type DFilter = Content -> Content -> [Content]
 
--- lift an ordinary content filter to a double filter.
+-- | lift an ordinary content filter to a double filter.
 local,global :: CFilter -> DFilter
 local  f = \xml sub-> f sub
 global f = \xml sub-> f xml
 
--- lift a CFilter combinator to a DFilter combinator
+-- | lift a CFilter combinator to a DFilter combinator
 oloco, oglobo :: (CFilter->CFilter) -> (DFilter->DFilter)
 oloco ff  = \df-> \xml sub-> (ff (df xml)) sub
 oglobo ff = \df-> \xml sub-> (ff (df xml)) xml
 
--- lifted composition over double filters.
+-- | lifted composition over double filters.
 ooo :: DFilter -> DFilter -> DFilter
 g `ooo` f = \xml-> concatMap (g xml) . (f xml)
 
--- lifted choice.
+-- | lifted choice.
 (||>||) :: (a->b->[c]) -> (a->b->[c]) -> (a->b->[c])
 f ||>|| g = \xml sub-> let first = f xml sub in
                        if null first then g xml sub else first
 
--- lifted predicates.
+-- | lifted predicates.
 owitho, owithouto :: DFilter -> DFilter -> DFilter
 f `owitho` g    = \xml-> filter (not.null.g xml) . f xml
 f `owithouto` g = \xml-> filter     (null.g xml) . f xml
 
--- lifted unit and zero.
+-- | lifted unit and zero.
 okeepo, ononeo :: DFilter
 okeepo = \xml sub-> [sub]	-- local keep
 ononeo = \xml sub-> []		-- local none
