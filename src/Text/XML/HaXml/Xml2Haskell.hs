@@ -6,7 +6,9 @@
 
 module Text.XML.HaXml.Xml2Haskell
   ( -- * Reading and writing XML data into a typed Haskell representation.
-    readXml, writeXml
+    readXml,  showXml
+  , hGetXml,  hPutXml
+  , fReadXml, fWriteXml
   -- * The enabling classes.
   , XmlContent(..)
   , XmlAttributes(..)
@@ -32,8 +34,8 @@ import Text.XML.HaXml.Parse  (xmlParse)
 
 -- | Read an XML document from a file and convert it to a fully-typed
 --   Haskell value.
-readXml  :: XmlContent a => FilePath -> IO a
-readXml fp = do
+fReadXml  :: XmlContent a => FilePath -> IO a
+fReadXml fp = do
     f <- ( if fp=="-" then return stdin
            else openFile fp ReadMode )
     x <- hGetContents f
@@ -42,17 +44,41 @@ readXml fp = do
 
 -- | Write a fully-typed Haskell value to the given file as an XML
 --   document.
-writeXml :: XmlContent a => FilePath -> a -> IO ()
-writeXml fp x = do
+fWriteXml :: XmlContent a => FilePath -> a -> IO ()
+fWriteXml fp x = do
     f <- ( if fp=="-" then return stdout
            else openFile fp WriteMode )
-    ( hPutStrLn f . render . document .
+    hPutXml f x
+    hClose f
+
+-- | Read a fully-typed XML document from a string.
+readXml :: XmlContent a => String -> Maybe a
+readXml s =
+    let (Document _ _ y) = xmlParse "string input" s in
+    fst (fromElem [CElem y])
+-- | Convert a fully-typed XML document to a string.
+showXml :: XmlContent a => a -> String
+showXml x =
+    case toElem x of
+      [CElem y] ->
+          (render . document . Document (Prolog Nothing Nothing) emptyST) y
+      _ -> ""
+
+-- | Read a fully-typed XML document from a file handle.
+hGetXml :: XmlContent a => Handle -> IO a
+hGetXml h = do
+    x <- hGetContents h
+    let (Document _ _ y) = xmlParse "file handle" x
+    return (maybe (error "XML value not found") id (fst (fromElem [CElem y])))
+-- | Write a fully-typed XML document to a file handle.
+hPutXml :: XmlContent a => Handle -> a -> IO ()
+hPutXml h x = do
+    ( hPutStrLn h . render . document .
       Document (Prolog Nothing Nothing) emptyST . deCont . toElem) x
   where
     deCont [CElem x] = x
     deCont [] = error "no XML content generated"
     deCont _  = error "too much XML content generated"
-
 
 ---- Conversion operations on generated types ----
 
@@ -210,8 +236,8 @@ instance (XmlContent a, XmlContent b) => XmlContent (a,b) where
                  (a,b,cb))
                (fromElem ca))
              (fromElem c0) of
-        (Nothing,Nothing,_) -> (Nothing,c0)
         (Just x, Just y, cn) -> (Just (x,y), cn)
+        (_,_,_) -> (Nothing,c0)
     toElem (x,y) = toElem x ++ toElem y
 
 instance (XmlContent a, XmlContent b, XmlContent c) => XmlContent (a,b,c) where
@@ -223,8 +249,8 @@ instance (XmlContent a, XmlContent b, XmlContent c) => XmlContent (a,b,c) where
                  (fromElem cb))
                (fromElem ca))
              (fromElem c0) of
-        (Nothing,Nothing,Nothing,_) -> (Nothing,c0)
         (Just x, Just y, Just z,cn) -> (Just (x,y,z), cn)
+        (_,_,_,_) -> (Nothing,c0)
     toElem (x,y,z) = toElem x ++ toElem y ++ toElem z
 
 instance (XmlContent a) => XmlContent [a] where
