@@ -2,15 +2,21 @@
         --------------------------------------------
 
 Installation instructions:
-We don't currently support Hugs.  You need 'hmake', and at least one
-of ghc or nhc98.  The automatic configuration detects which compilers
-you have, and prepares a build tree for each.  Installation requires
-write-permission on the system directories of the compilers - the
-libraries and interfaces can then be used as "-package HaXml".
+We currently support nhc98, ghc, and Hugs.  The automatic configuration
+detects which compilers/interpreters you have, and prepares a build
+tree for each.  Installation requires write-permission on the system
+directories of the compiler/interpreter - the libraries and interfaces
+can then be used as "-package HaXml" (for ghc/nhc98 - no extra options
+required for Hugs).  The standalone tools are installed to a directory of
+your choice.
 
     ./configure
     make
     make install
+
+Options to configure are:
+    --buildwith=...  e.g. ghc-6.2,        to build for a specific compiler
+    --prefix=...     e.g. /usr/local/bin, installation location for HaXml tools
 
 Complaints to:  :-)
     Malcolm.Wallace@cs.york.ac.uk
