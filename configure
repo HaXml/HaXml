@@ -34,34 +34,14 @@ do
   shift
 done
 
-echo "Looking for installed Haskell compilers:"
+echo "Looking for Haskell compilers:"
 # Assume that we start out with a blank config.
+HMAKEKNOWN=
 GHCKNOWN=
 NHCKNOWN=
-
-echo -n "  Looking for ghc...   "
-if which ghc >/dev/null 2>&1
-then
-  GHCKNOWN=`which ghc`
-  GHCVERSION=`${GHCKNOWN} --version 2>&1 | sed 's/^.*version[ ]*\([0-9.]*\).*/\1/'`
-  GHCNUM=`echo $GHCVERSION | tr "v." " " | ( read x y z; echo $x$y; )`
-fi
-if [ "$GHCKNOWN" = "" ]
-then  echo "(not found)"
-else  echo "found ${GHCVERSION}"
-fi
-
-echo -n "  Looking for nhc98... "
-if which nhc98 >/dev/null 2>&1
-then
-  NHCKNOWN=`which nhc98`
-  NHCVERSION=`${NHCKNOWN} --version | head -1 | cut -d' ' -f2`
-  NHCNUM=`echo $NHCVERSION | tr "v." "  " | ( read x y z; echo $x$y )`
-fi
-if [ "$NHCKNOWN" != "" ]
-then  echo "found ${NHCVERSION}"
-else  echo "(not found)"
-fi
+HMAKENUM=0
+GHCNUM=0
+NHCNUM=0
 
 echo -n "  Looking for hmake... "
 if which hmake >/dev/null 2>&1
@@ -71,8 +51,50 @@ then
   HMAKENUM=`echo $HMAKEVERSION | tr "v." "  " | ( read x y z; echo $x$y )`
 fi
 if [ "$HMAKEKNOWN" != "" ]
-then  echo "found ${HMAKEVERSION}"
-else  echo "(not found)"
+then echo "found ${HMAKEVERSION}"
+else echo "(not found)"
+fi
+if [ "$HMAKENUM" -lt "306" ]
+then echo "    ERROR: HaXml needs hmake-3.06 or later."
+     echo "    Available from:   http://www.haskell.org/hmake/"
+     exit 1
+fi
+
+echo -n "  Looking for ghc...   "
+if which ghc >/dev/null 2>&1
+then
+  GHCKNOWN=`which ghc`
+  GHCVERSION=`${GHCKNOWN} --version 2>&1 | sed 's/^.*version[ ]*\([0-9.]*\).*/\1/'`
+  GHCNUM=`echo $GHCVERSION | tr "v." " " | ( read x y z; echo $x$y; )`
+fi
+if [ "$GHCKNOWN" = "" ]
+then echo "(not found)"
+else echo "found ${GHCVERSION}"
+     if [ "$GHCNUM" -lt "502" ]
+     then  echo "    Warning: HaXml needs ghc-5.02 or later.  Ignoring ghc."
+           GHCKNOWN=
+     else  GHCLIBDIR=`ghc -v 2>&1 | head -2 | tail -1 | cut -c28- | head -1`
+           GHCLIBDIR=`dirname $GHCLIBDIR`
+           GHCINCDIR=$GHCLIBDIR/imports
+     fi
+fi
+
+echo -n "  Looking for nhc98... "
+if which nhc98 >/dev/null 2>&1
+then
+  NHCKNOWN=`which nhc98`
+  NHCVERSION=`${NHCKNOWN} --version | head -1 | cut -d' ' -f2`
+  NHCNUM=`echo $NHCVERSION | tr "v." "  " | ( read x y z; echo $x$y )`
+fi
+if [ "$NHCKNOWN" = "" ]
+then  echo "(not found)"
+else  echo "found ${NHCVERSION}"
+     if [ "$NHCNUM" -lt "114" ]
+     then  echo "    Warning: HaXml needs nhc98-1.14 or later.  Ignoring nhc98."
+           NHCKNOWN=
+     else  NHCLIBDIR=`grep '^NHC98LIBDIR' $NHCKNOWN | cut -c27- | cut -d'}' -f1 | head -1`
+           NHCINCDIR=`grep '^NHC98INCDIR' $NHCKNOWN | cut -c27- | cut -d'}' -f1 | head -1`
+     fi
 fi
 
 # Prepare to build.
@@ -88,7 +110,9 @@ then
   if [ ! -d obj/ghc ]
   then mkdir obj/ghc
   fi
-  cp -a src/Text src/tools src/Makefile obj/ghc
+  echo $GHCLIBDIR >obj/ghc/ghclibdir
+  echo $GHCINCDIR >obj/ghc/ghcincdir
+  cp -a src/Text src/tools src/Makefile src/pkg.conf obj/ghc
 fi
 if [ "$NHCKNOWN" != "" ]
 then
@@ -96,6 +120,8 @@ then
   if [ ! -d obj/nhc98 ]
   then mkdir obj/nhc98
   fi
+  echo $NHCLIBDIR >obj/nhc98/nhc98libdir
+  echo $NHCINCDIR >obj/nhc98/nhc98incdir
   cp -a src/Text src/tools src/Makefile obj/nhc98
 fi
 
