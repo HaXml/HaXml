@@ -7,7 +7,7 @@ LIBSRCS = \
 	Text/XML/HaXml/Types.hs Text/XML/HaXml/Validate.hs \
 	Text/XML/HaXml/Wrappers.hs Text/XML/HaXml/OneOfN.hs \
 	Text/XML/HaXml/Xml2Haskell.hs Text/XML/HaXml/Haskell2Xml.hs \
-	Text/XML/HaXml/Verbatim.hs \
+	Text/XML/HaXml/Verbatim.hs Text/XML/HaXml/Escape.hs \
 	Text/XML/HaXml/Html/Generate.hs Text/XML/HaXml/Html/Parse.hs \
 	Text/XML/HaXml/Html/Pretty.hs \
 	Text/XML/HaXml/Xtract/Combinators.hs \
@@ -29,6 +29,7 @@ TOOLSET = \
 	../../Canonicalise$(EXE) ../../MkOneOf$(EXE)
 
 EXE = $(shell cat ../exe)
+INSTALLDIR = $(shell cat ../prefix)
 
 # The caller *must* set the HC variable.
 COMPILER := $(findstring ghc, $(HC))
@@ -47,26 +48,26 @@ endif
 all: libs toolset
 libs: libHSHaXml.a
 toolset: $(TOOLSET)
-install-filesonly-ghc: libs
+install-filesonly-ghc: libs $(INSTALLDIR)
 	cp libHSHaXml.a HSHaXml.o `cat ghclibdir`
 	-rm -r `cat ghcincdir`/HaXml
 	mkdir `cat ghcincdir`/HaXml
 	cp interfaces.tar `cat ghcincdir`/HaXml
 	cd `cat ghcincdir`/HaXml; tar xf interfaces.tar; rm interfaces.tar
-	cp $(TOOLSET) `cat ../prefix`
-install-filesonly-nhc98: libs
+	cp $(TOOLSET) $(INSTALLDIR)
+install-filesonly-nhc98: libs $(INSTALLDIR)
 	cp libHSHaXml.a `cat nhc98libdir`/`harch`
 	-rm -r `cat nhc98incdir`/HaXml
 	mkdir `cat nhc98incdir`/HaXml
 	cp interfaces.tar `cat nhc98incdir`/HaXml
 	cd `cat nhc98incdir`/HaXml; tar xf interfaces.tar; rm interfaces.tar
-	cp $(TOOLSET) `cat ../prefix`
+	cp $(TOOLSET) $(INSTALLDIR)
 install-ghc: install-filesonly-ghc
 	ghc-pkg --remove-package=HaXml || true
 	ghc-pkg --add-package <pkg.conf
 install-nhc98: install-filesonly-nhc98
-install-tools-hugs: toolset-hugs
-	cp $(patsubst ../../%, %, ${TOOLSET}) `cat ../prefix`
+install-tools-hugs: toolset-hugs $(INSTALLDIR)
+	cp $(patsubst ../../%, %, ${TOOLSET}) $(INSTALLDIR)
 
 # update the sources if necessary
 $(LIBSRCS) $(TOOLSRCS) Makefile Text/PrettyPrint/HughesPJ.hs: %: ../../src/%
@@ -74,16 +75,11 @@ $(LIBSRCS) $(TOOLSRCS) Makefile Text/PrettyPrint/HughesPJ.hs: %: ../../src/%
 
 
 # packaged library
-libHSHaXml.a: $(LIBOBJS)
-	ar r libHSHaXml.a `find Text -name *.o -print`
+libHSHaXml.a: $(LIBSRCS)
+	$(COMPILE) $(LIBSRCS)
+	ar r libHSHaXml.a $(LIBOBJS)
 	ld -r --whole-archive -o HSHaXml.o libHSHaXml.a		# for GHCi only
 	tar cf interfaces.tar `find Text -name *.hi -print`
-
-
-# library APIs
-$(LIBOBJS): $(LIBSRCS)
-$(LIBOBJS): %.o : %.hs
-	$(COMPILE) $<
 
 
 # standalone tools
@@ -100,24 +96,6 @@ toolset-hugs:
 	   chmod +x $$tool ;\
 	done
 
-#../../DtdToHaskell$(EXE): $(LIBSRCS) $(TOOLSRCS)
-#	$(COMPILE) tools/DtdToHaskell.hs
-#	$(RENAME) $@
-#	mv $@ ../..
-#../../Xtract$(EXE): $(LIBSRCS) $(TOOLSRCS)
-#	$(COMPILE) tools/Xtract.hs
-#	$(RENAME) $@
-#	mv $@ ../..
-#../../Validate$(EXE): $(LIBSRCS) $(TOOLSRCS)
-#	$(COMPILE) tools/Validate.hs
-#	$(RENAME) $@
-#	mv $@ ../..
-#../../Canonicalise$(EXE): $(LIBSRCS) $(TOOLSRCS)
-#	$(COMPILE) tools/Canonicalise.hs
-#	$(RENAME) $@
-#	mv $@ ../..
-#../../MkOneOf$(EXE): tools/MkOneOf.hs
-#	$(COMPILE) tools/MkOneOf.hs
-#	$(RENAME) $@
-#	mv $@ ../..
+$(INSTALLDIR):
+	if [ ! -d $(INSTALLDIR) ] ; then mkdir -p $(INSTALLDIR); fi
 
