@@ -1,6 +1,6 @@
 -- | Validate a document against a dtd.
 module Text.XML.HaXml.Validate
-  ( validate,
+  ( validate
   , partialValidate
   ) where
 
