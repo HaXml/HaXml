@@ -60,7 +60,7 @@ perl -pi -e "s|^%{_prefix}|%{buildroot}%{_prefix}|"
 obj/ghc/{ghcincdir,ghclibdir}
 mkdirhier %{buildroot}%{_bindir}
 mkdirhier %{buildroot}%{ghclibdir}/imports/HaXml
-%makeinstall
+make install-filesonly
 cp -p obj/ghc/pkg.conf %{buildroot}%{ghclibdir}/imports/HaXml/package.conf
 
 %clean
