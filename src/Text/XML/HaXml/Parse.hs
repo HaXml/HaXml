@@ -42,7 +42,7 @@ import System.IO.Unsafe (unsafePerformIO)
 import IOExts (unsafePerformIO)
 #endif
 
--- #define DEBUG
+--  #define DEBUG
 
 #if defined(DEBUG)
 #if defined(__GLASGOW_HASKELL__) || defined(__HUGS__)
