@@ -12,7 +12,7 @@ module Text.Xml.HaXml.Xml2Haskell
   , XmlAttributes(..)
   , XmlAttrType(..)
   -- * Parsing and printing helper functions
-  , definite, many, fromText, toText
+  , choice, definite, many, fromText, toText
   , maybeToAttr, defaultToAttr
   , definiteA, defaultA, possibleA, fromAttrToStr, toAttrFrStr
   , Defaultable(..)
@@ -20,8 +20,6 @@ module Text.Xml.HaXml.Xml2Haskell
   -- * Re-exports
   , Element(..), Content(..)	-- from Text.Xml.HaXml.Types
   , catMaybes			-- from Maybe
-  -- * Auxiliary types
-  , OneOf2(..), OneOf3(..), OneOf4(..)
   ) where
 
 import IO
@@ -77,12 +75,23 @@ class XmlAttrType a where
 
 ---- Useful variants of "fromElem" ----
 
+choice :: XmlContent a
+        => (a -> b)                             -- constructor
+        -> ([Content]->(Maybe b,[Content]))     -- continuation
+        -> [Content] -> (Maybe b,[Content])
+choice cons other input =
+    case fromElem input of
+      (Just x, rest) -> (Just (cons x), rest)
+      (Nothing,rest) -> other input
+
+
 definite :: ([Content]->(Maybe a,[Content])) -> String -> String ->
              [Content] -> (a,[Content])
 definite from inner tag cs =
     let (m,cs0) = from cs
     in case m of
-         Nothing -> error ("content error: expected "++inner++" inside <"++tag++"> element")
+         Nothing -> error ("content error: expected "++inner++" inside <"
+                           ++tag++"> element")
          (Just a)-> (a,cs0)
 
 many :: ([Content]->(Maybe a,[Content])) -> [Content] -> ([a], [Content])
@@ -181,6 +190,7 @@ attr2str (AttValue xs) =
     in concatMap f xs
         
 
+{-
 ---- New types ----
 
 data OneOf2 a b     = OneOfTwo a   | TwoOfTwo b
@@ -189,7 +199,7 @@ data OneOf3 a b c   = OneOfThree a | TwoOfThree b | ThreeOfThree c
      deriving (Eq, Show)
 data OneOf4 a b c d = OneOfFour a  | TwoOfFour b  | ThreeOfFour c | FourOfFour d
      deriving (Eq, Show)
-
+-}
 
 ---- Needed instances ----
 
@@ -228,6 +238,7 @@ instance (XmlContent a) => XmlContent (Maybe a) where
         (Nothing,cn) -> (Nothing, c0)
     toElem (Just x) = toElem x
 
+{-
 instance (XmlContent a, XmlContent b) => XmlContent (OneOf2 a b) where
     fromElem c0 =
         case fromElem c0 of
@@ -274,6 +285,7 @@ instance (XmlContent a, XmlContent b, XmlContent c, XmlContent d) =>
     toElem (TwoOfFour y)   = toElem y
     toElem (ThreeOfFour z) = toElem z
     toElem (FourOfFour t)  = toElem t
+-}
 
 
 {-
