@@ -8,24 +8,26 @@
 <hr>
 
 <p>
-<b>Haskell2Xml</b> is a library for translating Haskell data from any
-program into a valid XML document (and back again), by generating a DTD
-and the appropriate functions to write and write the XML format.  In
-principle, it gives an alternative to the standard Read and Show
-classes, and allows you to use other standard XML-processing tools on
-your Haskell datafiles.
+<b>Text.Xml.HaXml.Haskell2Xml</b> is a library for translating Haskell
+data from any program into a valid XML document (and back again), by
+generating a DTD and the appropriate functions to write and write the
+XML format.  In principle, it gives an alternative to the standard Read
+and Show classes, and allows you to use other standard XML-processing
+tools on your Haskell datafiles.
 
 <p>
 <b>Usage.</b>
 It works rather like the existing <em>Read</em> and <em>Show</em>
-classes: you must create an instance of the <em>Haskell2Xml</em> class
-for every datatype you wish to use for I/O.  However, because this class
-is not a standard one, no Haskell compilers support the
-<tt>deriving</tt> clause for it yet.  Fear not!  There is a
-pre-processor tool called <b>DrIFT</b> which derives class instances
-automatically.  We have extended DrIFT's ruleset to include the
-<em>Haskell2Xml</em> class.  The only remaining thing is to ensure that
-you import the <b>Haskell2Xml</b> module everywhere you use it.
+classes: you must create an instance of the <em>Haskell2Xml</em>
+class for every datatype you wish to use for I/O.  However, because
+this class is not a standard one, no Haskell compilers support
+the <tt>deriving</tt> clause for it yet.  Fear not!  There is a
+pre-processor tool called
+<a href="http://repetae.net/~john/computer/haskell/DrIFT/"><b>DrIFT</b></a>
+which derives class instances automatically.  We have extended
+DrIFT's ruleset to include the <em>Haskell2Xml</em> class.
+The only remaining thing is to ensure that you import the
+<b>Text.Xml.HaXml.Haskell2Xml</b> module everywhere you use it.
 
 <p>
 (Please note that DrIFT is sometimes a bit fragile when parsing Haskell
