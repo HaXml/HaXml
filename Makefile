@@ -70,6 +70,7 @@ haddock:
 	for file in $(SRCS); \
 		do cpp -P -traditional -D__NHC__ $$file >$$file.uncpp; \
 		done
+	-mkdir doc/HaXml
 	haddock -h -t HaXml -o docs/HaXml $(patsubst %, %.uncpp, $(SRCS))
 	rm $(patsubst %, %.uncpp, $(SRCS))
 
