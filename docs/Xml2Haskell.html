@@ -34,10 +34,17 @@ for I/O.
 <p>
 In order to use the resulting module, you need to import it, and also
 to <tt>import Text.XML.HaXml.Xml2Haskell</tt>.  To read and write
-XML files as values of the declared types, use the functions
+XML files as values of the declared types, use some of the following
+convenience functions:
 <pre>
-    Xml2Haskell.readXml  :: XmlContent a => FilePath -> IO a
-    Xml2Haskell.writeXml :: XmlContent a => FilePath -> a -> IO ()
+    readXml   :: XmlContent a =&gt; String -&gt; Maybe a
+    showXml   :: XmlContent a =&gt; a -&gt; String
+
+    hGetXml   :: XmlContent a =&gt; Handle -&gt; IO a
+    hPutXml   :: XmlContent a =&gt; Handle -&gt; a -&gt; IO ()
+
+    fReadXml  :: XmlContent a =&gt; FilePath -&gt; IO a
+    fWriteXml :: XmlContent a =&gt; FilePath -&gt; a -&gt; IO ()
 </pre>
 not forgetting to resolve the overloading in one of the usual ways
 (e.g. by implicit context at point of use, by explicit type signatures
@@ -51,6 +58,13 @@ parallels to the DTD structure.
 
 <p>
 <b>Limitations</b><br>
+The generated Haskell contains references to types like <tt>OneOf3</tt>
+where there is a choice between <em>n</em> (in this case 3) different
+tags.  Currently, the module <b>Text.XML.HaXml.OneOfN</b> defines
+these types up to <em>n</em>=20.  If your DTD requires larger choices,
+then use the tool <b>MkOneOf</b> to generate the extra size or range
+of sizes you need.
+<p>
 We mangle tag names and attribute names to ensure that they have the
 correct lexical form in Haskell, but this means that (for instance) we
 can't distinguish <tt>Myname</tt> and <tt>myname</tt>, which are
@@ -69,7 +83,7 @@ XML namespaces.  Currently, we just mangle the namespace identifier into
 any tag name which uses it.  Probably the right way to do it is to
 regard the namespace as a separate imported module, and hence translate
 the namespace prefix into a module qualifier.  Does this sound about
-right?
+right?  (It isn't implemented yet.)
 <p>
 External subset.  Since HaXml release 1.00, we support the
 XML DTD external subset.  This means we can read and parse a whole
