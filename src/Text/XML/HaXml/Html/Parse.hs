@@ -59,7 +59,7 @@ sanitycheck ((x,_,s@(Right (n,_):_)):xs) =
 
 simplify :: Document -> Document
 simplify (Document p st (Elem n avs cs) ms) =
-    Document p st (Elem n avs (deepfilter simp cs) ms)
+    Document p st (Elem n avs (deepfilter simp cs)) ms
   where
     simp (CElem (Elem "null" [] [])) = False
     simp (CElem (Elem  n     _  [])) | n `elem` ["font","p","i","b","em"

@@ -328,11 +328,12 @@ toXml value =
              (Tuple _, cs) -> (Elem (flat ht "") [] cs)
              (Defined _ _ _, cs) -> (Elem (flat ht "-XML") [] cs)
              (_,[CElem e]) -> e )
+           []
 
 -- | Read a Haskell value from an XML document, ignoring the DTD and
 --   using the Haskell result type to determine how to parse it.
 fromXml :: Haskell2Xml a => Document -> a
-fromXml (Document _ _ _ e@(Elem n _ cs) _)
+fromXml (Document _ _ e@(Elem n _ cs) _)
   | "tuple" `isPrefixOf` n = fst (fromContents cs)
   | "-XML"  `isSuffixOf` n = fst (fromContents cs)
   | otherwise = fst (fromContents [CElem e])
