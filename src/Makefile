@@ -1,26 +1,26 @@
 SOFTWARE = HaXml
-VERSION  = 1.06
+VERSION  = 1.07
 
 LIBSRCS = \
-	Text/Xml/HaXml.hs Text/Xml/HaXml/Combinators.hs Text/Xml/HaXml/Lex.hs \
-	Text/Xml/HaXml/Parse.hs Text/Xml/HaXml/Pretty.hs \
-	Text/Xml/HaXml/Types.hs Text/Xml/HaXml/Validate.hs \
-	Text/Xml/HaXml/Wrappers.hs Text/Xml/HaXml/OneOfN.hs \
-	Text/Xml/HaXml/Xml2Haskell.hs Text/Xml/HaXml/Haskell2Xml.hs \
-	Text/Xml/HaXml/Html/Generate.hs Text/Xml/HaXml/Html/Parse.hs \
-	Text/Xml/HaXml/Html/Pretty.hs \
+	Text/XML/HaXml.hs Text/XML/HaXml/Combinators.hs Text/XML/HaXml/Lex.hs \
+	Text/XML/HaXml/Parse.hs Text/XML/HaXml/Pretty.hs \
+	Text/XML/HaXml/Types.hs Text/XML/HaXml/Validate.hs \
+	Text/XML/HaXml/Wrappers.hs Text/XML/HaXml/OneOfN.hs \
+	Text/XML/HaXml/Xml2Haskell.hs Text/XML/HaXml/Haskell2Xml.hs \
+	Text/XML/HaXml/Html/Generate.hs Text/XML/HaXml/Html/Parse.hs \
+	Text/XML/HaXml/Html/Pretty.hs \
 	Text/ParserCombinators/HuttonMeijerWallace.hs \
 	Text/PrettyPrint/HughesPJ.hs
 
 LIBOBJS = $(patsubst %.hs, %.o, $(LIBSRCS))
 
 TOOLSRCS = \
-	Text/Xml/HaXml/Xtract/Combinators.hs \
-	Text/Xml/HaXml/Xtract/Lex.hs \
-	Text/Xml/HaXml/Xtract/Parse.hs \
-	Text/Xml/HaXml/DtdToHaskell/TypeDef.hs \
-	Text/Xml/HaXml/DtdToHaskell/Convert.hs \
-	Text/Xml/HaXml/DtdToHaskell/Instance.hs \
+	Text/XML/HaXml/Xtract/Combinators.hs \
+	Text/XML/HaXml/Xtract/Lex.hs \
+	Text/XML/HaXml/Xtract/Parse.hs \
+	Text/XML/HaXml/DtdToHaskell/TypeDef.hs \
+	Text/XML/HaXml/DtdToHaskell/Convert.hs \
+	Text/XML/HaXml/DtdToHaskell/Instance.hs \
 	tools/DtdToHaskell.hs tools/Xtract.hs tools/Validate.hs \
  	tools/Canonicalise.hs tools/MkOneOf.hs
 
@@ -44,15 +44,17 @@ all: libs toolset
 libs: libHSHaXml.a
 toolset: $(TOOLSET)
 install-ghc: libs
-	cp libHSHaXml.a `cat ghclibdir`
-	mkdir `cat ghcincdir`/HaXml || true
+	cp libHSHaXml.a HSHaXml.o `cat ghclibdir`
+	-rm -r `cat ghcincdir`/HaXml
+	mkdir `cat ghcincdir`/HaXml
 	cp interfaces.tar `cat ghcincdir`/HaXml
 	cd `cat ghcincdir`/HaXml; tar xf interfaces.tar; rm interfaces.tar
 	ghc-pkg --remove-package=HaXml || true
 	ghc-pkg --add-package <pkg.conf
 install-nhc98:
 	cp libHSHaXml.a `cat nhc98libdir`/`harch`
-	mkdir `cat nhc98incdir`/HaXml || true
+	-rm -r `cat nhc98incdir`/HaXml
+	mkdir `cat nhc98incdir`/HaXml
 	cp interfaces.tar `cat nhc98incdir`/HaXml
 	cd `cat nhc98incdir`/HaXml; tar xf interfaces.tar; rm interfaces.tar
 
@@ -64,13 +66,14 @@ $(LIBSRCS) $(TOOLSRCS) Makefile: %: ../../src/%
 # packaged library
 libHSHaXml.a: $(LIBOBJS)
 	ar r libHSHaXml.a `find Text -name *.o -print`
+	ld -r --whole-archive -o HSHaXml.o libHSHaXml.a		# for GHCi only
 	tar cf interfaces.tar `find Text -name *.hi -print`
 
 
 # library APIs
 $(LIBOBJS): %.o : %.hs
-	$(COMPILE) Text/Xml/HaXml.hs   Text/Xml/HaXml/Xml2Haskell.hs
-	$(COMPILE) Text/Xml/HaXml/Haskell2Xml.hs   Text/Xml/HaXml/OneOfN.hs
+	$(COMPILE) Text/XML/HaXml.hs   Text/XML/HaXml/Xml2Haskell.hs
+	$(COMPILE) Text/XML/HaXml/Haskell2Xml.hs   Text/XML/HaXml/OneOfN.hs
 
 
 # standalone tools
