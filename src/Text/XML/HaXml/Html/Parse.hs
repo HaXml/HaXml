@@ -13,10 +13,13 @@ module Text.XML.HaXml.Html.Parse
 
 import Prelude hiding (either,maybe,sequence)
 import Maybe hiding (maybe)
+import Char (toUpper, isSpace)
+import Numeric (readDec,readHex)
+import Monad
+
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Lex
 import Text.ParserCombinators.HuttonMeijerWallace
-import Char (toUpper, isSpace)
 
 #if defined(DEBUG)
 #if defined(__GLASGOW_HASKELL__) || defined(__HUGS__)
@@ -510,8 +513,8 @@ attribute = do
 
 reference :: Parser () Token Reference
 reference =
-    ( entityref >>= return . RefEntity) +++
-    ( charref >>= return . RefChar)
+    ( charref >>= return . RefChar) +++
+    ( entityref >>= return . RefEntity)
 
 entityref :: Parser () Token EntityRef
 entityref = do
@@ -520,8 +523,12 @@ entityref = do
 
 charref :: Parser () Token CharRef
 charref = do
-    n <- bracket (tok TokAmp) freetext (tok TokSemi)
-    return n
+    bracket (tok TokAmp) (freetext >>= readCharVal) (tok TokSemi)
+  where
+    readCharVal ('#':'x':i) = return . fst . head . readHex $ i
+    readCharVal ('#':i)     = return . fst . head . readDec $ i
+    readCharVal _           = mzero
+
 
 --pereference :: Parser () Token PEReference
 --pereference = do

@@ -116,7 +116,7 @@ htmlprint = Pretty.cat . map cprint . foldrefs
 --ref (RefEntity (EntityRef n)) = n	-- Actually, should look-up symtable.
 --ref (RefChar (CharRef s)) = s
   ref (RefEntity n) = n	-- Actually, should look-up symtable.
-  ref (RefChar s) = s
+  ref (RefChar s) = show s
 
   cprint (CElem e)      = elem e
   cprint (CString ws s) = Pretty.cat (map Pretty.text (fmt 60

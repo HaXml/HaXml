@@ -208,7 +208,7 @@ data Reference    = RefEntity EntityRef
                   | RefChar CharRef 
                   deriving Eq
 type EntityRef    = Name 
-type CharRef      = String 
+type CharRef      = Int
 type PEReference  = Name 
 
 data EntityDecl   = EntityGEDecl GEDecl

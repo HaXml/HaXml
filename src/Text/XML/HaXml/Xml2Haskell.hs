@@ -26,7 +26,8 @@ module Text.XML.HaXml.Xml2Haskell
   ) where
 
 import IO
-import Maybe    (catMaybes)
+import Maybe (catMaybes)
+import Char  (chr)
 import Text.PrettyPrint.HughesPJ (render)
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Pretty (document)
@@ -138,7 +139,7 @@ fromText :: [Content] -> (Maybe String, [Content])
 fromText c =
   case c of
     (CString _ s: cs)        -> more s cs
-    (CRef (RefChar s): cs)   -> more ('&':s++";") cs
+    (CRef (RefChar s): cs)   -> more ("&#"++show s++";") cs
     (CRef (RefEntity s): cs) -> more ('&':s++";") cs
     (CMisc _: cs)            -> more "" cs
     []                       -> (Just "",[])
@@ -203,21 +204,26 @@ toAttrFrStr n v = Just (n, str2attr v)
 str2attr :: String -> AttValue
 str2attr s =
     let f s = 
-          let (l,r) = span (\c-> not (elem c "&<>")) s
+          let (l,r) = span (\c-> not (elem c "\"&<>'")) s
           in if null r then [Left l]
              else Left l: Right (g (head r)): f (tail r)
-        g '&' = RefChar "amp"
-        g '<' = RefChar "lt"
-        g '>' = RefChar "gt"
+        g '"'  = RefEntity "quot"
+        g '&'  = RefEntity "amp"
+        g '<'  = RefEntity "lt"
+        g '>'  = RefEntity "gt"
+        g '\'' = RefEntity "apos"
     in AttValue (f s)
 
 attr2str :: AttValue -> String		-- really needs symbol table
 attr2str (AttValue xs) =
     let f (Left s) = s
-        f (Right (RefChar "amp")) = "&"
-        f (Right (RefChar "lt"))  = "<"
-        f (Right (RefChar "gt"))  = ">"
-        f (Right _)               = "*"  -- Ooops, ST needed here.
+        f (Right (RefChar i))        = [chr i]
+        f (Right (RefEntity "quot")) = "\""
+        f (Right (RefEntity "amp"))  = "&"
+        f (Right (RefEntity "lt"))   = "<"
+        f (Right (RefEntity "gt"))   = ">"
+        f (Right (RefEntity "apos")) = "'"
+        f (Right _)                  = "*"  -- Ooops, ST needed here.
     in concatMap f xs
         
 

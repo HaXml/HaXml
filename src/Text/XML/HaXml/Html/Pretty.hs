@@ -191,7 +191,7 @@ ignoresectcontents (IgnoreSectContents i is)
 reference (RefEntity er)       = entityref er
 reference (RefChar cr)         = charref cr
 entityref n                    = text "&" <> text n <> text ";"
-charref c                      = text "&" <> text c <> text ";"
+charref c                      = text "&#" <> text (show c) <> text ";"
 entitydecl (EntityGEDecl d)    = gedecl d
 entitydecl (EntityPEDecl d)    = pedecl d
 gedecl (GEDecl n ed)           = text "<!ENTITY" <+> text n <+> entitydef ed <>

@@ -77,7 +77,7 @@ instance Verbatim Element where
 
 instance Verbatim Reference where
     verbatim (RefEntity r) = "&" ++ verbatim r ++ ";"
-    verbatim (RefChar c)   = "&" ++ verbatim c ++ ";"
+    verbatim (RefChar c)   = "&#" ++ show c ++ ";"
 
 
 -- |This is a helper function is required because Haskell does not
