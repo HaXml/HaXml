@@ -98,6 +98,8 @@ Some additional info about using the various facilities is here:
      subset of the DTD, which don't conform to the strict well-formedness
      conditions of XML.  We think the constraint in question is spurious,
      and any reasonable XML tool ought to deal adequately with full PEs.
+     Nevertheless, many standard XML processors reject these auto-generated
+     DTDs.  The solution is easy - just move the DTD into a separate file!
 <li> DtdToHaskell generates the Haskell String type for DTD attributes
      that are of Tokenized or Notation Types in XML.  This may not be
      entirely accurate.
@@ -107,47 +109,85 @@ Some additional info about using the various facilities is here:
 <center><h3><a name="downloads">Downloads</a></h3></center>
 <p>
 <b>Current version:</b>
-HaXml-1.08a, release date 2002.12.17<br>
+HaXml-1.09, release date 2003.03.05<br>
 By HTTP:
-<a href="http://www.haskell.org/HaXml/HaXml-1.08a.tar.gz">.tar.gz</a>,
-<a href="http://www.haskell.org/HaXml/HaXml-1.08a.zip">.zip</a>.
+<a href="http://www.haskell.org/HaXml/HaXml-1.09.tar.gz">.tar.gz</a>,
+<a href="http://www.haskell.org/HaXml/HaXml-1.09.zip">.zip</a>.
 <br>
 By FTP: 
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/">
 ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/</a>
+<br>
 FreeBSD port:
 <a href="http://freshports.org/textproc/haxml/">
 http://freshports.org/textproc/haxml/</a>
 
 <p>
+<b>Development version:</b>
+The development version of HaXml is available by anonymous CVS
+(write-access is also available to core Haskell developers).  Read the
+instructions for getting ghc by CVS:
+<a href="http://haskell.org/ghc/docs/latest/html/building/sec-cvs.html">
+http://haskell.org/ghc/docs/latest/html/building/sec-cvs.html</a>
+and simply replace the project name <em>fpconfig</em> with <em>HaXml</em>.
+
+<p>
 <b>Older versions:</b><br>
-<a href="http://freshports.org/textproc/haxml/">FreeBSD port</a><br>
 By FTP: 
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/">
 ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/</a>
 
 <center><h3><a name="install">Installation</a></h3></center>
 <p>
-To install HaXml, you must have a Haskell compiler: ghc-5.02 or
-later, nhc98-1.14 or later.  You also need hmake-3.06 or later.
-HaXml-1.08 does not currently support Hugs (but HaXml-1.05 does,
-and we hope to re-introduce Hugs support again soon).  Use
+To install HaXml, you must have a Haskell compiler: <em>ghc-5.02</em>
+or later, and/or <em>nhc98-1.14/hmake-3.06</em> or later.  HaXml-1.09
+has not been tested with recent versions of Hugs (we last tested at
+HaXml-1.05, and would like some advice and help on how things work
+with the newest versions of Hugs).  Use
+
 <pre>
-    ./configure
+    ./configure [--prefix=...]
     make
     make install
 </pre>
-to configure, build, and install HaXml as a package for your compiler.
-Afterwards, to gain access to the HaXml libraries, you only need to
-add the option <tt>-package HaXml</tt> to your compiler commandline.
-Various stand-alone tools are also built - DtdToHaskell, Xtract,
-Validate - if you are going to use them, you should copy these to
-your final preferred installation location by hand.
+to configure, build, and install HaXml as a package for your
+compiler(s).  Afterwards, to gain access to the HaXml libraries,
+you only need to add the option <tt>-package HaXml</tt> to your
+compiler commandline.  Various stand-alone tools are also built -
+DtdToHaskell, Xtract, Validate, MkOneOf - and copied to your final
+preferred installation location, specified by the <tt>--prefix=...</tt>
+option to <tt>configure</tt>.
 
 <hr>
 <center><h3><a name="news">Recent news</a></h3></center>
 <p>
-The latest version (1.08a) has the following fixes:<br>
+The latest version (1.09) has the following fixes:<br>
+<ul>
+<li> <em>hmake</em> is no longer required to build HaXml, provided you 
+     have <em>ghc --make</em>.
+<li> Some of the signatures in Text.XML.HaXml.Xml2Haskell have changed,
+     in particular, there are new functions <tt>readXml</tt> and
+     <tt>showXml</tt> that convert to/from Strings, <tt>hGetXml</tt> and
+     <tt>hPutXml</tt> that use file Handles, and the old functions that
+     use filenames are renamed to <tt>fReadXml</tt> and <tt>fWriteXml</tt>.
+<li> DtdToHaskell previously generated incorrect code for reading an XML
+     element given the following DTD fragment:
+     <pre>&lt;!ELEMENT foo (a,b)+ &gt;</pre>
+<li> The parser had a fault when reading conditional sections nested inside an
+     IGNORE section in a DTD.
+<li> In Text.XML.HaXml.Html.Generate, all functions now generate HTML tags
+     in lower-case rather than upper-case, to conform to the XHTML standard.
+<li> DtdToHaskell now accepts NOTATION types for attributes.  They are
+     treated just like enumeration types.
+<li> Fixed a configuration bug on the Cygwin platform with ghc-5.04.x.
+<li> <em>make install</em> now places the executables (DtdToHaskell, Xtract,
+     Validate, MkOneOf, Canonicalise) into the directory specified by
+     <tt>./configure --prefix=...</tt>
+</ul>
+
+
+<p>
+The previous version (1.08) had the following new features:<br>
 <ul>
 <li> A new and highly useful function, Text.XML.HaXml.Validate.partialValidate,
      does validation except for checking whether the root element type matches
@@ -167,33 +207,6 @@ The latest version (1.08a) has the following fixes:<br>
      `echo -n' is not recognised (e.g. Solaris).
 </ul>
 
-<p>
-Version (1.07) had the following new features:<br>
-<ul>
-<li> HaXml now uses the new hierarchical namespace for modules,
-     specifically under the tree <tt>Text.XML.HaXml</tt>.
-<li> The HaXml libraries now install as a separate `package' in both ghc
-     and nhc98.  Use <em>-package HaXml</em> to access them.
-<li> The library APIs are now documented using Haddock.
-<li> Due to popular request, we have added a new validator for checking
-     generic document content against a DTD.  This is available both as
-     a library function, and as a command-line tool.
-<li> DrIFT is now distributed separately by John Meacham, with much better
-     configuration and build support.  You still only need it if you
-     want to derive the <tt>Haskell2Xml</tt> class.
-<li> Bugfix: the lexer and parser now accept NOTATION declarations in the DTD.
-<li> Bugfix: a PublicId in a NOTATION decl is now correctly recognised by the
-             keyword PUBLIC, not PUBLICID.
-<li> Bugfix: the HTML parser now correctly accepts stand-alone tags like IMG.
-<li> Bugfix: instances of XmlContent now accept an empty string where #PCDATA
-             is expected.  Likewise, comments, processing instructions, and
-             character/entity references are now permitted to be scattered
-             thoughout some #PCDATA text.
-<li> Bugfix: the OneOfN types used in code generated by DtdToHaskell are
-             now supplied by default up to size 20, and a utility for
-             automatically generating larger sizes is included.
-</ul>
-
 <br>
 <a href="changelog.html">Complete Changelog</a><br>
 
@@ -205,8 +218,6 @@ suggestions for improvements, comments, criticisms, bug reports.  Please mail
 <ul>
 <li>    <a href="mailto:Malcolm.Wallace@cs.york.ac.uk">
         Malcolm.Wallace@cs.york.ac.uk</a>  (implementation &amp; design)
-<li>    <a href="mailto:Colin.Runciman@cs.york.ac.uk">
-        Colin.Runciman@cs.york.ac.uk</a>  (design)
 </ul>
 
 <p>

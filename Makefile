@@ -1,5 +1,5 @@
 SOFTWARE = HaXml
-VERSION  = 1.08a
+VERSION  = 1.09
 
 SRCS = \
 	src/Text/XML/HaXml.hs src/Text/XML/HaXml/Combinators.hs \
