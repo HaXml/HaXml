@@ -62,7 +62,9 @@ showXml :: XmlContent a => a -> String
 showXml x =
     case toElem x of
       [CElem y] ->
-          (render . document . Document (Prolog Nothing Nothing) emptyST) y
+          (render . document
+           . Document (Prolog (Just (XMLDecl "1.0" Nothing Nothing)) Nothing)
+                      emptyST) y
       _ -> ""
 
 -- | Read a fully-typed XML document from a file handle.
