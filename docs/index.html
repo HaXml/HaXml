@@ -8,30 +8,49 @@
 <body bgcolor='#ffffff'>
 
 <center>
-<h1>HaXml</h1>
+<h1>HaXml</h1><br>
+<a href="#what">What is HaXml?</a><br>
+<a href="#how">How do I use it?</a><br>
+<a href="#who">Who wrote HaXml?</a><br>
+<a href="#where">Where can I get a copy?</a><br>
 </center>
 <hr>
 
+<center><h3><a name="what">What is HaXml?</a></h3></center>
 <p>
-<b>HaXml</b> is a collection of utilities for using Haskell and XML together.
-It includes a parser for XML, a separate error-correcting parser for HTML,
-and pretty-printers for XML and HTML.  For processing tasks, the following
-components are included:
+<b>HaXml</b> is a collection of utilities for using Haskell and XML
+together.  Its basic facilities include:
+
+<ul>
+<li> a parser for XML,
+<li> a separate error-correcting parser for HTML,
+<li> an XML validator,
+<li> pretty-printers for XML and HTML.
+</ul>
 
 <p>
-<b>XmlLib</b> is a combinator library for generic XML document
-processing, including transformation, editing, and generation.
-<b>Haskell2Xml</b> is a replacement class for Haskell's Show/Read
-classes: it allows you to read and write ordinary Haskell data as XML
-documents.  We include a version of Noel Winstanley's <b>DrIFT</b> tool
-which automatically derives this class for you.  <b>DtdToHaskell</b> is
-a tool for translating any valid XML DTD into equivalent Haskell types.
-In conjunction with the <b>Xml2Haskell</b> class framework, this allows
-you to generate, edit, and transform documents as normal typed values in
-programs, and to read and write them as human-readable XML documents.
-Finally, <b>Xtract</b> is a <em>grep</em>-like tool for XML documents,
-loosely based on the XQL query language.
+For processing XML documents, the following components are provided:
+<ul>
+<li><b>Combinators</b> is a combinator library for generic XML document
+    processing, including transformation, editing, and generation.
+<li><b>Haskell2Xml</b> is a replacement class for Haskell's Show/Read
+    classes: it allows you to read and write ordinary Haskell data as XML
+    documents.  The <b>DrIFT</b> tool (available from
+    <a href="http://homer.netmar.com/~john/computer/haskell/DrIFT/">
+    <tt>http://homer.netmar.com/~john/computer/haskell/DrIFT/</tt></a>)
+    can automatically derive this class for you.
+<li><b>DtdToHaskell</b> is a tool for translating any valid XML DTD
+    into equivalent Haskell types.
+<li>In conjunction with the <b>Xml2Haskell</b> class framework,
+    this allows you to generate, edit, and transform documents as normal
+    typed values in programs, and to read and write them as human-readable
+    XML documents.
+<li>Finally, <b>Xtract</b> is a <em>grep</em>-like tool for XML documents,
+    loosely based on the XQL query language.
+</ul>
 
+<hr>
+<center><h3><a name="how">How do I use it?</a></h3></center>
 <p>
 An introduction to HaXml for people who know more about XML than
 about Haskell can be found at
@@ -39,7 +58,8 @@ about Haskell can be found at
 IBM DeveloperWorks</a>.
 
 <p>
-A paper describing just XmlLib and DtdToHaskell/Xml2Haskell is here:
+A paper describing and comparing the generic Combinators with
+the typed representation (DtdToHaskell/Xml2Haskell) is here:
 <ul>
 <li> <a href="icfp99.dvi">icfp99.dvi</a>     (LaTeX dvi format)
 <li> <a href="icfp99.ps.gz">icfp99.ps.gz</a> (PostScript format - gzipped)
@@ -50,18 +70,33 @@ The document is 12 pages of double-column A4.
 <p>
 Some additional info about using the various facilities is here:
 <ul>
-<li> <a href="XmlLib.html">XmlLib.html</a>              (HTML format)
+<li> <a href="Combinators.html">Combinators.html</a>    (HTML format)
 <li> <a href="Xml2Haskell.html">Xml2Haskell.html</a>    (HTML format)
 <li> <a href="Haskell2Xml.html">Haskell2Xml.html</a>    (HTML format)
 <li> <a href="Xtract.html">Xtract.html</a>    		(HTML format)
 </ul>
 
 <p>
-Development of these XML libraries was funded by Canon Research Europe
-Ltd..  The library is Open Source, i.e., the bits we wrote are copyright
-to us, but freely licensed for your use, modification, and
-re-distribution, provided you don't restrict anyone else's use of it.
+Detailed documentation of the HaXml APIs is generated automatically by
+Haddock directly from the source code, and can be found here:
+<ul>
+<li> <a href="../html/index.html">index.html</a>
+</ul>
 
+<p>
+<b>Known problems:</b>
+<ul>
+<li> Haskell2Xml generates Parameter Entity Declarations in the internal
+     subset of the DTD, which don't conform to the strict well-formedness
+     conditions of XML.  We think the constraint in question is spurious,
+     and any reasonable XML tool ought to deal adequately with full PEs.
+<li> DtdToHaskell generates the Haskell String type for DTD attributes
+     that are of Tokenized or Notation Types in XML.  This may not be
+     entirely accurate.
+</ul>
+
+<hr>
+<center><h3><a name="who">Who wrote HaXml?</a></h3></center>
 <p>
 We are interested in hearing your feedback on these XML facilities -
 suggestions for improvements, comments, criticisms.  Please mail
@@ -71,6 +106,16 @@ suggestions for improvements, comments, criticisms.  Please mail
 <li>    <a href="mailto:Colin.Runciman@cs.york.ac.uk">
         Colin.Runciman@cs.york.ac.uk</a>  (design)
 </ul>
+
+<p>
+Development of these XML libraries was originally funded by Canon
+Research Europe Ltd..  Subsequent maintenance and development has
+been partially supported by the EPSRC, and the University of York.
+
+<p><b>License:</b> The library is Open Source, i.e., the bits
+we wrote are copyright to us, but freely licensed for your use,
+modification, and re-distribution, provided you don't restrict anyone
+else's use of it.
 
 <p>
 <b>Related work:</b> Christian Lindig has written an XML parser in O'Caml:
@@ -85,22 +130,47 @@ Benjamin Pierce and Haruo Hosoya have a different but similar design in
 <a href="http://www.cis.upenn.edu/~hahosoya/xduce/">XDuce</a>, which is
 also implemented.
 
-<p>
-<b>Known problems:</b>
-<ul>
-<li> Haskell2Xml generates Parameter Entity Declarations in the internal
-     subset of the DTD, which don't conform to the strict well-formedness
-     conditions of XML.  We think the constraint in question is spurious,
-     and any reasonable XML tool ought to deal adequately with full PEs.
-<li> DtdToHaskell generates the Haskell String type for DTD attributes
-     that are of Tokenized or Notation Types in XML.  This may not be
-     entirely accurate.
-</ul>
-
 
 <hr>
+<center><h3><a name="where">Where can I get a copy?</a></h3></center>
 <b>Current version</b><br>
 
+HaXml version 1.06 release, 2002.07.xx
+<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.06.tar.gz">.tar.gz</a>,
+<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.06.zip">.zip</a>,
+<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.06-hugs.tar.gz">Hugs .tar.gz</a>,
+<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.06-hugs.zip">Hugs .zip</a>,
+<a href="http://freshports.org/textproc/haxml/">FreeBSD port</a>. <br>
+(Use the new hierarchical namespace for modules.  Add a validator for
+checking generic document content against a DTD.)
+<br>
+
+<hr>
+<b>Older versions</b><br>
+
+<p>
+HaXml version 1.05 release, 2002.05.28
+<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.05.tar.gz">.tar.gz</a>,
+<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.05.zip">.zip</a>,
+<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.05-hugs.tar.gz">Hugs .tar.gz</a>,
+<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.05-hugs.zip">Hugs .zip</a>,
+<a href="http://freshports.org/textproc/haxml/">FreeBSD port</a>. <br>
+(In DtdToHaskell, fix some more bugs with empty PE References at the end
+of an element content specification.)
+<br>
+
+<p>
+HaXml version 1.04 release, 2002.04.22
+<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.04.tar.gz">.tar.gz</a>,
+<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.04.zip">.zip</a>,
+<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.04-hugs.tar.gz">Hugs .tar.gz</a>,
+<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.04-hugs.zip">Hugs .zip</a>. <br>
+(In DtdToHaskell, fixed a bug whereby an empty PE Reference at the end
+of an element content specification caused a parse error - the DTD is now
+accepted.)
+<br>
+
+<p>
 HaXml version 1.03 release, 2002.04.02
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.03.tar.gz">.tar.gz</a>,
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.03.zip">.zip</a>,
@@ -113,9 +183,7 @@ now accepts Tokenized and Notation types, mapping them to Strings.
 Added an instance of Xml2Haskell for the Maybe type.)
 <br>
 
-<hr>
-<b>Older versions</b><br>
-
+<p>
 HaXml version 1.02 release, 2001.05.03<br>
 Complete source code and documents:
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.02.tar.gz">.tar.gz</a>,
@@ -124,84 +192,98 @@ Complete source code and documents:
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.02-hugs.zip">Hugs .zip</a>. <br>
 (Added instances of Haskell2Xml for Float and Double.  Fixed a fault
 in DtdToHaskell's treatment of default attribute values.  Dtd parser
-now accepts (#PCDATA)* as a valid element content specification.)<br>
+now accepts (#PCDATA)* as a valid element content specification.)
 <br>
 
+<p>
 HaXml version 1.01 release, 2001.01.24<br>
 Complete source code and documents:
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.01.tar.gz">.tar.gz</a>
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.01.zip">.zip</a> <br>
-(Fixed DtdToHaskell's treatment of default values for attributes.)<br>
+(Fixed DtdToHaskell's treatment of default values for attributes.)
 <br>
 
+<p>
 HaXml version 1.00, gold release, 2000.11.16<br>
 Complete source code and documents:
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.00.tar.gz">.tar.gz</a>
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.00.zip">.zip</a> <br>
-(Finally added support for the external subset of DTDs.)<br>
+(Finally added support for the external subset of DTDs.)
 <br>
 
+<p>
 HaXml version 0.9, beta release, 2000.02.22<br>
 Complete source code and documents:
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-0.9.tar.gz">.tar.gz</a>
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-0.9.zip">.zip</a> <br>
-(Reworked the Haskell2Xml and Xml2Haskell modules.)<br>
+(Reworked the Haskell2Xml and Xml2Haskell modules.)
 <br>
 
+<p>
 HaXml version 0.8b, beta release, 2000.01.26<br>
 Complete source code and documents:
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-0.8b.tar.gz">.tar.gz</a>
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-0.8b.zip">.zip</a> <br>
-(Some minor bugfixes to DrIFT, ensuring H'98 compatibility.)<br>
+(Some minor bugfixes to DrIFT, ensuring H'98 compatibility.)
 <br>
 
+<p>
 HaXml version 0.8a, beta release, 2000.01.12<br>
 Complete source code and documents:
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-0.8a.tar.gz">.tar.gz</a>
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-0.8a.zip">.zip</a> <br>
-(No code changes - just some restructuring of the build tree.)<br>
+(No code changes - just some restructuring of the build tree.)
 <br>
 
+<p>
 HaXml version 0.8, beta release, 2000.01.05
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-0.8.tar.gz">.tar.gz</a>
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-0.8.zip">.zip</a> <br>
-(Bugfix: some PERefs didn't work.)<br>
+(Bugfix: some PERefs didn't work.)
 <br>
 
+<p>
 HaXml version 0.7, beta release, 1999.10.12
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-0.7.tar.gz">.tar.gz</a><br>
-(Fixed imports for GHC.)<br>
+(Fixed imports for GHC.)
 <br>
 
+<p>
 HaXml version 0.6, beta release, 1999.08.31
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-0.6.tar.gz">.tar.gz</a><br>
-(Fixed preprocessor symbols to use the new standard __HASKELL98__.)<br>
+(Fixed preprocessor symbols to use the new standard __HASKELL98__.)
 <br>
 
+<p>
 HaXml version 0.5, beta release, 1999.08.27
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-0.5.tar.gz">.tar.gz</a><br>
 (Added GE entity reference-handling to parser, tweaked the pretty-printer,
-ensured Haskell'98 compliance.)<br>
+ensured Haskell'98 compliance.)
 <br>
 
+<p>
 HaXml version 0.4, alpha release, 1999.04.26
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-0.4.tar.gz">.tar.gz</a><br>
-(Added separate HTML parser, some other bugfixes.)<br>
+(Added separate HTML parser, some other bugfixes.)
 <br>
 
+<p>
 HaXml version 0.3, alpha release, 1999.04.20
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-0.3.tar.gz">.tar.gz</a><br>
-(Bugfix release.)<br>
+(Bugfix release.)
 <br>
 
+<p>
 HaXml version 0.2, alpha release, 1999.04.15
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-0.2.tar.gz">.tar.gz</a><br>
-(Added Haskell2Xml and Xml2Haskell.  Improved XML parser and printer.)<br>
+(Added Haskell2Xml and Xml2Haskell.  Improved XML parser and printer.)
 <br>
 
+<p>
 XmlLib version 0.1, alpha release, 1999.01.12
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/XmlLib-0.1.tar.gz">.tar.gz</a><br>
-(Initial release.)<br>
+(Initial release.)
+<br>
 
 </body>
 </html>
