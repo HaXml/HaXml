@@ -1,8 +1,5 @@
 module XmlValidate
   ( validate
-  , validateS
-  , SimpleDTD
-  , simplifyDTD
   ) where
 
 import XmlTypes
@@ -11,9 +8,10 @@ import List (intersperse)
 import Xml2Haskell (attr2str)
 
 #ifdef __GLASGOW_HASKELL__
+-- real finite map, if it is available
 import FiniteMap
 #else
--- very simple and inefficient implementation of a finite map
+-- otherwise, a very simple and inefficient implementation of a finite map
 type FiniteMap a b = [(a,b)]
 listToFM :: [(a,b)] -> FiniteMap a b
 listToFM = id
@@ -48,13 +46,15 @@ False `gives` _ = []
 
 -- 'validate' takes a DTD and a tagged element, and returns a list of
 -- errors in the document with respect to its DTD.
+--
+-- If you have several documents to validate against a single DTD,
+-- then you will gain efficiency by `freezing-in' the DTD by partial
+-- application, e.g. "checkMyDTD = validate myDTD".
 validate :: DocTypeDecl -> Element -> [String]
-validate dtd elem = validateS (simplifyDTD dtd) elem
-
--- 'validateS' is an auxiliary to `validate', using an already simplified DTD.
-validateS :: SimpleDTD -> Element -> [String]
-validateS dtd elem = valid elem
+validate dtd' elem = valid elem
   where
+    dtd = simplifyDTD dtd'
+
     valid (Elem name attrs contents) =
         let spec = lookupFM (elements dtd) name in 
         (isNothing spec) `gives` ("Element <"++name++"> not known.")
