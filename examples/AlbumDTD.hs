@@ -1,12 +1,13 @@
 module AlbumDTD where
 
 import Text.XML.HaXml.Xml2Haskell
+import Text.XML.HaXml.OneOfN
 
 
 {-Type decls-}
 
-data Album = Album Title Artist (Maybe Recording)
-		   Coverart [Catalogno] Personnel [Track] Notes
+data Album = Album Title Artist (Maybe Recording) Coverart
+		   [Catalogno] Personnel [Track] Notes
 	   deriving (Eq,Show)
 newtype Title = Title String 		deriving (Eq,Show)
 newtype Artist = Artist String 		deriving (Eq,Show)
@@ -14,8 +15,7 @@ data Recording = Recording
     { recordingDate :: (Maybe String)
     , recordingPlace :: (Maybe String)
     } deriving (Eq,Show)
-data Coverart = Coverart Coverart_Attrs
-			 (Maybe Location)
+data Coverart = Coverart Coverart_Attrs (Maybe Location)
 	      deriving (Eq,Show)
 data Coverart_Attrs = Coverart_Attrs
     { coverartStyle :: String
@@ -27,12 +27,13 @@ data Location = Location
 data Catalogno = Catalogno
     { catalognoLabel :: String
     , catalognoNumber :: String
-    , catalognoFormat :: (Maybe Format)
+    , catalognoFormat :: (Maybe Catalogno_Format)
     , catalognoReleasedate :: (Maybe String)
     , catalognoCountry :: (Maybe String)
     } deriving (Eq,Show)
-data Format = CD  |  LP  |  MiniDisc
-	    deriving (Eq,Show)
+data Catalogno_Format = Catalogno_Format_CD  |  Catalogno_Format_LP
+			 |  Catalogno_Format_MiniDisc
+		      deriving (Eq,Show)
 newtype Personnel = Personnel [Player] 		deriving (Eq,Show)
 data Player = Player
     { playerName :: String
@@ -85,17 +86,18 @@ instance XmlContent Album where
 	      (fromElem cb))
 	   (definite fromElem "<artist>" "album" ca))
 	(definite fromElem "<title>" "album" c0)
+    fromElem (CMisc _:rest) = fromElem rest
     fromElem rest = (Nothing, rest)
     toElem (Album a b c d e f g h) =
-	[CElem (Elem "album" [] (toElem a ++ toElem b ++
-				 maybe [] toElem c ++ toElem d ++
-				 concatMap toElem e ++ toElem f ++
-				 concatMap toElem g ++ toElem h))]
+	[CElem (Elem "album" [] (toElem a ++ toElem b ++ maybe [] toElem c
+				 ++ toElem d ++ concatMap toElem e ++ toElem f ++ concatMap toElem g
+				 ++ toElem h))]
 instance XmlContent Title where
     fromElem (CElem (Elem "title" [] c0):rest) =
 	(\(a,ca)->
 	   (Just (Title a), rest))
 	(definite fromText "text" "title" c0)
+    fromElem (CMisc _:rest) = fromElem rest
     fromElem rest = (Nothing, rest)
     toElem (Title a) =
 	[CElem (Elem "title" [] (toText a))]
@@ -104,15 +106,17 @@ instance XmlContent Artist where
 	(\(a,ca)->
 	   (Just (Artist a), rest))
 	(definite fromText "text" "artist" c0)
+    fromElem (CMisc _:rest) = fromElem rest
     fromElem rest = (Nothing, rest)
     toElem (Artist a) =
 	[CElem (Elem "artist" [] (toText a))]
 instance XmlContent Recording where
     fromElem (CElem (Elem "recording" as []):rest) =
 	(Just (fromAttrs as), rest)
+    fromElem (CMisc _:rest) = fromElem rest
     fromElem rest = (Nothing, rest)
-    toElem v =
-	[CElem (Elem "recording" (toAttrs v) [])]
+    toElem as =
+	[CElem (Elem "recording" (toAttrs as) [])]
 instance XmlAttributes Recording where
     fromAttrs as =
 	Recording
@@ -120,14 +124,15 @@ instance XmlAttributes Recording where
 	  , recordingPlace = possibleA fromAttrToStr "place" as
 	  }
     toAttrs v = catMaybes 
-	[ possibleA toAttrFrStr "date" (recordingDate v)
-	, possibleA toAttrFrStr "place" (recordingPlace v)
+	[ maybeToAttr toAttrFrStr "date" (recordingDate v)
+	, maybeToAttr toAttrFrStr "place" (recordingPlace v)
 	]
 instance XmlContent Coverart where
     fromElem (CElem (Elem "coverart" as c0):rest) =
 	(\(a,ca)->
 	   (Just (Coverart (fromAttrs as) a), rest))
 	(fromElem c0)
+    fromElem (CMisc _:rest) = fromElem rest
     fromElem rest = (Nothing, rest)
     toElem (Coverart as a) =
 	[CElem (Elem "coverart" (toAttrs as) (maybe [] toElem a))]
@@ -142,9 +147,10 @@ instance XmlAttributes Coverart_Attrs where
 instance XmlContent Location where
     fromElem (CElem (Elem "location" as []):rest) =
 	(Just (fromAttrs as), rest)
+    fromElem (CMisc _:rest) = fromElem rest
     fromElem rest = (Nothing, rest)
-    toElem v =
-	[CElem (Elem "location" (toAttrs v) [])]
+    toElem as =
+	[CElem (Elem "location" (toAttrs as) [])]
 instance XmlAttributes Location where
     fromAttrs as =
 	Location
@@ -152,15 +158,16 @@ instance XmlAttributes Location where
 	  , locationFullsize = possibleA fromAttrToStr "fullsize" as
 	  }
     toAttrs v = catMaybes 
-	[ possibleA toAttrFrStr "thumbnail" (locationThumbnail v)
-	, possibleA toAttrFrStr "fullsize" (locationFullsize v)
+	[ maybeToAttr toAttrFrStr "thumbnail" (locationThumbnail v)
+	, maybeToAttr toAttrFrStr "fullsize" (locationFullsize v)
 	]
 instance XmlContent Catalogno where
     fromElem (CElem (Elem "catalogno" as []):rest) =
 	(Just (fromAttrs as), rest)
+    fromElem (CMisc _:rest) = fromElem rest
     fromElem rest = (Nothing, rest)
-    toElem v =
-	[CElem (Elem "catalogno" (toAttrs v) [])]
+    toElem as =
+	[CElem (Elem "catalogno" (toAttrs as) [])]
 instance XmlAttributes Catalogno where
     fromAttrs as =
 	Catalogno
@@ -173,35 +180,37 @@ instance XmlAttributes Catalogno where
     toAttrs v = catMaybes 
 	[ toAttrFrStr "label" (catalognoLabel v)
 	, toAttrFrStr "number" (catalognoNumber v)
-	, possibleA toAttrFrTyp "format" (catalognoFormat v)
-	, possibleA toAttrFrStr "releasedate" (catalognoReleasedate v)
-	, possibleA toAttrFrStr "country" (catalognoCountry v)
+	, maybeToAttr toAttrFrTyp "format" (catalognoFormat v)
+	, maybeToAttr toAttrFrStr "releasedate" (catalognoReleasedate v)
+	, maybeToAttr toAttrFrStr "country" (catalognoCountry v)
 	]
-instance XmlAttrType Format where
+instance XmlAttrType Catalogno_Format where
     fromAttrToTyp n (n',v)
 	| n==n'     = translate (attr2str v)
 	| otherwise = Nothing
-      where translate "CD" = Just CD
-	    translate "LP" = Just LP
-	    translate "MiniDisc" = Just MiniDisc
+      where translate "CD" = Just Catalogno_Format_CD
+	    translate "LP" = Just Catalogno_Format_LP
+	    translate "MiniDisc" = Just Catalogno_Format_MiniDisc
 	    translate _ = Nothing
-    toAttrFrTyp n CD = Just (n, str2attr "CD")
-    toAttrFrTyp n LP = Just (n, str2attr "LP")
-    toAttrFrTyp n MiniDisc = Just (n, str2attr "MiniDisc")
+    toAttrFrTyp n Catalogno_Format_CD = Just (n, str2attr "CD")
+    toAttrFrTyp n Catalogno_Format_LP = Just (n, str2attr "LP")
+    toAttrFrTyp n Catalogno_Format_MiniDisc = Just (n, str2attr "MiniDisc")
 instance XmlContent Personnel where
     fromElem (CElem (Elem "personnel" [] c0):rest) =
 	(\(a,ca)->
 	   (Just (Personnel a), rest))
 	(many fromElem c0)
+    fromElem (CMisc _:rest) = fromElem rest
     fromElem rest = (Nothing, rest)
     toElem (Personnel a) =
 	[CElem (Elem "personnel" [] (concatMap toElem a))]
 instance XmlContent Player where
     fromElem (CElem (Elem "player" as []):rest) =
 	(Just (fromAttrs as), rest)
+    fromElem (CMisc _:rest) = fromElem rest
     fromElem rest = (Nothing, rest)
-    toElem v =
-	[CElem (Elem "player" (toAttrs v) [])]
+    toElem as =
+	[CElem (Elem "player" (toAttrs as) [])]
 instance XmlAttributes Player where
     fromAttrs as =
 	Player
@@ -215,9 +224,10 @@ instance XmlAttributes Player where
 instance XmlContent Track where
     fromElem (CElem (Elem "track" as []):rest) =
 	(Just (fromAttrs as), rest)
+    fromElem (CMisc _:rest) = fromElem rest
     fromElem rest = (Nothing, rest)
-    toElem v =
-	[CElem (Elem "track" (toAttrs v) [])]
+    toElem as =
+	[CElem (Elem "track" (toAttrs as) [])]
 instance XmlAttributes Track where
     fromAttrs as =
 	Track
@@ -227,14 +237,15 @@ instance XmlAttributes Track where
 	  }
     toAttrs v = catMaybes 
 	[ toAttrFrStr "title" (trackTitle v)
-	, possibleA toAttrFrStr "credit" (trackCredit v)
-	, possibleA toAttrFrStr "timing" (trackTiming v)
+	, maybeToAttr toAttrFrStr "credit" (trackCredit v)
+	, maybeToAttr toAttrFrStr "timing" (trackTiming v)
 	]
 instance XmlContent Notes where
     fromElem (CElem (Elem "notes" as c0):rest) =
 	(\(a,ca)->
 	   (Just (Notes (fromAttrs as) a), rest))
 	(many fromElem c0)
+    fromElem (CMisc _:rest) = fromElem rest
     fromElem rest = (Nothing, rest)
     toElem (Notes as a) =
 	[CElem (Elem "notes" (toAttrs as) (concatMap toElem a))]
@@ -244,7 +255,7 @@ instance XmlAttributes Notes_Attrs where
 	  { notesAuthor = possibleA fromAttrToStr "author" as
 	  }
     toAttrs v = catMaybes 
-	[ possibleA toAttrFrStr "author" (notesAuthor v)
+	[ maybeToAttr toAttrFrStr "author" (notesAuthor v)
 	]
 instance XmlContent Notes_ where
     fromElem c0 =
@@ -258,14 +269,17 @@ instance XmlContent Notes_ where
 			(Just a,rest) -> (Just (Notes_Trackref a), rest)
 			(Nothing,_) ->
 			    (Nothing, c0)
-    toElem (Notes_Str a) = [CElem (Elem "notes" [] (toText a) )]
-    toElem (Notes_Albumref a) = [CElem (Elem "notes" [] (toElem a) )]
-    toElem (Notes_Trackref a) = [CElem (Elem "notes" [] (toElem a) )]
+    fromElem (CMisc _:rest) = fromElem rest
+    fromElem rest = (Nothing, rest)
+    toElem (Notes_Str a) = toText a
+    toElem (Notes_Albumref a) = toElem a
+    toElem (Notes_Trackref a) = toElem a
 instance XmlContent Albumref where
     fromElem (CElem (Elem "albumref" as c0):rest) =
 	(\(a,ca)->
 	   (Just (Albumref (fromAttrs as) a), rest))
 	(definite fromText "text" "albumref" c0)
+    fromElem (CMisc _:rest) = fromElem rest
     fromElem rest = (Nothing, rest)
     toElem (Albumref as a) =
 	[CElem (Elem "albumref" (toAttrs as) (toText a))]
@@ -282,6 +296,7 @@ instance XmlContent Trackref where
 	(\(a,ca)->
 	   (Just (Trackref (fromAttrs as) a), rest))
 	(definite fromText "text" "trackref" c0)
+    fromElem (CMisc _:rest) = fromElem rest
     fromElem rest = (Nothing, rest)
     toElem (Trackref as a) =
 	[CElem (Elem "trackref" (toAttrs as) (toText a))]
@@ -291,7 +306,7 @@ instance XmlAttributes Trackref_Attrs where
 	  { trackrefLink = possibleA fromAttrToStr "link" as
 	  }
     toAttrs v = catMaybes 
-	[ possibleA toAttrFrStr "link" (trackrefLink v)
+	[ maybeToAttr toAttrFrStr "link" (trackrefLink v)
 	]
 
 
