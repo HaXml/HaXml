@@ -41,11 +41,29 @@ data StructType =
       Maybe StructType
     | Defaultable StructType String	-- ^ String holds default value.
     | List StructType
+    | List1 StructType			-- ^ Non-empty lists.
     | Tuple [StructType]
     | OneOf [StructType]
     | String
     | Defined Name
     deriving Eq
+
+-- used for converting StructType (roughly) back to an XML content model
+instance Show StructType where
+    showsPrec p (Maybe s)         = showsPrec (p+1) s . showChar '?'
+    showsPrec p (Defaultable s _) = shows s
+    showsPrec p (List s)          = showsPrec (p+1) s . showChar '*'
+    showsPrec p (List1 s)         = showsPrec (p+1) s . showChar '+'
+    showsPrec p (Tuple ss)        = showChar '('
+                                    . foldr1 (.) (intersperse (showChar ',')
+                                                              (map shows ss))
+                                    . showChar ')'
+    showsPrec p (OneOf ss)        = showChar '('
+                                    . foldr1 (.) (intersperse (showChar '|')
+                                                              (map shows ss))
+                                    . showChar ')'
+    showsPrec p (String)          = showString "#PCDATA"
+    showsPrec p (Defined (Name n _)) = showString n
 
 
 ---- Pretty-printing typedefs ----
@@ -99,6 +117,7 @@ ppST :: StructType -> Doc
 ppST (Defaultable st _)  = parens (text "Defaultable" <+> ppST st)
 ppST (Maybe st)  = parens (text "Maybe" <+> ppST st)
 ppST (List st)   = text "[" <> ppST st <> text "]"
+ppST (List1 st)  = parens (text "List1" <+> ppST st)
 ppST (Tuple sts) = parens (commaList (map ppST sts))
 ppST (OneOf sts) = parens (text "OneOf" <> text (show (length sts)) <+>
                            hsep (map ppST sts))

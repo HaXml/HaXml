@@ -75,7 +75,7 @@ convert (n, R as cs) =
     modf None x  = [x]
     modf Query x = [Maybe x]
     modf Star x  = [List x]
-    modf Plus x  = [List x]
+    modf Plus x  = [List1 x]
 
 mkData :: [[StructType]] -> AttrFields -> Bool -> Name -> [TypeDef]
 mkData []   fs aux n  = [DataDef aux n fs []]
@@ -86,6 +86,7 @@ mkData tss  fs aux n  = [DataDef aux n fs (map (mkConstr n) tss)]
     mkConsName (Name x n) sts = Name x (n++concat (intersperse "_" (map flatten sts)))
     flatten (Maybe st)   = {-"Maybe_" ++-} flatten st
     flatten (List st)    = {-"List_" ++-} flatten st
+    flatten (List1 st)   = {-"List1_" ++-} flatten st
     flatten (Tuple sts)  = {-"Tuple" ++ show (length sts) ++ "_" ++-}
                             concat (intersperse "_" (map flatten sts))
     flatten String       = "Str"

@@ -147,6 +147,10 @@ mkFrElem n sts vs inner =
             (Maybe s)       -> text "fromElem" <+> cvo
             (List String)   -> text "many fromText" <+> cvo
             (List s)        -> text "many fromElem" <+> cvo
+            (List1 s)       -> text "definite fromElem"
+                               <+> text "\"" <> text (show s)<> text "+\""
+                               <+> text "\"" <> ppXName n <> text "\""
+                               <+> cvo
             (Tuple ss)  -> text "nyi_fromElem_Tuple" <+> cvo
             (OneOf ss)  -> text "definite fromElem"
                            <+> text "\"OneOf\""
@@ -171,6 +175,7 @@ mkToElem sts vs =
         (Maybe s)       -> text "maybe [] toElem" <+> v
         (List String)   -> text "concatMap toText" <+> v
         (List s)        -> text "concatMap toElem" <+> v
+        (List1 s)       -> text "toElem" <+> v
         (Tuple ss)      -> text "toElem" <+> v
         (OneOf ss)      -> text "toElem" <+> v
         (String)        -> text "toText" <+> v
@@ -255,6 +260,7 @@ mkFrAux keeprest attrs cs = foldr frAux inner cs
           (Maybe s)      -> text "fromElem" <+> cvo
           (List String)  -> text "many fromText" <+> cvo
           (List s)       -> text "many fromElem" <+> cvo
+          (List1 s)      -> text "fromElem" <+> cvo
           (Tuple ss)     -> text "nyi_fromText_Tuple"
           (OneOf ss)     -> text "fromElem" <+> cvo
           (String)       -> text "fromText" <+> cvo
@@ -265,6 +271,7 @@ mkFrAux keeprest attrs cs = foldr frAux inner cs
                 case st of
                   (Maybe s)   -> text "Nothing"
                   (List s)    -> text "[]"
+                  (List1 s)   -> text "_"
                   (Tuple ss)  -> text "nyi_failpat_Tuple"
                   (OneOf ss)  -> text "_"
                   (String)    -> text "_"
@@ -275,6 +282,7 @@ mkFrAux keeprest attrs cs = foldr frAux inner cs
                 case st of
                   (Maybe s)   -> v
                   (List s)    -> v
+                  (List1 s)   -> text "Just" <+> v
                   (Tuple ss)  -> text "nyi_succpat_Tuple"
                   (OneOf ss)  -> text "Just" <+> v
                   (String)    -> text "Just" <+> v
