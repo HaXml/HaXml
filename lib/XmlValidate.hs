@@ -1,5 +1,8 @@
 module XmlValidate
   ( validate
+  , validateS
+  , SimpleDTD
+  , simplifyDTD
   ) where
 
 import XmlTypes
@@ -7,8 +10,16 @@ import Maybe (fromMaybe,isNothing,fromJust)
 import List (intersperse)
 import Xml2Haskell (attr2str)
 
+#ifdef __GLASGOW_HASKELL__
+import FiniteMap
+#else
 -- very simple and inefficient implementation of a finite map
 type FiniteMap a b = [(a,b)]
+listToFM :: [(a,b)] -> FiniteMap a b
+listToFM = id
+lookupFM :: FiniteMap a b -> a -> Maybe b
+lookupFM fm k = lookup k fm
+#endif
 
 -- gather appropriate information out of the DTD
 data SimpleDTD = SimpleDTD
@@ -20,41 +31,41 @@ data SimpleDTD = SimpleDTD
 simplifyDTD :: DocTypeDecl -> SimpleDTD
 simplifyDTD (DTD _ _ decls) =
     SimpleDTD
-        { elements   = [ (name,content)
-                       | Element (ElementDecl name content) <- decls ]
-        , attributes = [ ((elem,attr),typ)
-                       | AttList (AttListDecl elem attdefs) <- decls
-                       , AttDef attr typ _ <- attdefs ]
-        , required   = [ (elem,attrs)
-                       | AttList (AttListDecl elem attdefs) <- decls
-                       , let attrs = [ attr
-                                     | AttDef attr _ REQUIRED <- attdefs ] ]
-        }
+      { elements   = listToFM [ (name,content)
+                              | Element (ElementDecl name content) <- decls ]
+      , attributes = listToFM [ ((elem,attr),typ)
+                              | AttList (AttListDecl elem attdefs) <- decls
+                              , AttDef attr typ _ <- attdefs ]
+      , required   = listToFM [ (elem, [ attr
+                                       | AttDef attr _ REQUIRED <- attdefs ])
+                              | AttList (AttListDecl elem attdefs) <- decls ]
+      }
 
 -- simple auxiliary to avoid lots of if-then-else with empty else clauses.
 gives :: Bool -> a -> [a]
 True `gives` x = [x]
 False `gives` _ = []
 
--- 'validate' takes a DTD and a content element, and returns a list of
+-- 'validate' takes a DTD and a tagged element, and returns a list of
 -- errors in the document with respect to its DTD.
-validate :: DocTypeDecl -> Content -> [String]
-validate dtd' content =
-    walk content
+validate :: DocTypeDecl -> Element -> [String]
+validate dtd elem = validateS (simplifyDTD dtd) elem
+
+-- 'validateS' is an auxiliary to `validate', using an already simplified DTD.
+validateS :: SimpleDTD -> Element -> [String]
+validateS dtd elem = valid elem
   where
-    dtd = simplifyDTD dtd'
-    walk (CElem (Elem name attrs contents)) =
-        let spec = lookup name (elements dtd) in 
+    valid (Elem name attrs contents) =
+        let spec = lookupFM (elements dtd) name in 
         (isNothing spec) `gives` ("Element <"++name++"> not known.")
         ++ concatMap (checkAttr name) attrs
         ++ concatMap (checkRequired name attrs)
-                     (fromMaybe [] (lookup name (required dtd)))
+                     (fromMaybe [] (lookupFM (required dtd) name))
         ++ checkContentSpec name (fromMaybe ANY spec) contents
-        ++ concatMap walk contents
-    walk _ = []
+        ++ concatMap valid [ elem | CElem elem <- contents ]
 
     checkAttr elem (attr, val) =
-        let typ = lookup (elem,attr) (attributes dtd)
+        let typ = lookupFM (attributes dtd) (elem,attr)
             attval = attr2str val in
         if isNothing typ then ["Attribute \""++attr
                                ++"\" not known for element <"++elem++">."]
@@ -62,11 +73,12 @@ validate dtd' content =
           case fromJust typ of
             EnumeratedType e ->
               case e of
-                Enumeration es -> (not (attval `Prelude.elem` es)) `gives`
-                                      ("Value \""++attval++"\" of attribute \""
-                                       ++attr++"\" in element <"++elem
-                                       ++"> is not in the required enumeration\
-                                       \ range: "++unwords es)
+                Enumeration es ->
+                    (not (attval `Prelude.elem` es)) `gives`
+                          ("Value \""++attval++"\" of attribute \""
+                           ++attr++"\" in element <"++elem
+                           ++"> is not in the required enumeration range: "
+                           ++unwords es)
                 _ -> []
             _ -> []
 
@@ -85,8 +97,8 @@ validate dtd' content =
     checkContentSpec elem (ContentSpec cp) cs = excludeText elem cs ++
         (let (errs,rest) = checkCP elem cp (flatten cs) in
          case rest of [] -> errs
-                      _  -> errs++["Element <"++elem++"> contains more elements\
-                                  \ beyond its content spec."])
+                      _  -> errs++["Element <"++elem++"> contains extra "
+                                  ++"elements beyond its content spec."])
 
     checkMixed elem permitted (CElem (Elem name _ _))
         | not (name `Prelude.elem` permitted) =
@@ -104,7 +116,7 @@ validate dtd' content =
         ["Element <"++elem++"> contains text/references but should not."]
     excludeText elem [] = []
 
-    -- This is a little parser really.  Returns errors, plus the remainder
+    -- This is a little parser really.  Returns any errors, plus the remainder
     -- of the input string.
     checkCP :: Name -> CP -> [Name] -> ([String],[Name])
     checkCP elem cp@(TagName n None) [] = (cpError elem cp, [])
@@ -125,22 +137,22 @@ validate dtd' content =
         | otherwise = (cpError elem cp, n':ns)
     checkCP elem cp@(Choice cps None) [] = (cpError elem cp, [])
     checkCP elem cp@(Choice cps None) ns =
-        let next = [ rem | ([],rem) <- map (\cp-> checkCP elem cp ns) cps ] in
+        let next = choice elem ns cps in
         if null next then (cpError elem cp, ns)
         else ([], head next)	-- choose the first alternative with no errors
     checkCP elem cp@(Choice cps Query) [] = ([],[])
     checkCP elem cp@(Choice cps Query) ns =
-        let next = [ rem | ([],rem) <- map (\cp-> checkCP elem cp ns) cps ] in
+        let next = choice elem ns cps in
         if null next then ([],ns)
         else ([], head next)
     checkCP elem cp@(Choice cps Star) [] = ([],[])
     checkCP elem cp@(Choice cps Star) ns =
-        let next = [ rem | ([],rem) <- map (\cp-> checkCP elem cp ns) cps ] in
+        let next = choice elem ns cps in
         if null next then ([],ns)
         else checkCP elem (Choice cps Star) (head next)
     checkCP elem cp@(Choice cps Plus) [] = (cpError elem cp, [])
     checkCP elem cp@(Choice cps Plus) ns =
-        let next = [ rem | ([],rem) <- map (\cp-> checkCP elem cp ns) cps ] in
+        let next = choice elem ns cps in
         if null next then (cpError elem cp, ns)
         else checkCP elem (Choice cps Star) (head next)
     checkCP elem cp@(Seq cps None) [] = (cpError elem cp, [])
@@ -164,7 +176,9 @@ validate dtd' content =
         if null errs then checkCP elem (Seq cps Star) next
         else (cpError elem cp++errs, ns)
 
-    sequence elem ns cps =
+    choice elem ns cps =  -- return only those parses that don't give any errors
+        [ rem | ([],rem) <- map (\cp-> checkCP elem cp ns) cps ]
+    sequence elem ns cps =  -- accumulate errors down the sequence
         foldl (\(es,ns) cp-> let (es',ns') = checkCP elem cp ns
                              in (es++es', ns'))
               ([],ns) cps
