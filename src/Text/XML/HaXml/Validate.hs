@@ -165,7 +165,8 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
     checkCP elem cp@(TagName n Plus) (n':ns)
         | n==n'     = checkCP elem (TagName n Star) ns
         | otherwise = (cpError elem cp, n':ns)
-    checkCP elem cp@(Choice cps None) [] = (cpError elem cp, [])
+ -- omit this clause, to permit (a?|b?) as a valid but empty choice
+ -- checkCP elem cp@(Choice cps None) [] = (cpError elem cp, [])
     checkCP elem cp@(Choice cps None) ns =
         let next = choice elem ns cps in
         if null next then (cpError elem cp, ns)
@@ -185,7 +186,8 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
         let next = choice elem ns cps in
         if null next then (cpError elem cp, ns)
         else checkCP elem (Choice cps Star) (head next)
-    checkCP elem cp@(Seq cps None) [] = (cpError elem cp, [])
+ -- omit this clause, to permit (a?,b?) as a valid but empty sequence
+ -- checkCP elem cp@(Seq cps None) [] = (cpError elem cp, [])
     checkCP elem cp@(Seq cps None) ns =
         let (errs,next) = sequence elem ns cps in
         if null errs then ([],next)
