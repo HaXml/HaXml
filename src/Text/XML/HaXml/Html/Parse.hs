@@ -13,7 +13,7 @@ module Text.XML.HaXml.Html.Parse
 
 import Prelude hiding (either,maybe,sequence)
 import Maybe hiding (maybe)
-import Char (toLower, isSpace)
+import Char (toLower, isSpace, isDigit, isHexDigit)
 import Numeric (readDec,readHex)
 import Monad
 
@@ -518,6 +518,17 @@ attribute = do
 --ignore = freetext >>= return . Ignore
 
 reference :: Parser () Token Reference
+reference = do
+    bracket (tok TokAmp) (freetext >>= val) (tok TokSemi)
+  where
+    val ('#':'x':i) | all isHexDigit i
+                    = return . RefChar . fst . head . readHex $ i
+    val ('#':i)     | all isDigit i
+                    = return . RefChar . fst . head . readDec $ i
+    val name        = return . RefEntity $ name
+
+{-
+reference :: Parser () Token Reference
 reference =
     ( charref >>= return . RefChar) +++
     ( entityref >>= return . RefEntity)
@@ -534,7 +545,7 @@ charref = do
     readCharVal ('#':'x':i) = return . fst . head . readHex $ i
     readCharVal ('#':i)     = return . fst . head . readDec $ i
     readCharVal _           = mzero
-
+-}
 
 --pereference :: Parser () Token PEReference
 --pereference = do
