@@ -1,7 +1,7 @@
 module Main where
 
 import IO
-import Text.XML.HaXml.Haskell2Xml (writeXml)
+import Text.XML.HaXml.Haskell2Xml (fWriteXml)
 import DTypes
 
 rjn = Person (Name "Rob Noble") (Email "rjn") [
@@ -11,4 +11,4 @@ rjn = Person (Name "Rob Noble") (Email "rjn") [
 
 main :: IO ()
 main =
-    writeXml "subjdb.xml" rjn
+    fWriteXml "subjdb.xml" rjn

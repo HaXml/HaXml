@@ -65,8 +65,8 @@ main =
 
 checkValue f mode value =
     case mode of
-      WriteMode-> hWriteXml f value
-      ReadMode -> do ivalue <- hReadXml f
+      WriteMode-> hPutXml f value
+      ReadMode -> do ivalue <- hGetXml f
                      putStrLn (if ivalue==value then "success" else "failure")
 
 --    WriteMode-> (hPutStrLn f . render . document . toXml) value1
