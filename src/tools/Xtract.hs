@@ -11,7 +11,7 @@ import Text.XML.HaXml.Types
 import Text.XML.HaXml.Parse         (xmlParse)
 import Text.XML.HaXml.Html.Parse    (htmlParse)
 import Text.XML.HaXml.Xtract.Parse  (parseXtract)
-import Text.PrettyPrint.HughesPJ    (render, vcat)
+import Text.PrettyPrint.HughesPJ    (render, vcat, hcat, empty)
 import Text.XML.HaXml.Pretty        (content)
 import Text.XML.HaXml.Html.Generate (htmlprint)
 
@@ -40,7 +40,7 @@ main =
                    ( if isHTML x then
                           hPutStrLn stdout . render . htmlprint .
                           dfilter htmlSelection . getElem . htmlParse x
-                     else hPutStrLn stdout . render . vcat . map content .
+                     else hPutStrLn stdout . render . format .
                           dfilter xmlSelection  . getElem . xmlParse x) c)
           files
 
@@ -48,3 +48,8 @@ getElem (Document _ _ e) = CElem e
 isHTML x = ".html" `isSuffixOf` x  ||  ".htm"  `isSuffixOf` x
 
 dfilter f = \x-> f x x
+
+format [] = empty
+format cs@(CString _ _:_) = hcat . map content $ cs
+format cs@(CRef _:_)      = hcat . map content $ cs
+format cs                 = vcat . map content $ cs
