@@ -194,6 +194,13 @@ instance (XmlContent a) => XmlContent [a] where
     fromElem c0 = (\(a,cn)-> (Just a,cn)) (many fromElem c0)
     toElem xs = concatMap toElem xs
 
+instance (XmlContent a) => XmlContent (Maybe a) where
+    fromElem c0 =
+        case fromElem c0 of
+        (Just x, cn) -> (Just (Just x), cn)
+        (Nothing,cn) -> (Nothing, c0)
+    toElem (Just x) = toElem x
+
 instance (XmlContent a, XmlContent b) => XmlContent (OneOf2 a b) where
     fromElem c0 =
         case fromElem c0 of
