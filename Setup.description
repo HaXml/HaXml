@@ -28,30 +28,6 @@ exposed-modules:
 	Text.XML.HaXml.Xtract.Parse,
 	Text.XML.HaXml.Verbatim,
 	Text.XML.HaXml.Escape
-modules:
-	Text.ParserCombinators.HuttonMeijerWallace,
-	Text.XML.HaXml,
-	Text.XML.HaXml.DtdToHaskell.Convert,
-	Text.XML.HaXml.DtdToHaskell.Instance,
-	Text.XML.HaXml.DtdToHaskell.TypeDef,
-	Text.XML.HaXml.Combinators,
-	Text.XML.HaXml.Haskell2Xml,
-	Text.XML.HaXml.Lex,
-	Text.XML.HaXml.OneOfN,
-	Text.XML.HaXml.Parse,
-	Text.XML.HaXml.Pretty,
-	Text.XML.HaXml.Types,
-	Text.XML.HaXml.Validate,
-	Text.XML.HaXml.Wrappers,
-	Text.XML.HaXml.Xml2Haskell,
-	Text.XML.HaXml.Html.Generate,
-	Text.XML.HaXml.Html.Parse,
-	Text.XML.HaXml.Html.Pretty,
-	Text.XML.HaXml.Xtract.Combinators,
-	Text.XML.HaXml.Xtract.Lex,
-	Text.XML.HaXml.Xtract.Parse,
-	Text.XML.HaXml.Verbatim,
-	Text.XML.HaXml.Escape
 hs-source-dir:	src
 build-depends:	base
 extensions:	CPP
