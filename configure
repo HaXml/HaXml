@@ -18,9 +18,22 @@ case `echo -n hello | wc -c | ( read n ; echo $n )` in
        echo () { $PWD/script/echo "$@"; } ;;
 esac
 
+# We need a working `which' command: CYGWIN at least doesn't have it,
+#  and some installed 'which's behave badly, e.g. Solaris, OSF/1.
+which () {
+  ( for path in `echo \"$PATH\" | sed -e 's/:/\" \"/g'`
+    do
+      thefile=`echo $path | tr -d "\""`/$1
+      if [ -f "$thefile" -a -x "$thefile" ]
+      then echo $thefile
+           exit 0
+      fi
+    done; exit 1 )
+}
+
 case `uname -s` in
-  CYGWIN*) CYGWIN=/bin/true ;;
-  *)       CYGWIN=/bin/false ;;
+  CYGWIN*) CYGWIN=true ;;	# /bin/true or /usr/bin/true
+  *)       CYGWIN=false ;;	# /bin/false or /usr/bin/false
 esac
 
 # Process command-line arguments
