@@ -57,28 +57,29 @@ convert (n, R as cs) =
       (ContentSpec cp)        ->
           case cp of
             (TagName n' m) -> modifier m [[Defined (name n')]]
-            (Choice cps m) -> modifier m (map inner cps)
-            (Seq cps m)    -> modifier m [concatMap inner cps]
+            (Choice cps m) -> modifier m [map inner cps]
+            (Seq cps m)    -> modifier m [map inner cps]
     ++ concatMap (mkAttrDef n) as
   where
     attrs    :: AttrFields
     attrs     = map (mkAttrField n) as
 
-    modifier None sts   = mkData sts          attrs False (name n)
-    modifier m   [[st]] = mkData [modf m st]  attrs False (name n)
-    modifier m    sts   = mkData [modf m (Defined (name_ n))] attrs False (name n) ++
-                          mkData sts          []    True  (name_ n)
+    modifier None sts   = mkData sts            attrs False (name n)
+    modifier m   [[st]] = mkData [[modf m st]]  attrs False (name n)
+    modifier m    sts   = mkData [[modf m (Defined (name_ n))]]
+                                                attrs False (name n) ++
+                          mkData sts            []    True  (name_ n)
 
-    inner :: CP -> [StructType]
+    inner :: CP -> StructType
     inner (TagName n' m) = modf m (Defined (name n'))
-    inner (Choice cps m) = modf m (OneOf (concatMap inner cps))
-    inner (Seq cps None) = concatMap inner cps
-    inner (Seq cps m)    = modf m (Tuple (concatMap inner cps))
+    inner (Choice cps m) = modf m (OneOf (map inner cps))
+    inner (Seq cps None) = Tuple (map inner cps)
+    inner (Seq cps m)    = modf m (Tuple (map inner cps))
 
-    modf None x  = [x]
-    modf Query x = [Maybe x]
-    modf Star x  = [List x]
-    modf Plus x  = [List1 x]
+    modf None x  = x
+    modf Query x = Maybe x
+    modf Star x  = List x
+    modf Plus x  = List1 x
 
 mkData :: [[StructType]] -> AttrFields -> Bool -> Name -> [TypeDef]
 mkData []   fs aux n  = [DataDef aux n fs []]

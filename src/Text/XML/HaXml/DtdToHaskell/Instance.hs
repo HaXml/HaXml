@@ -151,7 +151,12 @@ mkFrElem n sts vs inner =
                                <+> text "\"" <> text (show s)<> text "+\""
                                <+> text "\"" <> ppXName n <> text "\""
                                <+> cvo
-            (Tuple ss)  -> text "nyi_fromElem_Tuple" <+> cvo
+            (Tuple ss)  -> text "definite fromElem"
+                           <+> text "\"(" <> hcat (intersperse (text ",")
+                                                           (map (text.show) ss))
+                                          <> text ")\""
+                           <+> text "\"" <> ppXName n <> text "\""
+                           <+> cvo
             (OneOf ss)  -> text "definite fromElem"
                            <+> text "\"OneOf\""
                            <+> text "\"" <> ppXName n <> text "\""
@@ -264,7 +269,7 @@ mkFrAux keeprest attrs cs = foldr frAux inner cs
           (List String)  -> text "many fromText" <+> cvo
           (List s)       -> text "many fromElem" <+> cvo
           (List1 s)      -> text "fromElem" <+> cvo
-          (Tuple ss)     -> text "nyi_fromText_Tuple"
+          (Tuple ss)     -> text "fromElem" <+> cvo	-- ??
           (OneOf ss)     -> text "fromElem" <+> cvo
           (String)       -> text "fromText" <+> cvo
           (Any)          -> text "fromElem" <+> cvo
@@ -276,7 +281,7 @@ mkFrAux keeprest attrs cs = foldr frAux inner cs
                   (Maybe s)   -> text "Nothing"
                   (List s)    -> text "[]"
                   (List1 s)   -> text "_"
-                  (Tuple ss)  -> text "nyi_failpat_Tuple"
+                  (Tuple ss)  -> text "_"
                   (OneOf ss)  -> text "_"
                   (String)    -> text "_"
                   (Any)       -> text "_"
@@ -288,7 +293,7 @@ mkFrAux keeprest attrs cs = foldr frAux inner cs
                   (Maybe s)   -> v
                   (List s)    -> v
                   (List1 s)   -> text "Just" <+> v
-                  (Tuple ss)  -> text "nyi_succpat_Tuple"
+                  (Tuple ss)  -> text "Just" <+> v
                   (OneOf ss)  -> text "Just" <+> v
                   (String)    -> text "Just" <+> v
                   (Any)       -> text "Just" <+> v
