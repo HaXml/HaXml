@@ -98,7 +98,7 @@ mkAttrDef e (AttDef n StringType def) =
 mkAttrDef e (AttDef n (TokenizedType t) def) =
     [] -- mkData [[String]] [] False (name n)
 mkAttrDef e (AttDef n (EnumeratedType (NotationType nt)) def) =
-    error "NYI: attribute of EnumeratedType/NotationType"
+    [EnumDef (name_a e n) (map (name_ac e n) nt)]
 mkAttrDef e (AttDef n (EnumeratedType (Enumeration es)) def) =
     [EnumDef (name_a e n) (map (name_ac e n) es)]
         -- Default attribute values not handled here
