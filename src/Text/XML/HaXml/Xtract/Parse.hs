@@ -5,16 +5,16 @@
 
 --   Because the original Xtract grammar was left-recursive, we have
 --   transformed it into a non-left-recursive form.
-module Text.Xml.HaXml.Xtract.Parse (parseXtract) where
+module Text.XML.HaXml.Xtract.Parse (parseXtract) where
 
 #ifdef __NHC__
 import NonStdTrace (trace)
 #endif
 
 import Text.ParserCombinators.HuttonMeijerWallace hiding (bracket,elserror)
-import Text.Xml.HaXml.Xtract.Lex
-import Text.Xml.HaXml.Xtract.Combinators
-import Text.Xml.HaXml.Combinators
+import Text.XML.HaXml.Xtract.Lex
+import Text.XML.HaXml.Xtract.Combinators
+import Text.XML.HaXml.Combinators
 import List(isPrefixOf)
 
 -- | The cool thing is that the Xtract command parser directly builds

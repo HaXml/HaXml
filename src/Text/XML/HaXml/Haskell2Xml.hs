@@ -14,9 +14,9 @@
 --   the given file handles.
 --   (See the type signatures.)
 
-module Text.Xml.HaXml.Haskell2Xml
+module Text.XML.HaXml.Haskell2Xml
   ( -- * Re-export the entire set of XML type definitions
-    module Text.Xml.HaXml.Types
+    module Text.XML.HaXml.Types
   -- * The class Haskell2Xml
   , Haskell2Xml(..)
   -- ** Conversion functions
@@ -35,10 +35,10 @@ module Text.Xml.HaXml.Haskell2Xml
 
 import IO
 
-import Text.Xml.HaXml.Types
-import Text.Xml.HaXml.Parse (xmlParse)
+import Text.XML.HaXml.Types
+import Text.XML.HaXml.Parse (xmlParse)
 import Text.PrettyPrint.HughesPJ (render)
-import qualified Text.Xml.HaXml.Pretty as PP
+import qualified Text.XML.HaXml.Pretty as PP
 import List(intersperse,isPrefixOf,isSuffixOf,partition)
 import Char (ord)
 

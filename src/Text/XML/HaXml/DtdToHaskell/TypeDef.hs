@@ -2,7 +2,7 @@
 --   that correspond to the XML DTD types, and provides pretty-printers to
 --   convert these types into the 'Doc' type of "Text.PrettyPrint.HughesPJ".
 
-module Text.Xml.HaXml.DtdToHaskell.TypeDef
+module Text.XML.HaXml.DtdToHaskell.TypeDef
   ( -- * Internal representation of types
     TypeDef(..)
   , Constructors

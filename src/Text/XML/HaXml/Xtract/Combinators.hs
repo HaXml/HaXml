@@ -9,10 +9,10 @@
 --   New names are derived from the old by surrounding with the letter @o@,
 --   or by doubling the operator symbols.
 
-module Text.Xml.HaXml.Xtract.Combinators where
+module Text.XML.HaXml.Xtract.Combinators where
 
-import Text.Xml.HaXml.Types
-import Text.Xml.HaXml.Combinators
+import Text.XML.HaXml.Types
+import Text.XML.HaXml.Combinators
 
 
 -- | double content filter - takes document root + local subtree.

@@ -1,10 +1,10 @@
-module Text.Xml.HaXml.DtdToHaskell.Instance
+module Text.XML.HaXml.DtdToHaskell.Instance
   ( mkInstance
   ) where
 
 import List (intersperse)
 
-import Text.Xml.HaXml.DtdToHaskell.TypeDef
+import Text.XML.HaXml.DtdToHaskell.TypeDef
 import Text.PrettyPrint.HughesPJ
 
 

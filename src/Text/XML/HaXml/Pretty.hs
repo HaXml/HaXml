@@ -5,7 +5,7 @@
 --   Text.Xml.HaXml.Types, so you can pretty-print as much or as little
 --   of the document as you wish.
 
-module Text.Xml.HaXml.Pretty
+module Text.XML.HaXml.Pretty
   (
   -- * Pretty-print a whole document
     document
@@ -26,7 +26,7 @@ import Maybe hiding (maybe)
 import List (intersperse)
 import Char (isSpace)
 import Text.PrettyPrint.HughesPJ
-import Text.Xml.HaXml.Types
+import Text.XML.HaXml.Types
 
 either f g (Left x)  = f x
 either f g (Right x) = g x

@@ -13,7 +13,7 @@
 -- As one would expect, the lexer is essentially a small finite
 -- state machine.
 
-module Text.Xml.HaXml.Lex
+module Text.XML.HaXml.Lex
   (
   -- * Entry points to the lexer
     xmlLex         -- :: String -> String -> [Token]

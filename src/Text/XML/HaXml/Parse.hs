@@ -1,6 +1,6 @@
 -- | A non-validating XML parser.  For the input grammar, see
 --   <http://www.w3.org/TR/REC-xml>.
-module Text.Xml.HaXml.Parse
+module Text.XML.HaXml.Parse
   (
   -- * Parse a whole document
     xmlParse
@@ -19,8 +19,8 @@ module Text.Xml.HaXml.Parse
 import Prelude hiding (either,maybe,sequence)
 import Maybe hiding (maybe)
 import Char (isSpace)
-import Text.Xml.HaXml.Types
-import Text.Xml.HaXml.Lex
+import Text.XML.HaXml.Types
+import Text.XML.HaXml.Lex
 import Text.ParserCombinators.HuttonMeijerWallace
 import Monad hiding (sequence)
 

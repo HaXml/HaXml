@@ -1,6 +1,6 @@
-module Text.Xml.HaXml.OneOfN where
+module Text.XML.HaXml.OneOfN where
 
-import Text.Xml.HaXml.Xml2Haskell
+import Text.XML.HaXml.Xml2Haskell
 
 data OneOf2 a b
     = OneOf2 a | TwoOf2 b

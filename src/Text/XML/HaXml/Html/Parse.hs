@@ -7,14 +7,14 @@
 -- It uses a slightly extended version of the Hutton/Meijer parser
 -- combinators.
 
-module Text.Xml.HaXml.Html.Parse
+module Text.XML.HaXml.Html.Parse
   ( htmlParse
   ) where
 
 import Prelude hiding (either,maybe,sequence)
 import Maybe hiding (maybe)
-import Text.Xml.HaXml.Types
-import Text.Xml.HaXml.Lex
+import Text.XML.HaXml.Types
+import Text.XML.HaXml.Lex
 import Text.ParserCombinators.HuttonMeijerWallace
 import Char (toUpper, isSpace)
 

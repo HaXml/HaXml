@@ -6,7 +6,7 @@
 --   ``Haskell and XML: Generic Combinators or Type-Based Translation?''
 --   Malcolm Wallace and Colin Runciman, Proceedings ICFP'99.
 --------------------------------------------
-module Text.Xml.HaXml.Combinators
+module Text.XML.HaXml.Combinators
   (-- * The content filter type.
     CFilter
 
@@ -49,7 +49,7 @@ module Text.Xml.HaXml.Combinators
   ) where
 
 
-import Text.Xml.HaXml.Types
+import Text.XML.HaXml.Types
 import Maybe (fromMaybe)
 
 infixl 6 `with`, `without`

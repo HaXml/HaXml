@@ -6,7 +6,7 @@
 --
 --   The Xtract command language is very like the XPath specification.
 
-module Text.Xml.HaXml.Xtract.Lex
+module Text.XML.HaXml.Xtract.Lex
   ( lexXtract
   , Posn(..)
   , TokenT(..)

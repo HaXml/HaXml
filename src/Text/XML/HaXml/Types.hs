@@ -13,7 +13,7 @@
    for plaintext.
 -}
 
-module Text.Xml.HaXml.Types
+module Text.XML.HaXml.Types
   (
   -- * A simple symbol table mapping strings (references) to values.
     SymTab

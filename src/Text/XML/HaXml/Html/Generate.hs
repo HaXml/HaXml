@@ -1,7 +1,7 @@
 -- | These are just some common abbreviations for generating HTML
 --   content within the XML transformation framework defined
 --   by "Text.Xml.HaXml.Combinators".
-module Text.Xml.HaXml.Html.Generate
+module Text.XML.HaXml.Html.Generate
   ( -- * HTML construction filters
   -- ** Containers
     html
@@ -31,8 +31,8 @@ module Text.Xml.HaXml.Html.Generate
 import Char (isSpace)
 import List (partition)
 
-import Text.Xml.HaXml.Types
-import Text.Xml.HaXml.Combinators
+import Text.XML.HaXml.Types
+import Text.XML.HaXml.Combinators
 import qualified Text.PrettyPrint.HughesPJ as Pretty
 
 ---- Constructor functions

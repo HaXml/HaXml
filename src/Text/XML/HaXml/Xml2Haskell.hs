@@ -4,7 +4,7 @@
 --   program to generate both datatypes and instances of this class,
 --   then import this module to read and write values to and from XML files.
 
-module Text.Xml.HaXml.Xml2Haskell
+module Text.XML.HaXml.Xml2Haskell
   ( -- * Reading and writing XML data into a typed Haskell representation.
     readXml, writeXml
   -- * The enabling classes.
@@ -25,9 +25,9 @@ module Text.Xml.HaXml.Xml2Haskell
 import IO
 import Maybe    (catMaybes)
 import Text.PrettyPrint.HughesPJ (render)
-import Text.Xml.HaXml.Types
-import Text.Xml.HaXml.Pretty (document)
-import Text.Xml.HaXml.Parse  (xmlParse)
+import Text.XML.HaXml.Types
+import Text.XML.HaXml.Pretty (document)
+import Text.XML.HaXml.Parse  (xmlParse)
 
 
 -- | Read an XML document from a file and convert it to a fully-typed

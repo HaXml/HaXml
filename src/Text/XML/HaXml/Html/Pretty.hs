@@ -1,7 +1,7 @@
 -- | This is a separate pretty-printer for HTML documents, recognising
 --   some of the differences between HTML and true XML.
 
-module Text.Xml.HaXml.Html.Pretty
+module Text.XML.HaXml.Html.Pretty
   ( document
   , element
   , attribute
@@ -13,7 +13,7 @@ import Maybe hiding (maybe)
 import List (intersperse)
 import Char (isSpace)
 import Text.PrettyPrint.HughesPJ
-import Text.Xml.HaXml.Types
+import Text.XML.HaXml.Types
 
 either f g (Left x)  = f x
 either f g (Right x) = g x

@@ -1,4 +1,4 @@
-module Text.Xml.HaXml.Wrappers
+module Text.XML.HaXml.Wrappers
   ( fix2Args
   , processXmlWith
   ) where
@@ -8,11 +8,11 @@ import System
 import IO
 import List (isSuffixOf)
 
-import Text.Xml.HaXml.Types       (Document(..),Content(..))
-import Text.Xml.HaXml.Combinators (CFilter)
-import Text.Xml.HaXml.Parse       (xmlParse)
-import Text.Xml.HaXml.Html.Parse  (htmlParse)
-import Text.Xml.HaXml.Pretty      (element)
+import Text.XML.HaXml.Types       (Document(..),Content(..))
+import Text.XML.HaXml.Combinators (CFilter)
+import Text.XML.HaXml.Parse       (xmlParse)
+import Text.XML.HaXml.Html.Parse  (htmlParse)
+import Text.XML.HaXml.Pretty      (element)
 import Text.PrettyPrint.HughesPJ  (render)
 
 
