@@ -26,9 +26,11 @@ main =
     else openFile outf WriteMode ) >>= \o->
   let (DTD name _ markup) = (getDtd . dtdParse inf) content
       decls = (nub . dtd2TypeDef) markup
-      realname = if null name then mangle (trim inf) else mangle name
+      realname = if outf/="-" then mangle (trim outf)
+                 else if null name then mangle (trim inf)
+                 else mangle name
   in
-  do hPutStrLn o ("module DTD_"++realname
+  do hPutStrLn o ("module "++realname
                   ++" where\n\nimport Text.XML.HaXml.Xml2Haskell"
                   ++"\nimport Text.XML.HaXml.OneOfN")
      hPutStrLn o "\n\n{-Type decls-}\n"
