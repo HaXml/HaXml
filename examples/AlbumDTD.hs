@@ -120,8 +120,8 @@ instance XmlAttributes Recording where
 	  , recordingPlace = possibleA fromAttrToStr "place" as
 	  }
     toAttrs v = catMaybes 
-	[ maybeA toAttrFrStr "date" (recordingDate v)
-	, maybeA toAttrFrStr "place" (recordingPlace v)
+	[ possibleA toAttrFrStr "date" (recordingDate v)
+	, possibleA toAttrFrStr "place" (recordingPlace v)
 	]
 instance XmlContent Coverart where
     fromElem (CElem (Elem "coverart" as c0):rest) =
@@ -152,8 +152,8 @@ instance XmlAttributes Location where
 	  , locationFullsize = possibleA fromAttrToStr "fullsize" as
 	  }
     toAttrs v = catMaybes 
-	[ maybeA toAttrFrStr "thumbnail" (locationThumbnail v)
-	, maybeA toAttrFrStr "fullsize" (locationFullsize v)
+	[ possibleA toAttrFrStr "thumbnail" (locationThumbnail v)
+	, possibleA toAttrFrStr "fullsize" (locationFullsize v)
 	]
 instance XmlContent Catalogno where
     fromElem (CElem (Elem "catalogno" as []):rest) =
@@ -173,9 +173,9 @@ instance XmlAttributes Catalogno where
     toAttrs v = catMaybes 
 	[ toAttrFrStr "label" (catalognoLabel v)
 	, toAttrFrStr "number" (catalognoNumber v)
-	, maybeA toAttrFrTyp "format" (catalognoFormat v)
-	, maybeA toAttrFrStr "releasedate" (catalognoReleasedate v)
-	, maybeA toAttrFrStr "country" (catalognoCountry v)
+	, possibleA toAttrFrTyp "format" (catalognoFormat v)
+	, possibleA toAttrFrStr "releasedate" (catalognoReleasedate v)
+	, possibleA toAttrFrStr "country" (catalognoCountry v)
 	]
 instance XmlAttrType Format where
     fromAttrToTyp n (n',v)
@@ -227,8 +227,8 @@ instance XmlAttributes Track where
 	  }
     toAttrs v = catMaybes 
 	[ toAttrFrStr "title" (trackTitle v)
-	, maybeA toAttrFrStr "credit" (trackCredit v)
-	, maybeA toAttrFrStr "timing" (trackTiming v)
+	, possibleA toAttrFrStr "credit" (trackCredit v)
+	, possibleA toAttrFrStr "timing" (trackTiming v)
 	]
 instance XmlContent Notes where
     fromElem (CElem (Elem "notes" as c0):rest) =
@@ -244,7 +244,7 @@ instance XmlAttributes Notes_Attrs where
 	  { notesAuthor = possibleA fromAttrToStr "author" as
 	  }
     toAttrs v = catMaybes 
-	[ maybeA toAttrFrStr "author" (notesAuthor v)
+	[ possibleA toAttrFrStr "author" (notesAuthor v)
 	]
 instance XmlContent Notes_ where
     fromElem c0 =
@@ -291,7 +291,7 @@ instance XmlAttributes Trackref_Attrs where
 	  { trackrefLink = possibleA fromAttrToStr "link" as
 	  }
     toAttrs v = catMaybes 
-	[ maybeA toAttrFrStr "link" (trackrefLink v)
+	[ possibleA toAttrFrStr "link" (trackrefLink v)
 	]
 
 
