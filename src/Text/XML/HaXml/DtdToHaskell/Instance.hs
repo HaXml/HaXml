@@ -64,8 +64,9 @@ mkInstance (DataDef True n fs [(n0,sts)]) =
              mkFrAux True frattr [(n0,sts)]
            $$
              text "toElem" <+> parens (mkCpat n0 topat vs) <+> text "=" $$
-             nest 4 (text "[CElem (Elem \"" <> ppXName n <> text "\""
-                          <+> toattr <+> parens (mkToElem sts vs) <> text ")]")
+      --     nest 4 (text "[CElem (Elem \"" <> ppXName n <> text "\""
+      --                  <+> toattr <+> parens (mkToElem sts vs) <> text ")]")
+             nest 4 (parens (mkToElem sts vs))
            )
     $$
     mkInstanceAttrs Extended n fs
