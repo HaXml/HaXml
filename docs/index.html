@@ -92,13 +92,29 @@ also implemented.
      subset of the DTD, which don't conform to the strict well-formedness
      conditions of XML.  We think the constraint in question is spurious,
      and any reasonable XML tool ought to deal adequately with full PEs.
-<li> DtdToHaskell generates unresolved Haskell types for DTD attributes
-     that are of Tokenized or Notation Types in XML.
+<li> DtdToHaskell generates the Haskell String type for DTD attributes
+     that are of Tokenized or Notation Types in XML.  This may not be
+     entirely accurate.
 </ul>
 
 
 <hr>
 <b>Current version</b><br>
+
+HaXml version 1.03 release, 2002.04.02
+<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.03.tar.gz">.tar.gz</a>,
+<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.03.zip">.zip</a>,
+<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.03-hugs.tar.gz">Hugs .tar.gz</a>,
+<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/HaXml-1.03-hugs.zip">Hugs .zip</a>. <br>
+(In DtdToHaskell, added tagname prefixes to the attribute names of
+enumeration types, to disambiguate when attributes of the same name
+have different value-sets within different tags.  DtdToHaskell also
+now accepts Tokenized and Notation types, mapping them to Strings.
+Added an instance of Xml2Haskell for the Maybe type.)
+<br>
+
+<hr>
+<b>Older versions</b><br>
 
 HaXml version 1.02 release, 2001.05.03<br>
 Complete source code and documents:
@@ -109,9 +125,7 @@ Complete source code and documents:
 (Added instances of Haskell2Xml for Float and Double.  Fixed a fault
 in DtdToHaskell's treatment of default attribute values.  Dtd parser
 now accepts (#PCDATA)* as a valid element content specification.)<br>
-
-<hr>
-<b>Older versions</b><br>
+<br>
 
 HaXml version 1.01 release, 2001.01.24<br>
 Complete source code and documents:
