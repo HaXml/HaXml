@@ -10,7 +10,7 @@ import Text.XML.HaXml.Xml2Haskell (attr2str)
 import Maybe (fromMaybe,isNothing,fromJust)
 import List (intersperse,nub,(\\))
 
-#ifdef __GLASGOW_HASKELL__
+#if defined(__GLASGOW_HASKELL__) || defined(__HUGS__)
 -- real finite map, if it is available
 import FiniteMap
 #else
