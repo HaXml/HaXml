@@ -12,11 +12,31 @@
 </center>
 <hr>
 
+<h3>Changes for 1.09</h3>
+<p>
+<ul>
+<li> Some of the signatures in Text.XML.HaXml.Xml2Haskell have changed,
+     in particular, there are new functions <tt>readXml</tt> and
+     <tt>showXml</tt> that convert to/from Strings, <tt>hGetXml</tt> and
+     <tt>hPutXml</tt> that use file Handles, and the old functions that
+     use filenames are renamed to <tt>fReadXml</tt> and <tt>fWriteXml</tt>.
+<li> DtdToHaskell generated incorrect code for reading an XML element
+     given the following DTD fragment: <pre>&lt;!ELEMENT foo (a,b)+ &gt;</pre>
+<li> The parser had a fault when reading conditional sections nested inside an
+     IGNORE section in a DTD.
+<li> In Text.XML.HaXml.Html.Generate, all functions now generate HTML tags
+     in lower-case rather than upper-case, to conform to the XHTML standard.
+<li> DtdToHaskell now accepts NOTATION types for attributes.  They are
+     treated just like enumeration types.
+</ul>
+
 <h3>Changes for 1.08a</h3>
 <p>
 <ul>
 <li> There were some simple import naming problems in some of the
      demonstration files in the examples/ directory.
+<li> Embarrassingly, the string value of Text.XML.HaXml.version, previously
+     "1.07", is only now updated to "1.08".
 </ul>
 
 <h3>Changes for 1.08</h3>
