@@ -189,7 +189,7 @@ echo -n "  Looking for hugs...  "
 if which hugs >/dev/null 2>&1
 then
   HUGSKNOWN=`which hugs`
-  HUGSVERSION=`echo :q | $HUGSKNOWN | grep Version | cut -c18-32`
+  HUGSVERSION=`echo :q | $HUGSKNOWN 2>/dev/null | grep Version | cut -c18-32`
   HUGSNUM=`echo $HUGSVERSION | cut -d' ' -f2`
   HUGSNUM=$HUGSNUM`echo $HUGSVERSION | month`
 fi
@@ -286,7 +286,7 @@ then
 fi
 
 echo $INSTALLDIR >obj/prefix
-if [ $CYGWIN -o $MINGW ]; then echo .exe >obj/exe; else touch obj/exe; fi
+if $CYGWIN || $MINGW ; then echo .exe >obj/exe; else touch obj/exe; fi
 
 
 echo "Ready to build.  Type 'make' then (as root) 'make install'."
