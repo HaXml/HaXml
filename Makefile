@@ -1,7 +1,7 @@
 SOFTWARE = HaXml
 VERSION  = 1.06
 
-LIBSRCS = \
+SRCS = \
 	src/Text/Xml/HaXml.hs src/Text/Xml/HaXml/Combinators.hs \
 	src/Text/Xml/HaXml/Lex.hs \
 	src/Text/Xml/HaXml/Parse.hs src/Text/Xml/HaXml/Pretty.hs \
@@ -18,23 +18,25 @@ LIBSRCS = \
 	src/Text/Xml/HaXml/DtdToHaskell/Instance.hs \
 	src/Text/ParserCombinators/HuttonMeijerWallace.hs \
 	src/Text/PrettyPrint/HughesPJ.hs
-
 TOOLSRCS = \
 	src/tools/DtdToHaskell.hs src/tools/Xtract.hs src/tools/Validate.hs \
 	src/tools/Canonicalise.hs src/tools/MkOneOf.hs
 
-AUX      = Makefile src/Makefile docs/* examples/* README LICENSE COPYRIGHT
-ALLFILES = $(LIBSRCS) $(TOOLSRCS) $(AUX)
+AUX =	configure Makefile src/Makefile src/pkg.conf docs/* examples/* \
+	README LICENSE COPYRIGHT
+ALLFILES = $(SRCS) $(TOOLSRCS) $(AUX)
 
 .PHONY: all libs tools haddock
 
 COMPILERS = $(shell cat obj/compilers)
 LIBS  = $(patsubst %, libs-%, $(COMPILERS))
 TOOLS = $(patsubst %, tools-%, $(COMPILERS))
+INSTALL = $(patsubst %, install-%, $(COMPILERS))
 
 all: $(LIBS) $(TOOLS)
 libs: $(LIBS)
 tools: $(TOOLS)
+install: $(INSTALL)
 libs-ghc:
 	cd obj/ghc; make HC=ghc libs
 libs-nhc98:
@@ -43,11 +45,16 @@ tools-ghc:
 	cd obj/ghc; make HC=ghc toolset
 tools-nhc98:
 	cd obj/nhc98; make HC=nhc98 toolset
+install-ghc:
+	cd obj/ghc; make HC=ghc install-ghc
+install-nhc98:
+	cd obj/nhc98; make HC=nhc98 install-nhc98
 haddock:
-	for file in $(LIBSRCS); \
+	for file in $(SRCS); \
 		do cpp -P -traditional -D__NHC__ $$file >$$file.uncpp; \
 		done
-	haddock -h -t HaXml -o docs/HaXml $(patsubst %, %.uncpp, $(LIBSRCS))
+	haddock -h -t HaXml -o docs/HaXml $(patsubst %, %.uncpp, $(SRCS))
+	rm $(patsubst %, %.uncpp, $(SRCS))
 
 # packaging a distribution
 
@@ -70,8 +77,7 @@ zipDist: $(ALLFILES)
 # clear up rubbish
 clean:
 	-rm -r obj/ghc obj/nhc98
-	-rm `find src/Text -name *.uncpp -print`
-	cd examples;    rm -f *.hi *.o
+	-cd examples;    rm -f *.hi *.o
 realclean: clean
-	rm -f DtdToHaskell Xtract Validate Canonicalise MkOneOf
+	-rm -f DtdToHaskell Xtract Validate Canonicalise MkOneOf
 
