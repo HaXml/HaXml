@@ -40,32 +40,32 @@ import qualified Text.PrettyPrint.HughesPJ as Pretty
 html, hhead, htitle, hbody, h1, h2, h3, h4, hpara, hpre, hcentre,
     hem, htt, hbold, htable, hrow, hcol, hdiv, hspan, margin
        :: [CFilter] -> CFilter
-html    = mkElem "HTML"
-hhead   = mkElem "HEAD"
-htitle  = mkElem "TITLE"
-hbody   = mkElem "BODY"
-h1      = mkElem "H1"
-h2      = mkElem "H2"
-h3      = mkElem "H3"
-h4      = mkElem "H4"
-hpara   = mkElem "P"
-hpre    = mkElem "PRE"
-hcentre = mkElem "CENTER"
-hem     = mkElem "EM"
-htt     = mkElem "TT"
-hbold   = mkElem "B"
+html    = mkElem "html"
+hhead   = mkElem "head"
+htitle  = mkElem "title"
+hbody   = mkElem "body"
+h1      = mkElem "h1"
+h2      = mkElem "h2"
+h3      = mkElem "h3"
+h4      = mkElem "h4"
+hpara   = mkElem "p"
+hpre    = mkElem "pre"
+hcentre = mkElem "center"
+hem     = mkElem "em"
+htt     = mkElem "tt"
+hbold   = mkElem "b"
 
-htable = mkElem "TABLE"
-hrow   = mkElem "TR"
-hcol   = mkElem "TD"
+htable = mkElem "table"
+hrow   = mkElem "tr"
+hcol   = mkElem "td"
 
-hdiv   = mkElem "DIV"
-hspan  = mkElem "SPAN"
-margin = mkElemAttr "DIV" [("margin-left",("2em"!)),
+hdiv   = mkElem "div"
+hspan  = mkElem "span"
+margin = mkElemAttr "div" [("margin-left",("2em"!)),
                            ("margin-top", ("1em"!))]
 
 anchor      :: [(String, CFilter)] -> [CFilter] -> CFilter
-anchor       = mkElemAttr "A"
+anchor       = mkElemAttr "a"
 
 makehref, anchorname :: CFilter -> [CFilter] -> CFilter
 makehref r   = anchor [ ("href",r) ]
@@ -73,8 +73,8 @@ anchorname n = anchor [ ("name",n) ]
 
 
 hbr, hhr :: CFilter
-hbr       = mkElem "BR" []
-hhr       = mkElem "HR" []
+hbr       = mkElem "br" []
+hhr       = mkElem "hr" []
 
 
 showattr, (!), (?) :: String -> CFilter
