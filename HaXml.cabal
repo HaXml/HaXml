@@ -1,9 +1,11 @@
 name:		HaXml
 version:	1.12.1
 license:	LGPL
+license-file:	LICENSE-LGPL
 author:		Malcolm Wallace <Malcolm.Wallace@cs.york.ac.uk>
 homepage:	http://www.cs.york.ac.uk/fp/HaXml/
 category:	Text
+synopsis:	Utilities for manipulating XML documents
 description:
 	Haskell utilities for parsing, filtering, transforming and
 	generating XML documents.
