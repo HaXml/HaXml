@@ -26,6 +26,8 @@ TOOLSRCS = \
 AUX =	configure Makefile src/Makefile src/pkg.conf docs/* examples/* \
 	README LICENSE COPYRIGHT script/echo.c rpm.spec
 ALLFILES = $(SRCS) $(TOOLSRCS) $(AUX)
+# These files in CVS are NOT included in the src distribution.
+NOT =	Makefile.inc Makefile.nhc98 src/Makefile.inc src/Makefile.nhc98
 
 .PHONY: all libs tools haddock install register
 

@@ -1,0 +1,150 @@
+THISPKG	= HaXml
+SEARCH	= -package base
+EXTRA_H_FLAGS	= +RTS -K4M -RTS
+
+SRCS	= \
+	Text/XML/HaXml.hs Text/XML/HaXml/Combinators.hs Text/XML/HaXml/Lex.hs \
+	Text/XML/HaXml/Parse.hs Text/XML/HaXml/Pretty.hs \
+	Text/XML/HaXml/Types.hs Text/XML/HaXml/Validate.hs \
+	Text/XML/HaXml/Wrappers.hs Text/XML/HaXml/OneOfN.hs \
+	Text/XML/HaXml/Xml2Haskell.hs Text/XML/HaXml/Haskell2Xml.hs \
+	Text/XML/HaXml/Verbatim.hs \
+	Text/XML/HaXml/Html/Generate.hs Text/XML/HaXml/Html/Parse.hs \
+	Text/XML/HaXml/Html/Pretty.hs \
+	Text/XML/HaXml/Xtract/Combinators.hs \
+	Text/XML/HaXml/Xtract/Lex.hs \
+	Text/XML/HaXml/Xtract/Parse.hs \
+	Text/ParserCombinators/HuttonMeijerWallace.hs
+
+
+# Here are the main rules.
+include ../../Makefile.common
+
+# Here are the dependencies.
+$(OBJDIR)/Text/XML/HaXml/Xtract/Combinators.$O: \
+	$(OBJDIR)/Text/XML/HaXml/Types.$O \
+	$(OBJDIR)/Text/XML/HaXml/Combinators.$O 
+$(OBJDIR)/Text/XML/HaXml/Xtract/Lex.$O:
+$(OBJDIR)/Text/XML/HaXml/Xtract/Parse.$O: \
+	$(OBJDIR)/Text/ParserCombinators/HuttonMeijerWallace.$O \
+	$(OBJDIR)/Text/XML/HaXml/Xtract/Lex.$O \
+	$(OBJDIR)/Text/XML/HaXml/Xtract/Combinators.$O \
+	$(OBJDIR)/Text/XML/HaXml/Combinators.$O 
+$(OBJDIR)/Text/XML/HaXml/Html/Pretty.$O: \
+	$(OBJDIR)/Text/XML/HaXml/Types.$O 
+$(OBJDIR)/Text/XML/HaXml/Html/Parse.$O: \
+	$(OBJDIR)/Text/XML/HaXml/Types.$O \
+	$(OBJDIR)/Text/XML/HaXml/Lex.$O \
+	$(OBJDIR)/Text/ParserCombinators/HuttonMeijerWallace.$O 
+$(OBJDIR)/Text/XML/HaXml/Html/Generate.$O: \
+	$(OBJDIR)/Text/XML/HaXml/Types.$O \
+	$(OBJDIR)/Text/XML/HaXml/Combinators.$O
+$(OBJDIR)/Text/XML/HaXml/Verbatim.$O: \
+	$(OBJDIR)/Text/XML/HaXml/Types.$O 
+$(OBJDIR)/Text/XML/HaXml/Haskell2Xml.$O: \
+	$(OBJDIR)/Text/XML/HaXml/Types.$O \
+	$(OBJDIR)/Text/XML/HaXml/Parse.$O \
+	$(OBJDIR)/Text/XML/HaXml/Pretty.$O 
+$(OBJDIR)/Text/XML/HaXml/Xml2Haskell.$O: \
+	$(OBJDIR)/Text/XML/HaXml/Types.$O \
+	$(OBJDIR)/Text/XML/HaXml/Pretty.$O \
+	$(OBJDIR)/Text/XML/HaXml/Parse.$O 
+$(OBJDIR)/Text/XML/HaXml/OneOfN.$O: \
+	 $(OBJDIR)/Text/XML/HaXml/Xml2Haskell.$O 
+$(OBJDIR)/Text/XML/HaXml/Wrappers.$O: \
+	$(OBJDIR)/Text/XML/HaXml/Types.$O \
+	$(OBJDIR)/Text/XML/HaXml/Combinators.$O \
+	$(OBJDIR)/Text/XML/HaXml/Parse.$O \
+	$(OBJDIR)/Text/XML/HaXml/Html/Parse.$O \
+	$(OBJDIR)/Text/XML/HaXml/Pretty.$O
+$(OBJDIR)/Text/XML/HaXml/Validate.$O: \
+	$(OBJDIR)/Text/XML/HaXml/Types.$O \
+	$(OBJDIR)/Text/XML/HaXml/Combinators.$O \
+	$(OBJDIR)/Text/XML/HaXml/Xml2Haskell.$O 
+$(OBJDIR)/Text/XML/HaXml/Types.$O:
+$(OBJDIR)/Text/XML/HaXml/Pretty.$O: \
+	$(OBJDIR)/Text/XML/HaXml/Types.$O 
+$(OBJDIR)/Text/XML/HaXml/Parse.$O: \
+	$(OBJDIR)/Text/XML/HaXml/Types.$O \
+	$(OBJDIR)/Text/XML/HaXml/Lex.$O \
+	$(OBJDIR)/Text/ParserCombinators/HuttonMeijerWallace.$O 
+$(OBJDIR)/Text/XML/HaXml/Lex.$O:
+$(OBJDIR)/Text/XML/HaXml/Combinators.$O: \
+	$(OBJDIR)/Text/XML/HaXml/Types.$O 
+$(OBJDIR)/Text/XML/HaXml/Verbatim.$O: \
+	$(OBJDIR)/Text/XML/HaXml/Types.$O 
+$(OBJDIR)/Text/XML/HaXml/Wrappers.$O: \
+	$(OBJDIR)/Text/XML/HaXml/Types.$O \
+	$(OBJDIR)/Text/XML/HaXml/Combinators.$O \
+	$(OBJDIR)/Text/XML/HaXml/Parse.$O \
+	$(OBJDIR)/Text/XML/HaXml/Html/Parse.$O \
+	$(OBJDIR)/Text/XML/HaXml/Pretty.$O
+$(OBJDIR)/Text/ParserCombinators/HuttonMeijerWallace.$O:
+$(OBJDIR)/Text/XML/HaXml.$O: \
+	$(OBJDIR)/Text/XML/HaXml/Types.$O \
+	$(OBJDIR)/Text/XML/HaXml/Combinators.$O \
+	$(OBJDIR)/Text/XML/HaXml/Parse.$O \
+	$(OBJDIR)/Text/XML/HaXml/Pretty.$O \
+	$(OBJDIR)/Text/XML/HaXml/Html/Generate.$O \
+	$(OBJDIR)/Text/XML/HaXml/Html/Parse.$O \
+	$(OBJDIR)/Text/XML/HaXml/Validate.$O \
+	$(OBJDIR)/Text/XML/HaXml/Wrappers.$O \
+	$(OBJDIR)/Text/XML/HaXml/Verbatim.$O
+
+
+# C-files dependencies.
+Text/XML/HaXml/Xtract/Combinators.$C: \
+	Text/XML/HaXml/Types.$C Text/XML/HaXml/Combinators.$C 
+Text/XML/HaXml/Xtract/Lex.$C:
+Text/XML/HaXml/Xtract/Parse.$C: \
+	Text/ParserCombinators/HuttonMeijerWallace.$C \
+	Text/XML/HaXml/Xtract/Lex.$C \
+	Text/XML/HaXml/Xtract/Combinators.$C \
+	Text/XML/HaXml/Combinators.$C 
+Text/XML/HaXml/Html/Pretty.$C: \
+	Text/XML/HaXml/Types.$C 
+Text/XML/HaXml/Html/Parse.$C: \
+	Text/XML/HaXml/Types.$C Text/XML/HaXml/Lex.$C \
+	Text/ParserCombinators/HuttonMeijerWallace.$C 
+Text/XML/HaXml/Html/Generate.$C: \
+	Text/XML/HaXml/Types.$C Text/XML/HaXml/Combinators.$C
+Text/XML/HaXml/Verbatim.$C: \
+	Text/XML/HaXml/Types.$C 
+Text/XML/HaXml/Haskell2Xml.$C: \
+	Text/XML/HaXml/Types.$C Text/XML/HaXml/Parse.$C \
+	Text/XML/HaXml/Pretty.$C 
+Text/XML/HaXml/Xml2Haskell.$C: \
+	Text/XML/HaXml/Types.$C \
+	Text/XML/HaXml/Pretty.$C Text/XML/HaXml/Parse.$C 
+Text/XML/HaXml/OneOfN.$C: \
+	 Text/XML/HaXml/Xml2Haskell.$C 
+Text/XML/HaXml/Wrappers.$C: \
+	Text/XML/HaXml/Types.$C Text/XML/HaXml/Combinators.$C \
+	Text/XML/HaXml/Parse.$C Text/XML/HaXml/Html/Parse.$C \
+	Text/XML/HaXml/Pretty.$C
+Text/XML/HaXml/Validate.$C: \
+	Text/XML/HaXml/Types.$C Text/XML/HaXml/Combinators.$C \
+	Text/XML/HaXml/Xml2Haskell.$C 
+Text/XML/HaXml/Types.$C:
+Text/XML/HaXml/Pretty.$C: \
+	Text/XML/HaXml/Types.$C 
+Text/XML/HaXml/Parse.$C: \
+	Text/XML/HaXml/Types.$C Text/XML/HaXml/Lex.$C \
+	Text/ParserCombinators/HuttonMeijerWallace.$C 
+Text/XML/HaXml/Lex.$C:
+Text/XML/HaXml/Combinators.$C: \
+	Text/XML/HaXml/Types.$C 
+Text/XML/HaXml/Verbatim.$C: \
+	Text/XML/HaXml/Types.$C 
+Text/XML/HaXml/Wrappers.$C: \
+	Text/XML/HaXml/Types.$C Text/XML/HaXml/Combinators.$C \
+	Text/XML/HaXml/Parse.$C Text/XML/HaXml/Html/Parse.$C \
+	Text/XML/HaXml/Pretty.$C
+Text/ParserCombinators/HuttonMeijerWallace.$C:
+Text/XML/HaXml.$C: \
+	Text/XML/HaXml/Types.$C Text/XML/HaXml/Combinators.$C \
+	Text/XML/HaXml/Parse.$C Text/XML/HaXml/Pretty.$C \
+	Text/XML/HaXml/Html/Generate.$C Text/XML/HaXml/Html/Parse.$C \
+	Text/XML/HaXml/Validate.$C Text/XML/HaXml/Wrappers.$C \
+	Text/XML/HaXml/Verbatim.$C
+
