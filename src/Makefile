@@ -43,6 +43,18 @@ endif
 all: libs toolset
 libs: libHSHaXml.a
 toolset: $(TOOLSET)
+install-ghc: libs
+	cp libHSHaXml.a `cat ghclibdir`
+	mkdir `cat ghcincdir`/HaXml || true
+	cp interfaces.tar `cat ghcincdir`/HaXml
+	cd `cat ghcincdir`/HaXml; tar xf interfaces.tar; rm interfaces.tar
+	ghc-pkg --remove-package=HaXml || true
+	ghc-pkg --add-package <pkg.conf
+install-nhc98:
+	cp libHSHaXml.a `cat nhc98libdir`/`harch`
+	mkdir `cat nhc98incdir`/HaXml || true
+	cp interfaces.tar `cat nhc98incdir`/HaXml
+	cd `cat nhc98incdir`/HaXml; tar xf interfaces.tar; rm interfaces.tar
 
 # update the sources if necessary
 $(LIBSRCS) $(TOOLSRCS) Makefile: %: ../../src/%
@@ -56,7 +68,7 @@ libHSHaXml.a: $(LIBOBJS)
 
 
 # library APIs
-$(LIBOBJS): $(LIBSRCS)
+$(LIBOBJS): %.o : %.hs
 	$(COMPILE) Text/Xml/HaXml.hs   Text/Xml/HaXml/Xml2Haskell.hs
 	$(COMPILE) Text/Xml/HaXml/Haskell2Xml.hs   Text/Xml/HaXml/OneOfN.hs
 
