@@ -178,4 +178,4 @@ decolonify ':' = '\''   -- TODO: turn namespaces into qualified identifiers
 decolonify '-' = '_'
 decolonify  c  = c
 
-
+commaList = hcat . intersperse comma

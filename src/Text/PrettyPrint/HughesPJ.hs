@@ -174,8 +174,6 @@ module Text.PrettyPrint.HughesPJ (
 
         hang, punctuate,
 
-	commaList,
-        
 --      renderStyle,            -- Haskell 1.3 only
         render, fullRender
   ) where
@@ -403,8 +401,6 @@ punctuate p (d:ds) = go d ds
                    where
                      go d [] = [d]
                      go d (e:es) = (d <> p) : go e es
-
-commaList = hcat . intersperse comma
 
 
 {-
