@@ -2,7 +2,12 @@
 #       configure -- prepare to compile/install the HaXml package
 #       author:   Malcolm.Wallace@cs.york.ac.uk, August 2002
 
-VERSION="1.08b"
+VERSION="1.09"
+
+if [ -f obj/prefix ]
+then INSTALLDIR=`cat obj/prefix`
+else INSTALLDIR=/usr/local/bin
+fi
 
 # We need a working `echo' command: at least Solaris2.6 may not have it.
 CCC=${CC-gcc}
@@ -11,6 +16,11 @@ case `echo -n hello | wc -c | ( read n ; echo $n )` in
     *) echo "The builtin 'echo' command doesn't do '-n' - emulating it."
        $CCC -o script/echo script/echo.c
        echo () { $PWD/script/echo "$@"; } ;;
+esac
+
+case `uname -s` in
+  CYGWIN*) CYGWIN=/bin/true ;;
+  *)       CYGWIN=/bin/false ;;
 esac
 
 # Process command-line arguments
@@ -24,7 +34,7 @@ do
   echo "`basename $0` options:     [default in brackets]"
   echo "  --buildwith=comp     Build HaXml for the given compiler [detected]"
   echo "  --buildopts=flags    Give extra flags needed by your build compiler [none]"
-  echo "  --prefix=rootdir     Use rootdir as base for installation [detected]"
+  echo "  --prefix=bindir      Installed executables go in bindir [/usr/local/bin]"
             exit 0 ;;
     --version|-v) echo "HaXml:     $VERSION"
                   exit 0 ;;
@@ -55,11 +65,6 @@ if [ "$HMAKEKNOWN" != "" ]
 then echo "found ${HMAKEVERSION}"
 else echo "(not found)"
 fi
-if [ "$HMAKENUM" -lt "306" ]
-then echo "    ERROR: HaXml needs hmake-3.06 or later."
-     echo "    Available from:   http://www.haskell.org/hmake/"
-     exit 1
-fi
 
 echo -n "  Looking for ghc...   "
 if which ghc >/dev/null 2>&1
@@ -75,6 +80,7 @@ else echo "found ${GHCVERSION}"
      then  echo "    Warning: HaXml needs ghc-5.02 or later.  Ignoring ghc."
            GHCKNOWN=
      else  GHCLIBDIR=`ghc -v 2>&1 | head -2 | tail -1 | cut -c28- | head -1`
+           if $CYGWIN; then GHCLIBDIR=`cygpath -u $GHCLIBDIR`; fi
            GHCLIBDIR=`dirname $GHCLIBDIR`
            GHCINCDIR=$GHCLIBDIR/imports
      fi
@@ -103,6 +109,7 @@ then
                GHCVERSION="$GHC2VERSION"
                GHCNUM="$GHC2NUM"
                GHCLIBDIR=`$GHCKNOWN -v 2>&1 | head -2 | tail -1 | cut -c28- | head -1`
+               if $CYGWIN; then GHCLIBDIR=`cygpath -u $GHCLIBDIR`; fi
                GHCLIBDIR=`dirname $GHCLIBDIR`
                GHCINCDIR=$GHCLIBDIR/imports
           fi
@@ -120,6 +127,10 @@ fi
 if [ "$NHCKNOWN" = "" ]
 then  echo "(not found)"
 else  echo "found ${NHCVERSION}"
+     if [ "$HMAKENUM" -lt "306" ]
+     then echo "    Warning: building with nhc98 needs hmake-3.06 or later."
+          echo "    Available from:   http://www.haskell.org/hmake/"
+     fi
      if [ "$NHCNUM" -lt "114" ]
      then  echo "    Warning: HaXml needs nhc98-1.14 or later.  Ignoring nhc98."
            NHCKNOWN=
@@ -149,6 +160,10 @@ then
     fi
   fi
 fi
+
+echo "  Executables install into... $INSTALLDIR"
+echo "    (note: no extra /bin will be added to the end of that location)"
+echo "    (      re-run ./configure --prefix=... if this wasn't your intention)"
 
 # Prepare to build.
 if [ ! -d obj ]
@@ -183,6 +198,8 @@ then
   echo $NHCINCDIR >obj/nhc98/nhc98incdir
   cp -Rp src/Text src/tools src/Makefile obj/nhc98
 fi
+echo $INSTALLDIR >obj/prefix
+if $CYGWIN; then echo .exe >obj/exe; else touch obj/exe; fi
 
 echo "Ready to build.  Type 'make' then (as root) 'make install'."
 exit 0
