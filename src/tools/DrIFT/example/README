@@ -1,8 +1,0 @@
-Run derive over Example.hs to test everything is working properly.
-Compare with Example.output.
-
-Try some other example data structures in 
-  Artifical.hs
-  BTree.hs
-  Foo.lhs
-  Xref.hs
