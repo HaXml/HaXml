@@ -265,6 +265,7 @@ mkInstance (DataDef aux n fs []) =
     nest 4 ( text "fromElem (CElem (Elem \"" <> ppXName n <> text "\""
                   <+> frpat <+> text "[]):rest) =" $$
              nest 4 (text "(Just" <+> frretval <> text ", rest)") $$
+             text "fromElem (CMisc _:rest) = fromElem rest" $$
              text "fromElem rest = (Nothing, rest)"
            $$
              text "toElem" <+> topatval <+> text "=" $$
@@ -286,6 +287,7 @@ mkInstance (DataDef aux n fs [(n0,sts)]) =
                          text "(Just" <+> parens (mkCpat n0 frattr vs)
                                <> text ", rest)")
                     ) $$
+             text "fromElem (CMisc _:rest) = fromElem rest" $$
              text "fromElem rest = (Nothing, rest)"
            $$
              text "toElem" <+> parens (mkCpat n0 topat vs) <+> text "=" $$
@@ -306,6 +308,7 @@ mkInstance (DataDef aux n fs cs) =
                else text "fromElem (CElem (Elem \"" <> ppXName n <> text "\""
                          <+> frpat <+> text "c0):rest) =" ) $$
              mkFrAux aux frattr cs $$
+             text "fromElem (CMisc _:rest) = fromElem rest" $$
              text "fromElem rest = (Nothing, rest)"
            $$
              if aux then vcat (map (mkToAux mixattrs) cs)
@@ -372,7 +375,10 @@ mkFrElem n sts vs inner =
             (List String)   -> text "many fromText" <+> cvo
             (List s)        -> text "many fromElem" <+> cvo
             (Tuple ss)  -> text "nyi_fromElem_Tuple" <+> cvo
-            (OneOf ss)  -> text "fromElem" <+> cvo
+            (OneOf ss)  -> text "definite fromElem"
+                           <+> text "\"OneOf\""
+                           <+> text "\"" <> ppXName n <> text "\""
+                           <+> cvo
             (String)    -> text "definite fromText" <+> text "\"text\" \"" <>
                                                  ppXName n <> text "\"" <+> cvo
             (Defined m) -> text "definite fromElem" <+>
