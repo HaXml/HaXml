@@ -22,8 +22,8 @@ module XmlLex
 
 
 
-import Prelude 
-import Char 
+import Prelude
+import Char
 
 import XmlChar
 
@@ -220,7 +220,7 @@ xmlAny w p s@('<':ss)
     | "!["  `prefixes` ss = emit TokSectionOpen p: skip 3 p s (xmlSection w)
     | "!"   `prefixes` ss = emit TokSpecialOpen p:
                                               skip 2 p s (xmlSpecial (InTag:w))
-    | "/"   `prefixes` ss = emit TokEndOpen p: 
+    | "/"   `prefixes` ss = emit TokEndOpen p:
                                              skip 2 p s (xmlTag (InTag:tail w))
     | otherwise           = emit TokAnyOpen p:
                                          skip 1 p s (xmlTag (InTag:NotInTag:w))
