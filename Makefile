@@ -1,5 +1,5 @@
 SOFTWARE = HaXml
-VERSION  = 1.07b
+VERSION  = 1.08
 
 SRCS = \
 	src/Text/XML/HaXml.hs src/Text/XML/HaXml/Combinators.hs \
@@ -38,15 +38,15 @@ libs: $(LIBS)
 tools: $(TOOLS)
 install: $(INSTALL)
 libs-ghc:
-	cd obj/ghc; $(MAKE) HC=ghc libs
+	cd obj/ghc; $(MAKE) HC=$(shell cat obj/ghccmd) libs
 libs-nhc98:
 	cd obj/nhc98; $(MAKE) HC=nhc98 libs
 tools-ghc:
-	cd obj/ghc; $(MAKE) HC=ghc toolset
+	cd obj/ghc; $(MAKE) HC=$(shell cat obj/ghccmd) toolset
 tools-nhc98:
 	cd obj/nhc98; $(MAKE) HC=nhc98 toolset
 install-ghc:
-	cd obj/ghc; $(MAKE) HC=ghc install-ghc
+	cd obj/ghc; $(MAKE) HC=$(shell cat obj/ghccmd) install-ghc
 install-nhc98:
 	cd obj/nhc98; $(MAKE) HC=nhc98 install-nhc98
 haddock:

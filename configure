@@ -2,7 +2,7 @@
 #       configure -- prepare to compile/install the HaXml package
 #       author:   Malcolm.Wallace@cs.york.ac.uk, August 2002
 
-VERSION="1.07"
+VERSION="1.08"
 
 # We need a working `echo' command: at least Solaris2.6 may not have it.
 CCC=${CC-gcc}
@@ -80,6 +80,36 @@ else echo "found ${GHCVERSION}"
      fi
 fi
 
+# There may be another version of ghc to look for.
+if [ "`echo $BUILDWITH | cut -c1-3`" = "ghc" ]
+then
+  VER=`echo $BUILDWITH | cut -c5-`
+  if [ -n "$VER" -a "$VER" != "$GHCVERSION" ]
+  then
+    echo -n "  Looking for $BUILDWITH...   "
+    if which $BUILDWITH >/dev/null 2>&1
+    then
+      GHC2KNOWN=`which $BUILDWITH`
+      GHC2VERSION=`${GHC2KNOWN} --version 2>&1 | sed 's/^.*version[ ]*\([0-9.]*\).*/\1/'`
+      GHC2NUM=`echo $GHC2VERSION | tr "." " " | ( read x y z; echo $x$y; )`
+    fi
+    if [ "$GHC2KNOWN" = "" ]
+    then  echo "(not found)"
+    else  echo "found ${GHC2VERSION}"
+          if [ "$GHC2NUM" -lt "502" ]
+          then echo "    Warning: HaXml needs ghc-5.02 or later.  Ignoring."
+               GHC2KNOWN=
+          else GHCKNOWN="$GHC2KNOWN"
+               GHCVERSION="$GHC2VERSION"
+               GHCNUM="$GHC2NUM"
+               GHCLIBDIR=`$GHCKNOWN -v 2>&1 | head -2 | tail -1 | cut -c28- | head -1`
+               GHCLIBDIR=`dirname $GHCLIBDIR`
+               GHCINCDIR=$GHCLIBDIR/imports
+          fi
+    fi
+  fi
+fi
+
 echo -n "  Looking for nhc98... "
 if which nhc98 >/dev/null 2>&1
 then
@@ -101,7 +131,7 @@ fi
 if [ ! -z "$BUILDWITH" ]
 then
   echo "  You want to build for only...  $BUILDWITH"
-  if [ "$BUILDWITH" = "ghc" ]
+  if [ "`echo $BUILDWITH | cut -c1-3`" = "ghc" ]
   then
     if [ -z "$GHCKNOWN" ]
     then echo '   *** Did not find ghc - cannot continue.'
@@ -135,7 +165,13 @@ then
   fi
   echo $GHCLIBDIR >obj/ghc/ghclibdir
   echo $GHCINCDIR >obj/ghc/ghcincdir
+  echo ${BUILDWITH-ghc} >obj/ghccmd
   cp -Rp src/Text src/tools src/Makefile src/pkg.conf obj/ghc
+  if [ "$GHCNUM" -ge "504" ]
+  then rm -rf obj/ghc/Text/PrettyPrint
+       echo "-package lang -package data -package base" >obj/ghc/ghcpkgs
+  else echo "-package lang -package data" >obj/ghc/ghcpkgs
+  fi
 fi
 if [ "$NHCKNOWN" != "" ]
 then
