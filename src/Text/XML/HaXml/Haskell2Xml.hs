@@ -8,9 +8,10 @@
 --   a generic internal representation of an XML document /without/ a DTD.
 --   The functions 'toXml' and 'fromXml' convert a value to and from a generic
 --   internal representation of an XML document /including/ a DTD.
---   The functions 'readXml' and 'writeXml' do the conversion to and from
+--   The functions 'readXml' and 'showXml' convert to and from Strings.
+--   The functions 'fReadXml' and 'fWriteXml' do the conversion to and from
 --   the given filenames.
---   The functions 'hReadXml' and 'hWriteXml' do the conversion to and from
+--   The functions 'hGetXml' and 'hPutXml' do the conversion to and from
 --   the given file handles.
 --   (See the type signatures.)
 
@@ -21,9 +22,10 @@ module Text.XML.HaXml.Haskell2Xml
   , Haskell2Xml(..)
   -- ** Conversion functions
   , toXml, toDTD, fromXml
-  -- ** IO functions
-  , readXml, writeXml
-  , hReadXml, hWriteXml
+  , readXml, showXml
+  -- ** IO conversion functions
+  , fReadXml, fWriteXml
+  , hGetXml,  hPutXml
   -- * Auxiliary types
   , HType(..)
   , Constr(..)
@@ -335,32 +337,39 @@ fromXml (Document _ _ e@(Elem n _ cs))
   | "-XML"  `isSuffixOf` n = fst (fromContents cs)
   | otherwise = fst (fromContents [CElem e])
 
+-- | Convert an XML document encoded as a String, into a Haskell value.
+readXml :: Haskell2Xml a => String -> Maybe a
+readXml s = Just . fromXml . xmlParse "string input"
+-- | Convert a Haskell value to an XML document, encoded as a String.
+showXml :: Haskell2Xml a => a -> String
+showXml = render . PP.document . toXml
+
 
 -- | Read a Haskell value from an XML document stored in a file.
-readXml  :: Haskell2Xml a => FilePath -> IO a
-readXml fp = do
+fReadXml  :: Haskell2Xml a => FilePath -> IO a
+fReadXml fp = do
     f <- openFile fp ReadMode 
     content <- hGetContents f
     --hClose f
     return (fromXml (xmlParse fp content))
 
 -- | Write a Haskell value to the given file as an XML document.
-writeXml :: Haskell2Xml a => FilePath -> a -> IO ()
-writeXml fp v = do
+fWriteXml :: Haskell2Xml a => FilePath -> a -> IO ()
+fWriteXml fp v = do
     f <- openFile fp WriteMode 
     (hPutStrLn f . render . PP.document . toXml) v
     hClose f
 
 -- | Read a Haskell value from an XML document transmitted through the
 --   given 'Handle'.
-hReadXml  :: Haskell2Xml a => Handle -> IO a
-hReadXml f = do
+hGetXml  :: Haskell2Xml a => Handle -> IO a
+hGetXml f = do
     content <- hGetContents f
-    return (fromXml (xmlParse "<unknown>" content))
+    return (fromXml (xmlParse "file handle" content))
 
 -- | Write a Haskell value to the given 'Handle' as an XML document.
-hWriteXml :: Haskell2Xml a => Handle -> a -> IO ()
-hWriteXml f v = (hPutStrLn f . render . PP.document . toXml) v
+hPutXml :: Haskell2Xml a => Handle -> a -> IO ()
+hPutXml f v = (hPutStrLn f . render . PP.document . toXml) v
 
 
 showConstr n (Defined _ _ cs) = cflat (cs!!n) ""

@@ -38,12 +38,34 @@ type declarations that are of interest, and run DrIFT on them
 separately.)
 
 <p>
-To read and write Haskell data values as XML files, use the functions
+To read and write Haskell data values as XML files, you
+have a choice of function pairs:  <tt>toXML/fromXML</tt>
+convert between typed Haskell values and the generic internal
+XML representation; <tt>showXml/readXml</tt> convert to/from
+Strings; <tt>fWriteXml/fReadXml</tt> convert to/from named files;
+<tt>hPutXml/hGetXml</tt> convert to/from file Handles.
+
 <pre>
-    Haskell2Xml.readXml  :: XmlContent a => FilePath -> IO a
-    Haskell2Xml.writeXml :: XmlContent a => FilePath -> a -> IO ()
+    toXml     :: Haskell2Xml a =&gt; a        -&gt; Document
+    fromXml   :: Haskell2Xml a =&gt; Document -&gt; a
+
+    readXml   :: Haskell2Xml a =&gt; String   -&gt; Maybe a
+    showXml   :: Haskell2Xml a =&gt; a        -&gt; String
+
+    fReadXml  :: Haskell2Xml a =&gt; FilePath -&gt; IO a
+    fWriteXml :: Haskell2Xml a =&gt; FilePath -&gt; a -&gt; IO ()
+
+    hGetXml   :: Haskell2Xml a =&gt; Handle   -&gt; IO a
+    hPutXml   :: Haskell2Xml a =&gt; Handle   -&gt; a -&gt; IO ()
 </pre>
-not forgetting to resolve the overloading in one of the usual ways
+
+<p>
+(These signatures are extremely similar to those in
+<a href="Xml2Haskell.html">Xml2Haskell</a> - the only difference is
+the class context, indicating how the types have been derived.)
+
+<p>
+Do not forget to resolve the overloading in one of the usual ways
 (e.g. by implicit context at point of use, by explicit type signatures
 on values, use value as an argument to a function with an explicit
 signature, use <tt>`asTypeOf`</tt>, etc.)

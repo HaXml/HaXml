@@ -47,10 +47,12 @@ convenience functions:
     fReadXml  :: XmlContent a =&gt; FilePath -&gt; IO a
     fWriteXml :: XmlContent a =&gt; FilePath -&gt; a -&gt; IO ()
 </pre>
-not forgetting to resolve the overloading in one of the usual ways
-(e.g. by implicit context at point of use, by explicit type signatures
-on values, use value as an argument to a function with an explicit
-signature, use <tt>`asTypeOf`</tt>, etc.)
+not forgetting to resolve the overloading in one of the usual
+ways (e.g. by implicit context at point of use, by explicit type
+signatures on values, use value as an argument to a function with
+an explicit signature, use <tt>`asTypeOf`</tt>, etc.)  (Also, note
+the similarity between these signatures and those provided by the
+<a href="Haskell2Xml.html">Haskell2Xml</a> library.)
 
 <p>
 You will need to study the automatically-generated type declarations to
