@@ -45,7 +45,7 @@ module Text.XML.HaXml.Combinators
    -- ** Using and combining labelled filters.
   , oo, x
    -- ** Some label-generating filters.
-  , numbered, interspersed, tagged, attributed, textlabelled
+  , numbered, interspersed, tagged, attributed, textlabelled, extracted
 
   ) where
 
@@ -349,27 +349,32 @@ interspersed a f b =
 -- | Label each element in the result with its tag name.  Non-element
 --   results get an empty string label.
 tagged :: CFilter -> LabelFilter String
-tagged f = concatMap getName . f
-  where getName c@(CElem (Elem n _ _)) = [(n,c)]
-        getName c                      = [("",c)]
+tagged f = extracted name f
+  where name (CElem (Elem n _ _)) = n
+        name _                    = ""
 
 -- | Label each element in the result with the value of the named attribute.
 --   Elements without the attribute, and non-element results, get an
 --   empty string label.
 attributed :: String -> CFilter -> LabelFilter String
-attributed key f = concatMap getName . f
-  where getName c@(CElem (Elem _ as _)) =
+attributed key f = extracted att f
+  where att (CElem (Elem _ as _)) =
             case (lookup key as) of
-              Nothing  -> [("",c)]
-              (Just (AttValue [Left s])) -> [(s,c)]
-        getName c = [("",c)]
+              Nothing  -> ""
+              (Just (AttValue [Left s])) -> s
+        att _ = ""
 
 -- | Label each textual part of the result with its text.  Element
 --   results get an empty string label.
 textlabelled :: CFilter -> LabelFilter (Maybe String)
-textlabelled f = concatMap getText . f
-  where getText c@(CString _ s) = [(Just s,c)]
-        getText c = [(Nothing,c)]
+textlabelled f = extracted text f
+  where text (CString _ s) = Just s
+        text _             = Nothing
+
+-- | Label each content with some information extracted from itself.
+extracted :: (Content->a) -> CFilter -> LabelFilter a
+extracted proj f = concatMap (\c->[(proj c, c)]) . f
+                                                                                
 
 
 {-
