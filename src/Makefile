@@ -1,5 +1,5 @@
 SOFTWARE = HaXml
-VERSION  = 1.08
+VERSION  = 1.08b
 
 LIBSRCS = \
 	Text/XML/HaXml.hs Text/XML/HaXml/Combinators.hs Text/XML/HaXml/Lex.hs \
@@ -34,7 +34,7 @@ COMPILE  = hmake -HC=$(HC) -I. $(shell cat ghcpkgs) -package-name HaXml
 endif
 COMPILER := $(findstring nhc98, $(HC))
 ifeq "$(COMPILER)" "nhc98"
-COMPILE  = hmake -HC=$(HC) -I. -K4M +CTS -H8M -CTS
+COMPILE  = hmake -HC=$(HC) -I. -K4M +CTS -H8M -CTS -package base
 endif
 
 .PHONY: all libs toolset
@@ -70,6 +70,7 @@ libHSHaXml.a: $(LIBOBJS)
 
 
 # library APIs
+$(LIBOBJS): $(LIBSRCS)
 $(LIBOBJS): %.o : %.hs
 	$(COMPILE) $<
 
