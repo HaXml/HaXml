@@ -31,3 +31,23 @@ exposed-modules:
 hs-source-dir:	src
 build-depends:	base
 extensions:	CPP
+
+executable:	Canonicalise
+main-is:	Canonicalise.hs
+hs-source-dir:	src/tools
+
+executable:	DtdToHaskell
+main-is:	DtdToHaskell.hs
+hs-source-dir:	src/tools
+
+executable:	MkOneOf
+main-is:	MkOneOf.hs
+hs-source-dir:	src/tools
+
+executable:	Validate
+main-is:	Validate.hs
+hs-source-dir:	src/tools
+
+executable:	Xtract
+main-is:	Xtract.hs
+hs-source-dir:	src/tools
