@@ -12,10 +12,30 @@
 </center>
 <hr>
 
+<h3>Changes for 1.10</h3>
+<p>
+<ul>
+<li> All being well, HaXml now works again for Hugs (versions &ge;
+     September 2003).  The library sources are installed using
+     <em>hugs-package</em>, and the tools are installed as scripts
+     for <em>runhugs</em>.
+<li> Fixed the internal (and external) representations of XML character
+     references.
+<li> New combinators to `escape' and `unescape' reserved XML characters in
+     text and attribute values has been contributed by George Russell.
+     (e.g. to convert "&lt;" into "&amp;lt;".)
+<li> Bugfixes to DtdToHaskell: A DTD content specification of the form<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>&lt;!ELEMENT A (B*,(C|(D?,E*)))&gt;</tt><br>
+     was incorrectly translated to the Haskell<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>data A = A [B] (OneOf3 C (Maybe D) [E])</tt><br>
+     but the new (correct) translation is<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>data A = A [B] (OneOf2 C (Maybe D,[E]))</tt><br>
+</ul>
+
 <h3>Changes for 1.09</h3>
 <p>
 <ul>
-<li> <em>ghc-6.0</em> is supported.
+<li> <em>ghc-6.0</em> (and newer) are supported.
 <li> <em>hmake</em> is no longer required to build HaXml, provided you
      have <em>ghc --make</em>.
 <li> A new combinator <tt>path</tt> has been added to
