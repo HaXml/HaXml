@@ -19,7 +19,7 @@ module Text.XML.HaXml.Parse
 import Prelude hiding (either,maybe,sequence)
 import Maybe hiding (maybe)
 import List (intersperse)	-- debugging only
-import Char (isSpace)
+import Char (isSpace,isDigit,isHexDigit)
 import Monad hiding (sequence)
 import Numeric (readDec,readHex)
 
@@ -518,6 +518,16 @@ ignore = do
 ----
 
 reference :: Parser SymTabs Token Reference
+reference = do
+    bracket (tok TokAmp) (freetext >>= val) (tok TokSemi)
+  where
+    val ('#':'x':i) | all isHexDigit i
+                    = return . RefChar . fst . head . readHex $ i
+    val ('#':i)     | all isDigit i
+                    = return . RefChar . fst . head . readDec $ i
+    val name        = return . RefEntity $ name
+
+{-
 reference =
     ( charref >>= return . RefChar) +++
     ( entityref >>= return . RefEntity)
@@ -533,6 +543,7 @@ charref = do
     readCharVal ('#':'x':i) = return . fst . head . readHex $ i
     readCharVal ('#':i)     = return . fst . head . readDec $ i
     readCharVal _           = mzero
+-}
 
 pereference :: Parser SymTabs Token PEReference
 pereference = do
