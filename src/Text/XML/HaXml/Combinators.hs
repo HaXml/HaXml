@@ -27,6 +27,7 @@ module Text.XML.HaXml.Combinators
   , o, union, cat, andThen
   , (|>|), with, without
   , (/>), (</), et
+  , path
    -- ** Recursive search.
    -- $recursive
   , deep, deepest, multi
@@ -233,6 +234,12 @@ et :: (String->CFilter) -> CFilter -> CFilter
 et f g = (f `oo` tagged elm)
             |>|
          (g `o` txt)
+
+-- | Express a list of filters like an XPath query, e.g.
+--   @path [children, tag "name1", attr "attr1", children, tag "name2"]@
+--   is like the XPath query @/name1[@attr1]/name2@.
+path :: [CFilter] -> CFilter
+path fs = foldr (flip (o)) keep fs
 
 
 -- RECURSIVE SEARCH
