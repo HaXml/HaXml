@@ -89,6 +89,7 @@ fromText c =
     (CRef (RefChar s): cs)   -> more ('&':s++";") cs
     (CRef (RefEntity s): cs) -> more ('&':s++";") cs
     (CMisc _: cs)            -> more "" cs
+    []                       -> (Just "",[])
     _                        -> (Nothing,c)
   where more s cs = case fromText cs of
                         (Nothing, _)   -> (Just s, cs)
