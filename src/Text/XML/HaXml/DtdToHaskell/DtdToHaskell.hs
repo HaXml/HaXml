@@ -10,10 +10,12 @@ import System
 import IO
 import List (nub,takeWhile,dropWhile)
 
-import Text.Xml.HaXml (fix2Args)
-import Text.Xml.HaXml.Types
-import Text.Xml.HaXml.Parse  (dtdParse)
-import Text.Xml.HaXml.DtdToHaskell.DtdToTypeDefPP
+import Text.Xml.HaXml.Wrappers   (fix2Args)
+import Text.Xml.HaXml.Types      (DocTypeDecl(..))
+import Text.Xml.HaXml.Parse      (dtdParse)
+import Text.Xml.HaXml.DtdToHaskell.TypeDef  (TypeDef,ppTypeDef,mangle)
+import Text.Xml.HaXml.DtdToHaskell.Convert  (dtd2TypeDef)
+import Text.Xml.HaXml.DtdToHaskell.Instance (mkInstance)
 import Text.PrettyPrint.HughesPJ (render,vcat)
 
 main =
@@ -23,7 +25,7 @@ main =
   ( if outf=="-" then return stdout
     else openFile outf WriteMode ) >>= \o->
   let (DTD name _ markup) = (getDtd . dtdParse inf) content
-      decls = (nub . dtd2typedef) markup
+      decls = (nub . dtd2TypeDef) markup
       realname = if null name then mangle (trim inf) else mangle name
   in
   do hPutStrLn o ("module DTD_"++realname
@@ -42,4 +44,3 @@ trim name | '/' `elem` name  = (trim . tail . dropWhile (/='/')) name
           | '.' `elem` name  = takeWhile (/='.') name
           | otherwise        = name
 
---render = foldr (.) id . map showsTypeDef . nub
