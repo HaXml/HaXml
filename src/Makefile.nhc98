@@ -1,7 +1,7 @@
 THISPKG	= HaXml
 SEARCH	= -package base
-EXTRA_H_FLAGS   = +RTS -K6M -RTS
-EXTRA_HBC_FLAGS = +RTS -H50M -A4M -RTS
+EXTRA_H_FLAGS   = -K6M
+EXTRA_HBC_FLAGS = -H50M -A4M
 
 SRCS	= \
 	Text/XML/HaXml.hs Text/XML/HaXml/Combinators.hs Text/XML/HaXml/Lex.hs \
@@ -21,80 +21,11 @@ SRCS	= \
 # Here are the main rules.
 include ../../Makefile.common
 
-# Here are the dependencies.
-$(OBJDIR)/Text/XML/HaXml/Xtract/Combinators.$O: \
-	$(OBJDIR)/Text/XML/HaXml/Types.$O \
-	$(OBJDIR)/Text/XML/HaXml/Combinators.$O 
-$(OBJDIR)/Text/XML/HaXml/Xtract/Lex.$O:
-$(OBJDIR)/Text/XML/HaXml/Xtract/Parse.$O: \
-	$(OBJDIR)/Text/ParserCombinators/HuttonMeijerWallace.$O \
-	$(OBJDIR)/Text/XML/HaXml/Xtract/Lex.$O \
-	$(OBJDIR)/Text/XML/HaXml/Xtract/Combinators.$O \
-	$(OBJDIR)/Text/XML/HaXml/Combinators.$O 
-$(OBJDIR)/Text/XML/HaXml/Html/Pretty.$O: \
-	$(OBJDIR)/Text/XML/HaXml/Types.$O 
-$(OBJDIR)/Text/XML/HaXml/Html/Parse.$O: \
-	$(OBJDIR)/Text/XML/HaXml/Types.$O \
-	$(OBJDIR)/Text/XML/HaXml/Lex.$O \
-	$(OBJDIR)/Text/ParserCombinators/HuttonMeijerWallace.$O 
-$(OBJDIR)/Text/XML/HaXml/Html/Generate.$O: \
-	$(OBJDIR)/Text/XML/HaXml/Types.$O \
-	$(OBJDIR)/Text/XML/HaXml/Combinators.$O
-$(OBJDIR)/Text/XML/HaXml/Verbatim.$O: \
-	$(OBJDIR)/Text/XML/HaXml/Types.$O 
-$(OBJDIR)/Text/XML/HaXml/Haskell2Xml.$O: \
-	$(OBJDIR)/Text/XML/HaXml/Types.$O \
-	$(OBJDIR)/Text/XML/HaXml/Parse.$O \
-	$(OBJDIR)/Text/XML/HaXml/Pretty.$O 
-$(OBJDIR)/Text/XML/HaXml/Xml2Haskell.$O: \
-	$(OBJDIR)/Text/XML/HaXml/Types.$O \
-	$(OBJDIR)/Text/XML/HaXml/Pretty.$O \
-	$(OBJDIR)/Text/XML/HaXml/Parse.$O 
-$(OBJDIR)/Text/XML/HaXml/OneOfN.$O: \
-	 $(OBJDIR)/Text/XML/HaXml/Xml2Haskell.$O 
-$(OBJDIR)/Text/XML/HaXml/Wrappers.$O: \
-	$(OBJDIR)/Text/XML/HaXml/Types.$O \
-	$(OBJDIR)/Text/XML/HaXml/Combinators.$O \
-	$(OBJDIR)/Text/XML/HaXml/Parse.$O \
-	$(OBJDIR)/Text/XML/HaXml/Html/Parse.$O \
-	$(OBJDIR)/Text/XML/HaXml/Pretty.$O
-$(OBJDIR)/Text/XML/HaXml/Validate.$O: \
-	$(OBJDIR)/Text/XML/HaXml/Types.$O \
-	$(OBJDIR)/Text/XML/HaXml/Combinators.$O \
-	$(OBJDIR)/Text/XML/HaXml/Xml2Haskell.$O 
-$(OBJDIR)/Text/XML/HaXml/Types.$O:
-$(OBJDIR)/Text/XML/HaXml/Pretty.$O: \
-	$(OBJDIR)/Text/XML/HaXml/Types.$O 
-$(OBJDIR)/Text/XML/HaXml/Parse.$O: \
-	$(OBJDIR)/Text/XML/HaXml/Types.$O \
-	$(OBJDIR)/Text/XML/HaXml/Lex.$O \
-	$(OBJDIR)/Text/ParserCombinators/HuttonMeijerWallace.$O 
-$(OBJDIR)/Text/XML/HaXml/Lex.$O:
-$(OBJDIR)/Text/XML/HaXml/Combinators.$O: \
-	$(OBJDIR)/Text/XML/HaXml/Types.$O 
-$(OBJDIR)/Text/XML/HaXml/Verbatim.$O: \
-	$(OBJDIR)/Text/XML/HaXml/Types.$O 
-$(OBJDIR)/Text/XML/HaXml/Escape.$O: \
-	$(OBJDIR)/Text/XML/HaXml/Types.$O 
-$(OBJDIR)/Text/XML/HaXml/Wrappers.$O: \
-	$(OBJDIR)/Text/XML/HaXml/Types.$O \
-	$(OBJDIR)/Text/XML/HaXml/Combinators.$O \
-	$(OBJDIR)/Text/XML/HaXml/Parse.$O \
-	$(OBJDIR)/Text/XML/HaXml/Html/Parse.$O \
-	$(OBJDIR)/Text/XML/HaXml/Pretty.$O
-$(OBJDIR)/Text/ParserCombinators/HuttonMeijerWallace.$O:
-$(OBJDIR)/Text/XML/HaXml.$O: \
-	$(OBJDIR)/Text/XML/HaXml/Types.$O \
-	$(OBJDIR)/Text/XML/HaXml/Combinators.$O \
-	$(OBJDIR)/Text/XML/HaXml/Parse.$O \
-	$(OBJDIR)/Text/XML/HaXml/Pretty.$O \
-	$(OBJDIR)/Text/XML/HaXml/Html/Generate.$O \
-	$(OBJDIR)/Text/XML/HaXml/Html/Parse.$O \
-	$(OBJDIR)/Text/XML/HaXml/Validate.$O \
-	$(OBJDIR)/Text/XML/HaXml/Wrappers.$O \
-	$(OBJDIR)/Text/XML/HaXml/Verbatim.$O \
-	$(OBJDIR)/Text/XML/HaXml/Escape.$O
+# extra rules
+extra:
+	if [ -f Text/PrettyPrint/HughesPJ.hs ]; then mv Text/PrettyPrint/HughesPJ.hs Text/PrettyPrint/HughesPJ.hs.unused; fi
 
+# Here are any extra dependencies.
 
 # C-files dependencies.
 Text/XML/HaXml/Xtract/Combinators.$C: \
