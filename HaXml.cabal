@@ -32,5 +32,5 @@ exposed-modules:
 	Text.XML.HaXml.Xtract.Lex,
 	Text.XML.HaXml.Xtract.Parse
 hs-source-dir:	src
-build-depends:	base
+build-depends:	base, haskell98
 extensions:	CPP
