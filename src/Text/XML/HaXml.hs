@@ -25,6 +25,6 @@ import Text.XML.HaXml.Wrappers    (fix2Args,processXmlWith)
 
 import Text.PrettyPrint.HughesPJ  (render)
 
--- | The version of the library (currently "1.07").
+-- | The version of the library (currently "1.08").
 version :: String
-version  = "1.07"
+version  = "1.08"
