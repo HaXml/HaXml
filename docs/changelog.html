@@ -17,9 +17,12 @@
 <ul>
 <li> HaXml now uses the new hierarchical namespace for modules,
      specifically under the tree <tt>Text.Xml.HaXml</tt>.
+<li> The HaXml libraries now install as a separate `package' in both ghc
+     and nhc98.  Use <em>-package HaXml</em> to access them.
 <li> The library APIs are now documented using Haddock.
 <li> Due to popular request, we have added a new validator for checking
-     generic document content against a DTD.
+     generic document content against a DTD.   This is available both as
+     a library function, and as a command-line tool.
 <li> DrIFT is now distributed separately by John Meacham, with much better
      configuration and build support.  You still only need it if you
      want to derive the <tt>Haskell2Xml</tt> class.
