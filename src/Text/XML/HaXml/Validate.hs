@@ -6,7 +6,7 @@ module Text.Xml.HaXml.Validate
 import Text.Xml.HaXml.Types
 import Text.Xml.HaXml.Xml2Haskell (attr2str)
 import Maybe (fromMaybe,isNothing,fromJust)
-import List (intersperse)
+import List (intersperse,nub,(\\))
 
 #ifdef __GLASGOW_HASKELL__
 -- real finite map, if it is available
@@ -52,17 +52,31 @@ False `gives` _ = []
 --   then you will gain efficiency by freezing-in the DTD through partial
 --   application, e.g. @checkMyDTD = validate myDTD@.
 validate :: DocTypeDecl -> Element -> [String]
-validate dtd' elem = valid elem
+validate dtd' elem = root dtd' elem ++ valid elem -- ++checkIDs elem
   where
     dtd = simplifyDTD dtd'
 
+    root (DTD name _ _) (Elem name' _ _) =
+        (name/=name') `gives` ("Document type should be <"++name
+                               ++"> but appears to be <"++name'++">.")
+
     valid (Elem name attrs contents) =
+        -- is the element defined in the DTD?
         let spec = lookupFM (elements dtd) name in 
         (isNothing spec) `gives` ("Element <"++name++"> not known.")
+        -- is each attribute mentioned only once?
+        ++ (let dups = duplicates (map fst attrs) in
+            not (null dups) `gives`
+               ("Element <"++name++"> has duplicate attributes: "
+                ++concat (intersperse "," dups)++"."))
+        -- does each attribute belong to this element?  value is in range?
         ++ concatMap (checkAttr name) attrs
+        -- are all required attributes present?
         ++ concatMap (checkRequired name attrs)
                      (fromMaybe [] (lookupFM (required dtd) name))
+        -- are its children in a permissible sequence?
         ++ checkContentSpec name (fromMaybe ANY spec) contents
+        -- now recursively check the element children
         ++ concatMap valid [ elem | CElem elem <- contents ]
 
     checkAttr elem (attr, val) =
@@ -202,3 +216,6 @@ modifier None  = ""
 modifier Query = "?"
 modifier Star  = "*"
 modifier Plus  = "+"
+
+duplicates :: Eq a => [a] -> [a]
+duplicates xs = xs \\ (nub xs)
