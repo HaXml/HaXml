@@ -112,9 +112,11 @@ else echo "found ${GHCVERSION}"
 fi
 
 # There may be another version of ghc to look for.
-if [ "`echo $BUILDWITH | cut -c1-3`" = "ghc" ]
+if [ -n "$BUILDWITH" ]
 then
-  VER=`echo $BUILDWITH | cut -c5-`
+if [ "`basename $BUILDWITH | cut -c1-3`" = "ghc" ]
+then
+  VER=`basename $BUILDWITH | cut -c5-`
   if [ -n "$VER" -a "$VER" != "$GHCVERSION" ]
   then
     echo -n "  Looking for $BUILDWITH...   "
@@ -144,6 +146,7 @@ then
           fi
     fi
   fi
+fi
 fi
 
 echo -n "  Looking for nhc98... "
