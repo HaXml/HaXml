@@ -2,21 +2,16 @@ module Main where
 
 import System (getArgs)
 import IO
+import List   (isSuffixOf)
 
-import XmlParse     (xmlParse)
-import XmlHtmlParse (htmlParse)
-import XmlPP        (document)
-import XmlLib       (fix2Args)
-import Pretty       (render)
-#if defined(__HASKELL98__)
-import List         (isSuffixOf)
-#else
-import IsSuffixOf   (isSuffixOf)
-import HPutStrLn    (hPutStrLn)
-#endif
+import Text.Xml.HaXml.Parse      (xmlParse)
+import Text.Xml.HaXml.Html.Parse (htmlParse)
+import Text.Xml.HaXml.Pretty     (document)
+import Text.Xml.HaXml.Wrappers   (fix2Args)
+import Text.PrettyPrint.HughesPJ (render)
 
--- This is just a trivial application that reads an XML document from
--- a file (or stdin) and writes it back to another file (or stdout).
+-- This is just a trivial application that reads an XML or HTML document
+-- from a file (or stdin) and writes it back to another file (or stdout).
 -- It demonstrates the behaviour of the parser and pretty-printer,
 -- including any shortcomings they may have.
 
