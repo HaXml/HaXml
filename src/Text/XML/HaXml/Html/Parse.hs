@@ -13,7 +13,7 @@ module Text.XML.HaXml.Html.Parse
 
 import Prelude hiding (either,maybe,sequence)
 import Maybe hiding (maybe)
-import Char (toUpper, isSpace)
+import Char (toLower, isSpace)
 import Numeric (readDec,readHex)
 import Monad
 
@@ -21,7 +21,7 @@ import Text.XML.HaXml.Types
 import Text.XML.HaXml.Lex
 import Text.ParserCombinators.HuttonMeijerWallace
 
---  #define DEBUG
+-- #define DEBUG
  
 #if defined(DEBUG)
 #  if ( defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ > 502 ) || \
@@ -301,7 +301,7 @@ element ctx =
      --       debug (e++"[+")
      --       n <- bracket (tok TokEndOpen) name (tok TokAnyClose)
      --       debug "]"
-     --       if e == (map toUpper n :: Name) 
+     --       if e == (map toLower n :: Name) 
      --         then return ([], Elem e avs [])      
      --         else return (error "no nesting in empty tag")) +++
          ( do tok TokAnyClose	-- <tag> with no close (e.g. <IMG>)
@@ -319,7 +319,7 @@ element ctx =
               let s       = if null ss then [] else last ss
               n <- bracket (tok TokEndOpen) name (tok TokAnyClose)
               debug "]"
-              ( if e == (map toUpper n :: Name) then
+              ( if e == (map toLower n :: Name) then
                   do unparse (reformatTags (closeInner e s))
                      debug "^"
                      return ([], Elem e avs cs)
@@ -327,7 +327,7 @@ element ctx =
                   do unparse [TokEndOpen, TokName n, TokAnyClose]
                      debug "-"
                      return (((e,avs):s), Elem e avs cs))
-         ) `elserror` ("failed to repair non-matching tags in context: "++ctx)) )
+         ) `elserror` ("failed to repair non-matching tags in context: "++ctx)))
 
 closeInner :: Name -> [(Name,[Attribute])] -> [(Name,[Attribute])]
 closeInner c ts =
@@ -357,7 +357,7 @@ elemtag :: Parser () Token ElemTag
 elemtag = do
     n <- name `elserror` "malformed element tag"
     as <- many attribute
-    return (ElemTag (map toUpper n) as)
+    return (ElemTag (map toLower n) as)
 
 attribute :: Parser () Token Attribute
 attribute = do
@@ -365,7 +365,7 @@ attribute = do
     v <- (do tok TokEqual
              attvalue) +++
          (return (AttValue [Left "TRUE"]))
-    return (map toUpper n,v)
+    return (map toLower n,v)
 
 --elementdecl :: Parser () Token ElementDecl
 --elementdecl = do
