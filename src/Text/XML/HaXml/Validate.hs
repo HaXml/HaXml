@@ -4,6 +4,7 @@ module Text.Xml.HaXml.Validate
   ) where
 
 import Text.Xml.HaXml.Types
+import Text.Xml.HaXml.Combinators (multi,tag,iffind,literal,none,o)
 import Text.Xml.HaXml.Xml2Haskell (attr2str)
 import Maybe (fromMaybe,isNothing,fromJust)
 import List (intersperse,nub,(\\))
@@ -22,9 +23,11 @@ lookupFM fm k = lookup k fm
 
 -- gather appropriate information out of the DTD
 data SimpleDTD = SimpleDTD
-    { elements   :: FiniteMap Name ContentSpec
-    , attributes :: FiniteMap (Name,Name) AttType
-    , required   :: FiniteMap Name [Name]	-- required attributes
+    { elements   :: FiniteMap Name ContentSpec	-- content model of elem
+    , attributes :: FiniteMap (Name,Name) AttType -- type of (elem,attr)
+    , required   :: FiniteMap Name [Name]	-- required attributes of elem
+    , ids        :: [(Name,Name)]	-- all (element,attr) with ID type
+    , idrefs     :: [(Name,Name)]	-- all (element,attr) with IDREF type
     }
 
 simplifyDTD :: DocTypeDecl -> SimpleDTD
@@ -38,6 +41,12 @@ simplifyDTD (DTD _ _ decls) =
       , required   = listToFM [ (elem, [ attr
                                        | AttDef attr _ REQUIRED <- attdefs ])
                               | AttList (AttListDecl elem attdefs) <- decls ]
+      , ids        = [ (elem,attr)
+                     | Element (ElementDecl elem _) <- decls
+                     , AttList (AttListDecl name attdefs) <- decls
+                     , elem == name
+                     , AttDef attr (TokenizedType ID) _ <- attdefs ]
+      , idrefs     = []	-- not implemented
       }
 
 -- simple auxiliary to avoid lots of if-then-else with empty else clauses.
@@ -52,7 +61,7 @@ False `gives` _ = []
 --   then you will gain efficiency by freezing-in the DTD through partial
 --   application, e.g. @checkMyDTD = validate myDTD@.
 validate :: DocTypeDecl -> Element -> [String]
-validate dtd' elem = root dtd' elem ++ valid elem -- ++checkIDs elem
+validate dtd' elem = root dtd' elem ++ valid elem ++ checkIDs elem
   where
     dtd = simplifyDTD dtd'
 
@@ -197,6 +206,17 @@ validate dtd' elem = root dtd' elem ++ valid elem -- ++checkIDs elem
         foldl (\(es,ns) cp-> let (es',ns') = checkCP elem cp ns
                              in (es++es', ns'))
               ([],ns) cps
+
+    checkIDs elem =
+        let celem = CElem elem
+            showAttr a = iffind a literal none
+            idElems = concatMap (\(name,at)-> multi (showAttr at `o` tag name)
+                                                    celem)
+                                (ids dtd)
+            badIds  = duplicates (map (\(CString _ s)->s) idElems)
+        in not (null badIds) `gives`
+               ("These attribute values of type ID are not unique: "
+                ++concat (intersperse "," badIds)++".")
 
 
 cpError :: Name -> CP -> [String]
