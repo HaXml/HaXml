@@ -1,6 +1,7 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
     <HEAD>
-	<TITLE><em>Xtract</em>: a query language for XML documents</TITLE>
+	<TITLE>Xtract: a query language for XML documents</TITLE>
     </HEAD>
     <BODY>
 	<CENTER>
@@ -95,7 +96,6 @@
 	    <PRE>    matches//player/@goals </PRE>
             returns the value of the attribute `goals' on the selected
             player elements, if the attribute appears.
-	</P>
 	<H2>Predicates</H2>
 	There is a notion of a predicate on an element. The square 
 	bracket notation is used: 
@@ -166,7 +166,7 @@
           where the name is recorded between the player tags, rather
           than as an attribute.  All the same conditions and operations
           apply as for attribute value comparisons.  Note however that
-          you can only compare texts, not whole structures.</P>
+          you can only compare texts, not whole structures.
 
 	<H2>Combining predicates</H2>
 	Predicates can be combined using the common Boolean operations 
@@ -213,7 +213,7 @@
 		<TD>elements</TD>
 	    </TR>
 	    <TR><TD /><TD>| </TD><TD><TT>-</TT></TD><TD>plain text</TD></TR>
-	    <TR />
+	    <TR></TR>
 	    <TR>
 		<TD><EM>query</EM></TD>
 		<TD>= </TD>
@@ -275,7 +275,7 @@
 		<TD><EM>query</EM><TT>[</TT><EM>positions</EM><TT>] </TT></TD>
 		<TD>indexing</TD>
 	    </TR>
-	    <TR />
+	    <TR></TR>
 	    <TR>
 		<TD><EM>qa</EM></TD>
 		<TD>= </TD>
@@ -285,7 +285,7 @@
 	    <TR>
 		<TD /><TD>| </TD><TD><EM>attribute</EM></TD><TD>has attribute</TD>
 	    </TR>
-	    <TR />
+	    <TR></TR>
 	    <TR>
 		<TD><EM>predicate</EM></TD>
 		<TD>= </TD>
@@ -350,7 +350,7 @@
 		<TD><TT>~ </TT><EM>predicate</EM></TD>
 		<TD>logical not</TD>
 	    </TR>
-	    <TR />
+	    <TR></TR>
 	    <TR>
 		<TD><EM>attribute</EM></TD>
 		<TD>= </TD>
@@ -363,7 +363,7 @@
 		<TD><EM>query</EM><TT>/@</TT><EM>string</EM></TD>
 		<TD>attribute of descendant</TD>
 	    </TR>
-	    <TR />
+	    <TR></TR>
 	    <TR>
 		<TD><EM>positions</EM></TD>
 		<TD>= </TD>
@@ -376,7 +376,7 @@
 		<TD><EM>position </EM><TT>- </TT><EM>position</EM></TD>
 		<TD>range</TD>
 	    </TR>
-	    <TR />
+	    <TR></TR>
 	    <TR>
 		<TD><EM>position</EM></TD>
 		<TD>= </TD>
@@ -384,7 +384,7 @@
 		<TD>positions start at zero</TD>
 	    </TR>
 	    <TR><TD /><TD>| </TD><TD><TT>$</TT></TD><TD>last element</TD></TR>
-	    <TR />
+	    <TR></TR>
 	    <TR>
 		<TD><EM>op</EM></TD>
 		<TD>= </TD>
@@ -415,7 +415,7 @@
 		<TD><TT>&gt;=</TT></TD>
 		<TD>lexically greater than or equal</TD>
 	    </TR>
-	    <TR />
+	    <TR></TR>
 	    <TR>
 		<TD><EM>nop</EM></TD>
 		<TD>= </TD>
