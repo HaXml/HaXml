@@ -7,6 +7,7 @@ LIBSRCS = \
 	Text/XML/HaXml/Types.hs Text/XML/HaXml/Validate.hs \
 	Text/XML/HaXml/Wrappers.hs Text/XML/HaXml/OneOfN.hs \
 	Text/XML/HaXml/Xml2Haskell.hs Text/XML/HaXml/Haskell2Xml.hs \
+	Text/XML/HaXml/Verbatim.hs \
 	Text/XML/HaXml/Html/Generate.hs Text/XML/HaXml/Html/Parse.hs \
 	Text/XML/HaXml/Html/Pretty.hs \
 	Text/XML/HaXml/Xtract/Combinators.hs \
