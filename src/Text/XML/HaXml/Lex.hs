@@ -246,6 +246,7 @@ xmlAny (_:_:w) p s@('/':ss)
 xmlAny w p ('&':ss) = emit TokAmp p:      accumulateUntil ";" TokSemi "" p
                                                      (addcol 1 p) ss (xmlAny w)
 xmlAny w@(NotInTag:_) p s = xmlContent "" w p p s
+-- everything below here is implicitly InTag.
 xmlAny w p ('>':ss) = emit TokAnyClose p:       xmlAny (tail w) (addcol 1 p) ss
 xmlAny w p ('[':ss) = emit TokSqOpen p:
                                  blank xmlAny (InTag "[...]":w) (addcol 1 p) ss
@@ -317,8 +318,8 @@ xmlName p (s:ss) cxt k
 xmlContent acc w pos p [] = if all isSpace acc then []
                             else lexerror "unexpected EOF between tags" p
 xmlContent acc w pos p (s:ss)
-    | elem s "<&"    = if all isSpace acc then xmlAny w p (s:ss)
-                       else emit (TokFreeText (reverse acc)) pos: xmlAny w p (s:ss)
+    | elem s "<&"    = {- if all isSpace acc then xmlAny w p (s:ss) else -}
+                       emit (TokFreeText (reverse acc)) pos: xmlAny w p (s:ss)
     | isSpace s      = xmlContent (s:acc) w pos (white s p) ss
     | otherwise      = xmlContent (s:acc) w pos (addcol 1 p) ss
 
