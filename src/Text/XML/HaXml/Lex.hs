@@ -1,5 +1,6 @@
 -- | You don't normally need to use this Lex module directly - it is
---   called automatically by the parser.
+--   called automatically by the parser.  (This interface is only exposed
+--   for debugging purposes.)
 --
 -- This is a hand-written lexer for tokenising the text of an XML
 -- document so that it is ready for parsing.  It attaches position

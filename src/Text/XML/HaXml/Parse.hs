@@ -1,3 +1,5 @@
+-- | A non-validating XML parser.  For the input grammar, see
+--   <http://www.w3.org/TR/REC-xml>.
 module Text.Xml.HaXml.Parse
   (
   -- * Parse a whole document
@@ -7,11 +9,12 @@ module Text.Xml.HaXml.Parse
   ) where
 
 -- An XML parser, written using a slightly extended version of the
--- Hutton/Meijer parser combinators.  The input has already been
--- tokenised by the lexer xmlLex.  Whilst parsing, we gather a symbol
+-- Hutton/Meijer parser combinators.  The input is tokenised internally
+-- by the lexer xmlLex.  Whilst parsing, we gather a symbol
 -- table of entity references.  PERefs must be defined before use, so we
 -- expand their uses as we encounter them, forcing the remainder of the
--- input to be re-lexed.  GERefs are simply stored for later retrieval.
+-- input to be re-lexed and re-parsed.  GERefs are simply stored for
+-- later retrieval.
 
 import Prelude hiding (either,maybe,sequence)
 import Maybe hiding (maybe)
