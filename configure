@@ -160,22 +160,40 @@ else  echo "found ${NHCVERSION}"
      fi
 fi
 
+month() {
+  read mon yr;
+  case $mon in
+    Jan*) echo 01;;
+    Feb*) echo 02;;
+    Mar*) echo 03;;
+    Apr*) echo 04;;
+    May)  echo 05;;
+    Jun*) echo 06;;
+    Jul*) echo 07;;
+    Aug*) echo 08;;
+    Sep*) echo 09;;
+    Oct*) echo 10;;
+    Nov*) echo 11;;
+    Dec*) echo 12;;
+    *)    echo 00;;
+  esac;
+}
+
 echo -n "  Looking for hugs...  "
 if which hugs >/dev/null 2>&1
 then
   HUGSKNOWN=`which hugs`
-  HUGSVERSION="(unknown version)"
-  HUGSNUM=000
+  HUGSVERSION=`echo :q | $HUGSKNOWN | grep Version | cut -c18-32`
+  HUGSNUM=`echo $HUGSVERSION | cut -d' ' -f2`
+  HUGSNUM=$HUGSNUM`echo $HUGSVERSION | month`
 fi
 if [ "$HUGSKNOWN" = "" ]
 then  echo "(not found)"
 else  echo "found ${HUGSVERSION}"
-  if [ "$HUGSNUM" -lt "20030101" ]
-  then  echo "    Warning: HaXml configuration does not yet support Hugs."
+  if [ "$HUGSNUM" -lt "200309" ]
+  then  echo "    Warning: HaXml configuration only supports Hugs >= Sept 2003."
         HUGSKNOWN=
-  else  HUGSLIBDIR="..."
-        HUGSINCDIR="..."
-    fi
+  fi
 fi
 
 if [ ! -z "$BUILDWITH" ]
@@ -221,6 +239,14 @@ fi
 if [ -f obj/compilers ]
 then rm obj/compilers
 fi
+if [ "$HUGSKNOWN" != "" ]
+then
+  echo hugs >>obj/compilers
+  if [ ! -d obj/hugs ]
+  then mkdir obj/hugs
+  fi
+  cp -Rp src/tools src/Makefile obj/hugs
+fi
 if [ "$GHCKNOWN" != "" ]
 then
   echo ghc >>obj/compilers
@@ -251,12 +277,6 @@ then
        echo "-package base" >obj/nhc98/nhc98pkgs
   else echo "" >obj/nhc98/nhc98pkgs
   fi
-fi
-if [ "$HUGSKNOWN" != "" ]
-then
-  #cp -Rp src/Text src/tools src/Makefile obj/hugs
-  hugs-package src
-  echo 'I have installed the HaXml package for Hugs.'
 fi
 
 echo $INSTALLDIR >obj/prefix

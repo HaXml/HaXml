@@ -65,6 +65,8 @@ install-ghc: install-filesonly-ghc
 	ghc-pkg --remove-package=HaXml || true
 	ghc-pkg --add-package <pkg.conf
 install-nhc98: install-filesonly-nhc98
+install-tools-hugs: toolset-hugs
+	cp $(patsubst ../../%, %, ${TOOLSET}) `cat ../prefix`
 
 # update the sources if necessary
 $(LIBSRCS) $(TOOLSRCS) Makefile Text/PrettyPrint/HughesPJ.hs: %: ../../src/%
@@ -89,6 +91,14 @@ $(TOOLSET): $(LIBSRCS) $(TOOLSRCS)
 	cd tools; $(COMPILE) -i.. $(patsubst ../../%${EXE}, %, $@)
 	cd tools; $(RENAME) $(patsubst ../../%, %, $@)
 	mv $(patsubst ../../%, tools/%, $@) ../..
+
+toolset-hugs:
+	for file in tools/*.hs ;\
+	do tool=`basename $$file .hs` ;\
+	   echo '#!'`which runhugs` >$$tool ;\
+	   cat $$file >>$$tool ;\
+	   chmod +x $$tool ;\
+	done
 
 #../../DtdToHaskell$(EXE): $(LIBSRCS) $(TOOLSRCS)
 #	$(COMPILE) tools/DtdToHaskell.hs

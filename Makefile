@@ -46,18 +46,26 @@ libs-ghc:
 	cd obj/ghc; $(MAKE) HC=$(shell cat obj/ghccmd) libs
 libs-nhc98:
 	cd obj/nhc98; $(MAKE) HC=nhc98 libs
+libs-hugs:
+	@echo "No building required for Hugs version of HaXml libs."
 tools-ghc:
 	cd obj/ghc; $(MAKE) HC=$(shell cat obj/ghccmd) toolset
 tools-nhc98:
 	cd obj/nhc98; $(MAKE) HC=nhc98 toolset
+tools-hugs:
+	@echo "No building required for Hugs version of HaXml tools."
 install-ghc:
 	cd obj/ghc; $(MAKE) HC=$(shell cat obj/ghccmd) install-ghc
 install-nhc98:
 	cd obj/nhc98; $(MAKE) HC=nhc98 install-nhc98
+install-hugs:
+	hugs-package src
+	cd obj/hugs; $(MAKE) install-tools-hugs
 install-filesonly-ghc:
 	cd obj/ghc; $(MAKE) HC=$(shell cat obj/ghccmd) install-filesonly-ghc
 install-filesonly-nhc98:
 	cd obj/nhc98; $(MAKE) HC=nhc98 install-filesonly-nhc98
+install-filesonly-hugs: install-hugs
 haddock:
 	for file in $(SRCS); \
 		do cpp -P -traditional -D__NHC__ $$file >$$file.uncpp; \
@@ -93,7 +101,7 @@ zipDist: $(ALLFILES)
 
 # clear up rubbish
 clean:
-	-rm -r obj/ghc obj/nhc98
+	-rm -r obj/ghc obj/nhc98 obj/hugs
 	-cd examples;    rm -f *.hi *.o
 realclean: clean
 	-rm -f DtdToHaskell Xtract Validate Canonicalise MkOneOf
