@@ -29,6 +29,7 @@ TOOLSET = \
 
 EXE = $(shell cat ../exe)
 INSTALLDIR = $(shell cat ../prefix)
+WHOLEARCHIVE = $(shell cat ../ldopt)
 
 # The caller *must* set the HC variable.
 COMPILER := $(findstring ghc, $(HC))
@@ -80,7 +81,7 @@ $(LIBSRCS) $(TOOLSRCS) Makefile Text/PrettyPrint/HughesPJ.hs: %: ../../src/%
 libHSHaXml.a: $(LIBSRCS)
 	$(COMPILE) $(LIBSRCS)
 	ar r libHSHaXml.a $(LIBOBJS)
-	-ld -r --whole-archive -o HSHaXml.o libHSHaXml.a	# for GHCi only
+	-ld -r $(WHOLEARCHIVE) -o HSHaXml.o libHSHaXml.a	# for GHCi only
 	tar cf interfaces.tar `find Text -name *.hi -print`
 
 

@@ -31,11 +31,13 @@ which () {
     done; exit 1 )
 }
 
+DARWIN=false
 case `uname -s` in
   CYGWIN*) CYGWIN=true	# /bin/true or /usr/bin/true
            MINGW=false ;;
   MINGW*)  CYGWIN=false	# /bin/false or /usr/bin/false
            MINGW=true ;;
+  Darwin*) DARWIN=true ;;
   *)       CYGWIN=false
            MINGW=false ;;
 esac
@@ -288,6 +290,7 @@ fi
 
 echo $INSTALLDIR >obj/prefix
 if $CYGWIN || $MINGW ; then echo .exe >obj/exe; else touch obj/exe; fi
+if $DARWIN ; then echo -all_load; else echo --whole-archive; fi >obj/ldopt
 
 
 echo "Ready to build.  Type 'make' then (as root) 'make install'."
