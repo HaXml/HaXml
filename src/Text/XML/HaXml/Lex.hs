@@ -38,7 +38,7 @@ type Token = (Posn, TokenT)
 -- | Source positions contain a filename, line, column, and an
 --   inclusion point, which is itself another source position,
 --   recursively.
-data Posn = Pn String Int Int (Maybe Posn)
+data Posn = Pn String !Int !Int (Maybe Posn)
         deriving (Eq)
 
 instance Show Posn where
@@ -65,11 +65,11 @@ data TokenT =
     | TokEndClose		-- ^   \/>
     | TokAnyOpen		-- ^   \<
     | TokAnyClose		-- ^   >
-    | TokSqOpen			-- ^   [
-    | TokSqClose		-- ^   ]
+    | TokSqOpen			-- ^   \[
+    | TokSqClose		-- ^   \]
     | TokEqual			-- ^   =
     | TokQuery			-- ^   ?
-    | TokStar			-- ^   *
+    | TokStar			-- ^   \*
     | TokPlus			-- ^   +
     | TokAmp			-- ^   &
     | TokSemi			-- ^   ;
