@@ -57,7 +57,7 @@ convert (n, R as cs) =
       (ContentSpec cp)        ->
           case cp of
             (TagName n' m) -> modifier m [[Defined (name n')]]
-            (Choice cps m) -> modifier m [map inner cps]
+            (Choice cps m) -> modifier m (map ((:[]).inner) cps)
             (Seq cps m)    -> modifier m [map inner cps]
     ++ concatMap (mkAttrDef n) as
   where
