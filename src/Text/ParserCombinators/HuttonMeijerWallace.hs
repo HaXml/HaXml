@@ -22,6 +22,7 @@ to the library have been made in the move from Gofer to Haskell:
 ** Extended to allow error-reporting.
 
 (Extensions: 1998-2000 Malcolm.Wallace@cs.york.ac.uk)
+(More extensions: 2004 gk-haskell@ninebynine.org)
 
 ------------------------------------------------------------------------------}
 
@@ -30,17 +31,20 @@ to the library have been made in the move from Gofer to Haskell:
 --   Malcolm Wallace to use an abstract token type (no longer just a
 --   string) as input, and to incorporate a State Transformer monad, useful
 --   for symbol tables, macros, and so on.  Basic facilities for error
---   reporting have also been added.
+--   reporting have also been added, and later extended by Graham Klyne
+--   to return the errors through an @Either@ type, rather than just
+--   calling @error@.
 
 module Text.ParserCombinators.HuttonMeijerWallace
   (
   -- * The parser monad
     Parser(..)
   -- * Primitive parser combinators
-  , item, papply
+  , item, eof, papply, papply'
   -- * Derived combinators
   , (+++), {-sat,-} tok, nottok, many, many1
   , sepby, sepby1, chainl, chainl1, chainr, chainr1, ops, bracket
+  , toEOF
   -- * Error handling
   , elserror
   -- * State handling
@@ -56,29 +60,54 @@ infixr 5 +++
 
 --- The parser monad ---------------------------------------------------------
 
-newtype Parser s t a   = P (s -> [t] -> [(a,s,[t])])
+type ParseResult s t a = Either String [(a,s,[t])]
+
+newtype Parser s t a   = P ( s -> [t] -> ParseResult s t a )
     -- ^ The parser type is parametrised on the types of the state @s@,
     --   the input tokens @t@, and the result value @a@.  The state and
     --   remaining input are threaded through the monad.
 
 instance Functor (Parser s t) where
    -- fmap        :: (a -> b) -> (Parser s t a -> Parser s t b)
-   fmap f (P p)    = P (\st inp -> [(f v, s, out) | (v,s,out) <- p st inp])
+   fmap f (P p)    = P (\st inp -> case p st inp of
+                        Right res -> Right [(f v, s, out) | (v,s,out) <- res]
+                        Left err  -> Left err
+                       )
 
 instance Monad (Parser s t) where
    -- return      :: a -> Parser s t a
-   return v        = P (\st inp -> [(v,st,inp)])
+   return v        = P (\st inp -> Right [(v,st,inp)])
    -- >>=         :: Parser s t a -> (a -> Parser s t b) -> Parser s t b
-   (P p) >>= f     = P (\st inp -> concat [ papply (f v) s out
-                                          | (v,s,out) <- p st inp ])
+   (P p) >>= f     = P (\st inp -> case p st inp of
+                        Right res -> foldr joinresults (Right [])
+                            [ papply' (f v) s out | (v,s,out) <- res ]
+                        Left err  -> Left err
+                       )
    -- fail        :: String -> Parser s t a
-   fail _          = P (\st inp -> [])
+   fail err        = P (\st inp -> Right [])
 
 instance MonadPlus (Parser s t) where
    -- mzero       :: Parser s t a
-   mzero           = P (\st inp -> [])
+   mzero           = P (\st inp -> Right [])
    -- mplus       :: Parser s t a -> Parser s t a -> Parser s t a
-   (P p) `mplus` (P q)  =  P (\st inp -> (p st inp ++ q st inp))
+   (P p) `mplus` (P q) = P (\st inp -> joinresults (p st inp) (q st inp))
+
+-- joinresults ensures that explicitly raised errors are dominant,
+-- provided no parse has yet been found.  The commented out code is
+-- a slightly stricter specification of the real code.
+joinresults :: ParseResult s t a -> ParseResult s t a -> ParseResult s t a
+{-
+joinresults (Left  p)  (Left  q)  = Left  p  -- (p++"\nor "++q)
+joinresults (Left  p)  (Right _)  = Left  p
+joinresults (Right []) (Left  q)  = Left  q
+joinresults (Right p)  (Left  q)  = Right p
+joinresults (Right p)  (Right q)  = Right (p++q)
+-}
+joinresults (Left  p)  q  = Left p -- (p++ case q of Left r  -> "\nor "++r
+                                   --                Right _ -> [])
+joinresults (Right []) q  = q
+joinresults (Right p)  q  = Right (p++ case q of Left _  -> []
+                                                 Right r -> r)
 
 
 --- Primitive parser combinators ---------------------------------------------
@@ -86,25 +115,58 @@ instance MonadPlus (Parser s t) where
 -- | Deliver the first remaining token.
 item              :: Parser s t t
 item               = P (\st inp -> case inp of
-                                   []     -> []
-                                   (x:xs) -> [(x,st,xs)])
+                        []     -> Right []
+                        (x:xs) -> Right [(x,st,xs)]
+                       )
 
+-- | Fail if end of input is not reached
+eof               :: Show p => Parser s (p,t) ()
+eof                = P (\st inp -> case inp of
+                        []        -> Right [((),st,[])]
+                        ((p,_):_) -> Left  ("End of input expected at "++show p)
+                       )
+
+{-
 -- | Ensure the value delivered by the parser is evaluated to WHNF.
 force             :: Parser s t a -> Parser s t a
-force (P p)        = P (\st inp -> let xs = p st inp
+force (P p)        = P (\st inp -> let Right xs = p st inp
                                        h = head xs in
-                                   h `seq` (h: tail xs))
+                                   h `seq` Right (h: tail xs)
+                       )
+--  [[[GK]]]  ^^^^^^
+--  WHNF = Weak Head Normal Form, meaning that it has no top-level redex.
+--  In this case, I think that means that the first element of the list
+--  is fully evaluated.
+--
+--  NOTE:  the original form of this function fails if there is no parse
+--  result for p st inp (head xs fails if xs is null), so the modified
+--  form can assume a Right value only.
+--
+--  Why is this needed?
+--  It's not exported, and the only use of this I see is commented out.
+---------------------------------------
+-}
+
 
 -- | Deliver the first parse result only, eliminating any backtracking.
 first             :: Parser s t a -> Parser s t a
 first (P p)        = P (\st inp -> case p st inp of
-                                   []     -> []
-                                   (x:xs) -> [x])
+                                   Right (x:xs) -> Right [x]
+                                   err          -> err
+                       )
+--                 = P ( \st inp -> either (Right . head) id $ p st inp )
 
 -- | Apply the parser to some real input, given an initial state value.
+--   If the parser fails, raise 'error' to halt the program.
+--   (This is the original exported behaviour - to allow the caller to
+--   deal with the error differently, see @papply'@.)
 papply            :: Parser s t a -> s -> [t] -> [(a,s,[t])]
-papply (P p) st inp = p st inp
+papply (P p) st inp = either error id (p st inp)
 
+-- | Apply the parser to some real input, given an initial state value.
+--   If the parser fails, return a diagnostic message to the caller.
+papply'           :: Parser s t a -> s -> [t] -> Either String [(a,s,[t])]
+papply' (P p) st inp = p st inp
 
 --- Derived combinators ------------------------------------------------------
 
@@ -175,34 +237,44 @@ bracket open p close = do { open
                           ; return x
                           }
 
+-- | Accept a complete parse of the input only, no partial parses.
+toEOF             :: Show p => Parser s (p,t) a -> Parser s (p,t) a
+toEOF p            = do { x <- p; eof; return x }
+
+
 --- Error handling -----------------------------------------------------------
 
--- | If the parser fails, halt with an error message.
+-- | Return an error using the supplied diagnostic string, and a token type
+--   which includes position information.
+parseerror :: (Show p,Show t) => String -> Parser s (p,t) a
+parseerror err = P (\st inp ->
+                         case inp of
+                           [] -> Left "Parse error: unexpected EOF\n"
+                           ((p,t):_) ->
+                                 Left ("Parse error: in  "++show p++"\n    "
+                                       ++err++"\n  "++"Found "++show t)
+                   )
+
+
+-- | If the parser fails, generate an error message.
 elserror          :: (Show p,Show t) =>
                      Parser s (p,t) a -> String -> Parser s (p,t) a
-p `elserror` s     = p +++
-                     (P (\st inp->
-                         case inp of
-                           [] -> error "Parse error: unexpected EOF\n"
-                           ((p,t):_) ->
-                                 error ("Parse error in  "++show p++"\n  "++
-                                        s++"\n"++
-                                        "    actual token found: "++show t)))
+p `elserror` s     = p +++ parseerror s
 
 --- State handling -----------------------------------------------------------
 
 -- | Update the internal state.
 stupd      :: (s->s) -> Parser s t ()
 stupd f     = P (\st inp-> {-let newst = f st in newst `seq`-}
-                           [((), f st, inp)])
+                           Right [((), f st, inp)])
 
 -- | Query the internal state.
 stquery    :: (s->a) -> Parser s t a
-stquery f   = P (\st inp-> [(f st, st, inp)])
+stquery f   = P (\st inp-> Right [(f st, st, inp)])
 
 -- | Deliver the entire internal state.
 stget      :: Parser s t s
-stget       = P (\st inp-> [(st, st, inp)])
+stget       = P (\st inp-> Right [(st, st, inp)])
 
 
 --- Push some tokens back onto the input stream and reparse ------------------
@@ -212,6 +284,6 @@ stget       = P (\st inp-> [(st, st, inp)])
 --   expansion from the parse state, lex it, and then stuff the
 --   lexed expansion back down into the parser.
 reparse    :: [t] -> Parser s t ()
-reparse ts  = P (\st inp-> [((), st, ts++inp)])
+reparse ts  = P (\st inp-> Right [((), st, ts++inp)])
 
 ------------------------------------------------------------------------------

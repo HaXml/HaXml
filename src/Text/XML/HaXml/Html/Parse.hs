@@ -21,7 +21,7 @@ import Text.XML.HaXml.Types
 import Text.XML.HaXml.Lex
 import Text.ParserCombinators.HuttonMeijerWallace
 
--- #define DEBUG
+--  #define DEBUG
  
 #if defined(DEBUG)
 #  if ( defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ > 502 ) || \
@@ -147,16 +147,16 @@ either p q =
 
 word :: String -> Parser () Token ()
 word s = P (\st inp-> case inp of {
-                       ((p,TokName n):ts) -> if s==n then [((),st,ts)]
-                                             else [];
-                       ((p,TokFreeText n):ts) -> if s==n then [((),st,ts)]
-                                                 else [];
-                       ts -> [] } )
+                       ((p,TokName n):ts) -> if s==n then Right [((),st,ts)]
+                                             else Right [];
+                       ((p,TokFreeText n):ts) -> if s==n then Right [((),st,ts)]
+                                                 else Right [];
+                       ts -> Right [] } )
 
 posn :: Parser () Token Posn
 posn = P (\st inp-> case inp of {
-                     ((p,_):_) -> [(p,st,inp)];
-                     [] -> [(Pn "unknown" 0 0 Nothing,st,inp)]; } )
+                     ((p,_):_) -> Right [(p,st,inp)];
+                     [] -> Right [(Pn "unknown" 0 0 Nothing,st,inp)]; } )
 
 nmtoken :: Parser () Token NmToken
 nmtoken = (string +++ freetext)

@@ -3,9 +3,9 @@
 module Text.XML.HaXml.Parse
   (
   -- * Parse a whole document
-    xmlParse
+    xmlParse, xmlParse'
   -- * Parse just a DTD
-  , dtdParse
+  , dtdParse, dtdParse'
   ) where
 
 -- An XML parser, written using a slightly extended version of the
@@ -17,8 +17,9 @@ module Text.XML.HaXml.Parse
 -- later retrieval.
 
 import Prelude hiding (either,maybe,sequence)
+import qualified Prelude (either)
 import Maybe hiding (maybe)
-import List (intersperse)	-- debugging only
+import List (intersperse)       -- debugging only
 import Char (isSpace,isDigit,isHexDigit)
 import Monad hiding (sequence)
 import Numeric (readDec,readHex)
@@ -59,22 +60,46 @@ v `debug` s = v
 
 
 -- | To parse a whole document, @xmlParse file content@ takes a filename
---   (for error reports) and the string content of that file.
+--   (for generating error reports) and the string content of that file.
+--   A parse error causes program failure, with message to stderr.
 xmlParse :: String -> String -> Document
 
+-- | To parse a whole document, @xmlParse' file content@ takes a filename
+--   (for generating error reports) and the string content of that file.
+--   Any parse error message is passed back to the caller through the
+--   @Either@ type.
+xmlParse' :: String -> String -> Either String Document
+
 -- | To parse just a DTD, @dtdParse file content@ takes a filename
---   (for error reports) and the string content of that file.  If no
---   DTD was found, you get Nothing rather than an error.
-dtdParse :: String -> String -> Maybe DocTypeDecl
+--   (for generating error reports) and the string content of that
+--   file.  If no DTD was found, you get @Nothing@ rather than an error.
+--   However, if a DTD is found but contains errors, the program crashes.
+dtdParse  :: String -> String -> Maybe DocTypeDecl
 
-xmlParse name = sanitycheck . papply document emptySTs . xmlLex name
-dtdParse name = sanitycheck . papply justDTD  emptySTs . xmlLex name
+-- | To parse just a DTD, @dtdParse' file content@ takes a filename
+--   (for generating error reports) and the string content of that
+--   file.  If no DTD was found, you get @Right Nothing@.
+--   If a DTD was found but contains errors, you get a @Left message@.
+dtdParse' :: String -> String -> Either String (Maybe DocTypeDecl)
 
+xmlParse  name  = Prelude.either error id . xmlParse' name
+dtdParse  name  = Prelude.either error id . dtdParse' name
+
+xmlParse' name  = sanitycheck . papply' (toEOF document) emptySTs . xmlLex name
+dtdParse' name  = sanitycheck . papply' justDTD  emptySTs . xmlLex name
+
+{-
 sanitycheck :: Show p => [(a,s,[(p,t)])] -> a
 sanitycheck [] = error "***Error at line 0: document not XML?"
 sanitycheck ((x,_,[]):_) = x
 sanitycheck ((x,_,s@((n,_):_)):xs) =
   x `debug` ("***Warning at "++show n++": data beyond end of parsed document")
+-}
+
+sanitycheck :: Show p => Either String [(a,s,[(p,t)])] -> Either String a
+sanitycheck (Left err)          = Left err
+sanitycheck (Right [])          = Left "***Error at line 0: document not XML?"
+sanitycheck (Right ((x,_,_):_)) = Right x
 
 
 ---- Symbol table stuff ----
@@ -130,16 +155,16 @@ either p q =
 
 word :: String -> Parser SymTabs Token ()
 word s = P (\st inp-> case inp of {
-                       ((p,TokName n):ts) -> if s==n then [((),st,ts)]
-                                             else [];
-                       ((p,TokFreeText n):ts) -> if s==n then [((),st,ts)]
-                                                 else [];
-                       ts -> [] } )
+               ((p,TokName n):ts) -> if s==n then Right [((),st,ts)]
+                                     else Right [];
+               ((p,TokFreeText n):ts) -> if s==n then Right [((),st,ts)]
+                                         else Right [];
+               ts -> Right [] } )
 
 posn :: Parser SymTabs Token Posn
 posn = P (\st inp-> case inp of {
-                     ((p,_):_) -> [(p,st,inp)];
-                     [] -> []; } )
+                     ((p,_):_) -> Right [(p,st,inp)];
+                     []        -> Right [] } )
 
 nmtoken :: Parser SymTabs Token NmToken
 nmtoken = (string +++ freetext)
@@ -176,14 +201,14 @@ blank :: Parser SymTabs Token a -> Parser SymTabs Token a
 blank p =
     p +++
     ( do n <- pereference
-         tr <- stquery (lookupPE n) `debug` ("Looking up %"++n++" (is blank?)") 
+         tr <- stquery (lookupPE n) `debug` ("Looking up %"++n++" (is blank?)")
          case tr of
            (Just (PEDefEntityValue ev))
                     | all isSpace (flattenEV ev)  ->
                             do blank p `debug` "Empty macro definition"
            (Just _) -> mzero
            Nothing  -> mzero `elserror` "PEReference use before definition" )
-         
+
 
 
 ---- XML Parsing Functions ----
@@ -240,13 +265,15 @@ xmldecl = do
     p <- posn
     s <- freetext
     tok TokPIClose `elserror` "missing ?> in <?xml ...?>"
-    return ((fst3 . head . papply aux emptySTs . xmlReLex p) s)
+    raise ((papply' aux emptySTs . xmlReLex p) s)
   where
     aux = do
       v <- versioninfo  `elserror` "missing XML version info"
       e <- maybe encodingdecl
       s <- maybe sddecl
       return (XMLDecl v e s)
+    raise (Left err) = mzero `elserror` err
+    raise (Right ok) = (return . fst3 . head) ok
 
 versioninfo :: Parser SymTabs Token VersionInfo
 versioninfo = do
@@ -255,7 +282,7 @@ versioninfo = do
     bracket (tok TokQuote) freetext (tok TokQuote)
 
 misc :: Parser SymTabs Token Misc
-misc = 
+misc =
     ( comment >>= return . Comment) +++
     ( processinginstruction >>= return . PI)
 
@@ -317,7 +344,7 @@ element = do
 checkmatch :: Posn -> Name -> Name -> Parser SymTabs Token ()
 checkmatch p n m =
   if n == m then return ()
-  else error ("Error in  "++show p++"\n  tag <"++n++"> terminated by </"++m++">")
+  else mzero `elserror` ("tag <"++n++"> terminated by </"++m++">")
 
 elemtag :: Parser SymTabs Token ElemTag
 elemtag = do
@@ -514,7 +541,7 @@ ignoresectcontents = do
 ignore :: Parser SymTabs Token Ignore
 ignore = do
   is <- many1 (nottok [TokSectionOpen,TokSectionClose])
-  return Ignore  `debug` ("ignored all of: "++show is) 
+  return Ignore  `debug` ("ignored all of: "++show is)
 ----
 
 reference :: Parser SymTabs Token Reference
@@ -527,7 +554,7 @@ reference = do
                     = return . RefChar . fst . head . readDec $ i
     val name        = return . RefEntity $ name
 
-{-
+{- -- following is incorrect
 reference =
     ( charref >>= return . RefChar) +++
     ( entityref >>= return . RefEntity)
@@ -666,12 +693,12 @@ attvalue = do
 systemliteral :: Parser SymTabs Token SystemLiteral
 systemliteral = do
     s <- bracket (tok TokQuote) freetext (tok TokQuote)
-    return (SystemLiteral s)		-- note: need to fold &...; escapes
+    return (SystemLiteral s)            -- note: need to fold &...; escapes
 
 pubidliteral :: Parser SymTabs Token PubidLiteral
 pubidliteral = do
     s <- bracket (tok TokQuote) freetext (tok TokQuote)
-    return (PubidLiteral s)		-- note: need to fold &...; escapes
+    return (PubidLiteral s)             -- note: need to fold &...; escapes
 
 chardata :: Parser SymTabs Token CharData
 chardata = freetext

@@ -33,16 +33,17 @@ xql = aquery (global keep)
 
 string :: Parser s Token String
 string = P (\st inp -> case inp of {
-                        ((p,TokString n):ts) -> [(n,st,ts)];
-                        ts -> [] } )
+                        ((p,TokString n):ts) -> Right [(n,st,ts)];
+                        ts -> Right [] } )
 number :: Parser s Token Integer
 number = P (\st inp -> case inp of {
-                        ((p,TokNum n):ts) -> [(n,st,ts)];
-                        ts -> [] } )
+                        ((p,TokNum n):ts) -> Right [(n,st,ts)];
+                        ts -> Right [] } )
 symbol :: String -> Parser s Token ()
 symbol s = P (\st inp -> case inp of {
-                          ((p, Symbol n):ts) -> if n==s then [((),st,ts)] else [];
-                          ts -> [] } )
+                          ((p, Symbol n):ts) -> if n==s then Right [((),st,ts)]
+else Right [];
+                          ts -> Right [] } )
 quote = symbol "'" +++ symbol "\""
 
 pam fs x = [ f x | f <- fs ]
