@@ -18,6 +18,7 @@ module Text.XML.HaXml.Parse
 
 import Prelude hiding (either,maybe,sequence)
 import Maybe hiding (maybe)
+import List (intersperse)	-- debugging only
 import Char (isSpace)
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Lex
@@ -26,16 +27,22 @@ import Monad hiding (sequence)
 
 
 #if defined(__NHC__)
+#if __NHC__ > 114
+import System.IO.Unsafe (unsafePerformIO)
+#else
 import IOExtras (unsafePerformIO)
+#endif
 #endif
 #if defined(__HBC__)
 import UnsafePerformIO
 #endif
-#if defined(__GLASGOW_HASKELL__) || defined(__HUGS__)
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ > 502
+import System.IO.Unsafe (unsafePerformIO)
+#elif defined(__GLASGOW_HASKELL__) || defined(__HUGS__)
 import IOExts (unsafePerformIO)
 #endif
 
---  #define DEBUG
+-- #define DEBUG
 
 #if defined(DEBUG)
 #if defined(__GLASGOW_HASKELL__) || defined(__HUGS__)
@@ -43,8 +50,10 @@ import IOExts(trace)
 #else
 import NonStdTrace
 #endif
+debug :: a -> String -> a
+v `debug` s = trace s v
 #else
-trace _ x =  x
+v `debug` s = v
 #endif
 
 
@@ -64,7 +73,7 @@ sanitycheck :: Show p => [(a,s,[(p,t)])] -> a
 sanitycheck [] = error "***Error at line 0: document not XML?"
 sanitycheck ((x,_,[]):_) = x
 sanitycheck ((x,_,s@((n,_):_)):xs) =
-  trace ("***Warning at "++show n++": data beyond end of parsed document") x
+  x `debug` ("***Warning at "++show n++": data beyond end of parsed document")
 
 
 ---- Symbol table stuff ----
@@ -140,19 +149,19 @@ peRef p =
     p +++
     ( do pn <- posn
          n <- pereference
-         tr <- trace ("Looking up %"++n++"\n") $ stquery (lookupPE n)
+         tr <- stquery (lookupPE n) `debug` ("Looking up %"++n)
          case tr of
            (Just (PEDefEntityValue ev)) ->
-                      do trace ("defn:  "++flattenEV ev++"\n") $
-                           reparse (xmlReLex (posInNewCxt ("macro %"++n++";")
-                                                          (Just pn))
-                                             (flattenEV ev))
+                      do reparse (xmlReLex (posInNewCxt ("macro %"++n++";")
+                                                        (Just pn))
+                                           (flattenEV ev))
+                               `debug` ("  defn:  "++flattenEV ev)
                          peRef p
            (Just (PEDefExternalID (PUBLIC _ (SystemLiteral f)))) ->
                       do let val = unsafePerformIO (readFile f)
-                         trace ("reading from file "++f++"\n") $
-                           reparse (xmlReLex (posInNewCxt ("file "++f)
-                                                          (Just pn)) val)
+                         reparse (xmlReLex (posInNewCxt ("file "++f)
+                                                        (Just pn)) val)
+                               `debug` ("  reading from file "++f)
                          peRef p
            (Just (PEDefExternalID (SYSTEM eid))) ->
                       do peRef p
@@ -162,11 +171,11 @@ blank :: Parser SymTabs Token a -> Parser SymTabs Token a
 blank p =
     p +++
     ( do n <- pereference
-         tr <- trace ("Looking up %"++n++"\n") $ stquery (lookupPE n)
+         tr <- stquery (lookupPE n) `debug` ("Looking up %"++n++" (is blank?)") 
          case tr of
            (Just (PEDefEntityValue ev))
                     | all isSpace (flattenEV ev)  ->
-                            do trace ("Empty macro definition\n") $ blank p
+                            do blank p `debug` "Empty macro definition"
            (Just _) -> mzero
            Nothing  -> mzero `elserror` "PEReference use before definition" )
          
@@ -176,8 +185,7 @@ blank p =
 
 justDTD :: Parser SymTabs Token (Maybe DocTypeDecl)
 justDTD =
-  ( do (ExtSubset _ ds) <- trace ("Trying external subset\n") $
-                           extsubset
+  ( do (ExtSubset _ ds) <- extsubset `debug` "Trying external subset"
        if null ds then mzero
          else return (Just (DTD "extsubset" Nothing (concatMap extract ds)))
   ) +++
@@ -345,27 +353,30 @@ contentspec =
 
 choice :: Parser SymTabs Token [CP]
 choice = do
-    bracket (tok TokBraOpen)
-            (peRef cp `sepby1` (tok TokPipe))
-            (blank (tok TokBraClose))
+    bracket (tok TokBraOpen `debug` "Trying choice")
+            (peRef cp `sepby1` blank (tok TokPipe))
+            (blank (tok TokBraClose `debug` "Succeeded with choice"))
 
 sequence :: Parser SymTabs Token [CP]
 sequence = do
-    bracket (tok TokBraOpen)
-            (peRef cp `sepby1` (tok TokComma))
-            (blank (tok TokBraClose))
+    bracket (tok TokBraOpen `debug` "Trying sequence")
+            (peRef cp `sepby1` blank (tok TokComma))
+            (blank (tok TokBraClose `debug` "Succeeded with sequence"))
 
 cp :: Parser SymTabs Token CP
 cp =
     ( do n <- name
          m <- modifier
-         return (TagName n m)) +++
+         let c = TagName n m
+         return c `debug` ("ContentSpec: name "++show c)) +++
     ( do ss <- sequence
          m <- modifier
-         return (Seq ss m)) +++
+         let c = Seq ss m
+         return c `debug` ("ContentSpec: sequence "++show c)) +++
     ( do cs <- choice
          m <- modifier
-         return (Choice cs m))
+         let c = Choice cs m
+         return c `debug` ("ContentSpec: choice "++show c))
 
 modifier :: Parser SymTabs Token Modifier
 modifier =
@@ -373,6 +384,20 @@ modifier =
     ( tok TokQuery >> return Query) +++
     ( tok TokPlus >> return Plus) +++
     ( return None)
+
+-- just for debugging
+instance Show CP where
+    show (TagName n m) = n++show m
+    show (Choice cps m) = '(': concat (intersperse "|" (map show cps))
+                          ++")"++show m
+    show (Seq cps m) = '(': concat (intersperse "," (map show cps))
+                          ++")"++show m
+instance Show Modifier where
+    show None = ""
+    show Query = "?"
+    show Star = "*"
+    show Plus = "+"
+----
 
 mixed :: Parser SymTabs Token Mixed
 mixed = do
@@ -429,8 +454,8 @@ notationtype :: Parser SymTabs Token NotationType
 notationtype = do
     word "NOTATION"
     bracket (tok TokBraOpen)
-            (name `sepby1` (tok TokPipe))
-            (tok TokBraClose)
+            (peRef name `sepby1` peRef (tok TokPipe))
+            (blank (tok TokBraClose))
 
 enumeration :: Parser SymTabs Token Enumeration
 enumeration =
@@ -457,10 +482,20 @@ conditionalsect =
     ( do tok TokSectionOpen
          peRef (tok (TokSection IGNOREx))
          tok TokSqOpen `elserror` "missing [ after IGNORE"
-         i <- many ignoresectcontents
+         i <- many newIgnore  -- many ignoresectcontents
          tok TokSectionClose `elserror` "missing ]]> for IGNORE section"
-         return (IgnoreSect i))
+         return (IgnoreSect []))
 
+newIgnore :: Parser SymTabs Token Ignore
+newIgnore =
+    ( do tok TokSectionOpen
+         many newIgnore `debug` "IGNORING conditional section"
+         tok TokSectionClose
+         return Ignore `debug` "end of IGNORED conditional section") +++
+    ( do t <- nottok [TokSectionOpen,TokSectionClose]
+         return Ignore  `debug` ("ignoring: "++show t))
+
+--- obsolete?
 ignoresectcontents :: Parser SymTabs Token IgnoreSectContents
 ignoresectcontents = do
     i <- ignore
@@ -474,7 +509,8 @@ ignoresectcontents = do
 ignore :: Parser SymTabs Token Ignore
 ignore = do
   is <- many1 (nottok [TokSectionOpen,TokSectionClose])
-  trace ("ignored all of: "++show is++"\n") $ return Ignore
+  return Ignore  `debug` ("ignored all of: "++show is) 
+----
 
 reference :: Parser SymTabs Token Reference
 reference =
