@@ -76,7 +76,7 @@ haddock:
 
 # packaging a distribution
 
-srcDist: $(ALLFILES)
+srcDist: $(ALLFILES) haddock
 	rm -f $(SOFTWARE)-$(VERSION).tar $(SOFTWARE)-$(VERSION).tar.gz
 	mkdir $(SOFTWARE)-$(VERSION)
 	tar cf - $(ALLFILES) | ( cd $(SOFTWARE)-$(VERSION); tar xf - )
@@ -88,7 +88,7 @@ srcDist: $(ALLFILES)
 	rm -rf $(SOFTWARE)-$(VERSION)
 	gzip $(SOFTWARE)-$(VERSION).tar
 
-zipDist: $(ALLFILES)
+zipDist: $(ALLFILES) haddock
 	rm -f $(SOFTWARE)-$(VERSION).zip
 	mkdir $(SOFTWARE)-$(VERSION)
 	tar cf - $(ALLFILES) | ( cd $(SOFTWARE)-$(VERSION); tar xf - )
