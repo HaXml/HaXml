@@ -30,11 +30,13 @@ TOOLSET = \
 # The caller *must* set the HC variable.
 COMPILER := $(findstring ghc, $(HC))
 ifeq "$(COMPILER)" "ghc"
-COMPILE  = hmake -HC=$(HC) -I. $(shell cat ghcpkgs) -package-name HaXml
+COMPILE  = $(HC) --make -cpp -i. $(shell cat ghcpkgs) -package-name HaXml
+RENAME   = mv a.out
 endif
 COMPILER := $(findstring nhc98, $(HC))
 ifeq "$(COMPILER)" "nhc98"
-COMPILE  = hmake -HC=$(HC) -I. -K4M +CTS -H8M -CTS -package base
+COMPILE  = hmake -hc=$(HC) -I. -K4M +CTS -H8M -CTS -package base
+RENAME   = echo Built
 endif
 
 .PHONY: all libs toolset
@@ -78,16 +80,22 @@ $(LIBOBJS): %.o : %.hs
 # standalone tools
 ../../DtdToHaskell: $(LIBSRCS) $(TOOLSRCS)
 	$(COMPILE) tools/DtdToHaskell
+	$(RENAME) tools/DtdToHaskell
 	mv tools/DtdToHaskell ../..
 ../../Xtract: $(LIBSRCS) $(TOOLSRCS)
 	$(COMPILE) tools/Xtract
+	$(RENAME) tools/Xtract
 	mv tools/Xtract ../..
 ../../Validate: $(LIBSRCS) $(TOOLSRCS)
 	$(COMPILE) tools/Validate
+	$(RENAME) tools/Validate
 	mv tools/Validate ../..
 ../../Canonicalise: $(LIBSRCS) $(TOOLSRCS)
 	$(COMPILE) tools/Canonicalise
+	$(RENAME) tools/Canonicalise
 	mv tools/Canonicalise ../..
 ../../MkOneOf: tools/MkOneOf.hs
 	$(COMPILE) tools/MkOneOf
+	$(RENAME) tools/MkOneOf
 	mv tools/MkOneOf ../..
+
