@@ -1,9 +1,11 @@
 name:		HaXml
-version:	1.0
+version:	1.12.1
 license:	LGPL
 author:		Malcolm Wallace <Malcolm.Wallace@cs.york.ac.uk>
 category:	Text
-description:	Haskell utilities for processing XML
+description:
+	Haskell utilities for parsing, filtering, transforming and
+	generating XML documents.
 exposed-modules:
 	Text.ParserCombinators.HuttonMeijerWallace,
 	Text.XML.HaXml,
@@ -31,23 +33,3 @@ exposed-modules:
 hs-source-dir:	src
 build-depends:	base
 extensions:	CPP
-
-executable:	Canonicalise
-main-is:	Canonicalise.hs
-hs-source-dir:	src/tools
-
-executable:	DtdToHaskell
-main-is:	DtdToHaskell.hs
-hs-source-dir:	src/tools
-
-executable:	MkOneOf
-main-is:	MkOneOf.hs
-hs-source-dir:	src/tools
-
-executable:	Validate
-main-is:	Validate.hs
-hs-source-dir:	src/tools
-
-executable:	Xtract
-main-is:	Xtract.hs
-hs-source-dir:	src/tools
