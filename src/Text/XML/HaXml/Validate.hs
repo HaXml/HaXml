@@ -1,13 +1,12 @@
+-- | Validate a document against a dtd.
 module Text.Xml.HaXml.Validate
-  (
-  -- * Validate a document against a dtd.
-    validate
+  ( validate
   ) where
 
-import XmlTypes
+import Text.Xml.HaXml.Types
+import Text.Xml.HaXml.Xml2Haskell (attr2str)
 import Maybe (fromMaybe,isNothing,fromJust)
 import List (intersperse)
-import Xml2Haskell (attr2str)
 
 #ifdef __GLASGOW_HASKELL__
 -- real finite map, if it is available

@@ -1,4 +1,4 @@
-module Text.Xml.HaXml.HtmlGen where
+module Text.Xml.HaXml.Html.Generate where
 
 -- These are just some common abbreviations for generating HTML
 -- content within the XML transformation framework.

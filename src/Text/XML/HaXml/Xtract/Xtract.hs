@@ -8,12 +8,12 @@ import Char         (toUpper)
 import List         (isSuffixOf)
 
 import Text.Xml.HaXml.Types
-import Text.Xml.HaXml.Parse      (xmlParse)
-import Text.Xml.HaXml.HtmlParse  (htmlParse)
-import Text.Xml.Xtract.Parse     (parseXtract)
-import Text.PrettyPrint.HughesPJ (render, vcat)
-import Text.Xml.HaXml.PP         (content)
-import Text.Xml.HaXml.HtmlGen    (htmlprint)
+import Text.Xml.HaXml.Parse         (xmlParse)
+import Text.Xml.HaXml.Html.Parse    (htmlParse)
+import Text.Xml.HaXml.Xtract.Parse  (parseXtract)
+import Text.PrettyPrint.HughesPJ    (render, vcat)
+import Text.Xml.HaXml.Pretty        (content)
+import Text.Xml.HaXml.Html.Generate (htmlprint)
 
 
 main =

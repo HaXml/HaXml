@@ -2,10 +2,11 @@ module Text.Xml.HaXml
   ( module Text.Xml.HaXml.Types
   , module Text.Xml.HaXml.Combinators
   , module Text.Xml.HaXml.Parse
-  , module Text.Xml.HaXml.PP
-  , module Text.Xml.HaXml.HtmlGen
+  , module Text.Xml.HaXml.Pretty
+  , module Text.Xml.HaXml.Html.Generate
+  , module Text.Xml.HaXml.Html.Parse
+  , module Text.Xml.HaXml.Html.Pretty
   , module Text.Xml.HaXml.Validate
-  , processXMLwith
   , processXmlWith
   , fix2Args
   ) where
@@ -16,7 +17,7 @@ module Text.Xml.HaXml
 
 import Text.Xml.HaXml.Types
 import Text.Xml.HaXml.Combinators
-import Text.Xml.HaXml.HtmlGen
+import Text.Xml.HaXml.Html.Generate
 import Text.Xml.HaXml.Validate
 
 
@@ -25,13 +26,11 @@ import System
 import IO
 import List (isSuffixOf)
 
-import Text.Xml.HaXml.Parse      (xmlParse)
-import Text.Xml.HaXml.HtmlParse  (htmlParse)
-import Text.Xml.HaXml.PP         (element)
-import Text.PrettyPrint.HughesPJ (render)
-
-
-processXMLwith = processXmlWith		-- synonym for backward compat.
+import Text.Xml.HaXml.Parse       (xmlParse)
+import Text.Xml.HaXml.Pretty      (element)
+import Text.Xml.HaXml.Html.Parse  (htmlParse)
+import Text.Xml.HaXml.Html.Pretty ()
+import Text.PrettyPrint.HughesPJ  (render)
 
 
 -- | The wrapper @processXmlWith@ returns an IO () computation

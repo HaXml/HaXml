@@ -1,21 +1,7 @@
--- | This is a pretty-printer for turning the internal representation
---   of generic structured XML documents into the Doc type (which can
---   later be rendered using Text.ParserCombinators.HughesPJ.render).
---   Essentially there is one pp function for each type in
---   Text.Xml.HaXml.Types, so you can pretty-print as much or as little
---   of the document as you wish.
+module Text.Xml.HaXml.Html.Pretty where
 
-module Text.Xml.HaXml.PP
-  (
-  -- * Pretty-print a whole document
-    document
-  -- ** Just one tagged element
-  , element
-  -- * Pretty-print just a DTD
-  , doctypedecl
-  -- ** A content particle description
-  , cp
-  ) where
+-- This is a separate pretty-printer for HTML documents, recognising
+-- some of the differences between HTML and true XML.
 
 import Prelude hiding (maybe,either)
 import Maybe hiding (maybe)
@@ -44,7 +30,6 @@ doctypedecl :: DocTypeDecl -> Doc
 markupdecl  :: MarkupDecl -> Doc
 extsubset   :: ExtSubset -> Doc
 extsubsetdecl :: ExtSubsetDecl -> Doc
-cp          :: CP -> Doc
 
 element   :: Element -> Doc
 attribute :: Attribute -> Doc                     --etc
@@ -101,49 +86,47 @@ carryelem (Elem n as []) c
                        = ( c <>
                            text "<" <> text n <+> fsep (map attribute as)
                          , text "/>")
-carryelem e@(Elem n as cs) c
---  | any isText cs    =  ( c <> element e, empty)
-    | otherwise        =  let (cs0,d0) = carryscan carrycontent cs (text ">")
-                          in
-                          ( c <>
-                            text "<" <> text n <+> fsep (map attribute as) $$
-                            nest 2 (vcat cs0) <> --- $$
-                            d0 <> text "</" <> text n
-                          , text ">")
-carrycontent (CElem e) c   = carryelem e c
-carrycontent (CString False s) c = (c <> chardata s, empty)
-carrycontent (CString True  s) c = (c <> cdsect s, empty)
-carrycontent (CRef r) c    = (c <> reference r, empty)
-carrycontent (CMisc m) c   = (c <> misc m, empty)
-
-carryscan :: (a->c->(b,c)) -> [a] -> c -> ([b],c)
-carryscan f []     c = ([],c)
-carryscan f (a:as) c = let (b, c0) = f a c
-                           (bs,c1) = carryscan f as c0
-                       in (b:bs, c1)
-
 --carryelem e@(Elem n as cs) c
---  | isText (head cs) =
---        ( start <>
---          text ">" <> hcat (map content cs) <> text "</" <> text n
---        , text ">")
---  | otherwise =
---        let (d,c0) = foldl carrycontent (start, text ">") cs in
---        ( d <> c0 <> text "</" <> text n
---        , text ">")
---  where start = c <> text "<" <> text n <+> fsep (map attribute as)
+----  | any isText cs    =  ( c <> element e, empty)
+--    | otherwise        =  let (cs',d') = carryscan carrycontent cs (text ">")
+--                          in
+--                          ( c <>
+--                            text "<" <> text n <+> fsep (map attribute as) $$
+--                            nest 2 (vcat cs') <> -- $$
+--                            c' <> text "</" <> text n
+--                          , text ">")
+--carrycontent (CElem e) c   = carryelem e c
+--carrycontent (CString _ s) c = (c <> chardata s, empty)
+--carrycontent (CRef r) c    = (c <> reference r, empty)
+--carrycontent (CMisc m) c   = (c <> misc m, empty)
 --
---carrycontent (d,c) (CElem e)   = let (d',c') = carryelem e c in
---                                 (d $$ nest 2 d',       c')
---carrycontent (d,c) (CString _ s) = (d <> c <> chardata s, empty)
---carrycontent (d,c) (CRef r)    = (d <> c <> reference r,empty)
---carrycontent (d,c) (CMisc m)   = (d $$ c <> misc m,     empty)
+--carryscan :: (a->c->(b,c)) -> [a] -> c -> ([b],c)
+--carryscan f []     c = ([],c)
+--carryscan f (a:as) c = let (b, c')   = f a c
+--                           (bs,c'') = carryscan f as c'
+--                       in (b:bs, c'')
+
+carryelem e@(Elem n as cs) c
+  | isText (head cs) =
+        ( start <>
+          text ">" <> hcat (map content cs) <> text "</" <> text n
+        , text ">")
+  | otherwise =
+        let (d,c') = foldl carrycontent (start, text ">") cs in
+        ( d <> c' <> text "</" <> text n
+        , text ">")
+  where start = c <> text "<" <> text n <+> fsep (map attribute as)
+
+carrycontent (d,c) (CElem e)   = let (d',c') = carryelem e c in
+                                 (d $$ nest 2 d',       c')
+carrycontent (d,c) (CString _ s) = (d <> c <> chardata s, empty)
+carrycontent (d,c) (CRef r)    = (d <> c <> reference r,empty)
+carrycontent (d,c) (CMisc m)   = (d $$ c <> misc m,     empty)
 
 
 attribute (n,v)        = text n <> text "=" <> attvalue v
 content (CElem e)      = element e
-content (CString False s) = chardata s
-content (CString True s)  = cdsect s
+content (CString _ s)  = chardata s
 content (CRef r)       = reference r
 content (CMisc m)      = misc m
 
@@ -232,22 +215,13 @@ nmtoken s                      = text s
 attvalue (AttValue esr)        = text "\"" <>
                                  hcat (map (either text reference) esr) <>
                                  text "\""
-entityvalue (EntityValue evs)
-  | containsDoubleQuote evs    = text "'"  <> hcat (map ev evs) <> text "'"
-  | otherwise                  = text "\"" <> hcat (map ev evs) <> text "\""
+entityvalue (EntityValue evs)  = text "'" <> hcat (map ev evs) <> text "'"
 ev (EVString s)                = text s
 --ev (EVPERef p e)               = peref p
 ev (EVRef r)                   = reference r
-pubidliteral (PubidLiteral s)
-    | '"' `elem` s             = text "'" <> text s <> text "'"
-    | otherwise                = text "\"" <> text s <> text "\""
-systemliteral (SystemLiteral s)
-    | '"' `elem` s             = text "'" <> text s <> text "'"
-    | otherwise                = text "\"" <> text s <> text "\""
+pubidliteral (PubidLiteral s)  = text "'" <> text s <> text "'"
+systemliteral (SystemLiteral s)= text "'" <> text s <> text "'"
 chardata s                     = if all isSpace s then empty else text s
 cdsect c                       = text "<![CDATA[" <> chardata c <> text "]]>"
 
 ----
-containsDoubleQuote evs = any csq evs
-    where csq (EVString s) = '"' `elem` s
-          csq _            = False

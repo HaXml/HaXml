@@ -13,7 +13,7 @@ import List (nub,takeWhile,dropWhile)
 import Text.Xml.HaXml (fix2Args)
 import Text.Xml.HaXml.Types
 import Text.Xml.HaXml.Parse  (dtdParse)
-import Text.Xml.DtdToHaskell.DtdToTypeDefPP
+import Text.Xml.HaXml.DtdToHaskell.DtdToTypeDefPP
 import Text.PrettyPrint.HughesPJ (render,vcat)
 
 main =

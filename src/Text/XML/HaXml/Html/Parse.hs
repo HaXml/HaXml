@@ -1,4 +1,4 @@
-module Text.Xml.HaXml.HtmlParse
+module Text.Xml.HaXml.Html.Parse
   ( htmlParse
   ) where
 

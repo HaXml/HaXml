@@ -1,4 +1,4 @@
-module Text.Xml.Xtract.Lex
+module Text.Xml.HaXml.Xtract.Lex
   ( lexXtract
   , Posn(..)
   , TokenT(..)

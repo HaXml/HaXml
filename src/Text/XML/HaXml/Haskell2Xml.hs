@@ -7,7 +7,7 @@ module Text.Xml.HaXml.Haskell2Xml
   , hReadXml, hWriteXml
   , mkElem , mkElemC
   , showConstr
-  , module XmlTypes
+  , module Text.Xml.HaXml.Types
   , isPrefixOf
   ) where
 
@@ -29,7 +29,7 @@ import IO
 import Text.Xml.HaXml.Types
 import Text.Xml.HaXml.Parse (xmlParse)
 import Text.PrettyPrint.HughesPJ (render)
-import qualified Text.Xml.HaXml.PP as PP
+import qualified Text.Xml.HaXml.Pretty as PP
 import List(intersperse,isPrefixOf,isSuffixOf,partition)
 import Char (ord)
 
@@ -275,10 +275,10 @@ innerHtExpr (Prim s t)  m = TagName t m
 innerHtExpr (Tuple hts) m = Seq (map (\c-> innerHtExpr c None) hts) m
 innerHtExpr ht@(Defined s hts cs) m = -- CPPE (flat ht "") (outerHtExpr ht)
                                       TagName ('%': flat ht ";") m
-							-- ***HACK!!!***
+							--  ***HACK!!!***
 innerHtExpr ht m = TagName (flat ht "") m
 
-constrHtExpr (Constr s fv [])  = TagName "EMPTY" None	-- ***HACK!!!***
+constrHtExpr (Constr s fv [])  = TagName "EMPTY" None	--  ***HACK!!!***
 constrHtExpr (Constr s fv hts) = innerHtExpr (Tuple hts) None
 
 

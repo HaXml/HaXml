@@ -1,4 +1,4 @@
-module Text.Xml.DtdToHaskell.DtdToTypeDefPP
+module Text.Xml.HaXml.DtdToHaskell.DtdToTypeDefPP
   ( TypeDef
   , dtd2typedef
   , ppTypeDef

@@ -1,4 +1,4 @@
-module Text.Xml.Xtract.Parse (parseXtract) where
+module Text.Xml.HaXml.Xtract.Parse (parseXtract) where
 
 -- A parser for the Xtract command-language.  The input has already been
 -- tokenised by the lexer lexXtract.  The parser uses the extended

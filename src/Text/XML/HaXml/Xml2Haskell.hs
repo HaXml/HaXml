@@ -23,8 +23,8 @@ import IO
 import Maybe    (catMaybes)
 import Text.PrettyPrint.HughesPJ (render)
 import Text.Xml.HaXml.Types
-import Text.Xml.HaXml.PP    (document)
-import Text.Xml.HaXml.Parse (xmlParse)
+import Text.Xml.HaXml.Pretty (document)
+import Text.Xml.HaXml.Parse  (xmlParse)
 
 readXml  :: XmlContent a => FilePath -> IO a
 writeXml :: XmlContent a => FilePath -> a -> IO ()

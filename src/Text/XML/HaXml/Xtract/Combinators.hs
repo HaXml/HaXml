@@ -1,4 +1,4 @@
-module Text.Xml.Xtract.Combinators where
+module Text.Xml.HaXml.Xtract.Combinators where
 
 import Text.Xml.HaXml.Types
 import Text.Xml.HaXml.Combinators
