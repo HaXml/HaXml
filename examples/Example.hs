@@ -1,7 +1,7 @@
 module Main where
 
 import IO
-import Text.Xml.HaXml.Haskell2Xml (writeXml)
+import Text.XML.HaXml.Haskell2Xml (writeXml)
 import DTypes
 
 rjn = Person (Name "Rob Noble") (Email "rjn") [

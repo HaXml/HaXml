@@ -3,8 +3,8 @@ module Main where
 import System (getArgs)
 import IO
 
-import Text.Xml.HaXml.Lex      (xmlLex)
-import Text.Xml.HaXml.Wrappers (fix2Args)
+import Text.XML.HaXml.Lex      (xmlLex)
+import Text.XML.HaXml.Wrappers (fix2Args)
 
 -- Debug the HaXml library by showing what the lexer generates.
 main =

@@ -1,7 +1,7 @@
 {-% DrIFT (Automatic class derivations for Haskell) v1.0 %-}
 module DTypes where
 
-import Text.Xml.HaXml.Haskell2Xml hiding (Name)
+import Text.XML.HaXml.Haskell2Xml hiding (Name)
 
 -- data types for a simple test program
 

@@ -5,10 +5,10 @@ import IO
 import Maybe
 import List   (isSuffixOf)
 
-import Text.Xml.HaXml.Types      (DocTypeDecl(..))
-import Text.Xml.HaXml.Parse      (dtdParse)
-import Text.Xml.HaXml.Pretty     (markupdecl)
-import Text.Xml.HaXml.Wrappers   (fix2Args)
+import Text.XML.HaXml.Types      (DocTypeDecl(..))
+import Text.XML.HaXml.Parse      (dtdParse)
+import Text.XML.HaXml.Pretty     (markupdecl)
+import Text.XML.HaXml.Wrappers   (fix2Args)
 import Text.PrettyPrint.HughesPJ (render,vcat)
 
 -- This is another trivial application that reads an XML DTD from

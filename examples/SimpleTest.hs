@@ -1,10 +1,10 @@
 module Main where
 
 import List (isPrefixOf)
-import Text.Xml.HaXml.Haskell2Xml
-import Text.Xml.HaXml.Types
+import Text.XML.HaXml.Haskell2Xml
+import Text.XML.HaXml.Types
 import Text.PrettyPrint.HughesPJ (render)
-import Text.Xml.HaXml.Pretty     (document)
+import Text.XML.HaXml.Pretty     (document)
 
 -- Test stuff
 value1 :: ([(Bool,Int)],(String,Maybe Char))

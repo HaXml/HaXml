@@ -3,8 +3,8 @@ module Main where
 import System (getArgs)
 import IO
 
-import Text.Xml.HaXml.Wrappers (fix2Args)
-import Text.Xml.HaXml.Xml2Haskell (readXml, writeXml)
+import Text.XML.HaXml.Wrappers (fix2Args)
+import Text.XML.HaXml.Xml2Haskell (readXml, writeXml)
 import AlbumDTD
 
 main =

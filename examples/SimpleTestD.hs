@@ -4,7 +4,7 @@ import IO
 import System (getArgs)
 --import List (isPrefixOf)
 
-import Text.Xml.HaXml.Haskell2Xml
+import Text.XML.HaXml.Haskell2Xml
 
 -- Test stuff
 data MyType a = ConsA Int a
