@@ -32,8 +32,8 @@ mkInstance (DataDef aux n fs []) =
     $$
     mkInstanceAttrs Same n fs
 
--- single constructor
-mkInstance (DataDef aux n fs [(n0,sts)]) =
+-- single constructor, "real" (non-auxiliary) type
+mkInstance (DataDef False n fs [(n0,sts)]) =
     let vs = nameSupply sts
         (frpat, frattr, topat, toattr) = attrpats fs
     in
@@ -46,6 +46,22 @@ mkInstance (DataDef aux n fs [(n0,sts)]) =
                     ) $$
              text "fromElem (CMisc _:rest) = fromElem rest" $$
              text "fromElem rest = (Nothing, rest)"
+           $$
+             text "toElem" <+> parens (mkCpat n0 topat vs) <+> text "=" $$
+             nest 4 (text "[CElem (Elem \"" <> ppXName n <> text "\""
+                          <+> toattr <+> parens (mkToElem sts vs) <> text ")]")
+           )
+    $$
+    mkInstanceAttrs Extended n fs
+
+-- single constructor, auxiliary type
+mkInstance (DataDef True n fs [(n0,sts)]) =
+    let vs = nameSupply sts
+        (frpat, frattr, topat, toattr) = attrpats fs
+    in
+    text "instance XmlContent" <+> ppHName n <+> text "where" $$
+    nest 4 ( text "fromElem c0 =" $$
+             mkFrAux True frattr [(n0,sts)]
            $$
              text "toElem" <+> parens (mkCpat n0 topat vs) <+> text "=" $$
              nest 4 (text "[CElem (Elem \"" <> ppXName n <> text "\""
@@ -250,9 +266,9 @@ mkFrAux keeprest attrs cs = foldr frAux inner cs
                   (Maybe s)   -> text "Nothing"
                   (List s)    -> text "[]"
                   (Tuple ss)  -> text "nyi_failpat_Tuple"
-                  (OneOf ss)  -> text "Nothing"
-                  (String)    -> text "Nothing"
-                  (Defined m) -> text "Nothing"
+                  (OneOf ss)  -> text "_"
+                  (String)    -> text "_"
+                  (Defined m) -> text "_"
         in parens (hcat (intersperse comma (map fp sts++[text "_"])))
     succpat sts vs =
         let sp st v =
