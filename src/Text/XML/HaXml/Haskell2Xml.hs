@@ -339,7 +339,7 @@ fromXml (Document _ _ e@(Elem n _ cs))
 
 -- | Convert an XML document encoded as a String, into a Haskell value.
 readXml :: Haskell2Xml a => String -> Maybe a
-readXml s = Just . fromXml . xmlParse "string input"
+readXml = Just . fromXml . xmlParse "string input"
 -- | Convert a Haskell value to an XML document, encoded as a String.
 showXml :: Haskell2Xml a => a -> String
 showXml = render . PP.document . toXml
