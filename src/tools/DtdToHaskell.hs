@@ -32,7 +32,8 @@ main =
   in
   do hPutStrLn o ("module "++realname
                   ++" where\n\nimport Text.XML.HaXml.Xml2Haskell"
-                  ++"\nimport Text.XML.HaXml.OneOfN")
+                  ++"\nimport Text.XML.HaXml.OneOfN"
+                  ++"\nimport Char (isSpace)")
      hPutStrLn o "\n\n{-Type decls-}\n"
      (hPutStrLn o . render . vcat . map ppTypeDef) decls
      hPutStrLn o "\n\n{-Instance decls-}\n"
