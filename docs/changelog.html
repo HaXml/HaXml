@@ -13,6 +13,26 @@
 </center>
 <hr>
 
+<h3>Changes for 1.12</h3>
+<p>
+<ul>
+<li> Now includes a minimal Build.bat script for Windows, so you can
+     avoid any need for Cygwin utilities and get by with just GHC
+     and Mingw.
+<li> Fix a bug in DtdToHaskell, whereby an auxiliary datatype introduced
+     by the translation into Haskell could (in certain circumstances)
+     cause an extra layer of element tag nesting on the output (via the
+     'toElem' method).
+<li> Fixed the parsing of entity/character references in the error-correcting
+     HTML parser.
+<li> Changes in the signatures of Xml2Haskell (made in version 1.09)
+     have now been mirrored in the converse library, Haskell2Xml.
+     Thus, there are new functions <tt>readXml</tt> and
+     <tt>showXml</tt> converting to/from Strings, <tt>hGetXml</tt>
+     and <tt>hPutXml</tt> use file Handles, and the old functions using
+     filenames are renamed to <tt>fReadXml</tt> and <tt>fWriteXml</tt>.
+</ul>
+
 <h3>Changes for 1.11</h3>
 <p>
 <ul>
