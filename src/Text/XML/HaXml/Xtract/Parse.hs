@@ -30,7 +30,7 @@ sanitycheck ((x,_,s@(Right (n,_):_)):xs) =
   error ("***Error at "++show n++" in search expression: \""++remainder++"\"")
   where remainder = concatMap (show.snd.either error id) s
 
-xql = aquery (global keep)
+xql = aquery (local keep)
 
 
 ---- Auxiliary Parsing Functions ----
