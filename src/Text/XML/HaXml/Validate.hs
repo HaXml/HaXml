@@ -14,9 +14,9 @@ import FiniteMap
 #else
 -- otherwise, a very simple and inefficient implementation of a finite map
 type FiniteMap a b = [(a,b)]
-listToFM :: [(a,b)] -> FiniteMap a b
+listToFM :: Eq a => [(a,b)] -> FiniteMap a b
 listToFM = id
-lookupFM :: FiniteMap a b -> a -> Maybe b
+lookupFM :: Eq a => FiniteMap a b -> a -> Maybe b
 lookupFM fm k = lookup k fm
 #endif
 
