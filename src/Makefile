@@ -24,8 +24,10 @@ TOOLSRCS = \
  	tools/Canonicalise.hs tools/MkOneOf.hs
 
 TOOLSET = \
-	../../DtdToHaskell ../../Xtract ../../Validate \
-	../../Canonicalise ../../MkOneOf
+	../../DtdToHaskell$(EXE) ../../Xtract$(EXE) ../../Validate$(EXE) \
+	../../Canonicalise$(EXE) ../../MkOneOf$(EXE)
+
+EXE = $(shell cat ../exe)
 
 # The caller *must* set the HC variable.
 COMPILER := $(findstring ghc, $(HC))
@@ -52,12 +54,14 @@ install-ghc: libs
 	cd `cat ghcincdir`/HaXml; tar xf interfaces.tar; rm interfaces.tar
 	ghc-pkg --remove-package=HaXml || true
 	ghc-pkg --add-package <pkg.conf
+	cp $(TOOLSET) `cat ../prefix`
 install-nhc98:
 	cp libHSHaXml.a `cat nhc98libdir`/`harch`
 	-rm -r `cat nhc98incdir`/HaXml
 	mkdir `cat nhc98incdir`/HaXml
 	cp interfaces.tar `cat nhc98incdir`/HaXml
 	cd `cat nhc98incdir`/HaXml; tar xf interfaces.tar; rm interfaces.tar
+	cp $(TOOLSET) `cat ../prefix`
 
 # update the sources if necessary
 $(LIBSRCS) $(TOOLSRCS) Makefile Text/PrettyPrint/HughesPJ.hs: %: ../../src/%
@@ -78,24 +82,29 @@ $(LIBOBJS): %.o : %.hs
 
 
 # standalone tools
-../../DtdToHaskell: $(LIBSRCS) $(TOOLSRCS)
-	$(COMPILE) tools/DtdToHaskell
-	$(RENAME) tools/DtdToHaskell
-	mv tools/DtdToHaskell ../..
-../../Xtract: $(LIBSRCS) $(TOOLSRCS)
-	$(COMPILE) tools/Xtract
-	$(RENAME) tools/Xtract
-	mv tools/Xtract ../..
-../../Validate: $(LIBSRCS) $(TOOLSRCS)
-	$(COMPILE) tools/Validate
-	$(RENAME) tools/Validate
-	mv tools/Validate ../..
-../../Canonicalise: $(LIBSRCS) $(TOOLSRCS)
-	$(COMPILE) tools/Canonicalise
-	$(RENAME) tools/Canonicalise
-	mv tools/Canonicalise ../..
-../../MkOneOf: tools/MkOneOf.hs
-	$(COMPILE) tools/MkOneOf
-	$(RENAME) tools/MkOneOf
-	mv tools/MkOneOf ../..
+$(TOOLSET): $(LIBSRCS) $(TOOLSRCS)
+	cd tools; $(COMPILE) -i.. $(patsubst ../../%${EXE}, %, $@)
+	cd tools; $(RENAME) $(patsubst ../../%, %, $@)
+	mv $(patsubst ../../%, tools/%, $@) ../..
+
+#../../DtdToHaskell$(EXE): $(LIBSRCS) $(TOOLSRCS)
+#	$(COMPILE) tools/DtdToHaskell.hs
+#	$(RENAME) $@
+#	mv $@ ../..
+#../../Xtract$(EXE): $(LIBSRCS) $(TOOLSRCS)
+#	$(COMPILE) tools/Xtract.hs
+#	$(RENAME) $@
+#	mv $@ ../..
+#../../Validate$(EXE): $(LIBSRCS) $(TOOLSRCS)
+#	$(COMPILE) tools/Validate.hs
+#	$(RENAME) $@
+#	mv $@ ../..
+#../../Canonicalise$(EXE): $(LIBSRCS) $(TOOLSRCS)
+#	$(COMPILE) tools/Canonicalise.hs
+#	$(RENAME) $@
+#	mv $@ ../..
+#../../MkOneOf$(EXE): tools/MkOneOf.hs
+#	$(COMPILE) tools/MkOneOf.hs
+#	$(RENAME) $@
+#	mv $@ ../..
 
