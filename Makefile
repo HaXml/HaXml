@@ -7,6 +7,7 @@ SRCS = \
 	src/Text/XML/HaXml/Parse.hs src/Text/XML/HaXml/Pretty.hs \
 	src/Text/XML/HaXml/Types.hs src/Text/XML/HaXml/Validate.hs \
 	src/Text/XML/HaXml/Wrappers.hs src/Text/XML/HaXml/OneOfN.hs \
+	src/Text/XML/HaXml/Verbatim.hs \
 	src/Text/XML/HaXml/Xml2Haskell.hs src/Text/XML/HaXml/Haskell2Xml.hs \
 	src/Text/XML/HaXml/Html/Generate.hs src/Text/XML/HaXml/Html/Parse.hs \
 	src/Text/XML/HaXml/Html/Pretty.hs \
