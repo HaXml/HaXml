@@ -110,10 +110,10 @@ Some additional info about using the various facilities is here:
 <center><h3><a name="downloads">Downloads</a></h3></center>
 <p>
 <b>Current version:</b>
-HaXml-1.10, release date 2004.01.19<br>
+HaXml-1.11, release date 2004.01.23<br>
 By HTTP:
-<a href="http://www.haskell.org/HaXml/HaXml-1.10.tar.gz">.tar.gz</a>,
-<a href="http://www.haskell.org/HaXml/HaXml-1.10.zip">.zip</a>.
+<a href="http://www.haskell.org/HaXml/HaXml-1.11.tar.gz">.tar.gz</a>,
+<a href="http://www.haskell.org/HaXml/HaXml-1.11.zip">.zip</a>.
 <br>
 By FTP: 
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/">
@@ -161,7 +161,19 @@ specified by the <tt>--prefix=...</tt> option to <tt>configure</tt>.
 <hr>
 <center><h3><a name="news">Recent news</a></h3></center>
 <p>
-The latest version (1.10) has the following features and fixes:<br>
+The latest version (1.11) has the following features and fixes:<br>
+<ul>
+<li> Fix a tiny but embarrassing bug in the previous fix for complex
+     DTDs being translated by DtdToHaskell.  It broke on a very simple
+     DTD like<br>
+     &nbsp;&nbsp;&nbsp;&nbsp;<tt>&lt;!ELEMENT A (B|C)&gt;</tt><br>
+     which became sequence<br>
+     &nbsp;&nbsp;&nbsp;&nbsp;<tt>data A = A B C</tt><br>
+     instead of choice
+     &nbsp;&nbsp;&nbsp;&nbsp;<tt>data A = AB B | AC C</tt><br>
+</ul>
+<p>
+The previous version (1.10) has the following features and fixes:<br>
 <ul>
 <li> All being well, HaXml now works again for Hugs (versions &ge;
      September 2003).  The library sources are installed using
@@ -177,37 +189,6 @@ The latest version (1.10) has the following features and fixes:<br>
      was incorrectly translated to the Haskell<br>
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>data A = A [B] (OneOf3 C (Maybe D) [E])</tt><br>     but the new (correct) translation is<br>
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>data A = A [B] (OneOf2 C (Maybe D,[E]))</tt><br></ul>
-
-<p>
-The previous version (1.09) had the following new features:<br>
-<ul>
-<li> <em>ghc-6.0</em> is supported.
-<li> <em>hmake</em> is no longer required to build HaXml, provided you 
-     have <em>ghc --make</em>.
-<li> A new combinator <tt>path</tt> has been added to
-     Text.XML.HaXml.Combinators, allowing queries to be expressed in the
-     style of XPath.
-<li> Some of the signatures in Text.XML.HaXml.Xml2Haskell have changed,
-     in particular, there are new functions <tt>readXml</tt> and
-     <tt>showXml</tt> that convert to/from Strings, <tt>hGetXml</tt> and
-     <tt>hPutXml</tt> that use file Handles, and the old functions that
-     use filenames are renamed to <tt>fReadXml</tt> and <tt>fWriteXml</tt>.
-<li> DtdToHaskell previously generated incorrect code for reading an XML
-     element given the following DTD fragment:
-     <pre>&lt;!ELEMENT foo (a,b)+ &gt;</pre>
-<li> The parser had a fault when reading conditional sections nested inside an
-     IGNORE section in a DTD.
-<li> In Text.XML.HaXml.Html.Generate, all functions now generate HTML tags
-     in lower-case rather than upper-case, to conform to the XHTML standard.
-<li> DtdToHaskell now accepts NOTATION types for attributes.  They are
-     treated just like enumeration types.
-<li> If you give an output filename as a command-line argument to DtdToHaskell,
-     it now uses the filename as the basis for the generated module name.
-<li> Fixed a configuration bug on the Cygwin platform with ghc-5.04.x.
-<li> <em>make install</em> now places the executables (DtdToHaskell, Xtract,
-     Validate, MkOneOf, Canonicalise) into the directory specified by
-     <tt>./configure --prefix=...</tt>
-</ul>
 
 <br>
 <a href="changelog.html">Complete Changelog</a><br>

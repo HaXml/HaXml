@@ -13,6 +13,19 @@
 </center>
 <hr>
 
+<h3>Changes for 1.11</h3>
+<p>
+<ul>
+<li> Fix a tiny but embarrassing bug in the previous fix for complex
+     DTDs being translated by DtdToHaskell.  It broke on a very simple
+     DTD like<br>
+     &nbsp;&nbsp;&nbsp;&nbsp;<tt>&lt;!ELEMENT A (B|C)&gt;</tt><br>
+     which became sequence<br>
+     &nbsp;&nbsp;&nbsp;&nbsp;<tt>data A = A B C</tt><br>
+     instead of choice
+     &nbsp;&nbsp;&nbsp;&nbsp;<tt>data A = AB B | AC C</tt><br>
+</ul>
+
 <h3>Changes for 1.10</h3>
 <p>
 <ul>
