@@ -10,12 +10,12 @@ import System
 import IO
 import List (nub,takeWhile,dropWhile)
 
-import Text.Xml.HaXml.Wrappers   (fix2Args)
-import Text.Xml.HaXml.Types      (DocTypeDecl(..))
-import Text.Xml.HaXml.Parse      (dtdParse)
-import Text.Xml.HaXml.DtdToHaskell.TypeDef  (TypeDef,ppTypeDef,mangle)
-import Text.Xml.HaXml.DtdToHaskell.Convert  (dtd2TypeDef)
-import Text.Xml.HaXml.DtdToHaskell.Instance (mkInstance)
+import Text.XML.HaXml.Wrappers   (fix2Args)
+import Text.XML.HaXml.Types      (DocTypeDecl(..))
+import Text.XML.HaXml.Parse      (dtdParse)
+import Text.XML.HaXml.DtdToHaskell.TypeDef  (TypeDef,ppTypeDef,mangle)
+import Text.XML.HaXml.DtdToHaskell.Convert  (dtd2TypeDef)
+import Text.XML.HaXml.DtdToHaskell.Instance (mkInstance)
 import Text.PrettyPrint.HughesPJ (render,vcat)
 
 main =
@@ -29,8 +29,8 @@ main =
       realname = if null name then mangle (trim inf) else mangle name
   in
   do hPutStrLn o ("module DTD_"++realname
-                  ++" where\n\nimport Text.Xml.HaXml.Xml2Haskell"
-                  ++" where\n\nimport Text.Xml.HaXml.OneOfN")
+                  ++" where\n\nimport Text.XML.HaXml.Xml2Haskell"
+                  ++"\nimport Text.XML.HaXml.OneOfN")
      hPutStrLn o "\n\n{-Type decls-}\n"
      (hPutStrLn o . render . vcat . map ppTypeDef) decls
      hPutStrLn o "\n\n{-Instance decls-}\n"

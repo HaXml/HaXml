@@ -7,13 +7,13 @@ import IO
 import Char         (toUpper)
 import List         (isSuffixOf)
 
-import Text.Xml.HaXml.Types
-import Text.Xml.HaXml.Parse         (xmlParse)
-import Text.Xml.HaXml.Html.Parse    (htmlParse)
-import Text.Xml.HaXml.Xtract.Parse  (parseXtract)
+import Text.XML.HaXml.Types
+import Text.XML.HaXml.Parse         (xmlParse)
+import Text.XML.HaXml.Html.Parse    (htmlParse)
+import Text.XML.HaXml.Xtract.Parse  (parseXtract)
 import Text.PrettyPrint.HughesPJ    (render, vcat)
-import Text.Xml.HaXml.Pretty        (content)
-import Text.Xml.HaXml.Html.Generate (htmlprint)
+import Text.XML.HaXml.Pretty        (content)
+import Text.XML.HaXml.Html.Generate (htmlprint)
 
 
 main =

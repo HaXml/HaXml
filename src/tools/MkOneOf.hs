@@ -7,13 +7,13 @@ main = do
     args <- getArgs
     case length args of
       1 -> do n <- saferead (head args)
-              putStrLn ("module Text.Xml.HaXml."++constructor 1 n++" where\n")
-              putStrLn ("import Text.Xml.HaXml.Xml2Haskell\n")
+              putStrLn ("module Text.XML.HaXml."++constructor 1 n++" where\n")
+              putStrLn ("import Text.XML.HaXml.Xml2Haskell\n")
               putStrLn (mkOneOf n)
       2 -> do n <- saferead (args!!0)
               m <- saferead (args!!1)
-              putStrLn ("module Text.Xml.HaXml.OneOfN where\n")
-              putStrLn ("import Text.Xml.HaXml.Xml2Haskell\n")
+              putStrLn ("module Text.XML.HaXml.OneOfN where\n")
+              putStrLn ("import Text.XML.HaXml.Xml2Haskell\n")
               mapM_ (putStrLn . mkOneOf) [n..m]
       _ -> error "Usage: MkOneOf n [m]"
 

@@ -4,10 +4,10 @@ import System (getArgs)
 import IO
 import List   (isSuffixOf)
 
-import Text.Xml.HaXml.Parse      (xmlParse)
-import Text.Xml.HaXml.Html.Parse (htmlParse)
-import Text.Xml.HaXml.Pretty     (document)
-import Text.Xml.HaXml.Wrappers   (fix2Args)
+import Text.XML.HaXml.Parse      (xmlParse)
+import Text.XML.HaXml.Html.Parse (htmlParse)
+import Text.XML.HaXml.Pretty     (document)
+import Text.XML.HaXml.Wrappers   (fix2Args)
 import Text.PrettyPrint.HughesPJ (render)
 
 -- This is just a trivial application that reads an XML or HTML document
