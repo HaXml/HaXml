@@ -32,7 +32,7 @@ import UnsafePerformIO
 import IOExts (unsafePerformIO)
 #endif
 
---- #define DEBUG
+--  #define DEBUG
 
 #if defined(DEBUG)
 #if defined(__GLASGOW_HASKELL__) || defined(__HUGS__)
@@ -48,6 +48,7 @@ trace _ x =  x
 -- | To parse a whole document, @xmlParse file content@ takes a filename
 --   (for error reports) and the string content of that file.
 xmlParse :: String -> String -> Document
+
 -- | To parse just a DTD, @dtdParse file content@ takes a filename
 --   (for error reports) and the string content of that file.  If no
 --   DTD was found, you get Nothing rather than an error.
@@ -175,7 +176,8 @@ justDTD =
   ( do (ExtSubset _ ds) <- trace ("Trying external subset\n") $
                            extsubset
        if null ds then mzero
-         else return (Just (DTD "" Nothing (concatMap extract ds))) ) +++
+         else return (Just (DTD "extsubset" Nothing (concatMap extract ds)))
+  ) +++
   ( do (Prolog _ dtd) <- prolog
        return dtd )
  where extract (ExtMarkupDecl m) = [m]
@@ -573,7 +575,7 @@ encodingdecl = do
 notationdecl :: Parser SymTabs Token NotationDecl
 notationdecl = do
     tok TokSpecialOpen
-    word "NOTATION"
+    tok (TokSpecial NOTATIONx)
     n <- name
     e <- either externalid publicid
     tok TokAnyClose `elserror` "expected > terminating NOTATION decl"
@@ -581,7 +583,7 @@ notationdecl = do
 
 publicid :: Parser SymTabs Token PublicID
 publicid = do
-    word "PUBLICID"
+    word "PUBLIC"
     p <- pubidliteral
     return (PUBLICID p)
 

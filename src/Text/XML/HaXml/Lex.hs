@@ -288,8 +288,8 @@ xmlSpecial w p s
     | "DOCTYPE"  `prefixes` s = emit (TokSpecial DOCTYPEx)  p: k 7
     | "ELEMENT"  `prefixes` s = emit (TokSpecial ELEMENTx)  p: k 7
     | "ATTLIST"  `prefixes` s = emit (TokSpecial ATTLISTx)  p: k 7
-    | "ENTITY"   `prefixes` s = emit (TokSpecial ENTITYx)   p:  k 6
-    | "NOTATION" `prefixes` s = emit (TokSpecial NOTATIONx) p:  k 6
+    | "ENTITY"   `prefixes` s = emit (TokSpecial ENTITYx)   p: k 6
+    | "NOTATION" `prefixes` s = emit (TokSpecial NOTATIONx) p: k 8
     | otherwise = lexerror
                     "expected DOCTYPE, ELEMENT, ENTITY, ATTLIST, or NOTATION" p
   where k n = skip n p s (blank xmlAny w)
