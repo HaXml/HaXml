@@ -134,7 +134,7 @@ instance Show TokenT where
 --trim, revtrim :: String -> String
 --trim    = f . f         where f = reverse . dropWhile isSpace
 --revtrim = f.reverse.f   where f = dropWhile isSpace
-revtrim = reverse . dropWhile (=='\n')
+--revtrim = reverse . dropWhile (=='\n')  -- most recently used defn.
 
 emit :: TokenT -> Posn -> Token
 emit tok p = forcep p `seq` (p,tok)
@@ -180,7 +180,7 @@ accumulateUntil (c:cs) tok acc pos  p  [] k =
     lexerror ("unexpected EOF while looking for "++c:cs++" after "++show pos) p
 accumulateUntil (c:cs) tok acc pos  p (s:ss) k
     | c==s && cs `prefixes` ss  = emit (TokFreeText (reverse acc)) pos:
-                                  emit tok p: skip (length cs) p ss k
+                                  emit tok p: skip (length cs) (addcol 1 p) ss k
     | isSpace s  = accumulateUntil (c:cs) tok (s:acc) pos (white s p) ss k
     | otherwise  = accumulateUntil (c:cs) tok (s:acc) pos (addcol 1 p) ss k
 
@@ -260,10 +260,12 @@ xmlAny w p ('%':ss) = emit TokPercent p:  blank xmlAny w (addcol 1 p) ss
 xmlAny w p (';':ss) = emit TokSemi p:     blank xmlAny w (addcol 1 p) ss
 xmlAny w p (',':ss) = emit TokComma p:    blank xmlAny w (addcol 1 p) ss
 xmlAny w p ('#':ss) = emit TokHash p:     blank xmlAny w (addcol 1 p) ss
-xmlAny w p ('"':ss) = emit TokQuote p:    accumulateUntil "\"" TokQuote "" p
-                                                     (addcol 1 p) ss (xmlAny w)
-xmlAny w p ('\'':ss) = emit TokQuote p:   accumulateUntil "'" TokQuote "" p
-                                                     (addcol 1 p) ss (xmlAny w)
+xmlAny w p ('"':ss) = emit TokQuote p:    accumulateUntil "\"" TokQuote "" p1
+                                                          p1 ss (xmlAny w)
+                                             where p1 = addcol 1 p
+xmlAny w p ('\'':ss) = emit TokQuote p:   accumulateUntil "'" TokQuote "" p1
+                                                          p1 ss (xmlAny w)
+                                             where p1 = addcol 1 p
 xmlAny w p s
     | isSpace (head s)     = blank xmlAny w p s
     | isAlphaNum (head s)  = xmlName p s (blank xmlAny w)
@@ -311,7 +313,7 @@ xmlContent acc w pos p [] = if all isSpace acc then []
                             else lexerror "unexpected EOF between tags" p
 xmlContent acc w pos p (s:ss)
     | elem s "<&"    = if all isSpace acc then xmlAny w p (s:ss)
-                       else emit (TokFreeText (revtrim acc)) pos: xmlAny w p (s:ss)
+                       else emit (TokFreeText (reverse acc)) pos: xmlAny w p (s:ss)
     | isSpace s      = xmlContent (s:acc) w pos (white s p) ss
     | otherwise      = xmlContent (s:acc) w pos (addcol 1 p) ss
 
