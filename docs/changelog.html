@@ -12,12 +12,21 @@
 </center>
 <hr>
 
-<h3>Changes for next version</h3>
+<h3>Changes for 1.08</h3>
 <p>
 <ul>
-<li> The function Text.Xml.HaXml.Html.Generate.htmlprint had a little
+<li> A new and highly useful function, Text.XML.HaXml.Validate.partialValidate,
+     does validation except for checking whether the root element type matches
+     that of the DTD's root element.  This is just what you need in order to
+     validate any partial document or sub-document.
+<li> The function Text.XML.HaXml.Html.Generate.htmlprint had a little
      bug which caused it to loop infinitely if some text was longer
      than 60 characters without a space.
+<li> The Xtract parser and combinators are now included in the HaXml
+     library package, rather than existing solely for the Xtract
+     command-line tool.
+<li> Dependencies in ghc-5.04.x are fixed.  You can now build HaXml for a
+     specific compiler version, using <em>configure --buildwith=ghc-5.0x.x</em>.
 </ul>
 
 <h3>Changes for 1.07b</h3>
