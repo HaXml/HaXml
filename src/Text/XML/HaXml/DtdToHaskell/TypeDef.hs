@@ -1,6 +1,7 @@
--- | Defines an internal representation of Haskell data/newtype definitions
+-- | Defines an internal representation of Haskell data\/newtype definitions
 --   that correspond to the XML DTD types, and provides pretty-printers to
 --   convert these types into the 'Doc' type of "Text.PrettyPrint.HughesPJ".
+
 module Text.Xml.HaXml.DtdToHaskell.TypeDef
   ( -- * Internal representation of types
     TypeDef(..)
@@ -31,7 +32,7 @@ data Name = Name { xName :: String	-- ^ original XML name
           deriving Eq
 
 data TypeDef =
-      DataDef Bool Name AttrFields Constructors	-- ^ Bool for main/aux.
+      DataDef Bool Name AttrFields Constructors	-- ^ Bool for main\/aux.
     | EnumDef Name [Name]
     deriving Eq
 type Constructors = [(Name,[StructType])]

@@ -1,5 +1,5 @@
 -- | This module performs the translation of a parsed XML DTD into the
---   internal representation of corresponding Haskell data/newtypes.
+--   internal representation of corresponding Haskell data\/newtypes.
 
 module Text.Xml.HaXml.DtdToHaskell.Convert
   ( dtd2TypeDef
