@@ -23,6 +23,10 @@ local,global :: CFilter -> DFilter
 local  f = \xml sub-> f sub
 global f = \xml sub-> f xml
 
+-- | drop a double filter to an ordinary content filter
+dfilter :: DFilter -> CFilter
+dfilter f = \xml-> f xml xml
+
 -- | lift a CFilter combinator to a DFilter combinator
 oloco, oglobo :: (CFilter->CFilter) -> (DFilter->DFilter)
 oloco ff  = \df-> \xml sub-> (ff (df xml)) sub

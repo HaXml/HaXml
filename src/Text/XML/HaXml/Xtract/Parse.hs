@@ -5,13 +5,17 @@
 
 --   Because the original Xtract grammar was left-recursive, we have
 --   transformed it into a non-left-recursive form.
-module Text.XML.HaXml.Xtract.Parse (parseXtract) where
+module Text.XML.HaXml.Xtract.Parse (parseXtract,xtract) where
 
 import Text.ParserCombinators.HuttonMeijerWallace hiding (bracket,elserror)
 import Text.XML.HaXml.Xtract.Lex
 import Text.XML.HaXml.Xtract.Combinators
 import Text.XML.HaXml.Combinators
 import List(isPrefixOf)
+
+-- | To mix an Xtract query into an ordinary HaXml combinator expression.
+xtract :: String -> CFilter
+xtract query = dfilter (parseXtract query)
 
 -- | The cool thing is that the Xtract command parser directly builds
 --   a higher-order 'DFilter' (see "Text.Xml.HaXml.Xtract.Combinators")
