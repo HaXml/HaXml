@@ -159,7 +159,10 @@ htmlprint = Pretty.cat . map cprint . foldrefs
   fmt n s  = let (top,bot) = splitAt n s
                  (word,left) = keepUntil isSpace (reverse top)
              in if length top < n then [s]
-                else reverse left: fmt n (word++bot)
+                else if not (null left) then
+                     reverse left: fmt n (word++bot)
+                else let (big,rest) = keepUntil isSpace s
+                     in reverse big: fmt n rest
 
   deSpace []     = []
   deSpace (c:cs) | c=='\n'   = deSpace (' ':cs)
