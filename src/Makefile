@@ -9,19 +9,26 @@ LIBSRCS = \
 	Text/Xml/HaXml/Xml2Haskell.hs Text/Xml/HaXml/Haskell2Xml.hs \
 	Text/Xml/HaXml/Html/Generate.hs Text/Xml/HaXml/Html/Parse.hs \
 	Text/Xml/HaXml/Html/Pretty.hs \
+	Text/ParserCombinators/HuttonMeijerWallace.hs \
+	Text/PrettyPrint/HughesPJ.hs
+
+LIBOBJS = $(patsubst %.hs, %.o, $(LIBSRCS))
+
+TOOLSRCS = \
 	Text/Xml/HaXml/Xtract/Combinators.hs \
 	Text/Xml/HaXml/Xtract/Lex.hs \
 	Text/Xml/HaXml/Xtract/Parse.hs \
 	Text/Xml/HaXml/DtdToHaskell/TypeDef.hs \
 	Text/Xml/HaXml/DtdToHaskell/Convert.hs \
 	Text/Xml/HaXml/DtdToHaskell/Instance.hs \
-	Text/ParserCombinators/HuttonMeijerWallace.hs \
-	Text/PrettyPrint/HughesPJ.hs
-
-TOOLSRCS = \
 	tools/DtdToHaskell.hs tools/Xtract.hs tools/Validate.hs \
  	tools/Canonicalise.hs tools/MkOneOf.hs
 
+TOOLSET = \
+	../../DtdToHaskell ../../Xtract ../../Validate \
+	../../Canonicalise ../../MkOneOf
+
+# The caller *must* set the HC variable.
 COMPILER = $(findstring ghc, $(HC))
 ifeq "$(COMPILER)" "ghc"
 COMPILE  = hmake -HC=$(HC) -I. -package lang -package data -package-name HaXml
@@ -31,35 +38,40 @@ ifeq "$(COMPILER)" "nhc98"
 COMPILE  = hmake -HC=$(HC) -I. -K4M +CTS -H8M -CTS
 endif
 
+.PHONY: all libs toolset
+
 all: libs toolset
-libs: HaXml Haskell2Xml Xml2Haskell
+libs: libHSHaXml.a
+toolset: $(TOOLSET)
+
+# update the sources if necessary
+$(LIBSRCS) $(TOOLSRCS) Makefile: %: ../../src/%
+	cp $< $@
+
+
+# packaged library
+libHSHaXml.a: $(LIBOBJS)
 	ar r libHSHaXml.a `find Text -name *.o -print`
 	tar cf interfaces.tar `find Text -name *.hi -print`
-toolset: ../../DtdToHaskell ../../Xtract ../../Validate ../../Canonicalise
 
 
 # library APIs
-
-HaXml: $(LIBSRCS)
-	$(COMPILE) Text/Xml/HaXml.hs
-Haskell2Xml: $(LIBSRCS)
-	$(COMPILE) Text/Xml/HaXml/Haskell2Xml.hs Text/Xml/HaXml/OneOfN.hs
-Xml2Haskell: $(LIBSRCS)
-	$(COMPILE) Text/Xml/HaXml/Xml2Haskell.hs
+$(LIBOBJS): $(LIBSRCS)
+	$(COMPILE) Text/Xml/HaXml.hs   Text/Xml/HaXml/Xml2Haskell.hs
+	$(COMPILE) Text/Xml/HaXml/Haskell2Xml.hs   Text/Xml/HaXml/OneOfN.hs
 
 
 # standalone tools
-
-../../DtdToHaskell: $(LIBSRCS) tools/DtdToHaskell.hs
+../../DtdToHaskell: $(LIBSRCS) $(TOOLSRCS)
 	$(COMPILE) tools/DtdToHaskell
 	mv tools/DtdToHaskell ../..
-../../Xtract: $(LIBSRCS) tools/Xtract.hs
+../../Xtract: $(LIBSRCS) $(TOOLSRCS)
 	$(COMPILE) tools/Xtract
 	mv tools/Xtract ../..
-../../Validate: $(LIBSRCS) tools/Validate.hs
+../../Validate: $(LIBSRCS) $(TOOLSRCS)
 	$(COMPILE) tools/Validate
 	mv tools/Validate ../..
-../../Canonicalise: $(LIBSRCS) tools/Canonicalise.hs
+../../Canonicalise: $(LIBSRCS) $(TOOLSRCS)
 	$(COMPILE) tools/Canonicalise
 	mv tools/Canonicalise ../..
 ../../MkOneOf: tools/MkOneOf.hs
