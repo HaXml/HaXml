@@ -342,13 +342,13 @@ choice :: Parser SymTabs Token [CP]
 choice = do
     bracket (tok TokBraOpen)
             (peRef cp `sepby1` (tok TokPipe))
-            (tok TokBraClose)
+            (blank (tok TokBraClose))
 
 sequence :: Parser SymTabs Token [CP]
 sequence = do
     bracket (tok TokBraOpen)
             (peRef cp `sepby1` (tok TokComma))
-            (tok TokBraClose)
+            (blank (tok TokBraClose))
 
 cp :: Parser SymTabs Token CP
 cp =
@@ -378,11 +378,10 @@ mixed = do
   where
     cont = ( do cs <- many (peRef (do tok TokPipe
                                       peRef name))
-                tok TokBraClose
-                tok TokStar
+                blank (tok TokBraClose >> tok TokStar)
                 return (PCDATAplus cs)) +++
-           ( tok TokBraClose >> tok TokStar >> return PCDATA) +++
-           ( tok TokBraClose >> return PCDATA)
+           ( blank (tok TokBraClose >> tok TokStar) >> return PCDATA) +++
+           ( blank (tok TokBraClose) >> return PCDATA)
 
 attlistdecl :: Parser SymTabs Token AttListDecl
 attlistdecl = do
