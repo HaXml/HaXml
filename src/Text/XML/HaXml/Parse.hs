@@ -26,11 +26,12 @@ import Text.ParserCombinators.HuttonMeijerWallace
 import Monad hiding (sequence)
 
 
-#if ( defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ > 502 ) || \
-    ( defined(__NHC__) && __NHC__ > 114 )
+#if defined(__GLASGOW_HASKELL__) && ( __GLASGOW_HASKELL__ > 502 )
 import System.IO.Unsafe (unsafePerformIO)
 #elif defined(__GLASGOW_HASKELL__) || defined(__HUGS__)
 import IOExts (unsafePerformIO)
+#elif defined(__NHC__) && ( __NHC__ > 114 )
+import System.IO.Unsafe (unsafePerformIO)
 #elif defined(__NHC__)
 import IOExtras (unsafePerformIO)
 #elif defined(__HBC__)
