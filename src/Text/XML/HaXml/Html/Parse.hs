@@ -12,6 +12,7 @@ module Text.XML.HaXml.Html.Parse
   ) where
 
 import Prelude hiding (either,maybe,sequence)
+import qualified Prelude (either)
 import Maybe hiding (maybe)
 import Char (toLower, isSpace, isDigit, isHexDigit)
 import Numeric (readDec,readHex)
@@ -44,12 +45,13 @@ debug s = return ()
 --   contents of the file.  The result is the generic representation of
 --   an XML document.
 htmlParse :: String -> String -> Document
-htmlParse name = simplify . sanitycheck . papply document () . xmlLex name
+htmlParse name = simplify . sanitycheck . Prelude.either error id
+                 . papply' document () . xmlLex name
 
-sanitycheck :: Show p => [(a,s,[(p,t)])] -> a
+sanitycheck :: Show p => [(a,s,[Either String (p,t)])] -> a
 sanitycheck [] = error "***Error at line 0: document not HTML?"
 sanitycheck ((x,_,[]):_) = x
-sanitycheck ((x,_,s@((n,_):_)):xs) =
+sanitycheck ((x,_,s@(Right (n,_):_)):xs) =
   error ("***Error at "++show n++": data beyond end of parsed document")
 
 
@@ -128,43 +130,47 @@ thd3 (_,_,a) = a
 
 ---- Auxiliary Parsing Functions ----
 
-name :: Parser () Token Name
+type HParser a = Parser () (Posn,TokenT) String a
+
+name :: HParser Name
 name = do {(p,TokName s) <- item; return s}
 
-string, freetext :: Parser () Token String
+string, freetext :: HParser String
 string   = do {(p,TokName s) <- item; return s}
 freetext = do {(p,TokFreeText s) <- item; return s}
 
-maybe :: Parser () Token a -> Parser () Token (Maybe a)
+maybe :: HParser a -> HParser (Maybe a)
 maybe p =
     ( p >>= return . Just) +++
     ( return Nothing)
 
-either :: Parser () Token a -> Parser () Token b -> Parser () Token (Either a b)
+either :: HParser a -> HParser b -> HParser (Either a b)
 either p q =
     ( p >>= return . Left) +++
     ( q >>= return . Right)
 
-word :: String -> Parser () Token ()
+word :: String -> HParser ()
 word s = P (\st inp-> case inp of {
-                       ((p,TokName n):ts) -> if s==n then Right [((),st,ts)]
-                                             else Right [];
-                       ((p,TokFreeText n):ts) -> if s==n then Right [((),st,ts)]
-                                                 else Right [];
-                       ts -> Right [] } )
+               (Left err: _) -> Left err;
+               (Right (p,TokName n):ts) -> if s==n then Right [((),st,ts)]
+                                           else Right [];
+               (Right (p,TokFreeText n):ts) -> if s==n then Right [((),st,ts)]
+                                               else Right [];
+               ts -> Right [] } )
 
-posn :: Parser () Token Posn
+posn :: HParser Posn
 posn = P (\st inp-> case inp of {
-                     ((p,_):_) -> Right [(p,st,inp)];
+                     (Left err: _)   -> Left err;
+                     (Right (p,_):_) -> Right [(p,st,inp)];
                      [] -> Right [(Pn "unknown" 0 0 Nothing,st,inp)]; } )
 
-nmtoken :: Parser () Token NmToken
+nmtoken :: HParser NmToken
 nmtoken = (string +++ freetext)
 
 
 ---- XML Parsing Functions ----
 
-document :: Parser () Token Document
+document :: HParser Document
 document = do
     p     <- prolog `elserror` "unrecognisable XML prolog"
     es    <- many1 (element "HTML document")
@@ -173,11 +179,11 @@ document = do
                                   [e] -> e
                                   es  -> Elem "HTML" [] (map CElem es)))
 
-comment :: Parser () Token Comment
+comment :: HParser Comment
 comment = do
     bracket (tok TokCommentOpen) freetext (tok TokCommentClose)
 
-processinginstruction :: Parser () Token ProcessingInstruction
+processinginstruction :: HParser ProcessingInstruction
 processinginstruction = do
     tok TokPIOpen
     n <- string  `elserror` "processing instruction has no target"
@@ -185,12 +191,12 @@ processinginstruction = do
     (tok TokPIClose +++ tok TokAnyClose) `elserror` "missing ?> or >"
     return (n, f)
 
-cdsect :: Parser () Token CDSect
+cdsect :: HParser CDSect
 cdsect = do
     tok TokSectionOpen
     bracket (tok (TokSection CDATAx)) chardata (tok TokSectionClose)
 
-prolog :: Parser () Token Prolog
+prolog :: HParser Prolog
 prolog = do
     x <- maybe xmldecl
     many misc
@@ -198,28 +204,30 @@ prolog = do
     many misc
     return (Prolog x dtd)
 
-xmldecl :: Parser () Token XMLDecl
+xmldecl :: HParser XMLDecl
 xmldecl = do
     tok TokPIOpen
     (word "xml" +++ word "XML")
     p <- posn
     s <- freetext
     tok TokPIClose `elserror` "missing ?> in <?xml ...?>"
-    return ((fst3. head . papply aux () . xmlReLex p) s)
+    (raise . papply' aux () . xmlReLex p) s
   where
     aux = do
       v <- versioninfo  `elserror` "missing XML version info"
       e <- maybe encodingdecl
       s <- maybe sddecl
       return (XMLDecl v e s)
+    raise (Left err) = mzero `elserror` err
+    raise (Right ok) = (return . fst3 . head) ok
 
-versioninfo :: Parser () Token VersionInfo
+versioninfo :: HParser VersionInfo
 versioninfo = do
     (word "version" +++ word "VERSION")
     tok TokEqual
     bracket (tok TokQuote) freetext (tok TokQuote)
 
-misc :: Parser () Token Misc
+misc :: HParser Misc
 misc = 
     ( comment >>= return . Comment) +++
     ( processinginstruction >>= return . PI)
@@ -228,7 +236,7 @@ misc =
 -- Question: for HTML, should we disallow in-line DTDs, allowing only externals?
 -- Answer: I think so.
 
-doctypedecl :: Parser () Token DocTypeDecl
+doctypedecl :: HParser DocTypeDecl
 doctypedecl = do
     tok TokSpecialOpen
     tok (TokSpecial DOCTYPEx)
@@ -241,7 +249,7 @@ doctypedecl = do
 --  return (DTD n eid (case es of { Nothing -> []; Just e -> e }))
     return (DTD n eid [])
 
---markupdecl :: Parser () Token MarkupDecl
+--markupdecl :: HParser MarkupDecl
 --markupdecl =
 --    ( elementdecl >>= return . Element) +++
 --    ( attlistdecl >>= return . AttList) +++
@@ -250,19 +258,19 @@ doctypedecl = do
 --    ( misc >>= return . MarkupMisc) +++
 --    PEREF(MarkupPE,markupdecl)
 --
---extsubset :: Parser () Token ExtSubset
+--extsubset :: HParser ExtSubset
 --extsubset = do
 --    td <- maybe textdecl
 --    ds <- many extsubsetdecl
 --    return (ExtSubset td ds)
 --
---extsubsetdecl :: Parser () Token ExtSubsetDecl
+--extsubsetdecl :: HParser ExtSubsetDecl
 --extsubsetdecl =
 --    ( markupdecl >>= return . ExtMarkupDecl) +++
 --    ( conditionalsect >>= return . ExtConditionalSect) +++
 --    PEREF(ExtPEReference,extsubsetdecl)
 
-sddecl :: Parser () Token SDDecl
+sddecl :: HParser SDDecl
 sddecl = do
     (word "standalone" +++ word "STANDALONE")
     tok TokEqual `elserror` "missing = in 'standalone' decl"
@@ -281,7 +289,7 @@ sddecl = do
 -- earliest opportunity.
 type Stack = [(Name,[Attribute])]
 
-element :: Name -> Parser () Token (Stack,Element)
+element :: Name -> HParser (Stack,Element)
 element ctx =
   do
     tok TokAnyOpen
@@ -336,7 +344,7 @@ closeInner c ts =
       Nothing      -> ts
 
 unparse ts = do p <- posn
-                reparse (zip (repeat p) ts)
+                reparse (map Right (zip (repeat p) ts))
 
 reformatAttrs avs = concatMap f0 avs
     where f0 (a, AttValue [Left s]) = [TokName a, TokEqual, TokQuote,
@@ -344,7 +352,7 @@ reformatAttrs avs = concatMap f0 avs
 reformatTags ts = concatMap f0 ts
     where f0 (t,avs) = [TokAnyOpen, TokName t]++reformatAttrs avs++[TokAnyClose]
 
-content :: Name -> Parser () Token (Stack,Content)
+content :: Name -> HParser (Stack,Content)
 content ctx =
     ( element ctx >>= \(s,e)-> return (s, CElem e)) +++
     ( chardata >>= \s-> return ([], CString False s)) +++
@@ -353,13 +361,13 @@ content ctx =
     ( misc >>= \m->  return ([], CMisc m))
 
 ----
-elemtag :: Parser () Token ElemTag
+elemtag :: HParser ElemTag
 elemtag = do
     n <- name `elserror` "malformed element tag"
     as <- many attribute
     return (ElemTag (map toLower n) as)
 
-attribute :: Parser () Token Attribute
+attribute :: HParser Attribute
 attribute = do
     n <- name
     v <- (do tok TokEqual
@@ -367,7 +375,7 @@ attribute = do
          (return (AttValue [Left "TRUE"]))
     return (map toLower n,v)
 
---elementdecl :: Parser () Token ElementDecl
+--elementdecl :: HParser ElementDecl
 --elementdecl = do
 --    tok TokSpecialOpen
 --    tok (TokSpecial ELEMENTx)
@@ -376,7 +384,7 @@ attribute = do
 --    tok TokAnyClose `elserror` "expected > terminating ELEMENT decl"
 --    return (ElementDecl n c)
 --
---contentspec :: Parser () Token ContentSpec
+--contentspec :: HParser ContentSpec
 --contentspec =
 --    ( word "EMPTY" >> return EMPTY) +++
 --    ( word "ANY" >> return ANY) +++
@@ -384,19 +392,19 @@ attribute = do
 --    ( cp >>= return . ContentSpec) +++
 --    PEREF(ContentPE,contentspec)
 --
---choice :: Parser () Token [CP]
+--choice :: HParser [CP]
 --choice = do
 --    bracket (tok TokBraOpen)
 --            (cp `sepby1` (tok TokPipe))
 --            (tok TokBraClose)
 --
---sequence :: Parser () Token [CP]
+--sequence :: HParser [CP]
 --sequence = do
 --    bracket (tok TokBraOpen)
 --            (cp `sepby1` (tok TokComma))
 --            (tok TokBraClose)
 --
---cp :: Parser () Token CP
+--cp :: HParser CP
 --cp =
 --    ( do n <- name
 --         m <- modifier
@@ -409,14 +417,14 @@ attribute = do
 --         return (Choice cs m)) +++
 --    PEREF(CPPE,cp)
 --
---modifier :: Parser () Token Modifier
+--modifier :: HParser Modifier
 --modifier =
 --    ( tok TokStar >> return Star) +++
 --    ( tok TokQuery >> return Query) +++
 --    ( tok TokPlus >> return Plus) +++
 --    ( return None)
 --
---mixed :: Parser () Token Mixed
+--mixed :: HParser Mixed
 --mixed = do
 --    tok TokBraOpen
 --    tok TokHash
@@ -431,7 +439,7 @@ attribute = do
 --                tok TokStar
 --                return (PCDATAplus cs))
 --
---attlistdecl :: Parser () Token AttListDecl
+--attlistdecl :: HParser AttListDecl
 --attlistdecl = do
 --    tok TokSpecialOpen
 --    tok (TokSpecial ATTLISTx)
@@ -440,20 +448,20 @@ attribute = do
 --    tok TokAnyClose `elserror` "missing > terminating ATTLIST"
 --    return (AttListDecl n ds)
 --
---attdef :: Parser () Token AttDef
+--attdef :: HParser AttDef
 --attdef = do
 --    n <- name
 --    t <- atttype `elserror` "missing attribute type in attlist defn"
 --    d <- defaultdecl
 --    return (AttDef n t d)
 --
---atttype :: Parser () Token AttType
+--atttype :: HParser AttType
 --atttype =
 --    ( word "CDATA" >> return StringType) +++
 --    ( tokenizedtype >>= return . TokenizedType) +++
 --    ( enumeratedtype >>= return . EnumeratedType)
 --
---tokenizedtype :: Parser () Token TokenizedType
+--tokenizedtype :: HParser TokenizedType
 --tokenizedtype =
 --    ( word "ID" >> return ID) +++
 --    ( word "IDREF" >> return IDREF) +++
@@ -463,25 +471,25 @@ attribute = do
 --    ( word "NMTOKEN" >> return NMTOKEN) +++
 --    ( word "NMTOKENS" >> return NMTOKENS)
 --
---enumeratedtype :: Parser () Token EnumeratedType
+--enumeratedtype :: HParser EnumeratedType
 --enumeratedtype =
 --    ( notationtype >>= return . NotationType) +++
 --    ( enumeration >>= return . Enumeration)
 --
---notationtype :: Parser () Token NotationType
+--notationtype :: HParser NotationType
 --notationtype = do
 --    word "NOTATION"
 --    bracket (tok TokBraOpen)
 --            (name `sepby1` (tok TokPipe))
 --            (tok TokBraClose)
 --
---enumeration :: Parser () Token Enumeration
+--enumeration :: HParser Enumeration
 --enumeration =
 --    bracket (tok TokBraOpen)
 --            (nmtoken `sepby1` (tok TokPipe))
 --            (tok TokBraClose)
 --
---defaultdecl :: Parser () Token DefaultDecl
+--defaultdecl :: HParser DefaultDecl
 --defaultdecl =
 --    ( tok TokHash >> word "REQUIRED" >> return REQUIRED) +++
 --    ( tok TokHash >> word "IMPLIED" >> return IMPLIED) +++
@@ -489,7 +497,7 @@ attribute = do
 --         a <- attvalue
 --         return (DefaultTo a f))
 --
---conditionalsect :: Parser () Token ConditionalSect
+--conditionalsect :: HParser ConditionalSect
 --conditionalsect =
 --    ( do tok TokSectionOpen
 --         tok (TokSection INCLUDEx)
@@ -504,7 +512,7 @@ attribute = do
 --         tok TokSectionClose `elserror` "missing ] after IGNORE"
 --         return (IgnoreSect i))
 --
---ignoresectcontents :: Parser () Token IgnoreSectContents
+--ignoresectcontents :: HParser IgnoreSectContents
 --ignoresectcontents = do
 --    i <- ignore
 --    is <- many (do tok TokSectionOpen
@@ -514,10 +522,10 @@ attribute = do
 --                   return (ic,ig))
 --    return (IgnoreSectContents i is)
 --
---ignore :: Parser () Token Ignore
+--ignore :: HParser Ignore
 --ignore = freetext >>= return . Ignore
 
-reference :: Parser () Token Reference
+reference :: HParser Reference
 reference = do
     bracket (tok TokAmp) (freetext >>= val) (tok TokSemi)
   where
@@ -528,17 +536,17 @@ reference = do
     val name        = return . RefEntity $ name
 
 {-
-reference :: Parser () Token Reference
+reference :: HParser Reference
 reference =
     ( charref >>= return . RefChar) +++
     ( entityref >>= return . RefEntity)
 
-entityref :: Parser () Token EntityRef
+entityref :: HParser EntityRef
 entityref = do
     n <- bracket (tok TokAmp) name (tok TokSemi)
     return n
 
-charref :: Parser () Token CharRef
+charref :: HParser CharRef
 charref = do
     bracket (tok TokAmp) (freetext >>= readCharVal) (tok TokSemi)
   where
@@ -547,16 +555,16 @@ charref = do
     readCharVal _           = mzero
 -}
 
---pereference :: Parser () Token PEReference
+--pereference :: HParser PEReference
 --pereference = do
 --    bracket (tok TokPercent) nmtoken (tok TokSemi)
 --
---entitydecl :: Parser () Token EntityDecl
+--entitydecl :: HParser EntityDecl
 --entitydecl =
 --    ( gedecl >>= return . EntityGEDecl) +++
 --    ( pedecl >>= return . EntityPEDecl)
 --
---gedecl :: Parser () Token GEDecl
+--gedecl :: HParser GEDecl
 --gedecl = do
 --    tok TokSpecialOpen
 --    tok (TokSpecial ENTITYx)
@@ -565,7 +573,7 @@ charref = do
 --    tok TokAnyClose `elserror` "expected > terminating G ENTITY decl"
 --    return (GEDecl n e)
 --
---pedecl :: Parser () Token PEDecl
+--pedecl :: HParser PEDecl
 --pedecl = do
 --    tok TokSpecialOpen
 --    tok (TokSpecial ENTITYx)
@@ -575,19 +583,19 @@ charref = do
 --    tok TokAnyClose `elserror` "expected > terminating P ENTITY decl"
 --    return (PEDecl n e)
 --
---entitydef :: Parser () Token EntityDef
+--entitydef :: HParser EntityDef
 --entitydef =
 --    ( entityvalue >>= return . DefEntityValue) +++
 --    ( do eid <- externalid
 --         ndd <- maybe ndatadecl
 --         return (DefExternalID eid ndd))
 --
---pedef :: Parser () Token PEDef
+--pedef :: HParser PEDef
 --pedef =
 --    ( entityvalue >>= return . PEDefEntityValue) +++
 --    ( externalid >>= return . PEDefExternalID)
 
-externalid :: Parser () Token ExternalID
+externalid :: HParser ExternalID
 externalid =
     ( do word "SYSTEM"
          s <- systemliteral
@@ -597,13 +605,13 @@ externalid =
          s <- (systemliteral +++ return (SystemLiteral ""))
          return (PUBLIC p s))
 
---ndatadecl :: Parser () Token NDataDecl
+--ndatadecl :: HParser NDataDecl
 --ndatadecl = do
 --    word "NDATA"
 --    n <- name
 --    return (NDATA n)
 
-textdecl :: Parser () Token TextDecl
+textdecl :: HParser TextDecl
 textdecl = do
     tok TokPIOpen
     (word "xml" +++ word "XML")
@@ -612,26 +620,26 @@ textdecl = do
     tok TokPIClose `elserror` "expected ?> terminating text decl"
     return (TextDecl v e)
 
---extparsedent :: Parser () Token ExtParsedEnt
+--extparsedent :: HParser ExtParsedEnt
 --extparsedent = do
 --    t <- maybe textdecl
 --    (_,c) <- (content "")
 --    return (ExtParsedEnt t c)
 --
---extpe :: Parser () Token ExtPE
+--extpe :: HParser ExtPE
 --extpe = do
 --    t <- maybe textdecl
 --    e <- extsubsetdecl
 --    return (ExtPE t e)
 
-encodingdecl :: Parser () Token EncodingDecl
+encodingdecl :: HParser EncodingDecl
 encodingdecl = do
     (word "encoding" +++ word "ENCODING")
     tok TokEqual `elserror` "expected = in 'encoding' decl"
     f <- bracket (tok TokQuote) freetext (tok TokQuote)
     return (EncodingDecl f)
 
---notationdecl :: Parser () Token NotationDecl
+--notationdecl :: HParser NotationDecl
 --notationdecl = do
 --    tok TokSpecialOpen
 --    word "NOTATION"
@@ -640,24 +648,24 @@ encodingdecl = do
 --    tok TokAnyClose `elserror` "expected > terminating NOTATION decl"
 --    return (NOTATION n e)
 
-publicid :: Parser () Token PublicID
+publicid :: HParser PublicID
 publicid = do
     word "PUBLICID"
     p <- pubidliteral
     return (PUBLICID p)
 
-entityvalue :: Parser () Token EntityValue
+entityvalue :: HParser EntityValue
 entityvalue = do
     evs <- bracket (tok TokQuote) (many ev) (tok TokQuote)
     return (EntityValue evs)
 
-ev :: Parser () Token EV
+ev :: HParser EV
 ev =
     ( freetext >>= return . EVString) +++
 --  PEREF(EVPERef,ev) +++
     ( reference >>= return . EVRef)
 
-attvalue :: Parser () Token AttValue
+attvalue :: HParser AttValue
 attvalue =
   ( do avs <- bracket (tok TokQuote)
                       (many (either freetext reference))
@@ -666,16 +674,16 @@ attvalue =
   ( do v <- nmtoken
        return (AttValue [Left v]) )
 
-systemliteral :: Parser () Token SystemLiteral
+systemliteral :: HParser SystemLiteral
 systemliteral = do
     s <- bracket (tok TokQuote) freetext (tok TokQuote)
     return (SystemLiteral s)		-- note: need to fold &...; escapes
 
-pubidliteral :: Parser () Token PubidLiteral
+pubidliteral :: HParser PubidLiteral
 pubidliteral = do
     s <- bracket (tok TokQuote) freetext (tok TokQuote)
     return (PubidLiteral s)		-- note: need to fold &...; escapes
 
-chardata :: Parser () Token CharData
+chardata :: HParser CharData
 chardata = freetext -- >>= return . CharData
 

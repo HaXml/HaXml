@@ -29,11 +29,12 @@ module Text.XML.HaXml.Lex
 
 import Char
 
-data Where = InTag | NotInTag
+data Where = InTag String | NotInTag
     deriving (Eq)
 
 -- | All tokens are paired up with a source position.
-type Token = (Posn, TokenT)
+--   Lexical errors are passed back through the @Either@ type.
+type Token = Either String (Posn, TokenT)
 
 -- | Source positions contain a filename, line, column, and an
 --   inclusion point, which is itself another source position,
@@ -137,12 +138,12 @@ instance Show TokenT where
 --revtrim = reverse . dropWhile (=='\n')  -- most recently used defn.
 
 emit :: TokenT -> Posn -> Token
-emit tok p = forcep p `seq` (p,tok)
+emit tok p = forcep p `seq` Right (p,tok)
+
+lexerror :: String -> Posn -> [Token]
+lexerror s p = [Left ("Lexical error in  "++show p++":\n  "++s)]
 
 forcep (Pn f n m i) = m `seq` n
-
-lexerror :: String -> Posn -> a
-lexerror s p = error ("Lexical error in  "++show p++":\n  "++s)
 
 addcol :: Int -> Posn -> Posn
 addcol n (Pn f r c i) = Pn f r (c+n) i
@@ -162,7 +163,7 @@ skip :: Int -> Posn -> String -> (Posn->String->[Token]) -> [Token]
 skip n p s k = k (addcol n p) (drop n s)
 
 blank :: ([Where]->Posn->String->[Token]) -> [Where]-> Posn-> String-> [Token]
-blank k    (InTag:_) p [] = lexerror "unexpected EOF in tag" p
+blank k  (InTag t:_) p [] = lexerror ("unexpected EOF within "++t) p
 blank k          _   p [] = []
 blank k      w p (' ': s) = blank k w (addcol 1 p) s
 blank k      w p ('\t':s) = blank k w (tab p) s
@@ -178,7 +179,7 @@ prefixes :: String -> String -> Bool
 
 accumulateUntil (c:cs) tok acc pos  p  [] k =
     lexerror ("unexpected EOF while looking for closing token "++c:cs
-              ++"\n  to match the opening token at "++show pos) p
+              ++"\n  to match the opening token in "++show pos) p
 accumulateUntil (c:cs) tok acc pos  p (s:ss) k
     | c==s && cs `prefixes` ss  = emit (TokFreeText (reverse acc)) pos:
                                   emit tok p: skip (length cs) (addcol 1 p) ss k
@@ -212,13 +213,13 @@ xmlReLex p s
 --xmltop :: Posn -> String -> [Token]
 --xmltop p [] = []
 --xmltop p s
---    | "<?"   `prefixes` s  = emit TokPIOpen p:      next 2 (xmlPI [InTag])
---    | "<!--" `prefixes` s  = emit TokCommentOpen p: next 4 (xmlComment [])
---    | "<!"   `prefixes` s  = emit TokSpecialOpen p: next 2 (xmlSpecial [InTag])
---    | otherwise            = lexerror "expected <?xml?> or <!DOCTYPE>" p
+--    | "<?"   `prefixes` s = emit TokPIOpen p:      next 2 (xmlPI [InTag "<?...?>"])
+--    | "<!--" `prefixes` s = emit TokCommentOpen p: next 4 (xmlComment [])
+--    | "<!"   `prefixes` s = emit TokSpecialOpen p: next 2 (xmlSpecial [InTag "<!...>"])
+--    | otherwise           = lexerror "expected <?xml?> or <!DOCTYPE>" p
 --  where next n k = skip n p s k
 
-xmlPI      w p s = xmlName p s (blank xmlPIEnd w)
+xmlPI      w p s = xmlName p s "name of processor in <? ?>" (blank xmlPIEnd w)
 xmlPIEnd   w p s = accumulateUntil "?>"  TokPIClose "" p p s
                                                       (blank xmlAny (tail w))
 xmlComment w p s = accumulateUntil "-->" TokCommentClose "" p p s
@@ -227,30 +228,33 @@ xmlComment w p s = accumulateUntil "-->" TokCommentClose "" p p s
 -- Note: the order of the clauses in xmlAny is very important.
 -- Some matches must precede the NotInTag test, the rest must follow it.
 xmlAny :: [Where] -> Posn -> String -> [Token]
-xmlAny    (InTag:_)  p [] = lexerror "unexpected EOF inside tag" p
+xmlAny  (InTag t:_)  p [] = lexerror ("unexpected EOF within "++t) p
 xmlAny          _    p [] = []
 xmlAny w p s@('<':ss)
-    | "?"   `prefixes` ss = emit TokPIOpen p:      skip 2 p s (xmlPI (InTag:w))
+    | "?"   `prefixes` ss = emit TokPIOpen p:
+                                         skip 2 p s (xmlPI (InTag "<?...?>":w))
     | "!--" `prefixes` ss = emit TokCommentOpen p: skip 4 p s (xmlComment w)
     | "!["  `prefixes` ss = emit TokSectionOpen p: skip 3 p s (xmlSection w)
     | "!"   `prefixes` ss = emit TokSpecialOpen p:
-                                              skip 2 p s (xmlSpecial (InTag:w))
+                                     skip 2 p s (xmlSpecial (InTag "<!...>":w))
     | "/"   `prefixes` ss = emit TokEndOpen p: 
-                                             skip 2 p s (xmlTag (InTag:tail w))
+                                    skip 2 p s (xmlTag (InTag "</...>":tail w))
     | otherwise           = emit TokAnyOpen p:
-                                         skip 1 p s (xmlTag (InTag:NotInTag:w))
+                                 skip 1 p s (xmlTag (InTag "<...>":NotInTag:w))
 xmlAny (_:_:w) p s@('/':ss)
     | ">"   `prefixes` ss = emit TokEndClose p: skip 2 p s (xmlAny w)
 xmlAny w p ('&':ss) = emit TokAmp p:      accumulateUntil ";" TokSemi "" p
                                                      (addcol 1 p) ss (xmlAny w)
 xmlAny w@(NotInTag:_) p s = xmlContent "" w p p s
 xmlAny w p ('>':ss) = emit TokAnyClose p:       xmlAny (tail w) (addcol 1 p) ss
-xmlAny w p ('[':ss) = emit TokSqOpen p:   blank xmlAny (InTag:w) (addcol 1 p) ss
+xmlAny w p ('[':ss) = emit TokSqOpen p:
+                                 blank xmlAny (InTag "[...]":w) (addcol 1 p) ss
 xmlAny w p (']':ss)
     | "]>" `prefixes` ss  =
                  emit TokSectionClose p:  skip 3 p (']':ss) (xmlAny (tail w))
     | otherwise  =    emit TokSqClose p:  blank xmlAny (tail w) (addcol 1 p) ss
-xmlAny w p ('(':ss) = emit TokBraOpen p:  blank xmlAny (InTag:w) (addcol 1 p) ss
+xmlAny w p ('(':ss) = emit TokBraOpen p:
+                                 blank xmlAny (InTag "(...)":w) (addcol 1 p) ss
 xmlAny w p (')':ss) = emit TokBraClose p: blank xmlAny (tail w) (addcol 1 p) ss
 xmlAny w p ('=':ss) = emit TokEqual p:    blank xmlAny w (addcol 1 p) ss
 xmlAny w p ('*':ss) = emit TokStar p:     blank xmlAny w (addcol 1 p) ss
@@ -269,10 +273,10 @@ xmlAny w p ('\'':ss) = emit TokQuote p:   accumulateUntil "'" TokQuote "" p1
                                              where p1 = addcol 1 p
 xmlAny w p s
     | isSpace (head s)     = blank xmlAny w p s
-    | isAlphaNum (head s)  = xmlName p s (blank xmlAny w)
-    | otherwise            = lexerror "unrecognised token" p
+    | isAlphaNum (head s)  = xmlName p s "some kind of name" (blank xmlAny w)
+    | otherwise            = lexerror ("unrecognised token: "++take 4 s) p
 
-xmlTag w p s = xmlName p s (blank xmlAny w)
+xmlTag w p s = xmlName p s "tagname for element in < >" (blank xmlAny w)
 
 xmlSection = blank xmlSection0
   where
@@ -298,9 +302,9 @@ xmlSpecial w p s
                     "expected DOCTYPE, ELEMENT, ENTITY, ATTLIST, or NOTATION" p
   where k n = skip n p s (blank xmlAny w)
 
-xmlName p (s:ss) k
+xmlName p (s:ss) cxt k
     | isAlphaNum s || s==':' || s=='_'  = gatherName (s:[]) p (addcol 1 p) ss k
-    | otherwise                         = lexerror "expected name" p
+    | otherwise   = lexerror ("expected a "++cxt++", but got char "++show s) p
   where
     gatherName acc pos p [] k =
         emit (TokName (reverse acc)) pos: k p []

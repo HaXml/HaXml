@@ -17,7 +17,7 @@ import Char
 import List(isPrefixOf)
 
 
-type Token = (Posn, TokenT)
+type Token = Either String (Posn, TokenT)
 
 data Posn = Pn Int		-- char index only
         deriving Eq
@@ -37,12 +37,12 @@ instance Show TokenT where
     showsPrec p (TokNum n) = shows n
 
 emit :: TokenT -> Posn -> Token
-emit tok p = forcep p `seq` (p,tok)
+emit tok p = forcep p `seq` Right (p,tok)
   where forcep (Pn n) = n
 
-lexerror :: String -> Posn -> a
-lexerror s p = error ("Lexical error in selection pattern at "++show p++": "
-                       ++s++"\n")
+lexerror :: String -> Posn -> [Token]
+lexerror s p = [Left ("Lexical error in selection pattern at "++show p++": "
+                       ++s++"\n")]
 
 addcol :: Int -> Posn -> Posn
 addcol n (Pn c) = Pn (c+n)
@@ -115,7 +115,8 @@ gatherNum acc pos p ss k =
   emit (TokNum (read (reverse acc))) pos: k p ss
 
 accumulateUntil c tok acc pos  p  [] k =
-    lexerror ("end of pattern while looking for "++c:" after "++show pos) p
+    lexerror ("found end of pattern while looking for "++c
+              :" to match opening quote at "++show pos) p
 accumulateUntil c tok acc pos  p (s:ss) k
     | c==s       = emit (TokString (reverse acc)) pos:
                                   emit tok p: k (addcol 1 p) ss

@@ -96,9 +96,10 @@ sanitycheck ((x,_,s@((n,_):_)):xs) =
   x `debug` ("***Warning at "++show n++": data beyond end of parsed document")
 -}
 
-sanitycheck :: Show p => Either String [(a,s,[(p,t)])] -> Either String a
+sanitycheck :: Show p => Either String [(a,s,[Either String (p,t)])]
+                         -> Either String a
 sanitycheck (Left err)          = Left err
-sanitycheck (Right [])          = Left "***Error at line 0: document not XML?"
+sanitycheck (Right [])          = Left "***Error, no parse: document not XML?"
 sanitycheck (Right ((x,_,_):_)) = Right x
 
 
@@ -134,43 +135,45 @@ thd3 (_,_,a) = a
 
 
 ---- Auxiliary Parsing Functions ----
+type XParser a = Parser SymTabs (Posn,TokenT) String a
 
-name :: Parser SymTabs Token Name
+name :: XParser Name
 name = do {(p,TokName s) <- item; return s}
 
-string, freetext :: Parser SymTabs Token String
+string, freetext :: XParser String
 string   = do {(p,TokName s) <- item; return s}
 freetext = do {(p,TokFreeText s) <- item; return s}
 
-maybe :: Parser SymTabs Token a -> Parser SymTabs Token (Maybe a)
+maybe :: XParser a -> XParser (Maybe a)
 maybe p =
     ( p >>= return . Just) +++
     ( return Nothing)
 
-either :: Parser SymTabs Token a -> Parser SymTabs Token b
-          -> Parser SymTabs Token (Either a b)
+either :: XParser a -> XParser b -> XParser (Either a b)
 either p q =
     ( p >>= return . Left) +++
     ( q >>= return . Right)
 
-word :: String -> Parser SymTabs Token ()
+word :: String -> XParser ()
 word s = P (\st inp-> case inp of {
-               ((p,TokName n):ts) -> if s==n then Right [((),st,ts)]
-                                     else Right [];
-               ((p,TokFreeText n):ts) -> if s==n then Right [((),st,ts)]
-                                         else Right [];
+               (Left err: _) -> Left err;
+               (Right (p,TokName n):ts) -> if s==n then Right [((),st,ts)]
+                                                   else Right [];
+               (Right (p,TokFreeText n):ts) -> if s==n then Right [((),st,ts)]
+                                                       else Right [];
                ts -> Right [] } )
 
-posn :: Parser SymTabs Token Posn
+posn :: XParser Posn
 posn = P (\st inp-> case inp of {
-                     ((p,_):_) -> Right [(p,st,inp)];
-                     []        -> Right [] } )
+                     (Left err:_)    -> Left  err;
+                     (Right (p,_):_) -> Right [(p,st,inp)];
+                     []              -> Right [] } )
 
-nmtoken :: Parser SymTabs Token NmToken
+nmtoken :: XParser NmToken
 nmtoken = (string +++ freetext)
 
 
-peRef :: Parser SymTabs Token a -> Parser SymTabs Token a
+peRef :: XParser a -> XParser a
 peRef p =
     p +++
     ( do pn <- posn
@@ -197,7 +200,7 @@ peRef p =
                          peRef p
            Nothing -> mzero `elserror` "PEReference use before definition" )
 
-blank :: Parser SymTabs Token a -> Parser SymTabs Token a
+blank :: XParser a -> XParser a
 blank p =
     p +++
     ( do n <- pereference
@@ -213,7 +216,7 @@ blank p =
 
 ---- XML Parsing Functions ----
 
-justDTD :: Parser SymTabs Token (Maybe DocTypeDecl)
+justDTD :: XParser (Maybe DocTypeDecl)
 justDTD =
   ( do (ExtSubset _ ds) <- extsubset `debug` "Trying external subset"
        if null ds then mzero
@@ -225,7 +228,7 @@ justDTD =
        extract (ExtConditionalSect (IncludeSect i)) = concatMap extract i
        extract (ExtConditionalSect (IgnoreSect i)) = []
 
-document :: Parser SymTabs Token Document
+document :: XParser Document
 document = do
     p <- prolog `elserror` "unrecognisable XML prolog"
     e <- element `elserror` "no toplevel document element"
@@ -233,11 +236,11 @@ document = do
     (_,ge) <- stget
     return (Document p ge e)
 
-comment :: Parser SymTabs Token Comment
+comment :: XParser Comment
 comment = do
     bracket (tok TokCommentOpen) freetext (tok TokCommentClose)
 
-processinginstruction :: Parser SymTabs Token ProcessingInstruction
+processinginstruction :: XParser ProcessingInstruction
 processinginstruction = do
     tok TokPIOpen
     n <- string  `elserror` "processing instruction has no target"
@@ -245,12 +248,12 @@ processinginstruction = do
     tok TokPIClose `elserror` "missing ?>"
     return (n, f)
 
-cdsect :: Parser SymTabs Token CDSect
+cdsect :: XParser CDSect
 cdsect = do
     tok TokSectionOpen
     bracket (tok (TokSection CDATAx)) chardata (tok TokSectionClose)
 
-prolog :: Parser SymTabs Token Prolog
+prolog :: XParser Prolog
 prolog = do
     x <- maybe xmldecl
     many misc
@@ -258,7 +261,7 @@ prolog = do
     many misc
     return (Prolog x dtd)
 
-xmldecl :: Parser SymTabs Token XMLDecl
+xmldecl :: XParser XMLDecl
 xmldecl = do
     tok TokPIOpen
     (word "xml" +++ word "XML")
@@ -275,18 +278,18 @@ xmldecl = do
     raise (Left err) = mzero `elserror` err
     raise (Right ok) = (return . fst3 . head) ok
 
-versioninfo :: Parser SymTabs Token VersionInfo
+versioninfo :: XParser VersionInfo
 versioninfo = do
     (word "version" +++ word "VERSION")
     tok TokEqual
     bracket (tok TokQuote) freetext (tok TokQuote)
 
-misc :: Parser SymTabs Token Misc
+misc :: XParser Misc
 misc =
     ( comment >>= return . Comment) +++
     ( processinginstruction >>= return . PI)
 
-doctypedecl :: Parser SymTabs Token DocTypeDecl
+doctypedecl :: XParser DocTypeDecl
 doctypedecl = do
     tok TokSpecialOpen
     tok (TokSpecial DOCTYPEx)
@@ -298,7 +301,7 @@ doctypedecl = do
     blank (tok TokAnyClose)  `elserror` "missing > in DOCTYPE decl"
     return (DTD n eid (case es of { Nothing -> []; Just e -> e }))
 
-markupdecl :: Parser SymTabs Token MarkupDecl
+markupdecl :: XParser MarkupDecl
 markupdecl =
     ( elementdecl >>= return . Element) +++
     ( attlistdecl >>= return . AttList) +++
@@ -306,18 +309,18 @@ markupdecl =
     ( notationdecl >>= return . Notation) +++
     ( misc >>= return . MarkupMisc)
 
-extsubset :: Parser SymTabs Token ExtSubset
+extsubset :: XParser ExtSubset
 extsubset = do
     td <- maybe textdecl
     ds <- many (peRef extsubsetdecl)
     return (ExtSubset td ds)
 
-extsubsetdecl :: Parser SymTabs Token ExtSubsetDecl
+extsubsetdecl :: XParser ExtSubsetDecl
 extsubsetdecl =
     ( markupdecl >>= return . ExtMarkupDecl) +++
     ( conditionalsect >>= return . ExtConditionalSect)
 
-sddecl :: Parser SymTabs Token SDDecl
+sddecl :: XParser SDDecl
 sddecl = do
     (word "standalone" +++ word "STANDALONE")
     tok TokEqual `elserror` "missing = in 'standalone' decl"
@@ -327,7 +330,7 @@ sddecl = do
               "'standalone' decl requires 'yes' or 'no' value" )
             (tok TokQuote)
 
-element :: Parser SymTabs Token Element
+element :: XParser Element
 element = do
     tok TokAnyOpen
     (ElemTag n as) <- elemtag
@@ -341,25 +344,25 @@ element = do
           return (Elem n as cs))
      `elserror` "missing > or /> in element tag")
 
-checkmatch :: Posn -> Name -> Name -> Parser SymTabs Token ()
+checkmatch :: Posn -> Name -> Name -> XParser ()
 checkmatch p n m =
   if n == m then return ()
   else mzero `elserror` ("tag <"++n++"> terminated by </"++m++">")
 
-elemtag :: Parser SymTabs Token ElemTag
+elemtag :: XParser ElemTag
 elemtag = do
     n <- name `elserror` "malformed element tag"
     as <- many attribute
     return (ElemTag n as)
 
-attribute :: Parser SymTabs Token Attribute
+attribute :: XParser Attribute
 attribute = do
     n <- name
     tok TokEqual `elserror` "missing = in attribute"
     v <- attvalue `elserror` "missing attvalue"
     return (n,v)
 
-content :: Parser SymTabs Token Content
+content :: XParser Content
 content =
     ( element >>= return . CElem) +++
     ( chardata >>= return . CString False) +++
@@ -367,7 +370,7 @@ content =
     ( cdsect >>= return . CString True) +++
     ( misc >>= return . CMisc)
 
-elementdecl :: Parser SymTabs Token ElementDecl
+elementdecl :: XParser ElementDecl
 elementdecl = do
     tok TokSpecialOpen
     tok (TokSpecial ELEMENTx)
@@ -376,26 +379,26 @@ elementdecl = do
     blank (tok TokAnyClose) `elserror` "expected > terminating ELEMENT decl"
     return (ElementDecl n c)
 
-contentspec :: Parser SymTabs Token ContentSpec
+contentspec :: XParser ContentSpec
 contentspec =
     ( peRef (word "EMPTY") >> return EMPTY) +++
     ( peRef (word "ANY") >> return ANY) +++
     ( peRef mixed >>= return . Mixed) +++
     ( peRef cp >>= return . ContentSpec)
 
-choice :: Parser SymTabs Token [CP]
+choice :: XParser [CP]
 choice = do
     bracket (tok TokBraOpen `debug` "Trying choice")
             (peRef cp `sepby1` blank (tok TokPipe))
             (blank (tok TokBraClose `debug` "Succeeded with choice"))
 
-sequence :: Parser SymTabs Token [CP]
+sequence :: XParser [CP]
 sequence = do
     bracket (tok TokBraOpen `debug` "Trying sequence")
             (peRef cp `sepby1` blank (tok TokComma))
             (blank (tok TokBraClose `debug` "Succeeded with sequence"))
 
-cp :: Parser SymTabs Token CP
+cp :: XParser CP
 cp =
     ( do n <- name
          m <- modifier
@@ -410,7 +413,7 @@ cp =
          let c = Choice cs m
          return c `debug` ("ContentSpec: choice "++show c))
 
-modifier :: Parser SymTabs Token Modifier
+modifier :: XParser Modifier
 modifier =
     ( tok TokStar >> return Star) +++
     ( tok TokQuery >> return Query) +++
@@ -431,7 +434,7 @@ instance Show Modifier where
     show Plus = "+"
 ----
 
-mixed :: Parser SymTabs Token Mixed
+mixed :: XParser Mixed
 mixed = do
     tok TokBraOpen
     peRef (do tok TokHash
@@ -445,7 +448,7 @@ mixed = do
            ( blank (tok TokBraClose >> tok TokStar) >> return PCDATA) +++
            ( blank (tok TokBraClose) >> return PCDATA)
 
-attlistdecl :: Parser SymTabs Token AttListDecl
+attlistdecl :: XParser AttListDecl
 attlistdecl = do
     tok TokSpecialOpen
     tok (TokSpecial ATTLISTx)
@@ -454,20 +457,20 @@ attlistdecl = do
     blank (tok TokAnyClose) `elserror` "missing > terminating ATTLIST"
     return (AttListDecl n ds)
 
-attdef :: Parser SymTabs Token AttDef
+attdef :: XParser AttDef
 attdef =
   do n <- peRef name
      t <- peRef atttype `elserror` "missing attribute type in attlist defn"
      d <- peRef defaultdecl
      return (AttDef n t d)
 
-atttype :: Parser SymTabs Token AttType
+atttype :: XParser AttType
 atttype =
     ( word "CDATA" >> return StringType) +++
     ( tokenizedtype >>= return . TokenizedType) +++
     ( enumeratedtype >>= return . EnumeratedType)
 
-tokenizedtype :: Parser SymTabs Token TokenizedType
+tokenizedtype :: XParser TokenizedType
 tokenizedtype =
     ( word "ID" >> return ID) +++
     ( word "IDREF" >> return IDREF) +++
@@ -477,25 +480,25 @@ tokenizedtype =
     ( word "NMTOKEN" >> return NMTOKEN) +++
     ( word "NMTOKENS" >> return NMTOKENS)
 
-enumeratedtype :: Parser SymTabs Token EnumeratedType
+enumeratedtype :: XParser EnumeratedType
 enumeratedtype =
     ( notationtype >>= return . NotationType) +++
     ( enumeration >>= return . Enumeration)
 
-notationtype :: Parser SymTabs Token NotationType
+notationtype :: XParser NotationType
 notationtype = do
     word "NOTATION"
     bracket (tok TokBraOpen)
             (peRef name `sepby1` peRef (tok TokPipe))
             (blank (tok TokBraClose))
 
-enumeration :: Parser SymTabs Token Enumeration
+enumeration :: XParser Enumeration
 enumeration =
     bracket (tok TokBraOpen)
             (peRef nmtoken `sepby1` peRef ((tok TokPipe)))
             (blank (tok TokBraClose))
 
-defaultdecl :: Parser SymTabs Token DefaultDecl
+defaultdecl :: XParser DefaultDecl
 defaultdecl =
     ( tok TokHash >> word "REQUIRED" >> return REQUIRED) +++
     ( tok TokHash >> word "IMPLIED" >> return IMPLIED) +++
@@ -503,7 +506,7 @@ defaultdecl =
          a <- peRef attvalue
          return (DefaultTo a f))
 
-conditionalsect :: Parser SymTabs Token ConditionalSect
+conditionalsect :: XParser ConditionalSect
 conditionalsect =
     ( do tok TokSectionOpen
          peRef (tok (TokSection INCLUDEx))
@@ -518,7 +521,7 @@ conditionalsect =
          tok TokSectionClose `elserror` "missing ]]> for IGNORE section"
          return (IgnoreSect []))
 
-newIgnore :: Parser SymTabs Token Ignore
+newIgnore :: XParser Ignore
 newIgnore =
     ( do tok TokSectionOpen
          many newIgnore `debug` "IGNORING conditional section"
@@ -528,7 +531,7 @@ newIgnore =
          return Ignore  `debug` ("ignoring: "++show t))
 
 --- obsolete?
-ignoresectcontents :: Parser SymTabs Token IgnoreSectContents
+ignoresectcontents :: XParser IgnoreSectContents
 ignoresectcontents = do
     i <- ignore
     is <- many (do tok TokSectionOpen
@@ -538,13 +541,13 @@ ignoresectcontents = do
                    return (ic,ig))
     return (IgnoreSectContents i is)
 
-ignore :: Parser SymTabs Token Ignore
+ignore :: XParser Ignore
 ignore = do
   is <- many1 (nottok [TokSectionOpen,TokSectionClose])
   return Ignore  `debug` ("ignored all of: "++show is)
 ----
 
-reference :: Parser SymTabs Token Reference
+reference :: XParser Reference
 reference = do
     bracket (tok TokAmp) (freetext >>= val) (tok TokSemi)
   where
@@ -559,11 +562,11 @@ reference =
     ( charref >>= return . RefChar) +++
     ( entityref >>= return . RefEntity)
 
-entityref :: Parser SymTabs Token EntityRef
+entityref :: XParser EntityRef
 entityref = do
     bracket (tok TokAmp) name (tok TokSemi)
 
-charref :: Parser SymTabs Token CharRef
+charref :: XParser CharRef
 charref = do
     bracket (tok TokAmp) (freetext >>= readCharVal) (tok TokSemi)
   where
@@ -572,16 +575,16 @@ charref = do
     readCharVal _           = mzero
 -}
 
-pereference :: Parser SymTabs Token PEReference
+pereference :: XParser PEReference
 pereference = do
     bracket (tok TokPercent) nmtoken (tok TokSemi)
 
-entitydecl :: Parser SymTabs Token EntityDecl
+entitydecl :: XParser EntityDecl
 entitydecl =
     ( gedecl >>= return . EntityGEDecl) +++
     ( pedecl >>= return . EntityPEDecl)
 
-gedecl :: Parser SymTabs Token GEDecl
+gedecl :: XParser GEDecl
 gedecl = do
     tok TokSpecialOpen
     tok (TokSpecial ENTITYx)
@@ -591,7 +594,7 @@ gedecl = do
     stupd (addGE n e)
     return (GEDecl n e)
 
-pedecl :: Parser SymTabs Token PEDecl
+pedecl :: XParser PEDecl
 pedecl = do
     tok TokSpecialOpen
     tok (TokSpecial ENTITYx)
@@ -602,19 +605,19 @@ pedecl = do
     stupd (addPE n e)
     return (PEDecl n e)
 
-entitydef :: Parser SymTabs Token EntityDef
+entitydef :: XParser EntityDef
 entitydef =
     ( entityvalue >>= return . DefEntityValue) +++
     ( do eid <- externalid
          ndd <- maybe ndatadecl
          return (DefExternalID eid ndd))
 
-pedef :: Parser SymTabs Token PEDef
+pedef :: XParser PEDef
 pedef =
     ( entityvalue >>= return . PEDefEntityValue) +++
     ( externalid >>= return . PEDefExternalID)
 
-externalid :: Parser SymTabs Token ExternalID
+externalid :: XParser ExternalID
 externalid =
     ( do word "SYSTEM"
          s <- systemliteral
@@ -624,13 +627,13 @@ externalid =
          s <- systemliteral
          return (PUBLIC p s))
 
-ndatadecl :: Parser SymTabs Token NDataDecl
+ndatadecl :: XParser NDataDecl
 ndatadecl = do
     word "NDATA"
     n <- name
     return (NDATA n)
 
-textdecl :: Parser SymTabs Token TextDecl
+textdecl :: XParser TextDecl
 textdecl = do
     tok TokPIOpen
     (word "xml" +++ word "XML")
@@ -639,26 +642,26 @@ textdecl = do
     tok TokPIClose `elserror` "expected ?> terminating text decl"
     return (TextDecl v e)
 
-extparsedent :: Parser SymTabs Token ExtParsedEnt
+extparsedent :: XParser ExtParsedEnt
 extparsedent = do
     t <- maybe textdecl
     c <- content
     return (ExtParsedEnt t c)
 
-extpe :: Parser SymTabs Token ExtPE
+extpe :: XParser ExtPE
 extpe = do
     t <- maybe textdecl
     e <- many (peRef extsubsetdecl)
     return (ExtPE t e)
 
-encodingdecl :: Parser SymTabs Token EncodingDecl
+encodingdecl :: XParser EncodingDecl
 encodingdecl = do
     (word "encoding" +++ word "ENCODING")
     tok TokEqual `elserror` "expected = in 'encoding' decl"
     f <- bracket (tok TokQuote) freetext (tok TokQuote)
     return (EncodingDecl f)
 
-notationdecl :: Parser SymTabs Token NotationDecl
+notationdecl :: XParser NotationDecl
 notationdecl = do
     tok TokSpecialOpen
     tok (TokSpecial NOTATIONx)
@@ -667,39 +670,39 @@ notationdecl = do
     tok TokAnyClose `elserror` "expected > terminating NOTATION decl"
     return (NOTATION n e)
 
-publicid :: Parser SymTabs Token PublicID
+publicid :: XParser PublicID
 publicid = do
     word "PUBLIC"
     p <- pubidliteral
     return (PUBLICID p)
 
-entityvalue :: Parser SymTabs Token EntityValue
+entityvalue :: XParser EntityValue
 entityvalue = do
     evs <- bracket (tok TokQuote) (many (peRef ev)) (tok TokQuote)
     return (EntityValue evs)
 
-ev :: Parser SymTabs Token EV
+ev :: XParser EV
 ev =
     ( freetext >>= return . EVString) +++
     ( reference >>= return . EVRef)
 
-attvalue :: Parser SymTabs Token AttValue
+attvalue :: XParser AttValue
 attvalue = do
     avs <- bracket (tok TokQuote)
                    (many (either freetext reference))
                    (tok TokQuote)
     return (AttValue avs)
 
-systemliteral :: Parser SymTabs Token SystemLiteral
+systemliteral :: XParser SystemLiteral
 systemliteral = do
     s <- bracket (tok TokQuote) freetext (tok TokQuote)
     return (SystemLiteral s)            -- note: need to fold &...; escapes
 
-pubidliteral :: Parser SymTabs Token PubidLiteral
+pubidliteral :: XParser PubidLiteral
 pubidliteral = do
     s <- bracket (tok TokQuote) freetext (tok TokQuote)
     return (PubidLiteral s)             -- note: need to fold &...; escapes
 
-chardata :: Parser SymTabs Token CharData
+chardata :: XParser CharData
 chardata = freetext
 
