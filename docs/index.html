@@ -158,6 +158,12 @@ Various stand-alone tools are also built - DtdToHaskell, Xtract,
 Validate, MkOneOf - and copied to the final installation location
 specified by the <tt>--prefix=...</tt> option to <tt>configure</tt>.
 
+<p>
+To build/install on a Windows system without the Cygwin shell and
+utilities, you can avoid the configure/make steps by simply using the
+minimal <em>Build.bat</em> script.  Edit it first for the location
+of your compiler etc.
+
 <hr>
 <center><h3><a name="news">Recent news</a></h3></center>
 <p>
@@ -208,12 +214,17 @@ Development of these XML libraries was originally funded by Canon
 Research Europe Ltd..  Subsequent maintenance and development has
 been partially supported by the EPSRC, and the University of York.
 
-<p><b>License:</b> The library is Open Source, i.e., the bits we wrote
-are copyright to us, but freely licensed for your use, modification,
-and re-distribution, provided you don't restrict anyone else's use
-of it.  HaXml is distributed under the Artistic License - see file
-<a href="LICENSE">LICENSE</a> for more details.  (If you don't like the
-licensing conditions, please contact us to discuss your requirements.)
+<p><b>Licence:</b> The library is Free and Open Source Software,
+i.e., the bits we wrote are copyright to us, but freely licensed
+for your use, modification, and re-distribution, provided you don't
+restrict anyone else's use of it.  The HaXml library is distributed
+under the GNU Lesser General Public Licence (LGPL) - see file
+<a href="LICENCE-LGPL">LICENCE-LGPL</a> for more details.  We allow one
+special exception to the LGPL - see <a href="COPYRIGHT">COPYRIGHT</a>.
+The HaXml tools are distributed under the GNU General Public Licence
+(GPL) - see <a href="LICENCE-GPL">LICENCE-GPL</a>.  (If you don't
+like any of these licensing conditions, please contact us to discuss
+your requirements.)
 
 <hr>
 <p>
@@ -250,6 +261,12 @@ licensing conditions, please contact us to discuss your requirements.)
     than the untyped XSLT!
 <li>Ulf Wiger describes an Erlang toolkit for XML:
     <a href="http://www.erlang.se/euc/00/">XMerL</a>
+<li>The Java world has adopted the ideas from <em>DtdToHaskell</em> into
+    the Java Architecture for XML Binding
+    (<a href="http://java.sun.com/xml/jaxb/">JAXB</a>).  JAXB translates
+    an XML Schema Definition into a set of Java classes, and provides
+    the runtime machinery (like <em>Xml2Haskell</em>) for reading and
+    writing objects of those classes to/from XML files.
 <li>There is a comprehensive reading list for XML and web programming in
     functional languages <a href="http://readscheme.org/xml-web/">here</a>.
 </ul>
