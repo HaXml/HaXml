@@ -109,7 +109,7 @@ Some additional info about using the various facilities is here:
 <center><h3><a name="downloads">Downloads</a></h3></center>
 <p>
 <b>Current version:</b>
-HaXml-1.09, release date 2003.03.05<br>
+HaXml-1.09, release date 2003.05.30<br>
 By HTTP:
 <a href="http://www.haskell.org/HaXml/HaXml-1.09.tar.gz">.tar.gz</a>,
 <a href="http://www.haskell.org/HaXml/HaXml-1.09.zip">.zip</a>.
@@ -163,6 +163,7 @@ option to <tt>configure</tt>.
 <p>
 The latest version (1.09) has the following fixes:<br>
 <ul>
+<li> <em>ghc-6.0</em> is supported.
 <li> <em>hmake</em> is no longer required to build HaXml, provided you 
      have <em>ghc --make</em>.
 <li> A new combinator <tt>path</tt> has been added to
@@ -182,6 +183,8 @@ The latest version (1.09) has the following fixes:<br>
      in lower-case rather than upper-case, to conform to the XHTML standard.
 <li> DtdToHaskell now accepts NOTATION types for attributes.  They are
      treated just like enumeration types.
+<li> If you give an output filename as a command-line argument to DtdToHaskell,
+     it now uses the filename as the basis for the generated module name.
 <li> Fixed a configuration bug on the Cygwin platform with ghc-5.04.x.
 <li> <em>make install</em> now places the executables (DtdToHaskell, Xtract,
      Validate, MkOneOf, Canonicalise) into the directory specified by

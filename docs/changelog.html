@@ -15,6 +15,7 @@
 <h3>Changes for 1.09</h3>
 <p>
 <ul>
+<li> <em>ghc-6.0</em> is supported.
 <li> <em>hmake</em> is no longer required to build HaXml, provided you
      have <em>ghc --make</em>.
 <li> A new combinator <tt>path</tt> has been added to
@@ -33,6 +34,8 @@
      in lower-case rather than upper-case, to conform to the XHTML standard.
 <li> DtdToHaskell now accepts NOTATION types for attributes.  They are
      treated just like enumeration types.
+<li> If you give an output filename as a command-line argument to DtdToHaskell,
+     it now uses the filename as the basis for the generated module name.
 <li> Fixed a configuration bug on the Cygwin platform with ghc-5.04.x.
 <li> <em>make install</em> now places the executables (DtdToHaskell, Xtract,
      Validate, MkOneOf, Canonicalise) into the directory specified by
