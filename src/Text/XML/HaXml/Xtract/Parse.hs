@@ -7,10 +7,6 @@
 --   transformed it into a non-left-recursive form.
 module Text.XML.HaXml.Xtract.Parse (parseXtract) where
 
-#ifdef __NHC__
-import NonStdTrace (trace)
-#endif
-
 import Text.ParserCombinators.HuttonMeijerWallace hiding (bracket,elserror)
 import Text.XML.HaXml.Xtract.Lex
 import Text.XML.HaXml.Xtract.Combinators

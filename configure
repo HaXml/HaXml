@@ -265,7 +265,7 @@ then
   cp -Rp src/Text src/tools src/Makefile src/pkg.conf obj/ghc
   if [ "$GHCNUM" -ge "504" ]
   then rm -rf obj/ghc/Text/PrettyPrint
-       echo "-package lang -package data -package base" >obj/ghc/ghcpkgs
+       echo "-package base" >obj/ghc/ghcpkgs
   else echo "-package lang -package data" >obj/ghc/ghcpkgs
   fi
 fi

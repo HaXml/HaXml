@@ -12,7 +12,7 @@ import List (intersperse,nub,(\\))
 
 #if defined(__GLASGOW_HASKELL__) || defined(__HUGS__)
 -- real finite map, if it is available
-import FiniteMap
+import Data.FiniteMap
 #else
 -- otherwise, a very simple and inefficient implementation of a finite map
 type FiniteMap a b = [(a,b)]

@@ -21,18 +21,24 @@ import Text.XML.HaXml.Types
 import Text.XML.HaXml.Lex
 import Text.ParserCombinators.HuttonMeijerWallace
 
+--  #define DEBUG
+ 
 #if defined(DEBUG)
-#if defined(__GLASGOW_HASKELL__) || defined(__HUGS__)
+#  if ( defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ > 502 ) || \
+      ( defined(__NHC__) && __NHC__ > 114 )
+import Debug.Trace(trace)
+#  elif defined(__GLASGOW_HASKELL__) || defined(__HUGS__)
 import IOExts(trace)
-#else
+#  elif defined(__NHC__) || defined(__HBC__)
 import NonStdTrace
-#endif
+#  endif
 debug :: Monad m => String -> m ()
 debug s = trace s (return ())
 #else
 debug :: Monad m => String -> m ()
 debug s = return ()
 #endif
+
 
 -- | The first argument is the name of the file, the second is the string
 --   contents of the file.  The result is the generic representation of
