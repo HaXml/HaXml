@@ -11,6 +11,7 @@ module Text.Xml.HaXml
   , module Text.Xml.HaXml.Validate
   , module Text.Xml.HaXml.Wrappers
   , render
+  , version
   ) where
 
 import Text.Xml.HaXml.Types
@@ -24,3 +25,6 @@ import Text.Xml.HaXml.Wrappers    (fix2Args,processXmlWith)
 
 import Text.PrettyPrint.HughesPJ  (render)
 
+-- | The version of the library (currently "1.06").
+version :: String
+version  = "1.06"
