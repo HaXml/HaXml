@@ -90,6 +90,8 @@ Some additional info about using the various facilities is here:
 <p>
 <b>Known problems:</b>
 <ul>
+<li> To use <em>-package HaXml</em> interactively with GHCi, you need
+     at least ghci-5.02.3.
 <li> Haskell2Xml generates Parameter Entity Declarations in the internal
      subset of the DTD, which don't conform to the strict well-formedness
      conditions of XML.  We think the constraint in question is spurious,
@@ -103,14 +105,17 @@ Some additional info about using the various facilities is here:
 <center><h3><a name="downloads">Downloads</a></h3></center>
 <p>
 <b>Current version:</b>
-HaXml-1.06, release date 2002.08.12<br>
+HaXml-1.07b, release date 2002.09.02<br>
 By HTTP:
-<a href="http://www.haskell.org/HaXml/HaXml-1.06.tar.gz">.tar.gz</a>,
-<a href="http://www.haskell.org/HaXml/HaXml-1.06.zip">.zip</a>.
+<a href="http://www.haskell.org/HaXml/HaXml-1.07b.tar.gz">.tar.gz</a>,
+<a href="http://www.haskell.org/HaXml/HaXml-1.07b.zip">.zip</a>.
 <br>
 By FTP: 
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/">
 ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/</a>
+FreeBSD port:
+<a href="http://freshports.org/textproc/haxml/">
+http://freshports.org/textproc/haxml/</a>
 
 <p>
 <b>Older versions:</b><br>
@@ -123,7 +128,7 @@ ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/</a>
 <p>
 To install HaXml, you must have a Haskell compiler: ghc-5.02 or
 later, nhc98-1.14 or later.  You also need hmake-3.06 or later.
-HaXml-1.06 does not currently support Hugs (but HaXml-1.05 does,
+HaXml-1.07 does not currently support Hugs (but HaXml-1.05 does,
 and we hope to re-introduce Hugs support again soon).  Use
 <pre>
     ./configure
@@ -140,10 +145,10 @@ your final preferred installation location by hand.
 <hr>
 <center><h3><a name="news">Recent news</a></h3></center>
 <p>
-The latest version (1.06) has the following new features:<br>
+The latest version (1.07) has the following new features:<br>
 <ul>
 <li> HaXml now uses the new hierarchical namespace for modules,
-     specifically under the tree <tt>Text.Xml.HaXml</tt>.
+     specifically under the tree <tt>Text.XML.HaXml</tt>.
 <li> The HaXml libraries now install as a separate `package' in both ghc
      and nhc98.  Use <em>-package HaXml</em> to access them.
 <li> The library APIs are now documented using Haddock.
@@ -201,6 +206,9 @@ licensing conditions, please contact us to discuss your requirements.)
     in Haskell, called hxml.  What is more, it can be used as a simple
     drop-in replacement for the HaXml parser!
     <a href="http://www.flightlab.com/~joe/hxml/">Available here</a>.
+<li>Uwe Schmidt recently designed another
+    <a href="http://www.fh-wedel.de/~si/HXmlToolbox/">Haskell XML Toolbox</a>
+    based on the ideas of HaXml and hxml.
 <li>Some comparisons between functional language approaches to processing
     XML can be found in
     <a href="http://www.xml.com/pub/a/2001/02/14/functional.html">
