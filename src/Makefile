@@ -1,4 +1,5 @@
 SOFTWARE = HaXml
+VERSION = 1.12.1
 
 LIBSRCS = \
 	Text/XML/HaXml.hs Text/XML/HaXml/Combinators.hs Text/XML/HaXml/Lex.hs \
@@ -76,8 +77,11 @@ install-tools-hugs: toolset-hugs $(INSTALLDIR)
 # update the sources if necessary
 $(LIBSRCS) $(TOOLSRCS) Makefile Text/PrettyPrint/HughesPJ.hs: %: ../../src/%
 	cp $< $@
-HaXml.cabal: ../../HaXml.cabal
+HaXml.cabal: ../../HaXml.cabal ghcincdir ghclibdir
 	cp $< $@
+	echo "import-dirs: `cat ghcincdir`" >>$@
+	echo "library-dirs: `cat ghclibdir`" >>$@
+	echo "hs-libraries: ${SOFTWARE}-${VERSION}" >>$@
 
 
 # packaged library
