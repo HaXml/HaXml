@@ -15,6 +15,7 @@ module Text.XML.HaXml.Xml2Haskell
   , XmlAttrType(..)
   -- * Parsing and printing helper functions
   , choice, definite, many, fromText, toText
+  , List1(..)
   , maybeToAttr, defaultToAttr
   , definiteA, defaultA, possibleA, fromAttrToStr, toAttrFrStr
   , Defaultable(..)
@@ -117,7 +118,7 @@ definite from inner tag cs =
     let (m,cs0) = from cs
     in case m of
          Nothing -> error ("content error: expected "++inner++" inside <"
-                           ++tag++"> element")
+                           ++tag++"> element\n")
          (Just a)-> (a,cs0)
 
 many :: ([Content]->(Maybe a,[Content])) -> [Content] -> ([a], [Content])
@@ -227,6 +228,11 @@ data OneOf4 a b c d = OneOfFour a  | TwoOfFour b  | ThreeOfFour c | FourOfFour d
      deriving (Eq, Show)
 -}
 
+-- | The List1 type represents lists with at least one element.
+--   It is required for DTD content models that use + as a modifier.
+data List1 a = NonEmpty [a]  deriving (Eq, Show)
+
+
 ---- Needed instances ----
 
 instance (XmlContent a, XmlContent b) => XmlContent (a,b) where
@@ -261,8 +267,16 @@ instance (XmlContent a) => XmlContent (Maybe a) where
     fromElem c0 =
         case fromElem c0 of
         (Just x, cn) -> (Just (Just x), cn)
-        (Nothing,cn) -> (Nothing, c0)
+        (Nothing,cn) -> (Just Nothing, cn)
     toElem (Just x) = toElem x
+    toElem Nothing  = []	-- this clause not actually required
+
+instance (XmlContent a) => XmlContent (List1 a) where
+    fromElem c0 =
+        case many fromElem c0 of
+        ([], _)  -> (Nothing, c0)
+        (xs, cn) -> (Just (NonEmpty xs), cn)
+    toElem (NonEmpty xs) = concatMap toElem xs
 
 {-
 instance (XmlContent a, XmlContent b) => XmlContent (OneOf2 a b) where
