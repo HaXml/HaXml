@@ -288,14 +288,14 @@ element ctx =
          ( do tok TokEndClose	-- correct self-closing <tag /> 
               debug (e++"[+]")
               return ([], Elem e avs [])) +++
-         ( do tok TokAnyClose	-- correct sequence <tag></tag>	(**not HTML?**)
-              debug (e++"[+")
-              n <- bracket (tok TokEndOpen) name (tok TokAnyClose)
-              debug "]"
-              if e == (map toUpper n :: Name) 
-                then return ([], Elem e avs [])      
-                else return (error "no nesting in empty tag")) +++
-         ( do tok TokAnyClose	-- incorrect <tag> with no close
+     --  ( do tok TokAnyClose	-- sequence <tag></tag>	(**not HTML?**)
+     --       debug (e++"[+")
+     --       n <- bracket (tok TokEndOpen) name (tok TokAnyClose)
+     --       debug "]"
+     --       if e == (map toUpper n :: Name) 
+     --         then return ([], Elem e avs [])      
+     --         else return (error "no nesting in empty tag")) +++
+         ( do tok TokAnyClose	-- <tag> with no close (e.g. <img>)
               debug (e++"[+]")
               return ([], Elem e avs []))
       else
