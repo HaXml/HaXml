@@ -1,5 +1,5 @@
 SOFTWARE = HaXml
-VERSION = 1.12.1
+VERSION = 1.12.2
 
 LIBSRCS = \
 	Text/XML/HaXml.hs Text/XML/HaXml/Combinators.hs Text/XML/HaXml/Lex.hs \
@@ -66,7 +66,7 @@ install-filesonly-nhc98: libs $(INSTALLDIR)
 	cp interfaces.tar `cat nhc98incdir`/packages/HaXml
 	cd `cat nhc98incdir`/packages/HaXml; tar xf interfaces.tar; rm interfaces.tar
 	cp $(TOOLSET) $(INSTALLDIR)
-install-ghc: install-filesonly-ghc
+install-ghc: install-filesonly-ghc HaXml.cabal
 	`cat ghcpkgcmd` --remove-package=HaXml || true
 	`cat ghcpkgcmd` --add-package <pkg.conf || \
 	`cat ghcpkgcmd` register HaXml.cabal
@@ -79,9 +79,8 @@ $(LIBSRCS) $(TOOLSRCS) Makefile Text/PrettyPrint/HughesPJ.hs: %: ../../src/%
 	cp $< $@
 HaXml.cabal: ../../HaXml.cabal ghcincdir ghclibdir
 	cp $< $@
-	echo "import-dirs: `cat ghcincdir`" >>$@
-	echo "library-dirs: `cat ghclibdir`" >>$@
-	echo "hs-libraries: ${SOFTWARE}-${VERSION}" >>$@
+	echo "import-dirs:	`cat ghcincdir`" >>$@
+	echo "library-dirs:	`cat ghclibdir`" >>$@
 
 
 # packaged library
