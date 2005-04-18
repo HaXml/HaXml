@@ -66,10 +66,10 @@ install-filesonly-nhc98: libs $(INSTALLDIR)
 	cp interfaces.tar `cat nhc98incdir`/packages/HaXml
 	cd `cat nhc98incdir`/packages/HaXml; tar xf interfaces.tar; rm interfaces.tar
 	cp $(TOOLSET) $(INSTALLDIR)
-install-ghc: install-filesonly-ghc HaXml.cabal
+install-ghc: install-filesonly-ghc HaXml.pkgconf
 	`cat ghcpkgcmd` --remove-package=HaXml || true
 	`cat ghcpkgcmd` --add-package <pkg.conf || \
-	`cat ghcpkgcmd` register HaXml.cabal
+	`cat ghcpkgcmd` register HaXml.pkgconf
 install-nhc98: install-filesonly-nhc98
 install-tools-hugs: toolset-hugs $(INSTALLDIR)
 	cp $(patsubst ../../%, %, ${TOOLSET}) $(INSTALLDIR)
@@ -77,10 +77,13 @@ install-tools-hugs: toolset-hugs $(INSTALLDIR)
 # update the sources if necessary
 $(LIBSRCS) $(TOOLSRCS) Makefile Text/PrettyPrint/HughesPJ.hs: %: ../../src/%
 	cp $< $@
-HaXml.cabal: ../../HaXml.cabal ghcincdir ghclibdir
-	cp $< $@
+HaXml.pkgconf: ../../HaXml.cabal ghcincdir ghclibdir
+	cp ../../HaXml.cabal $@
 	echo "import-dirs:	`cat ghcincdir`" >>$@
 	echo "library-dirs:	`cat ghclibdir`" >>$@
+	echo "depends:		base, haskell98" >>$@
+	echo "hs-libraries:	HS$(SOFTWARE)" >>$@
+
 
 
 # packaged library
