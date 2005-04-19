@@ -376,7 +376,10 @@ elementdecl = do
     tok (TokSpecial ELEMENTx)
     n <- peRef name `elserror` "missing identifier in ELEMENT decl"
     c <- peRef contentspec `elserror` "missing content spec in ELEMENT decl"
-    blank (tok TokAnyClose) `elserror` "expected > terminating ELEMENT decl"
+    blank (tok TokAnyClose) `elserror`
+       ("expected > terminating ELEMENT decl"
+       ++"\n    element name was "++show n
+       ++"\n    contentspec was "++(\(ContentSpec p)-> show p)c)
     return (ElementDecl n c)
 
 contentspec :: XParser ContentSpec
@@ -615,7 +618,7 @@ entitydef =
 pedef :: XParser PEDef
 pedef =
     ( entityvalue >>= return . PEDefEntityValue) +++
-    ( externalid >>= return . PEDefExternalID)
+    ( externalid  >>= return . PEDefExternalID)
 
 externalid :: XParser ExternalID
 externalid =
@@ -678,12 +681,15 @@ publicid = do
 
 entityvalue :: XParser EntityValue
 entityvalue = do
-    evs <- bracket (tok TokQuote) (many (peRef ev)) (tok TokQuote)
+ -- evs <- bracket (tok TokQuote) (many (peRef ev)) (tok TokQuote)
+    tok TokQuote
+    evs <- many (peRef ev)
+    tok TokQuote `elserror` "expected quote to terminate entityvalue"
     return (EntityValue evs)
 
 ev :: XParser EV
 ev =
-    ( freetext >>= return . EVString) +++
+    ( (string+++freetext) >>= return . EVString) +++
     ( reference >>= return . EVRef)
 
 attvalue :: XParser AttValue

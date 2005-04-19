@@ -81,7 +81,7 @@ data TokenT =
     | TokPercent		-- ^   %
     | TokComma			-- ^   ,
     | TokQuote			-- ^   \'\' or \"\"
-    | TokName      String	-- ^   begins with letter
+    | TokName      String	-- ^   begins with letter, no spaces
     | TokFreeText  String	-- ^   any character data
     | TokNull			-- ^   fake token
     deriving (Eq)
@@ -177,14 +177,31 @@ prefixes :: String -> String -> Bool
 (x:xs) `prefixes` (y:ys) = x==y && xs `prefixes` ys
 (x:xs) `prefixes`   []   = False --error "unexpected EOF in prefix"
 
-accumulateUntil (c:cs) tok acc pos  p  [] k =
-    lexerror ("unexpected EOF while looking for closing token "++c:cs
+textUntil close tok acc pos p [] k =
+    lexerror ("unexpected EOF while looking for closing token "++close
               ++"\n  to match the opening token in "++show pos) p
-accumulateUntil (c:cs) tok acc pos  p (s:ss) k
-    | c==s && cs `prefixes` ss  = emit (TokFreeText (reverse acc)) pos:
-                                  emit tok p: skip (length cs) (addcol 1 p) ss k
-    | isSpace s  = accumulateUntil (c:cs) tok (s:acc) pos (white s p) ss k
-    | otherwise  = accumulateUntil (c:cs) tok (s:acc) pos (addcol 1 p) ss k
+textUntil close tok acc pos p (s:ss) k
+    | close `prefixes` (s:ss)  = emit (TokFreeText (reverse acc)) pos:
+                                 emit tok p:
+                                 skip (length close-1) (addcol 1 p) ss k
+    | isSpace s  = textUntil close tok (s:acc) pos (white s p) ss k
+    | otherwise  = textUntil close tok (s:acc) pos (addcol 1 p) ss k
+
+textOrRefUntil close tok acc pos p [] k =
+    lexerror ("unexpected EOF while looking for closing token "++close
+              ++"\n  to match the opening token in "++show pos) p
+textOrRefUntil close tok acc pos p (s:ss) k
+    | close `prefixes` (s:ss)  = emit (TokFreeText (reverse acc)) pos:
+                                 emit tok p:
+                                 skip (length close-1) (addcol 1 p) ss k
+    | s=='&'||s=='%' = (if not (null acc)
+                           then (emit (TokFreeText (reverse acc)) pos:)
+                           else id)
+                       (emit (if s=='&' then TokAmp else TokPercent) p:
+                        textUntil ";" TokSemi "" p (addcol 1 p) ss
+                         (\p' i-> textOrRefUntil close tok "" p p' i k))
+    | isSpace s  = textOrRefUntil close tok (s:acc) pos (white s p) ss k
+    | otherwise  = textOrRefUntil close tok (s:acc) pos (addcol 1 p) ss k
 
 ----
 -- | @posInNewCxt name pos@ creates a new source position from an old one.
@@ -220,10 +237,8 @@ xmlReLex p s
 --  where next n k = skip n p s k
 
 xmlPI      w p s = xmlName p s "name of processor in <? ?>" (blank xmlPIEnd w)
-xmlPIEnd   w p s = accumulateUntil "?>"  TokPIClose "" p p s
-                                                      (blank xmlAny (tail w))
-xmlComment w p s = accumulateUntil "-->" TokCommentClose "" p p s
-                                                             (blank xmlAny w)
+xmlPIEnd   w p s = textUntil "?>"  TokPIClose "" p p s (blank xmlAny (tail w))
+xmlComment w p s = textUntil "-->" TokCommentClose "" p p s (blank xmlAny w)
 
 -- Note: the order of the clauses in xmlAny is very important.
 -- Some matches must precede the NotInTag test, the rest must follow it.
@@ -243,11 +258,11 @@ xmlAny w p s@('<':ss)
                                  skip 1 p s (xmlTag (InTag "<...>":NotInTag:w))
 xmlAny (_:_:w) p s@('/':ss)
     | ">"   `prefixes` ss = emit TokEndClose p: skip 2 p s (xmlAny w)
-xmlAny w p ('&':ss) = emit TokAmp p:      accumulateUntil ";" TokSemi "" p
+xmlAny w p ('&':ss) = emit TokAmp p:      textUntil ";" TokSemi "" p
                                                      (addcol 1 p) ss (xmlAny w)
 xmlAny w@(NotInTag:_) p s = xmlContent "" w p p s
 -- everything below here is implicitly InTag.
-xmlAny w p ('>':ss) = emit TokAnyClose p:       xmlAny (tail w) (addcol 1 p) ss
+xmlAny w p ('>':ss) = emit TokAnyClose p: xmlAny (tail w) (addcol 1 p) ss
 xmlAny w p ('[':ss) = emit TokSqOpen p:
                                  blank xmlAny (InTag "[...]":w) (addcol 1 p) ss
 xmlAny w p (']':ss)
@@ -266,15 +281,16 @@ xmlAny w p ('%':ss) = emit TokPercent p:  blank xmlAny w (addcol 1 p) ss
 xmlAny w p (';':ss) = emit TokSemi p:     blank xmlAny w (addcol 1 p) ss
 xmlAny w p (',':ss) = emit TokComma p:    blank xmlAny w (addcol 1 p) ss
 xmlAny w p ('#':ss) = emit TokHash p:     blank xmlAny w (addcol 1 p) ss
-xmlAny w p ('"':ss) = emit TokQuote p:    accumulateUntil "\"" TokQuote "" p1
+xmlAny w p ('"':ss) = emit TokQuote p:    textOrRefUntil "\"" TokQuote "" p1
                                                           p1 ss (xmlAny w)
                                              where p1 = addcol 1 p
-xmlAny w p ('\'':ss) = emit TokQuote p:   accumulateUntil "'" TokQuote "" p1
+xmlAny w p ('\'':ss) = emit TokQuote p:   textOrRefUntil "'" TokQuote "" p1
                                                           p1 ss (xmlAny w)
                                              where p1 = addcol 1 p
 xmlAny w p s
     | isSpace (head s)     = blank xmlAny w p s
-    | isAlphaNum (head s)  = xmlName p s "some kind of name" (blank xmlAny w)
+    | isAlphaNum (head s) || (head s)`elem`":_"
+                           = xmlName p s "some kind of name" (blank xmlAny w)
     | otherwise            = lexerror ("unrecognised token: "++take 4 s) p
 
 xmlTag w p s = xmlName p s "tagname for element in < >" (blank xmlAny w)
@@ -289,7 +305,7 @@ xmlSection = blank xmlSection0
       | otherwise = lexerror ("expected CDATA, IGNORE, or INCLUDE") p
     accum w p s n =
       let p0 = addcol n p in
-      accumulateUntil "]]>" TokSectionClose "" p0 p0 (drop n s) (blank xmlAny w)
+      textUntil "]]>" TokSectionClose "" p0 p0 (drop n s) (blank xmlAny w)
     k w p s n =
       skip n p s (xmlAny w)
 
