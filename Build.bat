@@ -8,17 +8,17 @@ REM      Build Tools   compile the tools shipped with HaXml
 rem -- Change the following to suit the local system environment --
 
 rem    GHC installation directory:
-set GHCDIR=C:\DEV\ghc\ghc-6.2
+set GHCDIR=C:\DEV\ghc\ghc-6.4
 
 rem    Programs needed to build HaXml:
 rem
 rem    NOTE: install MinGW linked from <http://www.mingw.org/>
 rem    for a copy of 'ar.exe'
 rem
-set GHC=C:\DEV\ghc\ghc-6.2\bin\ghc.exe
-set GHCPKG=C:\DEV\ghc\ghc-6.2\bin\ghc-pkg.exe
+set GHC=C:\DEV\ghc\ghc-6.4\bin\ghc.exe
+set GHCPKG=C:\DEV\ghc\ghc-6.4\bin\ghc-pkg.exe
 set AR=C:\DEV\MinGW\bin\ar.exe
-set LD=C:\DEV\ghc\ghc-6.2\gcc-lib\ld.exe
+set LD=C:\DEV\ghc\ghc-6.4\gcc-lib\ld.exe
 
 rem    Source directory for HaXml:
 set SRC=C:\DEV\Haskell\lib\HaXml-1.12\src
@@ -35,6 +35,7 @@ if "%1"=="Remove" goto Remove
 if "%1"=="Tools" goto Tools
 
 rem -- Compile sources and create library archive
+COPY HaXml.cabal %SRC%\pkg.conf
 cd %SRC%
 %GHC% --make -cpp -i. -package-name HaXml %SRCS%
 %AR% r libHSHaXml.a %OBJS%
@@ -53,7 +54,11 @@ rem    /F - display full filenames while copying
 XCOPY /S /F *.hi %GHCDIR%\imports
 
 rem -- Finally, register the package with GHC
-%GHCPKG% --add-package <pkg.conf
+ECHO "import-dirs:   %GHCDIR%\imports" >>pkg.conf
+ECHO "library-dirs:  %GHCDIR%" >>pkg.conf
+ECHO "depends:       base, haskell98" >>pkg.conf
+ECHO "hs-libraries:  HSHaXml" >>pkg.conf
+%GHCPKG% register <pkg.conf
 
 goto Exit
 
