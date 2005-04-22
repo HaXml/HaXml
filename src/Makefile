@@ -79,7 +79,7 @@ $(LIBSRCS) $(TOOLSRCS) Makefile Text/PrettyPrint/HughesPJ.hs: %: ../../src/%
 	cp $< $@
 HaXml.pkgconf: ../../HaXml.cabal ghcincdir ghclibdir
 	cp ../../HaXml.cabal $@
-	echo "import-dirs:	`cat ghcincdir`" >>$@
+	echo "import-dirs:	`cat ghcincdir`/HaXml" >>$@
 	echo "library-dirs:	`cat ghclibdir`" >>$@
 	echo "depends:		base, haskell98" >>$@
 	echo "hs-libraries:	HS$(SOFTWARE)" >>$@
