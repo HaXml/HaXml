@@ -54,11 +54,11 @@ rem    /F - display full filenames while copying
 XCOPY /S /F *.hi %GHCDIR%\imports
 
 rem -- Finally, register the package with GHC
-ECHO "import-dirs:   %GHCDIR%\imports" >>pkg.conf
-ECHO "library-dirs:  %GHCDIR%" >>pkg.conf
-ECHO "depends:       base, haskell98" >>pkg.conf
-ECHO "hs-libraries:  HSHaXml" >>pkg.conf
-%GHCPKG% register <pkg.conf
+ECHO import-dirs:   %GHCDIR%\imports >>pkg.conf
+ECHO library-dirs:  %GHCDIR% >>pkg.conf
+ECHO depends:       base, haskell98 >>pkg.conf
+ECHO hs-libraries:  HSHaXml >>pkg.conf
+%GHCPKG% register pkg.conf
 
 goto Exit
 
