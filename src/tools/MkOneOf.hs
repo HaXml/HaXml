@@ -2,6 +2,7 @@ module Main where
 
 import System (getArgs)
 import Char   (isDigit)
+import IO     (hFlush,stdout)
 
 main = do
     args <- getArgs
@@ -16,6 +17,7 @@ main = do
               putStrLn ("import Text.XML.HaXml.Xml2Haskell\n")
               mapM_ (putStrLn . mkOneOf) [n..m]
       _ -> error "Usage: MkOneOf n [m]"
+    hFlush stdout
 
 ---- main text-generating function ----
 mkOneOf :: Int -> String

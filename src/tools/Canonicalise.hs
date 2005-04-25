@@ -24,5 +24,6 @@ main =
   let parse = if ".html" `isSuffixOf` inf || ".htm" `isSuffixOf` inf
               then htmlParse inf else xmlParse inf
   in
-  ( hPutStrLn o . render . document . parse) content
+  do ( hPutStrLn o . render . document . parse) content
+     hFlush o
 

@@ -39,6 +39,7 @@ main =
      hPutStrLn o "\n\n{-Instance decls-}\n"
      (hPutStrLn o . render . vcat . map mkInstance) decls
      hPutStrLn o "\n\n{-Done-}"
+     hFlush o
 
 
 getDtd (Just dtd) = dtd

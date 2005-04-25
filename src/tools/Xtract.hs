@@ -38,7 +38,8 @@ main =
                           hPutStrLn stdout . render . htmlprint .
                           xtract (map toLower pattern) . getElem . htmlParse x
                      else hPutStrLn stdout . render . format .
-                          xtract pattern . getElem . xmlParse x) c)
+                          xtract pattern . getElem . xmlParse x) c
+                   hFlush stdout)
           files
 
 getElem (Document _ _ e _) = CElem e

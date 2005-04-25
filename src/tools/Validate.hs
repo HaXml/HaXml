@@ -23,4 +23,5 @@ main = do
       Document _ _ xml _  = xmlParse xmlf content
       errs = validate (fromJust dtd) xml
   mapM_ putStrLn errs
+  hFlush stdout
 
