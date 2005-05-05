@@ -266,7 +266,16 @@ then
   fi
   echo $GHCLIBDIR >obj/ghc/ghclibdir
   echo $GHCINCDIR >obj/ghc/ghcincdir
-  echo ghc-pkg-$GHCVERSION >obj/ghc/ghcpkgcmd
+  if $CYGWIN || $MINGW
+    then cygpath -w ${GHCLIBDIR} >obj/ghc/ghclibdirraw
+         cygpath -w ${GHCINCDIR}/ >obj/ghc/ghcincdirraw
+    else echo ${GHCLIBDIR} >obj/ghc/ghclibdirraw
+         echo ${GHCINCDIR}/ >obj/ghc/ghcincdirraw
+  fi
+  if ghc-pkg-$GHCVERSION -l >/dev/null
+    then echo ghc-pkg-$GHCVERSION >obj/ghc/ghcpkgcmd
+    else echo ghc-pkg >obj/ghc/ghcpkgcmd
+  fi
   echo ${BUILDWITH-ghc} >obj/ghccmd
   cp -Rp src/Text src/tools src/Makefile src/pkg.conf obj/ghc
   if [ "$GHCNUM" -ge "504" ]
@@ -293,6 +302,7 @@ fi
 
 echo $INSTALLDIR >obj/prefix
 if $CYGWIN || $MINGW ; then echo .exe >obj/exe; else touch obj/exe; fi
+if $CYGWIN || $MINGW ; then echo main.exe >obj/out; else echo a.out >obj/out; fi
 if $DARWIN ; then echo -all_load; else echo --whole-archive; fi >obj/ldopt
 
 

@@ -29,6 +29,7 @@ TOOLSET = \
 	../../Canonicalise$(EXE) ../../MkOneOf$(EXE)
 
 EXE = $(shell cat ../exe)
+OUT = $(shell cat ../out)
 INSTALLDIR = $(shell cat ../prefix)
 WHOLEARCHIVE = $(shell cat ../ldopt)
 
@@ -36,7 +37,7 @@ WHOLEARCHIVE = $(shell cat ../ldopt)
 COMPILER := $(findstring ghc, $(HC))
 ifeq "$(COMPILER)" "ghc"
 COMPILE  = $(HC) --make -cpp -i. $(shell cat ghcpkgs) -package-name HaXml
-RENAME   = mv a.out
+RENAME   = mv $(OUT)
 endif
 COMPILER := $(findstring nhc98, $(HC))
 ifeq "$(COMPILER)" "nhc98"
@@ -77,10 +78,10 @@ install-tools-hugs: toolset-hugs $(INSTALLDIR)
 # update the sources if necessary
 $(LIBSRCS) $(TOOLSRCS) Makefile Text/PrettyPrint/HughesPJ.hs: %: ../../src/%
 	cp $< $@
-HaXml.pkgconf: ../../HaXml.cabal ghcincdir ghclibdir
+HaXml.pkgconf: ../../HaXml.cabal ghcincdirraw ghclibdirraw
 	cp ../../HaXml.cabal $@
-	echo "import-dirs:	`cat ghcincdir`/HaXml" >>$@
-	echo "library-dirs:	`cat ghclibdir`" >>$@
+	echo "import-dirs:	`cat ghcincdirraw`HaXml" >>$@
+	echo "library-dirs:	`cat ghclibdirraw`" >>$@
 	echo "depends:		base, haskell98" >>$@
 	echo "hs-libraries:	HS$(SOFTWARE)" >>$@
 
