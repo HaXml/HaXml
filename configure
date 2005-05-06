@@ -32,14 +32,12 @@ which () {
 }
 
 DARWIN=false
+CYGWIN=false
+MINGW=false
 case `uname -s` in
-  CYGWIN*) CYGWIN=true	# /bin/true or /usr/bin/true
-           MINGW=false ;;
-  MINGW*)  CYGWIN=false	# /bin/false or /usr/bin/false
-           MINGW=true ;;
+  CYGWIN*) CYGWIN=true;;
+  MINGW*)  MINGW=true ;;
   Darwin*) DARWIN=true ;;
-  *)       CYGWIN=false
-           MINGW=false ;;
 esac
 
 # Process command-line arguments
