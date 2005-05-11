@@ -29,6 +29,6 @@ import Text.XML.HaXml.Escape
 
 import Text.PrettyPrint.HughesPJ  (render)
 
--- | The version of the library (currently "1.12").
+-- | The version of the library (currently "1.13").
 version :: String
-version  = "1.12"
+version  = "1.13"
