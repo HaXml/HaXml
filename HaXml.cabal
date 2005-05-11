@@ -1,7 +1,7 @@
 name:		HaXml
 version:	1.12.2
 license:	LGPL
-license-file:	LICENSE-LGPL
+license-file:	LICENCE-LGPL
 author:		Malcolm Wallace <Malcolm.Wallace@cs.york.ac.uk>
 homepage:	http://www.cs.york.ac.uk/fp/HaXml/
 category:	Text

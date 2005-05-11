@@ -110,10 +110,10 @@ Some additional info about using the various facilities is here:
 <center><h3><a name="downloads">Downloads</a></h3></center>
 <p>
 <b>Current version:</b>
-HaXml-1.12, release date 2004.05.18<br>
+HaXml-1.13, release date 2005.05.11<br>
 By HTTP:
-<a href="http://www.haskell.org/HaXml/HaXml-1.12.tar.gz">.tar.gz</a>,
-<a href="http://www.haskell.org/HaXml/HaXml-1.12.zip">.zip</a>.
+<a href="http://www.haskell.org/HaXml/HaXml-1.13.tar.gz">.tar.gz</a>,
+<a href="http://www.haskell.org/HaXml/HaXml-1.13.zip">.zip</a>.
 <br>
 By FTP: 
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/">
@@ -130,7 +130,8 @@ The development version of HaXml is available by anonymous CVS
 instructions for getting ghc by CVS:
 <a href="http://haskell.org/ghc/docs/latest/html/building/sec-cvs.html">
 http://haskell.org/ghc/docs/latest/html/building/sec-cvs.html</a>
-and simply replace the project name <em>fpconfig</em> with <em>HaXml</em>.
+and simply replace the project name <em>fpconfig</em> with
+<em>fptools/libraries/HaXml</em>.
 
 <p>
 <b>Older versions:</b><br>
@@ -177,26 +178,11 @@ version here:
 <tt>http://www.ninebynine.org/Software/HaskellUtils/</tt></a>
 
 <p>
-The latest version (1.12) has the following features and fixes:<br>
+The latest version (1.13) has the following features and fixes:<br>
 <ul>
-<li> The licence has changed.  Previously covered by the Artistic Licence,
-     we have now converted to the LGPL for all the library code, and GPL
-     for the standalone tools.
-<li> Now includes a minimal Build.bat script for Windows, so you can
-     avoid any need for Cygwin utilities and get by with just GHC
-     and Mingw.
-<li> Fix a bug in DtdToHaskell, whereby an auxiliary datatype introduced
-     by the translation into Haskell could (in certain circumstances)
-     cause an extra layer of element tag nesting on the output (via the
-     'toElem' method).
-<li> Fixed the parsing of entity/character references in the error-correcting
-     HTML parser.
-<li> Changes in the signatures of Xml2Haskell (made in version 1.09)
-     have now been mirrored in the converse library, Haskell2Xml.
-     Thus, there are new functions <tt>readXml</tt> and
-     <tt>showXml</tt> converting to/from Strings, <tt>hGetXml</tt>
-     and <tt>hPutXml</tt> use file Handles, and the old functions using
-     filenames are renamed to <tt>fReadXml</tt> and <tt>fWriteXml</tt>.
+<li> Bugfixes to the document validator: no more infinite loops.
+<li> Bugfixes to lexing mixed text and references between quote chars.
+<li> Updated to work with ghc-6.4's new package mechanism.
 </ul>
 
 <br>
