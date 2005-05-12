@@ -1,0 +1,36 @@
+        HaXml - Haskell utilities for processing XML
+        --------------------------------------------
+
+What this package contains:
+
+  lib/			Numerous support modules for processing XML.
+			(The main APIs are as follows:)
+	XmlLib.hs	Provides the combinators described in the ICFP'99 paper
+			together with some other useful functions.
+	Haskell2Xml.hs	A replacement class for Show/Read, to dump Haskell
+			values as XML documents.  Use in conjunction with DrIFT.
+	Xml2Haskell.hs	A support class for XML DTDs which have been translated
+			to Haskell types by tools/DtdToHaskell.
+
+  tools/		Standalone tools based on the library above.
+	DtdToHaskell	Translates an XML doc containing a DTD into a Haskell
+			module containing data/newtype definitions.
+	Xtract		A structured 'grep' for XML docs, loosely based on
+			the XQL query language.
+	DrIFT/		A version of Noel Winstanley's DrIFT tool (formerly
+			known as Derive), which can derive the Haskell2Xml
+			class in addition to the standard ones.
+
+  docs/			Some rudimentary documentation about the libraries.
+
+  examples/		Some small examples of how the libraries/tools are used.
+	Canonicalise	A 'cat' filter for XML docs, shows our "standard"
+			parsing and pretty-printing behaviour.
+
+If you are using Hugs, use 'make forHugs' before doing anything else.
+For all other compilers, you need 'hmake'.
+
+For all systems, *please* look at the Makefile - it is very simple,
+and should help you rather than baffling you.  Complaints to:  :-)
+    Malcolm.Wallace@cs.york.ac.uk
+

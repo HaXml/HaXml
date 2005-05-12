@@ -1,0 +1,69 @@
+*** XmlPP.hs.old	Mon Feb 28 15:56:37 2000
+--- XmlPP.hs	Mon Feb 28 15:58:17 2000
+***************
+*** 94,105 ****
+                           , text "/>")
+  carryelem e@(Elem n as cs) c
+  --  | any isText cs    =  ( c <> element e, empty)
+!     | otherwise        =  let (cs',d') = carryscan carrycontent cs (text ">")
+                            in
+                            ( c <>
+                              text "<" <> text n <+> fsep (map attribute as) $$
+!                             nest 2 (vcat cs') <> -- $$
+!                             d' <> text "</" <> text n
+                            , text ">")
+  carrycontent (CElem e) c   = carryelem e c
+  carrycontent (CString _ s) c = (c <> chardata s, empty)
+--- 94,105 ----
+                           , text "/>")
+  carryelem e@(Elem n as cs) c
+  --  | any isText cs    =  ( c <> element e, empty)
+!     | otherwise        =  let (cs0,d0) = carryscan carrycontent cs (text ">")
+                            in
+                            ( c <>
+                              text "<" <> text n <+> fsep (map attribute as) $$
+!                             nest 2 (vcat cs0) <> -- $$
+!                             d0 <> text "</" <> text n
+                            , text ">")
+  carrycontent (CElem e) c   = carryelem e c
+  carrycontent (CString _ s) c = (c <> chardata s, empty)
+***************
+*** 108,116 ****
+  
+  carryscan :: (a->c->(b,c)) -> [a] -> c -> ([b],c)
+  carryscan f []     c = ([],c)
+! carryscan f (a:as) c = let (b, c')   = f a c
+!                            (bs,c'') = carryscan f as c'
+!                        in (b:bs, c'')
+  
+  --carryelem e@(Elem n as cs) c
+  --  | isText (head cs) =
+--- 108,116 ----
+  
+  carryscan :: (a->c->(b,c)) -> [a] -> c -> ([b],c)
+  carryscan f []     c = ([],c)
+! carryscan f (a:as) c = let (b, c0) = f a c
+!                            (bs,c1) = carryscan f as c0
+!                        in (b:bs, c1)
+  
+  --carryelem e@(Elem n as cs) c
+  --  | isText (head cs) =
+***************
+*** 118,125 ****
+  --          text ">" <> hcat (map content cs) <> text "</" <> text n
+  --        , text ">")
+  --  | otherwise =
+! --        let (d,c') = foldl carrycontent (start, text ">") cs in
+! --        ( d <> c' <> text "</" <> text n
+  --        , text ">")
+  --  where start = c <> text "<" <> text n <+> fsep (map attribute as)
+  --
+--- 118,125 ----
+  --          text ">" <> hcat (map content cs) <> text "</" <> text n
+  --        , text ">")
+  --  | otherwise =
+! --        let (d,c0) = foldl carrycontent (start, text ">") cs in
+! --        ( d <> c0 <> text "</" <> text n
+  --        , text ">")
+  --  where start = c <> text "<" <> text n <+> fsep (map attribute as)
+  --
