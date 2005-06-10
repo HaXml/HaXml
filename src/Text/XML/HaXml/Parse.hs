@@ -125,6 +125,7 @@ flattenEV (EntityValue evs) = concatMap flatten evs
     flatten (EVString s)          = s
     flatten (EVRef (RefEntity r)) = "&" ++r++";"
     flatten (EVRef (RefChar r))   = "&#"++show r++";"
+ -- flatten (EVPERef n)           = "%" ++n++";"
 
 
 ---- Misc ----
@@ -198,7 +199,8 @@ peRef p =
                                                         (Just pn)) val)
                                `debug` ("  reading from file "++f)
                          peRef p
-           Nothing -> mzero `elserror` "PEReference use before definition" )
+           Nothing -> mzero `elserror` ("PEReference use before definition: "
+                                       ++"%"++n++";") )
 
 blank :: XParser a -> XParser a
 blank p =
@@ -683,9 +685,18 @@ entityvalue :: XParser EntityValue
 entityvalue = do
  -- evs <- bracket (tok TokQuote) (many (peRef ev)) (tok TokQuote)
     tok TokQuote
-    evs <- many (peRef ev)
+    pn <- posn
+    evs <- many ev
     tok TokQuote `elserror` "expected quote to terminate entityvalue"
-    return (EntityValue evs)
+    -- quoted text usually cannot contain PERefs, so need to rescan it
+    st <- stget
+    evs' <- (return . sanitycheck)
+                (papply' (many (peRef ev))
+                         st
+                         (reLexForPERefs pn (flattenEV (EntityValue evs))))
+    case evs' of
+      Left err -> fail err
+      Right evs -> return (EntityValue evs)
 
 ev :: XParser EV
 ev =
@@ -702,12 +713,12 @@ attvalue = do
 systemliteral :: XParser SystemLiteral
 systemliteral = do
     s <- bracket (tok TokQuote) freetext (tok TokQuote)
-    return (SystemLiteral s)            -- note: need to fold &...; escapes
+    return (SystemLiteral s)            -- note: refs &...; not permitted
 
 pubidliteral :: XParser PubidLiteral
 pubidliteral = do
     s <- bracket (tok TokQuote) freetext (tok TokQuote)
-    return (PubidLiteral s)             -- note: need to fold &...; escapes
+    return (PubidLiteral s)             -- note: freetext is too liberal here
 
 chardata :: XParser CharData
 chardata = freetext

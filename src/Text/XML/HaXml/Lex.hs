@@ -18,6 +18,7 @@ module Text.XML.HaXml.Lex
   -- * Entry points to the lexer
     xmlLex         -- :: String -> String -> [Token]
   , xmlReLex       -- :: Posn   -> String -> [Token]
+  , reLexForPERefs -- :: Posn   -> String -> [Token]
   , posInNewCxt    -- :: String -> Posn
   -- * Token and position types
   , Token
@@ -194,12 +195,12 @@ textOrRefUntil close tok acc pos p (s:ss) k
     | close `prefixes` (s:ss)  = emit (TokFreeText (reverse acc)) pos:
                                  emit tok p:
                                  skip (length close-1) (addcol 1 p) ss k
-    | s=='&'||s=='%' = (if not (null acc)
-                           then (emit (TokFreeText (reverse acc)) pos:)
-                           else id)
-                       (emit (if s=='&' then TokAmp else TokPercent) p:
-                        textUntil ";" TokSemi "" p (addcol 1 p) ss
-                         (\p' i-> textOrRefUntil close tok "" p p' i k))
+    | s=='&'     = (if not (null acc)
+                       then (emit (TokFreeText (reverse acc)) pos:)
+                       else id)
+                   (emit TokAmp p:
+                    textUntil ";" TokSemi "" p (addcol 1 p) ss
+                        (\p' i-> textOrRefUntil close tok "" p p' i k))
     | isSpace s  = textOrRefUntil close tok (s:acc) pos (white s p) ss k
     | otherwise  = textOrRefUntil close tok (s:acc) pos (addcol 1 p) ss k
 
@@ -226,6 +227,25 @@ xmlReLex p s
       | otherwise = blank xmlAny [] p s
   where
     k n = skip n p s (blank xmlAny [])
+
+-- | 'reLexForPERefs' is used solely within parsing an entityvalue.  Normally,
+--   a PERef cannot appear within quotes (e.g. in an attribute value).  But
+--   entityvalues are an exception - so we need to rescan for possible PERefs.
+--   However, the only other things that can occur in quotes are freetext and
+--   GERefs.
+reLexForPERefs :: Posn -> String -> [Token]
+reLexForPERefs p s = reLex [] p s
+  where reLex acc p (s:ss)
+            | s=='%'||s=='&' = (if not (null acc)
+                                   then (emit (TokFreeText (reverse acc)) p:)
+                                   else id)
+                               (emit (if s=='&' then TokAmp else TokPercent) p:
+                                reLex "" (addcol 1 p) ss)
+            | isSpace s      = reLex (s:acc) (white s p) ss
+            | otherwise      = reLex (s:acc) (addcol 1 p) ss
+        reLex acc p []       = if not (null acc)
+                                  then emit (TokFreeText (reverse acc)) p: []
+                                  else []
 
 --xmltop :: Posn -> String -> [Token]
 --xmltop p [] = []
