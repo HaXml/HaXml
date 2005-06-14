@@ -685,9 +685,24 @@ entityvalue :: XParser EntityValue
 entityvalue = do
  -- evs <- bracket (tok TokQuote) (many (peRef ev)) (tok TokQuote)
     tok TokQuote
+    pn <- posn
     evs <- many ev
     tok TokQuote `elserror` "expected quote to terminate entityvalue"
-    return (EntityValue evs)
+    -- quoted text must be rescanned for possible PERefs
+    st <- stget
+    evs' <- (return . sanitycheck)
+                (papply' (many ev) st
+                         (reLexEntityValue (\s-> stringify (lookupPE s st))
+                                           pn
+                                           (flattenEV (EntityValue evs))))
+    case evs' of
+      Left err -> fail err
+      Right evs -> return (EntityValue evs)
+  where
+    stringify (Just (PEDefEntityValue ev)) = Just (flattenEV ev)
+    stringify _ = Nothing
+
+
 
 ev :: XParser EV
 ev =

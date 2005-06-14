@@ -18,7 +18,7 @@ module Text.XML.HaXml.Lex
   -- * Entry points to the lexer
     xmlLex         -- :: String -> String -> [Token]
   , xmlReLex       -- :: Posn   -> String -> [Token]
-  , reLexForPERefs -- :: Posn   -> String -> [Token]
+  , reLexEntityValue -- :: (String->Maybe String) -> Posn -> String -> [Token]
   , posInNewCxt    -- :: String -> Posn
   -- * Token and position types
   , Token
@@ -228,24 +228,21 @@ xmlReLex p s
   where
     k n = skip n p s (blank xmlAny [])
 
--- | 'reLexForPERefs' is used solely within parsing an entityvalue.  Normally,
---   a PERef cannot appear within quotes (e.g. in an attribute value).  But
---   entityvalues are an exception - so we need to rescan for possible PERefs.
---   However, the only other things that can occur in quotes are freetext and
---   GERefs.
-reLexForPERefs :: Posn -> String -> [Token]
-reLexForPERefs p s = reLex [] p s
-  where reLex acc p (s:ss)
-            | s=='%'||s=='&' = (if not (null acc)
-                                   then (emit (TokFreeText (reverse acc)) p:)
-                                   else id)
-                               (emit (if s=='&' then TokAmp else TokPercent) p:
-                                reLex "" (addcol 1 p) ss)
-            | isSpace s      = reLex (s:acc) (white s p) ss
-            | otherwise      = reLex (s:acc) (addcol 1 p) ss
-        reLex acc p []       = if not (null acc)
-                                  then emit (TokFreeText (reverse acc)) p: []
-                                  else []
+-- | 'reLexEntityValue' is used solely within parsing an entityvalue.
+--   Normally, a PERef is logically separated from its surroundings by
+--   whitespace.  But in an entityvalue, a PERef can be juxtaposed to
+--   an identifier, so the expansion forms a new identifier.
+--   Thus the need to rescan the whole text for possible PERefs.
+reLexEntityValue :: (String->Maybe String) -> Posn -> String -> [Token]
+reLexEntityValue lookup p s =
+    textOrRefUntil "%" TokNull [] p p (expand s++"%") (xmlAny [])
+  where
+    expand []       = []
+    expand ('%':ss) = let (sym,rest) = break (==';') ss in
+                      case lookup sym of
+                        Just val -> expand val ++ expand (tail rest)
+                        Nothing  -> "%"++sym++";"++ expand (tail rest)	-- hmmm
+    expand (s:ss)   = s: expand ss
 
 --xmltop :: Posn -> String -> [Token]
 --xmltop p [] = []
