@@ -1,3 +1,5 @@
+{-# OPTIONS -fglasgow-exts #-}
+
 -- | This module provides the 'XmlContent' class and 'readXml' and 'writeXml'
 --   functions that you will need if you generate a module of Haskell
 --   datatype definitions from an XML DTD.  Use the DtdToHaskell
@@ -32,6 +34,7 @@ import Text.PrettyPrint.HughesPJ (render)
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Pretty (document)
 import Text.XML.HaXml.Parse  (xmlParse)
+import Text.XML.HaXml.Verbatim 
 
 
 -- | Read an XML document from a file and convert it to a fully-typed
@@ -237,10 +240,22 @@ data OneOf4 a b c d
     ... etc are now defined (with instances) in module OneOfN.
 -}
 
--- | A type corresponding to XML's ANY contentspec
---data ANYContent = forall a . XmlContent a => ANYContent a
-data ANYContent = ANYContent  deriving (Eq,Show)
+-- | A type corresponding to XML's ANY contentspec. 
+-- Is is either a list of unconverted xml 'Content' 
+-- or some XMLContent. 
+--
+-- Parsing functions (e.g. 'fromElem') will always produce 'UnConverted'.
+-- 
+-- Note: The Show instance for 'UnConverted' uses 'verbatim'.
+data ANYContent = forall a . (XmlContent a, Show a) => ANYContent a 
+                | UnConverted [Content]
 
+instance Show ANYContent where
+    show (UnConverted c) = "UnConverted " ++ (show $ map verbatim c)
+    show (ANYContent a)  = "ANYContent " ++ (show a)
+
+instance Eq ANYContent where
+    a == b = show a == show b
 
 -- | The List1 type represents lists with at least one element.
 --   It is required for DTD content models that use + as a modifier.
@@ -293,8 +308,10 @@ instance (XmlContent a) => XmlContent (List1 a) where
     toElem (NonEmpty xs) = concatMap toElem xs
 
 instance XmlContent ANYContent where
-    fromElem c0 = (Just ANYContent, [])
-    toElem ANYContent = []
+    fromElem []                        = (Nothing, [])
+    fromElem cont                      = (Just (UnConverted cont), [])
+    toElem (ANYContent a)              = toElem a
+    toElem (UnConverted s)             = s
 
 {-
 instance (XmlContent a, XmlContent b) => XmlContent (OneOf2 a b) where
