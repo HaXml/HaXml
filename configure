@@ -301,7 +301,7 @@ fi
 echo $INSTALLDIR >obj/prefix
 if $CYGWIN || $MINGW ; then echo .exe >obj/exe; else touch obj/exe; fi
 if $CYGWIN || $MINGW ; then echo main.exe >obj/out; else echo a.out >obj/out; fi
-if $DARWIN ; then echo -all_load; else echo --whole-archive; fi >obj/ldopt
+if $DARWIN ; then echo "-all_load -x"; else echo --whole-archive; fi >obj/ldopt
 
 
 echo "Ready to build.  Type 'make' then (as root) 'make install'."
