@@ -500,7 +500,7 @@ notationtype = do
 enumeration :: XParser Enumeration
 enumeration =
     bracket (tok TokBraOpen)
-            (peRef nmtoken `sepby1` peRef ((tok TokPipe)))
+            (peRef nmtoken `sepby1` blank (peRef (tok TokPipe)))
             (blank (tok TokBraClose))
 
 defaultdecl :: XParser DefaultDecl
@@ -515,15 +515,19 @@ conditionalsect :: XParser ConditionalSect
 conditionalsect =
     ( do tok TokSectionOpen
          peRef (tok (TokSection INCLUDEx))
+         p <- posn
          tok TokSqOpen `elserror` "missing [ after INCLUDE"
          i <- many (peRef extsubsetdecl)
-         tok TokSectionClose `elserror` "missing ]]> for INCLUDE section"
+         tok TokSectionClose `elserror` ("missing ]]> for INCLUDE section"
+                                        ++"\n    begun in "++show p)
          return (IncludeSect i)) +++
     ( do tok TokSectionOpen
          peRef (tok (TokSection IGNOREx))
+         p <- posn
          tok TokSqOpen `elserror` "missing [ after IGNORE"
          i <- many newIgnore  -- many ignoresectcontents
-         tok TokSectionClose `elserror` "missing ]]> for IGNORE section"
+         tok TokSectionClose `elserror` ("missing ]]> for IGNORE section"
+                                        ++"\n    begun in "++show p)
          return (IgnoreSect []))
 
 newIgnore :: XParser Ignore
@@ -596,7 +600,7 @@ gedecl = do
     n <- name
     e <- entitydef `elserror` "missing entity defn in G ENTITY decl"
     tok TokAnyClose `elserror` "expected > terminating G ENTITY decl"
-    stupd (addGE n e)
+    stupd (addGE n e) `debug` ("added GE defn &"++n++";")
     return (GEDecl n e)
 
 pedecl :: XParser PEDecl
@@ -607,7 +611,7 @@ pedecl = do
     n <- name
     e <- pedef `elserror` "missing entity defn in P ENTITY decl"
     tok TokAnyClose `elserror` "expected > terminating P ENTITY decl"
-    stupd (addPE n e)
+    stupd (addPE n e) `debug` ("added PE defn %"++n++";\n"++show e)
     return (PEDecl n e)
 
 entitydef :: XParser EntityDef
@@ -701,8 +705,6 @@ entityvalue = do
   where
     stringify (Just (PEDefEntityValue ev)) = Just (flattenEV ev)
     stringify _ = Nothing
-
-
 
 ev :: XParser EV
 ev =

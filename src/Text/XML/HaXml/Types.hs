@@ -206,7 +206,7 @@ data IgnoreSectContents = IgnoreSectContents Ignore [(IgnoreSectContents,Ignore)
 
 data Reference    = RefEntity EntityRef
                   | RefChar CharRef 
-                  deriving Eq
+                  deriving (Eq, Show)
 type EntityRef    = Name 
 type CharRef      = Int
 type PEReference  = Name 
@@ -218,9 +218,9 @@ data PEDecl       = PEDecl Name PEDef
 data EntityDef    = DefEntityValue EntityValue
                   | DefExternalID ExternalID (Maybe NDataDecl) 
 data PEDef        = PEDefEntityValue EntityValue
-                  | PEDefExternalID ExternalID 
+                  | PEDefExternalID ExternalID deriving (Show)
 data ExternalID   = SYSTEM SystemLiteral
-                  | PUBLIC PubidLiteral SystemLiteral 
+                  | PUBLIC PubidLiteral SystemLiteral deriving (Show)
 newtype NDataDecl = NDATA Name  
 
 data TextDecl     = TextDecl (Maybe VersionInfo) EncodingDecl 
@@ -238,12 +238,12 @@ type NmTokens = [NmToken]	 -- non-empty list
 
 data AttValue    = AttValue [Either String Reference]
                  deriving Eq
-data EntityValue = EntityValue [EV] 
+data EntityValue = EntityValue [EV] deriving (Show)
 data EV = EVString String
  --  -- | EVPERef PEReference
-        | EVRef Reference 
-newtype PubidLiteral  = PubidLiteral String 
-newtype SystemLiteral = SystemLiteral String 
+        | EVRef Reference  deriving (Show)
+newtype PubidLiteral  = PubidLiteral String deriving (Show)
+newtype SystemLiteral = SystemLiteral String deriving (Show)
 type CharData         = String 
 type CDSect           = CharData
 
