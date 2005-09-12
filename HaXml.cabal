@@ -18,6 +18,7 @@ exposed-modules:
 	Text.XML.HaXml.DtdToHaskell.TypeDef,
 	Text.XML.HaXml.Escape,
 	Text.XML.HaXml.Haskell2Xml,
+	Text.XML.HaXml.Haskell2XmlNew,
 	Text.XML.HaXml.Html.Generate,
 	Text.XML.HaXml.Html.Parse,
 	Text.XML.HaXml.Html.Pretty,
