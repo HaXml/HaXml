@@ -35,7 +35,11 @@ The only remaining thing is to ensure that you import the
 sources - it occasionally fails to recognise the <em>derive</em>
 command.  We have found a workaround: isolate just the <tt>data</tt>
 type declarations that are of interest, and run DrIFT on them
-separately.)
+separately.)  The syntax required is like this example:
+<pre>
+  data MyType a = A a | B String deriving (Eq, Show)
+      {-! derive : Haskell2Xml !-}	-- this line is for DrIFT
+</pre>
 
 <p>
 To read and write Haskell data values as XML files, you
