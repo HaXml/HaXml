@@ -9,12 +9,12 @@ main = do
     case length args of
       1 -> do n <- saferead (head args)
               putStrLn ("module Text.XML.HaXml."++constructor 1 n++" where\n")
-              putStrLn ("import Text.XML.HaXml.Xml2Haskell\n")
+              putStrLn ("import Text.XML.HaXml.XmlContent\n")
               putStrLn (mkOneOf n)
       2 -> do n <- saferead (args!!0)
               m <- saferead (args!!1)
               putStrLn ("module Text.XML.HaXml.OneOfN where\n")
-              putStrLn ("import Text.XML.HaXml.Xml2Haskell\n")
+              putStrLn ("import Text.XML.HaXml.XmlContent\n")
               mapM_ (putStrLn . mkOneOf) [n..m]
       _ -> error "Usage: MkOneOf n [m]"
     hFlush stdout
@@ -29,13 +29,18 @@ mkOneOf n =
                                  (take n variables))
     ++ "\n    deriving (Eq,Show)"
     ++ "\n\ninstance "++ format 10 78 10 "(" ","
+                                (map ("HTypeable "++) (take n variables))
+    ++ ")\n    => HTypeable ("++ typename n 26 ++")\n  where"
+    ++ "      toHType m = Defined \""++constructor 1 n++"\" [] []"
+    ++ "\n\ninstance "++ format 10 78 10 "(" ","
                                 (map ("XmlContent "++) (take n variables))
     ++ ")\n    => XmlContent ("++ typename n 26 ++")\n  where"
-    ++ "\n    fromElem cs ="
+    ++ "\n    parseContents ="
     ++ "\n       "++ format 7 78 7 " (" " $ "
                             (map (\v->"choice "++constructor v n) [1..n])
-    ++ "\n        $ (\\c->(Nothing,c))) cs"
-    ++ concatMap (\v->"\n    toElem ("++constructor v n++" x) = toElem x")
+    ++ "\n        $ fail \""++constructor 1 n++"\")"
+    ++ concatMap (\v->"\n    toContents ("++constructor v n
+                                          ++" x) = toContents x")
                  [1..n]
     ++ "\n\n----"
 

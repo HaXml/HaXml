@@ -8,6 +8,7 @@ import Char         (toLower)
 import List         (isSuffixOf)
 
 import Text.XML.HaXml.Types
+import Text.XML.HaXml.Posn          (posInNewCxt)
 import Text.XML.HaXml.Parse         (xmlParse)
 import Text.XML.HaXml.Html.Parse    (htmlParse)
 import Text.XML.HaXml.Xtract.Parse  (xtract)
@@ -36,16 +37,16 @@ main =
     mapM_ (\x-> do c <- (if x=="-" then getContents else readFile x)
                    ( if isHTML x then
                           hPutStrLn stdout . render . htmlprint .
-                          xtract (map toLower pattern) . getElem . htmlParse x
+                          xtract (map toLower pattern) . getElem x . htmlParse x
                      else hPutStrLn stdout . render . format .
-                          xtract pattern . getElem . xmlParse x) c
+                          xtract pattern . getElem x . xmlParse x) c
                    hFlush stdout)
           files
 
-getElem (Document _ _ e _) = CElem e
+getElem x (Document _ _ e _) = CElem e (posInNewCxt x Nothing)
 isHTML x = ".html" `isSuffixOf` x  ||  ".htm"  `isSuffixOf` x
 
 format [] = empty
-format cs@(CString _ _:_) = hcat . map content $ cs
-format cs@(CRef _:_)      = hcat . map content $ cs
-format cs                 = vcat . map content $ cs
+format cs@(CString _ _ _:_) = hcat . map content $ cs
+format cs@(CRef _ _:_)      = hcat . map content $ cs
+format cs                   = vcat . map content $ cs

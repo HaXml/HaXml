@@ -2,7 +2,7 @@
 #       configure -- prepare to compile/install the HaXml package
 #       author:   Malcolm.Wallace@cs.york.ac.uk, August 2002
 
-VERSION="1.13"
+VERSION="1.14"
 
 if [ -f obj/prefix ]
 then INSTALLDIR=`cat obj/prefix`
@@ -98,8 +98,8 @@ fi
 if [ "$GHCKNOWN" = "" ]
 then echo "(not found)"
 else echo "found ${GHCVERSION}"
-     if [ "$GHCNUM" -lt "502" ]
-     then  echo "    Warning: HaXml needs ghc-5.02 or later.  Ignoring ghc."
+     if [ "$GHCNUM" -lt "504" ]
+     then  echo "    Warning: HaXml needs ghc-5.04 or later.  Ignoring ghc."
            GHCKNOWN=
      else  GHCLIBDIR=`${GHCKNOWN} -v 2>&1 | grep ' package config file: ' | head -1 | sed 's/.* package config file: //'`
            if $CYGWIN; then GHCLIBDIR=`cygpath -u $GHCLIBDIR`; fi
@@ -130,8 +130,8 @@ then
     if [ "$GHC2KNOWN" = "" ]
     then  echo "(not found)"
     else  echo "found ${GHC2VERSION}"
-          if [ "$GHC2NUM" -lt "502" ]
-          then echo "    Warning: HaXml needs ghc-5.02 or later.  Ignoring."
+          if [ "$GHC2NUM" -lt "504" ]
+          then echo "    Warning: HaXml needs ghc-5.04 or later.  Ignoring."
                GHC2KNOWN=
           else GHCKNOWN="$GHC2KNOWN"
                GHCVERSION="$GHC2VERSION"
@@ -161,8 +161,8 @@ else  echo "found ${NHCVERSION}"
      then echo "    Warning: building with nhc98 needs hmake-3.06 or later."
           echo "    Available from:   http://www.haskell.org/hmake/"
      fi
-     if [ "$NHCNUM" -lt "114" ]
-     then  echo "    Warning: HaXml needs nhc98-1.14 or later.  Ignoring nhc98."
+     if [ "$NHCNUM" -lt "116" ]
+     then  echo "    Warning: HaXml needs nhc98-1.16 or later.  Ignoring nhc98."
            NHCKNOWN=
      else  NHCLIBDIR=`grep '^NHC98LIBDIR' $NHCKNOWN | cut -c27- | cut -d'}' -f1 | head -1`
            NHCINCDIR=`grep '^NHC98INCDIR' $NHCKNOWN | cut -c27- | cut -d'}' -f1 | head -1`

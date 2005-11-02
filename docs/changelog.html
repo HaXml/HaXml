@@ -16,16 +16,21 @@
 <h3>Changes in CVS</h3>
 <p>
 <ul>
+<li> New: Completely replace the Xml2Haskell and Haskell2Xml modules.
+     They are now combined into a single class called XmlContent.
+     This makes the secondary parsing of generic XML trees
+     to typed values more robust, with better error messages, etc.
+     DrIFT and DtdToHaskell are being updated to both produce instances
+     of XmlContent, depending on whether you start from Haskell or from
+     the DTD.
 <li> Improve the content handling that corresponds to an ANY contentspec.
      (Now represented as an existential type.)
+<li> New: a SAX-like stream parser for XML events.
 <li> Bugfix: accept attribute values containing the % character, without
      starting a PERef.
 <li> Bugfix: for expanding PERefs correctly in entity values.
 <li> The DTD for SVG (Scalable Vector Graphics) now goes through DtdToHaskell
      successfully.
-<li> Introduce a new API for the class Haskell2Xml - imaginatively called
-     Haskell2XmlNew.  This makes the secondary parsing of generic XML trees
-     to typed values more robust, with better error messages, etc.
 </ul>
 
 <h3>Changes for 1.13 </h3>

@@ -1,20 +1,24 @@
 SOFTWARE = HaXml
-VERSION = 1.12.2
+VERSION = 1.14
 
 LIBSRCS = \
 	Text/XML/HaXml.hs Text/XML/HaXml/Combinators.hs Text/XML/HaXml/Lex.hs \
+	Text/XML/HaXml/Posn.hs \
 	Text/XML/HaXml/Parse.hs Text/XML/HaXml/Pretty.hs \
 	Text/XML/HaXml/Types.hs Text/XML/HaXml/Validate.hs \
-	Text/XML/HaXml/Wrappers.hs Text/XML/HaXml/OneOfN.hs \
-	Text/XML/HaXml/Xml2Haskell.hs Text/XML/HaXml/Haskell2Xml.hs \
-	Text/XML/HaXml/Haskell2XmlNew.hs \
+	Text/XML/HaXml/Wrappers.hs \
+	Text/XML/HaXml/OneOfN.hs \
+	Text/XML/HaXml/TypeMapping.hs  Text/XML/HaXml/XmlContent.hs \
 	Text/XML/HaXml/Verbatim.hs Text/XML/HaXml/Escape.hs \
+	Text/XML/HaXml/SAX.hs \
 	Text/XML/HaXml/Html/Generate.hs Text/XML/HaXml/Html/Parse.hs \
 	Text/XML/HaXml/Html/Pretty.hs \
 	Text/XML/HaXml/Xtract/Combinators.hs \
 	Text/XML/HaXml/Xtract/Lex.hs \
 	Text/XML/HaXml/Xtract/Parse.hs \
-	Text/ParserCombinators/HuttonMeijerWallace.hs
+	Text/ParserCombinators/HuttonMeijer.hs \
+	Text/ParserCombinators/HuttonMeijerWallace.hs \
+	Text/ParserCombinators/Poly.hs Text/ParserCombinators/TextParser.hs \
 
 LIBOBJS = $(patsubst %.hs, %.o, $(LIBSRCS))
 

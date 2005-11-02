@@ -1,15 +1,19 @@
 SOFTWARE = HaXml
-VERSION  = 1.13
+VERSION  = 1.14
+
+CPP      = cpp -P -traditional
+#CPP     = cpphs --noline --text 	# useful e.g. on MacOS X
 
 SRCS = \
 	src/Text/XML/HaXml.hs src/Text/XML/HaXml/Combinators.hs \
-	src/Text/XML/HaXml/Lex.hs \
+	src/Text/XML/HaXml/Posn.hs src/Text/XML/HaXml/Lex.hs \
 	src/Text/XML/HaXml/Parse.hs src/Text/XML/HaXml/Pretty.hs \
 	src/Text/XML/HaXml/Types.hs src/Text/XML/HaXml/Validate.hs \
-	src/Text/XML/HaXml/Wrappers.hs src/Text/XML/HaXml/OneOfN.hs \
+	src/Text/XML/HaXml/Wrappers.hs \
 	src/Text/XML/HaXml/Verbatim.hs src/Text/XML/HaXml/Escape.hs \
-	src/Text/XML/HaXml/Xml2Haskell.hs src/Text/XML/HaXml/Haskell2Xml.hs \
-	src/Text/XML/HaXml/Haskell2XmlNew.hs \
+	src/Text/XML/HaXml/OneOfN.hs \
+	src/Text/XML/HaXml/TypeMapping.hs src/Text/XML/HaXml/XmlContent.hs \
+	src/Text/XML/HaXml/SAX.hs \
 	src/Text/XML/HaXml/Html/Generate.hs src/Text/XML/HaXml/Html/Parse.hs \
 	src/Text/XML/HaXml/Html/Pretty.hs \
 	src/Text/XML/HaXml/Xtract/Combinators.hs \
@@ -18,8 +22,10 @@ SRCS = \
 	src/Text/XML/HaXml/DtdToHaskell/TypeDef.hs \
 	src/Text/XML/HaXml/DtdToHaskell/Convert.hs \
 	src/Text/XML/HaXml/DtdToHaskell/Instance.hs \
+	src/Text/ParserCombinators/HuttonMeijer.hs \
 	src/Text/ParserCombinators/HuttonMeijerWallace.hs \
-	src/Text/PrettyPrint/HughesPJ.hs
+	src/Text/ParserCombinators/Poly.hs \
+	src/Text/ParserCombinators/TextParser.hs
 TOOLSRCS = \
 	src/tools/DtdToHaskell.hs src/tools/Xtract.hs src/tools/Validate.hs \
 	src/tools/Canonicalise.hs src/tools/MkOneOf.hs
@@ -70,7 +76,7 @@ install-filesonly-nhc98:
 install-filesonly-hugs: install-hugs
 haddock:
 	for file in $(SRCS); \
-		do cpp -P -traditional -D__NHC__ $$file >$$file.uncpp; \
+		do $(CPP) -D__NHC__ $$file >$$file.uncpp; \
 		done
 	-mkdir docs/HaXml
 	haddock -h -t HaXml -o docs/HaXml $(patsubst %, %.uncpp, $(SRCS))

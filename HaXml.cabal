@@ -1,5 +1,5 @@
 name:		HaXml
-version:	1.13
+version:	1.14
 license:	LGPL
 license-file:	COPYRIGHT
 author:		Malcolm Wallace <Malcolm.Wallace@cs.york.ac.uk>
@@ -10,27 +10,31 @@ description:
 	Haskell utilities for parsing, filtering, transforming and
 	generating XML documents.
 exposed-modules:
+	Text.ParserCombinators.HuttonMeijer,
 	Text.ParserCombinators.HuttonMeijerWallace,
+	Text.ParserCombinators.Poly,
+	Text.ParserCombinators.TextParser,
 	Text.XML.HaXml,
 	Text.XML.HaXml.Combinators,
 	Text.XML.HaXml.DtdToHaskell.Convert,
 	Text.XML.HaXml.DtdToHaskell.Instance,
 	Text.XML.HaXml.DtdToHaskell.TypeDef,
 	Text.XML.HaXml.Escape,
-	Text.XML.HaXml.Haskell2Xml,
-	Text.XML.HaXml.Haskell2XmlNew,
 	Text.XML.HaXml.Html.Generate,
 	Text.XML.HaXml.Html.Parse,
 	Text.XML.HaXml.Html.Pretty,
 	Text.XML.HaXml.Lex,
 	Text.XML.HaXml.OneOfN,
 	Text.XML.HaXml.Parse,
+	Text.XML.HaXml.Posn,
 	Text.XML.HaXml.Pretty,
+	Text.XML.HaXml.SAX,
 	Text.XML.HaXml.Types,
+	Text.XML.HaXml.TypeMapping,
 	Text.XML.HaXml.Validate,
 	Text.XML.HaXml.Verbatim,
 	Text.XML.HaXml.Wrappers,
-	Text.XML.HaXml.Xml2Haskell,
+	Text.XML.HaXml.XmlContent,
 	Text.XML.HaXml.Xtract.Combinators,
 	Text.XML.HaXml.Xtract.Lex,
 	Text.XML.HaXml.Xtract.Parse
