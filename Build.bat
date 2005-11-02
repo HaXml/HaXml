@@ -1,32 +1,36 @@
 REM -- Build HaXml package using GHC
 REM
-REM    Usage:
+REM    Usage: (case-sensitive)
 REM      Build         compile and install the HaXml library GHC package
 REM      Build Remove  remove the HaXml GHC library package
 REM      Build Tools   compile the tools shipped with HaXml
 
-rem -- Change the following to suit the local system environment --
+rem -- Change the following variables (upto and including SRC)
+rem -- to suit the local system environment --
+
+rem    GHC version
+set GHCVER=6.2.2
 
 rem    GHC installation directory:
-set GHCDIR=C:\DEV\ghc\ghc-6.4
+set GHCDIR=C:\DEV\ghc\ghc-%GHCVER%
 
 rem    Programs needed to build HaXml:
 rem
 rem    NOTE: install MinGW linked from <http://www.mingw.org/>
 rem    for a copy of 'ar.exe'
 rem
-set GHC=C:\DEV\ghc\ghc-6.4\bin\ghc.exe
-set GHCPKG=C:\DEV\ghc\ghc-6.4\bin\ghc-pkg.exe
+set GHC=C:\DEV\ghc\ghc-%GHCVER%\bin\ghc.exe
+set GHCPKG=C:\DEV\ghc\ghc-%GHCVER%\bin\ghc-pkg.exe
 set AR=C:\DEV\MinGW\bin\ar.exe
-set LD=C:\DEV\ghc\ghc-6.4\gcc-lib\ld.exe
+set LD=C:\DEV\ghc\ghc-%GHCVER%\gcc-lib\ld.exe
 
 rem    Source directory for HaXml:
-set SRC=C:\DEV\Haskell\lib\HaXml-1.12\src
+set SRC=C:\DEV\Haskell\lib\HaXml-1.14\src
 
 rem    Two very long lines (500-600 chars) follow here.  
 rem    They should not need changing.
-set SRCS=Text/XML/HaXml.hs Text/XML/HaXml/Combinators.hs Text/XML/HaXml/Lex.hs  Text/XML/HaXml/Parse.hs Text/XML/HaXml/Pretty.hs Text/XML/HaXml/Types.hs Text/XML/HaXml/Validate.hs Text/XML/HaXml/Wrappers.hs Text/XML/HaXml/OneOfN.hs Text/XML/HaXml/Xml2Haskell.hs Text/XML/HaXml/Haskell2Xml.hs Text/XML/HaXml/Verbatim.hs Text/XML/HaXml/Escape.hs Text/XML/HaXml/Html/Generate.hs Text/XML/HaXml/Html/Parse.hs Text/XML/HaXml/Html/Pretty.hs Text/XML/HaXml/Xtract/Combinators.hs Text/XML/HaXml/Xtract/Lex.hs Text/XML/HaXml/Xtract/Parse.hs Text/ParserCombinators/HuttonMeijerWallace.hs
-set OBJS=Text/XML/HaXml.o Text/XML/HaXml/Combinators.o Text/XML/HaXml/Lex.o  Text/XML/HaXml/Parse.o Text/XML/HaXml/Pretty.o Text/XML/HaXml/Types.o Text/XML/HaXml/Validate.o Text/XML/HaXml/Wrappers.o Text/XML/HaXml/OneOfN.o Text/XML/HaXml/Xml2Haskell.o Text/XML/HaXml/Haskell2Xml.o Text/XML/HaXml/Verbatim.o Text/XML/HaXml/Escape.o Text/XML/HaXml/Html/Generate.o Text/XML/HaXml/Html/Parse.o Text/XML/HaXml/Html/Pretty.o Text/XML/HaXml/Xtract/Combinators.o Text/XML/HaXml/Xtract/Lex.o Text/XML/HaXml/Xtract/Parse.o Text/ParserCombinators/HuttonMeijerWallace.o
+set SRCS=Text/XML/HaXml.hs Text/XML/HaXml/Combinators.hs Text/XML/HaXml/Posn.hs Text/XML/HaXml/Lex.hs  Text/XML/HaXml/Parse.hs Text/XML/HaXml/Pretty.hs Text/XML/HaXml/Types.hs Text/XML/HaXml/Validate.hs Text/XML/HaXml/Wrappers.hs Text/XML/HaXml/OneOfN.hs Text/XML/HaXml/XmlContent.hs Text/XML/HaXml/TypeMapping.hs Text/XML/HaXml/Verbatim.hs Text/XML/HaXml/Escape.hs Text/XML/HaXml/SAX.hs Text/XML/HaXml/Html/Generate.hs Text/XML/HaXml/Html/Parse.hs Text/XML/HaXml/Html/Pretty.hs Text/XML/HaXml/Xtract/Combinators.hs Text/XML/HaXml/Xtract/Lex.hs Text/XML/HaXml/Xtract/Parse.hs Text/ParserCombinators/Poly.hs Text/ParserCombinators/TextParser.hs
+set OBJS=Text/XML/HaXml.o Text/XML/HaXml/Combinators.o Text/XML/HaXml/Posn.o Text/XML/HaXml/Lex.o  Text/XML/HaXml/Parse.o Text/XML/HaXml/Pretty.o Text/XML/HaXml/Types.o Text/XML/HaXml/Validate.o Text/XML/HaXml/Wrappers.o Text/XML/HaXml/OneOfN.o Text/XML/HaXml/XmlContent.o Text/XML/HaXml/TypeMapping.o Text/XML/HaXml/Verbatim.o Text/XML/HaXml/Escape.o Text/XML/HaXml/SAX.o Text/XML/HaXml/Html/Generate.o Text/XML/HaXml/Html/Parse.o Text/XML/HaXml/Html/Pretty.o Text/XML/HaXml/Xtract/Combinators.o Text/XML/HaXml/Xtract/Lex.o Text/XML/HaXml/Xtract/Parse.o Text/ParserCombinators/Poly.o Text/ParserCombinators/TextParser.o
 
 
 rem -- Get on with the real work --
@@ -35,7 +39,7 @@ if "%1"=="Remove" goto Remove
 if "%1"=="Tools" goto Tools
 
 rem -- Compile sources and create library archive
-COPY HaXml.cabal %SRC%\pkg.conf
+if "%GHCVER%"=="6.4" COPY HaXml.cabal %SRC%\pkg.conf
 cd %SRC%
 %GHC% --make -cpp -i. -package-name HaXml %SRCS%
 %AR% r libHSHaXml.a %OBJS%
@@ -54,11 +58,12 @@ rem    /F - display full filenames while copying
 XCOPY /S /F *.hi %GHCDIR%\imports
 
 rem -- Finally, register the package with GHC
-ECHO import-dirs:   %GHCDIR%\imports >>pkg.conf
-ECHO library-dirs:  %GHCDIR% >>pkg.conf
-ECHO depends:       base, haskell98 >>pkg.conf
-ECHO hs-libraries:  HSHaXml >>pkg.conf
-%GHCPKG% register pkg.conf
+if "%GHCVER%"=="6.2.2" %GHCPKG% --add-package -i pkg.conf
+if "%GHCVER%"=="6.4"   ECHO import-dirs:   %GHCDIR%\imports >>pkg.conf
+if "%GHCVER%"=="6.4"   ECHO library-dirs:  %GHCDIR% >>pkg.conf
+if "%GHCVER%"=="6.4"   ECHO depends:       base, haskell98 >>pkg.conf
+if "%GHCVER%"=="6.4"   ECHO hs-libraries:  HSHaXml >>pkg.conf
+if "%GHCVER%"=="6.4"   %GHCPKG% register pkg.conf
 
 goto Exit
 
