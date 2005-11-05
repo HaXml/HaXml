@@ -6,7 +6,7 @@ module Text.XML.HaXml.Validate
 
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Combinators (multi,tag,iffind,literal,none,o)
-import Text.XML.HaXml.Xml2Haskell (attr2str)
+import Text.XML.HaXml.XmlContent (attr2str)
 import Maybe (fromMaybe,isNothing,fromJust)
 import List (intersperse,nub,(\\))
 import Char (isSpace)
@@ -62,7 +62,7 @@ False `gives` _ = []
 --   If you have several documents to validate against a single DTD,
 --   then you will gain efficiency by freezing-in the DTD through partial
 --   application, e.g. @checkMyDTD = validate myDTD@.
-validate :: DocTypeDecl -> Element -> [String]
+validate :: DocTypeDecl -> Element i -> [String]
 validate dtd' elem = root dtd' elem ++ partialValidate dtd' elem
   where
     root (DTD name _ _) (Elem name' _ _) =
@@ -71,7 +71,7 @@ validate dtd' elem = root dtd' elem ++ partialValidate dtd' elem
 
 -- | 'partialValidate' is like validate, except that it does not check that
 --   the element type matches that of the DTD's root element.
-partialValidate :: DocTypeDecl -> Element -> [String]
+partialValidate :: DocTypeDecl -> Element i -> [String]
 partialValidate dtd' elem = valid elem ++ checkIDs elem
   where
     dtd = simplifyDTD dtd'
@@ -93,7 +93,7 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
         -- are its children in a permissible sequence?
         ++ checkContentSpec name (fromMaybe ANY spec) contents
         -- now recursively check the element children
-        ++ concatMap valid [ elem | CElem elem <- contents ]
+        ++ concatMap valid [ elem | CElem elem _ <- contents ]
 
     checkAttr elem (attr, val) =
         let typ = lookupFM (attributes dtd) (elem,attr)
@@ -131,19 +131,19 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
                       _  -> errs++["Element <"++elem++"> contains extra "
                                   ++"elements beyond its content spec."])
 
-    checkMixed elem permitted (CElem (Elem name _ _))
+    checkMixed elem permitted (CElem (Elem name _ _) _)
         | not (name `Prelude.elem` permitted) =
             ["Element <"++elem++"> contains an element <"++name
              ++"> but should not."]
     checkMixed elem permitted _ = []
 
-    flatten (CElem (Elem name _ _): cs) = name: flatten cs
-    flatten (_: cs)                     = flatten cs
-    flatten []                          = []
+    flatten (CElem (Elem name _ _) _: cs) = name: flatten cs
+    flatten (_: cs)                       = flatten cs
+    flatten []                            = []
 
-    excludeText elem (CElem _: cs) = excludeText elem cs
-    excludeText elem (CMisc _: cs) = excludeText elem cs
-    excludeText elem (CString _ s: cs) | all isSpace s = excludeText elem cs
+    excludeText elem (CElem _ _: cs) = excludeText elem cs
+    excludeText elem (CMisc _ _: cs) = excludeText elem cs
+    excludeText elem (CString _ s _: cs) | all isSpace s = excludeText elem cs
     excludeText elem (_:  cs) =
         ["Element <"++elem++"> contains text/references but should not."]
     excludeText elem [] = []
@@ -225,12 +225,12 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
               ([],ns) cps
 
     checkIDs elem =
-        let celem = CElem elem
+        let celem = CElem elem undefined
             showAttr a = iffind a literal none
             idElems = concatMap (\(name,at)-> multi (showAttr at `o` tag name)
                                                     celem)
                                 (ids dtd)
-            badIds  = duplicates (map (\(CString _ s)->s) idElems)
+            badIds  = duplicates (map (\(CString _ s _)->s) idElems)
         in not (null badIds) `gives`
                ("These attribute values of type ID are not unique: "
                 ++concat (intersperse "," badIds)++".")

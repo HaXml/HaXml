@@ -63,13 +63,13 @@ instance (Verbatim a, Verbatim b) => Verbatim (Either a b) where
     verbatim (Left v)  = verbatim v
     verbatim (Right v) = verbatim v
 
-instance Verbatim Content where
-    verbatim (CElem c)     = verbatim c
-    verbatim (CString _ c) = c
-    verbatim (CRef c)      = verbatim c
-    verbatim (CMisc _)     = error "NYI: verbatim not defined for CMisc"
+instance Verbatim (Content i) where
+    verbatim (CElem c _)     = verbatim c
+    verbatim (CString _ c _) = c
+    verbatim (CRef c _)      = verbatim c
+    verbatim (CMisc _ _)     = error "NYI: verbatim not defined for CMisc"
 
-instance Verbatim Element where
+instance Verbatim (Element i) where
     verbatim (Elem nam att [])   = "<" ++ nam ++ (concat . (map verbAttr)) att
                                    ++ "/>"
     verbatim (Elem nam att cont) = "<" ++ nam ++ (concat . (map verbAttr)) att

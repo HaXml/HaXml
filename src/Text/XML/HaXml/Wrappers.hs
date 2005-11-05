@@ -10,6 +10,7 @@ import List (isSuffixOf)
 
 import Text.XML.HaXml.Types       (Document(..),Content(..))
 import Text.XML.HaXml.Combinators (CFilter)
+import Text.XML.HaXml.Posn        (Posn,posInNewCxt)
 import Text.XML.HaXml.Parse       (xmlParse)
 import Text.XML.HaXml.Html.Parse  (htmlParse)
 import Text.XML.HaXml.Pretty      (element)
@@ -28,7 +29,7 @@ fix2Args = do
     1 -> return (args!!0, "-")
     2 -> return (args!!0, args!!1)
     _ -> do prog <- getProgName
-            putStrLn ("Usage: "++prog++" [xmlfile] [outfile]")
+            putStrLn ("Usage: "++prog++" [infile] [outfile]")
             exitFailure
 
 
@@ -40,7 +41,7 @@ fix2Args = do
 --
 --   If the input filename ends with .html or .htm, it is parsed using
 --   the error-correcting HTML parser rather than the strict XML parser.
-processXmlWith :: CFilter -> IO ()
+processXmlWith :: CFilter Posn -> IO ()
 processXmlWith f = do
   (inf,outf) <- fix2Args
   input      <- if inf=="-" then getContents else readFile inf
@@ -49,12 +50,12 @@ processXmlWith f = do
                 then return (htmlParse inf)
                 else do hPutStrLn o "<?xml version='1.0'?>"
                         return (xmlParse inf)
-  ( hPutStrLn o . render . ppContent . f . getContent . parse) input
+  ( hPutStrLn o . render . ppContent . f . getContent inf . parse) input
 
   where
-    getContent (Document _ _ e _) = CElem e
+    getContent f (Document _ _ e _) = CElem e (posInNewCxt f Nothing)
 
-    ppContent [CElem e] = element e
+    ppContent [CElem e _] = element e
     ppContent []  = error "produced no output"
     ppContent _   = error "produced more than one output"
 

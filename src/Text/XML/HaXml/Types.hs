@@ -32,6 +32,7 @@ module Text.XML.HaXml.Types
   , Content(..)
   , Attribute
   , AttValue(..)
+  , info
 
   -- ** Administrative parts of the document
   , Prolog(..)
@@ -128,7 +129,7 @@ lookupST = lookup
 
 -- | The symbol table stored in a document holds all its general entity
 --   reference definitions.
-data Document = Document Prolog (SymTab EntityDef) Element [Misc]
+data Document i = Document Prolog (SymTab EntityDef) (Element i) [Misc]
 data Prolog   = Prolog (Maybe XMLDecl) [Misc] (Maybe DocTypeDecl) [Misc]
 data XMLDecl  = XMLDecl VersionInfo (Maybe EncodingDecl) (Maybe SDDecl) 
 data Misc     = Comment Comment
@@ -152,14 +153,29 @@ data ExtSubset     = ExtSubset (Maybe TextDecl) [ExtSubsetDecl]
 data ExtSubsetDecl = ExtMarkupDecl MarkupDecl
                    | ExtConditionalSect ConditionalSect
 
-data Element   = Elem Name [Attribute] [Content]
+data Element i = Elem Name [Attribute] [Content i]
 data ElemTag   = ElemTag Name [Attribute]	-- ^ intermediate for parsing
 type Attribute = (Name, AttValue)
-data Content   = CElem Element
-               | CString Bool CharData
+data Content i = CElem (Element i) i
+               | CString Bool CharData i
 			-- ^ bool is whether whitespace is significant
-               | CRef Reference
-               | CMisc Misc
+               | CRef Reference i
+               | CMisc Misc i
+
+info (CElem _ i) = i
+info (CString _ _ i) = i
+info (CRef _ i) = i
+info (CMisc _ i) = i
+
+instance Functor Document where
+  fmap f (Document p st e ms) = Document p st (fmap f e) ms
+instance Functor Element where
+  fmap f (Elem t as cs) = Elem t as (map (fmap f) cs)
+instance Functor Content where
+  fmap f (CElem e i)     = CElem (fmap f e) (f i)
+  fmap f (CString b s i) = CString b s (f i)
+  fmap f (CRef r i)      = CRef r (f i)
+  fmap f (CMisc m i)     = CMisc m (f i)
 
 data ElementDecl = ElementDecl Name ContentSpec
 data ContentSpec = EMPTY
@@ -224,7 +240,7 @@ data ExternalID   = SYSTEM SystemLiteral
 newtype NDataDecl = NDATA Name  
 
 data TextDecl     = TextDecl (Maybe VersionInfo) EncodingDecl 
-data ExtParsedEnt = ExtParsedEnt (Maybe TextDecl) Content 
+data ExtParsedEnt i = ExtParsedEnt (Maybe TextDecl) (Content i)
 data ExtPE        = ExtPE (Maybe TextDecl) [ExtSubsetDecl]
 
 data NotationDecl    = NOTATION Name (Either ExternalID PublicID) 

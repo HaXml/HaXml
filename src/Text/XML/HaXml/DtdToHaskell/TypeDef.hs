@@ -199,6 +199,7 @@ manglef (n:ns)
 decolonify :: Char -> Char
 decolonify ':' = '\''   -- TODO: turn namespaces into qualified identifiers
 decolonify '-' = '_'
+decolonify '.' = '_'
 decolonify  c  = c
 
 commaList = hcat . intersperse comma

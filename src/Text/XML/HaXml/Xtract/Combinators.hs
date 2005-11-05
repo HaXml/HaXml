@@ -16,24 +16,24 @@ import Text.XML.HaXml.Combinators
 
 
 -- | double content filter - takes document root + local subtree.
-type DFilter = Content -> Content -> [Content]
+type DFilter i = Content i -> Content i -> [Content i]
 
 -- | lift an ordinary content filter to a double filter.
-local,global :: CFilter -> DFilter
+local,global :: CFilter i -> DFilter i
 local  f = \xml sub-> f sub
 global f = \xml sub-> f xml
 
 -- | drop a double filter to an ordinary content filter
-dfilter :: DFilter -> CFilter
+dfilter :: DFilter i -> CFilter i
 dfilter f = \xml-> f xml xml
 
 -- | lift a CFilter combinator to a DFilter combinator
-oloco, oglobo :: (CFilter->CFilter) -> (DFilter->DFilter)
+oloco, oglobo :: (CFilter i->CFilter i) -> (DFilter i->DFilter i)
 oloco ff  = \df-> \xml sub-> (ff (df xml)) sub
 oglobo ff = \df-> \xml sub-> (ff (df xml)) xml
 
 -- | lifted composition over double filters.
-ooo :: DFilter -> DFilter -> DFilter
+ooo :: DFilter i -> DFilter i -> DFilter i
 g `ooo` f = \xml-> concatMap (g xml) . (f xml)
 
 -- | lifted choice.
@@ -42,43 +42,43 @@ f ||>|| g = \xml sub-> let first = f xml sub in
                        if null first then g xml sub else first
 
 -- | lifted predicates.
-owitho, owithouto :: DFilter -> DFilter -> DFilter
+owitho, owithouto :: DFilter i -> DFilter i -> DFilter i
 f `owitho` g    = \xml-> filter (not.null.g xml) . f xml
 f `owithouto` g = \xml-> filter     (null.g xml) . f xml
 
 -- | lifted unit and zero.
-okeepo, ononeo :: DFilter
+okeepo, ononeo :: DFilter i
 okeepo = \xml sub-> [sub]	-- local keep
 ononeo = \xml sub-> []		-- local none
 
-ochildreno, oelmo, otxto :: DFilter
+ochildreno, oelmo, otxto :: DFilter i
 ochildreno = local children
 oelmo      = local elm
 otxto      = local txt
 
-applypred :: CFilter -> DFilter -> CFilter
+applypred :: CFilter i -> DFilter i -> CFilter i
 applypred f p = \xml-> (const f `owitho` p) xml xml
 
-oiffindo :: String -> (String -> DFilter) -> DFilter -> DFilter
-oiffindo key yes no xml c@(CElem (Elem _ as _)) =
+oiffindo :: String -> (String -> DFilter i) -> DFilter i -> DFilter i
+oiffindo key yes no xml c@(CElem (Elem _ as _) _) =
   case (lookup key as) of
     Nothing -> no xml c
     (Just (AttValue [Left s])) -> yes s xml c
 oiffindo key yes no xml other = no xml other
 
-oifTxto :: (String->DFilter) -> DFilter -> DFilter
-oifTxto yes no xml c@(CString _ s) = yes s xml c
-oifTxto yes no xml c               = no xml c
+oifTxto :: (String->DFilter i) -> DFilter i -> DFilter i
+oifTxto yes no xml c@(CString _ s _) = yes s xml c
+oifTxto yes no xml c                 = no xml c
 
 ocato :: [a->b->[c]] -> (a->b->[c])
 ocato fs = \xml sub-> concat [ f xml sub | f <- fs ]
 
-(//>>) :: DFilter -> DFilter -> DFilter
+(//>>) :: DFilter i -> DFilter i -> DFilter i
 f //>> g = g `ooo` ochildreno `ooo` f
 
-(<<//) :: DFilter -> DFilter -> DFilter
+(<<//) :: DFilter i -> DFilter i -> DFilter i
 f <<// g = f `owitho` (g `ooo` ochildreno)
 
-odeepo :: DFilter -> DFilter
+odeepo :: DFilter i -> DFilter i
 odeepo f   = f ||>|| (odeepo f `ooo` ochildreno)
 

@@ -7,52 +7,49 @@
 --   transformed it into a non-left-recursive form.
 module Text.XML.HaXml.Xtract.Parse (parseXtract,xtract) where
 
-import Text.ParserCombinators.HuttonMeijerWallace hiding (bracket,elserror)
+import Text.ParserCombinators.Poly hiding (bracket)
 import Text.XML.HaXml.Xtract.Lex
 import Text.XML.HaXml.Xtract.Combinators
 import Text.XML.HaXml.Combinators
 import List(isPrefixOf)
 
--- | To mix an Xtract query into an ordinary HaXml combinator expression.
-xtract :: String -> CFilter
+-- | To convert an Xtract query into an ordinary HaXml combinator expression.
+xtract :: String -> CFilter i
 xtract query = dfilter (parseXtract query)
 
 -- | The cool thing is that the Xtract command parser directly builds
---   a higher-order 'DFilter' (see "Text.Xml.HaXml.Xtract.Combinators")
+--   a higher-order 'DFilter' (see "Text.XML.HaXml.Xtract.Combinators")
 --   which can be applied to an XML document without further ado.
-parseXtract :: String -> DFilter
-parseXtract = sanitycheck . either error id . papply' xql () . lexXtract
+--   (@parseXtract@ halts the program if a parse error is found.)
+parseXtract :: String -> DFilter i
+parseXtract = either error id . parseXtract'
 
-sanitycheck :: (Show p,Show t) => [(a,s,[Either String (p,t)])] -> a
-sanitycheck [] = error "***Error at char pos 0 in expression: no parse"
-sanitycheck ((x,_,[]):_) = x
-sanitycheck ((x,_,s@(Right (n,_):_)):xs) =
-  error ("***Error at "++show n++" in search expression: \""++remainder++"\"")
-  where remainder = concatMap (show.snd.either error id) s
+-- | @parseXtract'@ returns error messages through the Either type.
+parseXtract' :: String -> Either String (DFilter i)
+parseXtract' = (\ (x,_,_)->x) . runParser xql () . lexXtract
 
 xql = aquery (local keep)
 
-
 ---- Auxiliary Parsing Functions ----
-type XParser s a = Parser s (Posn,TokenT) String a
+type XParser a = Parser () (Either String (Posn,TokenT)) a
 
-string :: XParser s String
-string = P (\st inp -> case inp of {
-                (Left err: _) -> Left err;
-                (Right (p,TokString n):ts) -> Right [(n,st,ts)];
-                ts -> Right [] } )
-number :: XParser s Integer
-number = P (\st inp -> case inp of {
-                (Left err: _) -> Left err;
-                (Right (p,TokNum n):ts) -> Right [(n,st,ts)];
-                ts -> Right [] } )
-symbol :: String -> XParser s ()
-symbol s = P (\st inp -> case inp of {
-                (Left err: _) -> Left err;
-                (Right (p, Symbol n):ts) -> if n==s then Right [((),st,ts)]
-                                            else Right [];
-                ts -> Right [] } )
-quote = symbol "'" +++ symbol "\""
+string :: XParser String
+string = P (\st inp -> case inp of
+                (Left err: _) -> (Left err, st, inp)
+                (Right (p,TokString n):ts) -> (Right n, st, ts)
+                ts -> (Left "expected a string", st, ts) )
+number :: XParser Integer
+number = P (\st inp -> case inp of
+                (Left err: _) -> (Left err, st, inp)
+                (Right (p,TokNum n):ts) -> (Right n, st, ts)
+                ts -> (Left "expected a number", st, ts) )
+symbol :: String -> XParser ()
+symbol s = P (\st inp -> case inp of
+                (Left err: _) -> (Left err, st, inp)
+                (Right (p, Symbol n):ts) | n==s -> (Right (), st, ts)
+                ts -> (Left ("expected symbol "++s), st, ts) )
+
+quote = oneOf [ symbol "'",  symbol "\"" ]
 
 pam fs x = [ f x | f <- fs ]
 
@@ -178,7 +175,7 @@ pam fs x = [ f x | f <- fs ]
                  |  .>=.
 -}
 
-bracket :: XParser s a -> XParser s a
+bracket :: XParser a -> XParser a
 bracket p =
   do symbol "("
      x <- p
@@ -190,206 +187,209 @@ bracket p =
 
 -- aquery takes a localisation filter, but if the query string starts
 -- from the root, we ignore the local context
-aquery :: DFilter -> XParser s DFilter
-aquery localise =
-  ( do symbol "//"
-       tquery [oglobo deep] ) +++
-  ( do symbol "/"
-       tquery [oglobo id] ) +++
-  ( do symbol "./"
-       tquery [(localise //>>)] ) +++
-  ( do tquery [(localise //>>)] )
+aquery :: DFilter i -> XParser (DFilter i)
+aquery localise = oneOf
+    [ do symbol "//"
+         tquery [oglobo deep]
+    , do symbol "/"
+         tquery [oglobo id]
+    , do symbol "./"
+         tquery [(localise //>>)]
+    , do tquery [(localise //>>)]
+    ]
 
-tquery :: [DFilter->DFilter] -> XParser s DFilter
+tquery :: [DFilter i->DFilter i] -> XParser (DFilter i)
 tquery [] = tquery [id]
-tquery (qf:cxt) =
-  ( do q <- bracket (tquery (qf:qf:cxt))
-       xquery cxt q ) +++
-  ( do q <- xtag
-       xquery cxt (qf q) ) +++
-  ( do symbol "-"
-       return (qf (local txt)) )
+tquery (qf:cxt) = oneOf
+    [ do q <- bracket (tquery (qf:qf:cxt))
+         xquery cxt q
+    , do q <- xtag
+         xquery cxt (qf q)
+    , do symbol "-"
+         return (qf (local txt))
+    ]
 
-xtag :: XParser s DFilter
-xtag =
-  ( do s <- string
-       symbol "*"
-       return (local (tagWith (s `isPrefixOf`))) ) +++
-  ( do s <- string
-       return (local (tag s)) ) +++
-  ( do symbol "*"
-       s <- string
-       return (local (tagWith (((reverse s) `isPrefixOf`) . reverse))) ) +++
-  ( do symbol "*"
-       return (local elm) )
+xtag :: XParser (DFilter i)
+xtag = oneOf
+    [ do s <- string
+         symbol "*"
+         return (local (tagWith (s `isPrefixOf`)))
+    , do s <- string
+         return (local (tag s))
+    , do symbol "*"
+         s <- string
+         return (local (tagWith (((reverse s) `isPrefixOf`) . reverse)))
+    , do symbol "*"
+         return (local elm)
+    ]
 
 
-xquery :: [DFilter->DFilter] -> DFilter -> XParser s DFilter
-xquery cxt q1 =
-  ( do symbol "/"
-       ((do symbol "@"
-            attr <- string
-            return (oiffindo attr (\s->local (literal s)) ononeo `ooo` q1))
-        +++
-        tquery ((q1 //>>):cxt)) ) +++
-  ( do symbol "//"
-       tquery ((\q2-> (oloco deep) q2 `ooo` local children `ooo` q1):cxt) ) +++
-  ( do symbol "+"
-       q2 <- tquery cxt
-       return (ocato [q1,q2]) ) +++
-  ( do symbol "["
-       is <- iindex	-- now extended to multiple indexes
-       symbol "]"
-       xquery cxt (\xml-> concat . pam is . q1 xml) ) +++
-  ( do symbol "["
-       p <- tpredicate
-       symbol "]"
-       xquery cxt (q1 `owitho` p) ) +++
-  ( do return q1 )
+xquery :: [DFilter i->DFilter i] -> DFilter i -> XParser (DFilter i)
+xquery cxt q1 = oneOf
+    [ do symbol "/"
+         ( do symbol "@"
+              attr <- string
+              return (oiffindo attr (\s->local (literal s)) ononeo `ooo` q1)
+           `onFail`
+           tquery ((q1 //>>):cxt) )
+    , do symbol "//"
+         tquery ((\q2-> (oloco deep) q2 `ooo` local children `ooo` q1):cxt)
+    , do symbol "+"
+         q2 <- tquery cxt
+         return (ocato [q1,q2])
+    , do symbol "["
+         is <- iindex	-- now extended to multiple indexes
+         symbol "]"
+         xquery cxt (\xml-> concat . pam is . q1 xml)
+    , do symbol "["
+         p <- tpredicate
+         symbol "]"
+         xquery cxt (q1 `owitho` p)
+    , return q1
+    ]
 
-tpredicate :: XParser s DFilter
+tpredicate :: XParser (DFilter i)
 tpredicate =
   do p <- vpredicate
      f <- upredicate
      return (f p)
 
-upredicate :: XParser s (DFilter->DFilter)
-upredicate =
-  ( do symbol "&"
-       p2 <- tpredicate
-       return (`ooo` p2) ) +++
-  ( do symbol "|"
-       p2 <- tpredicate
-       return (||>|| p2) ) +++
-  ( do return id )
+upredicate :: XParser (DFilter i->DFilter i)
+upredicate = oneOf
+    [ do symbol "&"
+         p2 <- tpredicate
+         return (`ooo` p2)
+    , do symbol "|"
+         p2 <- tpredicate
+         return (||>|| p2)
+    , return id
+    ]
 
-vpredicate :: XParser s DFilter
-vpredicate =
-  ( do bracket tpredicate ) +++
-  ( do symbol "~"
-       p <- tpredicate
-       return (local keep `owithouto` p) ) +++
-  ( do tattribute )
+vpredicate :: XParser (DFilter i)
+vpredicate = oneOf
+    [ do bracket tpredicate
+    , do symbol "~"
+         p <- tpredicate
+         return (local keep `owithouto` p)
+    , do tattribute
+    ]
 
-tattribute :: XParser s DFilter
-tattribute =
-  ( do q <- aquery (local keep)
-       uattribute q ) +++
-  ( do symbol "@"
-       s <- string
-       vattribute (local keep, local (attr s), oiffindo s) )
+tattribute :: XParser (DFilter i)
+tattribute = oneOf
+    [ do q <- aquery (local keep)
+         uattribute q
+    , do symbol "@"
+         s <- string
+         vattribute (local keep, local (attr s), oiffindo s)
+    ]
 
-uattribute :: DFilter -> XParser s DFilter
-uattribute q =
-  ( do symbol "/"
-       symbol "@"
-       s <- string
-       vattribute (q, local (attr s), oiffindo s) ) +++
-  ( do vattribute (q, local keep,     oifTxto) )
+uattribute :: DFilter i -> XParser (DFilter i)
+uattribute q = oneOf
+    [ do symbol "/"
+         symbol "@"
+         s <- string
+         vattribute (q, local (attr s), oiffindo s)
+    , do vattribute (q, local keep,     oifTxto)
+    ]
 
-vattribute :: (DFilter, DFilter, (String->DFilter)->DFilter->DFilter)
-              -> XParser s DFilter
-vattribute (q,a,iffn) =
-  ( do cmp <- op
+vattribute :: (DFilter i, DFilter i, (String->DFilter i)->DFilter i->DFilter i)
+              -> XParser (DFilter i)
+vattribute (q,a,iffn) = oneOf
+  [ do cmp <- op
        quote
        s2 <- string
        quote
        return ((iffn (\s1->if cmp s1 s2 then okeepo else ononeo) ononeo)
-               `ooo` q) ) +++
-  ( do cmp <- op
+               `ooo` q)
+  , do cmp <- op
        (q2,iffn2) <- wattribute
        return ((iffn (\s1-> iffn2 (\s2-> if cmp s1 s2 then okeepo else ononeo)
                                   ononeo)
                      ononeo) `ooo` q)
-              ) +++
-  ( do cmp <- nop
+  , do cmp <- nop
        n <- number
        return ((iffn (\s->if cmp (read s) n then okeepo else ononeo) ononeo)
-               `ooo` q) ) +++
-  ( do cmp <- nop
+               `ooo` q)
+  , do cmp <- nop
        (q2,iffn2) <- wattribute
        return ((iffn (\s1-> iffn2 (\s2-> if cmp (read s1) (read s2) then okeepo
                                                                     else ononeo)
                                   ononeo)
-                     ononeo) `ooo` q) ) +++
-  ( do return ((a `ooo` q)))
+                     ononeo) `ooo` q)
+  , do return ((a `ooo` q))
+  ]
 
-wattribute :: XParser s (DFilter, (String->DFilter)->DFilter->DFilter)
-wattribute =
-  ( do symbol "@"
-       s <- string
-       return (okeepo, oiffindo s) ) +++
-  ( do q <- aquery okeepo
-       symbol "/"
-       symbol "@"
-       s <- string
-       return (q, oiffindo s) ) +++
-  ( do q <- aquery okeepo
-       return (q, oifTxto) )
+wattribute :: XParser (DFilter i, (String->DFilter i)->DFilter i->DFilter i)
+wattribute = oneOf
+    [ do symbol "@"
+         s <- string
+         return (okeepo, oiffindo s)
+    , do q <- aquery okeepo
+         symbol "/"
+         symbol "@"
+         s <- string
+         return (q, oiffindo s)
+    , do q <- aquery okeepo
+         return (q, oifTxto)
+    ]
 
 
-iindex :: XParser s [[a]->[a]]
+iindex :: XParser [[a]->[a]]
 iindex =
-  do i <- simpleindex
-     is <- idxcomma
-     return (i:is)
+    do i <- simpleindex
+       is <- idxcomma
+       return (i:is)
 
-simpleindex :: XParser s ([a]->[a])
-simpleindex =
-  ( do n <- number
-       r <- rrange n
-       return r ) +++
-  ( do symbol "$"
-       return (keep . last) )
+simpleindex :: XParser ([a]->[a])
+simpleindex = oneOf
+    [ do n <- number
+         r <- rrange n
+         return r
+    , do symbol "$"
+         return (keep . last)
+    ]
 
-rrange, numberdollar :: Integer -> XParser s ([a]->[a])
-rrange n1 =
-  ( do symbol "-"
-       numberdollar n1 ) +++
-  ( do return (keep.(!!(fromInteger n1))) )
+rrange, numberdollar :: Integer -> XParser ([a]->[a])
+rrange n1 = oneOf
+    [ do symbol "-"
+         numberdollar n1
+    , return (keep.(!!(fromInteger n1)))
+    ]
 
-numberdollar n1 =
-  ( do n2 <- number
-       return (take (fromInteger (1+n2-n1)) . drop (fromInteger n1)) ) +++
-  ( do symbol "$"
-       return (drop (fromInteger n1)) )
+numberdollar n1 = oneOf
+    [ do n2 <- number
+         return (take (fromInteger (1+n2-n1)) . drop (fromInteger n1))
+    , do symbol "$"
+         return (drop (fromInteger n1))
+    ]
 
-idxcomma :: XParser s [[a]->[a]]
-idxcomma =
-  ( do symbol ","
-       r <- simpleindex
-       rs <- idxcomma
-       return (r:rs) ) +++
-  ( do return [] )
+idxcomma :: XParser [[a]->[a]]
+idxcomma = oneOf
+    [ do symbol ","
+         r <- simpleindex
+         rs <- idxcomma
+         return (r:rs)
+    , return []
+    ]
 
 
-op :: XParser s (String->String->Bool)
-op =
-  ( do symbol "="
-       return (==) ) +++
-  ( do symbol "!="
-       return (/=) ) +++
-  ( do symbol "<"
-       return (<) ) +++
-  ( do symbol "<="
-       return (<=) ) +++
-  ( do symbol ">"
-       return (>) ) +++
-  ( do symbol ">="
-       return (>=) )
+op :: XParser (String->String->Bool)
+op = oneOf
+    [ do symbol "=";  return (==)
+    , do symbol "!="; return (/=)
+    , do symbol "<";  return (<)
+    , do symbol "<="; return (<=)
+    , do symbol ">";  return (>)
+    , do symbol ">="; return (>=)
+    ]
 
-nop :: XParser s (Integer->Integer->Bool)
-nop =
-  ( do symbol ".=."
-       return (==) ) +++
-  ( do symbol ".!=."
-       return (/=) ) +++
-  ( do symbol ".<."
-       return (<) ) +++
-  ( do symbol ".<=."
-       return (<=) ) +++
-  ( do symbol ".>."
-       return (>) ) +++
-  ( do symbol ".>=."
-       return (>=) )
+nop :: XParser (Integer->Integer->Bool)
+nop = oneOf
+    [ do symbol ".=.";  return (==)
+    , do symbol ".!=."; return (/=)
+    , do symbol ".<.";  return (<)
+    , do symbol ".<=."; return (<=)
+    , do symbol ".>.";  return (>)
+    , do symbol ".>=."; return (>=)
+    ]
 

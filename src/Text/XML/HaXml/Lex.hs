@@ -19,38 +19,22 @@ module Text.XML.HaXml.Lex
     xmlLex         -- :: String -> String -> [Token]
   , xmlReLex       -- :: Posn   -> String -> [Token]
   , reLexEntityValue -- :: (String->Maybe String) -> Posn -> String -> [Token]
-  , posInNewCxt    -- :: String -> Posn
-  -- * Token and position types
+  -- * Token types
   , Token
-  , Posn(..)
   , TokenT(..)
   , Special(..)
   , Section(..)
   ) where
 
 import Char
+import Text.XML.HaXml.Posn
 
 data Where = InTag String | NotInTag
     deriving (Eq)
 
 -- | All tokens are paired up with a source position.
---   Lexical errors are passed back through the @Either@ type.
-type Token = Either String (Posn, TokenT)
-
--- | Source positions contain a filename, line, column, and an
---   inclusion point, which is itself another source position,
---   recursively.
-data Posn = Pn String !Int !Int (Maybe Posn)
-        deriving (Eq)
-
-instance Show Posn where
-      showsPrec p (Pn f l c i) = showString f .
-                                 showString "  at line " . shows l .
-                                 showString " col " . shows c .
-                                 ( case i of
-                                    Nothing -> id
-                                    Just p  -> showString "\n    used by  " .
-                                               shows p )
+--   Lexical errors are passed back as a special @TokenT@ value.
+type Token = (Posn, TokenT)
 
 -- | The basic token type.
 data TokenT =
@@ -85,6 +69,7 @@ data TokenT =
     | TokName      String	-- ^   begins with letter, no spaces
     | TokFreeText  String	-- ^   any character data
     | TokNull			-- ^   fake token
+    | TokError     String	-- ^   lexical error
     deriving (Eq)
 
 data Special =
@@ -132,6 +117,7 @@ instance Show TokenT where
   showsPrec p  (TokName      s)		= showString     s
   showsPrec p  (TokFreeText  s)		= showString     s
   showsPrec p  TokNull			= showString     "(null)"
+  showsPrec p  (TokError     s)		= showString     s
 
 --trim, revtrim :: String -> String
 --trim    = f . f         where f = reverse . dropWhile isSpace
@@ -139,26 +125,10 @@ instance Show TokenT where
 --revtrim = reverse . dropWhile (=='\n')  -- most recently used defn.
 
 emit :: TokenT -> Posn -> Token
-emit tok p = forcep p `seq` Right (p,tok)
+emit tok p = forcep p `seq` (p,tok)
 
 lexerror :: String -> Posn -> [Token]
-lexerror s p = [Left ("Lexical error in  "++show p++":\n  "++s)]
-
-forcep (Pn f n m i) = m `seq` n
-
-addcol :: Int -> Posn -> Posn
-addcol n (Pn f r c i) = Pn f r (c+n) i
-
-newline, tab :: Posn -> Posn
-newline (Pn f r c i) = Pn f (r+1) 1 i
-tab     (Pn f r c i) = Pn f r (((c`div`8)+1)*8) i
-
-white :: Char -> Posn -> Posn
-white ' '  = addcol 1
-white '\n' = newline
-white '\r' = id
-white '\t' = tab
-white '\xa0' = addcol 1
+lexerror s p = [(p, TokError ("Lexical error:\n  "++s))]
 
 skip :: Int -> Posn -> String -> (Posn->String->[Token]) -> [Token]
 skip n p s k = k (addcol n p) (drop n s)
@@ -205,12 +175,6 @@ textOrRefUntil close tok acc pos p (s:ss) k
     | otherwise  = textOrRefUntil close tok (s:acc) pos (addcol 1 p) ss k
 
 ----
--- | @posInNewCxt name pos@ creates a new source position from an old one.
---   It is used when opening a new file (e.g. a DTD inclusion), to denote
---   the start of the file @name@, but retain the stacked information that
---   it was included from the old @pos@.
-posInNewCxt :: String -> Maybe Posn -> Posn
-posInNewCxt name pos = Pn name 1 1 pos
 
 -- | The first argument to 'xmlLex' is the filename (used for source positions,
 --   especially in error messages), and the second is the string content of
@@ -241,7 +205,7 @@ reLexEntityValue lookup p s =
     expand ('%':ss) = let (sym,rest) = break (==';') ss in
                       case lookup sym of
                         Just val -> expand val ++ expand (tail rest)
-                        Nothing  -> "%"++sym++";"++ expand (tail rest)	-- hmmm
+                        Nothing  -> "%"++sym++";"++ expand (tail rest) -- hmmm
     expand (s:ss)   = s: expand ss
 
 --xmltop :: Posn -> String -> [Token]
@@ -324,7 +288,7 @@ xmlSection = blank xmlSection0
       let p0 = addcol n p in
       textUntil "]]>" TokSectionClose "" p0 p0 (drop n s) (blank xmlAny w)
     k w p s n =
-      skip n p s (xmlAny w)
+      skip n p s (xmlAny ({-InTag "<![section[ ... ]]>":-}w))
 
 xmlSpecial w p s
     | "DOCTYPE"  `prefixes` s = emit (TokSpecial DOCTYPEx)  p: k 7
@@ -347,6 +311,7 @@ xmlName p (s:ss) cxt k
         | isAlphaNum s || s `elem` ".-_:"
                       = gatherName (s:acc) pos (addcol 1 p) ss k
         | otherwise   = emit (TokName (reverse acc)) pos: k p (s:ss)
+xmlName p [] cxt k = lexerror ("expected a "++cxt++", but got end of input") p
 
 xmlContent acc w pos p [] = if all isSpace acc then []
                             else lexerror "unexpected EOF between tags" p

@@ -66,7 +66,7 @@ infixr 3 ?>, :>
 -- | All document transformations are /content filters/.
 --   A filter takes a single XML 'Content' value and returns a sequence
 --   of 'Content' values, possibly empty.
-type CFilter    = Content -> [Content]
+type CFilter i  = Content i -> [Content i]
 
 
 
@@ -74,17 +74,18 @@ type CFilter    = Content -> [Content]
 -- $selection
 -- In the algebra of combinators, @none@ is the zero, and @keep@ the identity.
 -- (They have a more general type than just CFilter.)
-keep, none :: a->[a]
+keep :: a->[a]
 keep = \x->[x]
+none :: a->[b]
 none = \x->[]
 
 -- | Throw away current node, keep just the (unprocessed) children.
-children :: CFilter
-children (CElem (Elem _ _ cs)) = cs
+children :: CFilter i
+children (CElem (Elem _ _ cs) _) = cs
 children _ = []
 
 -- | Select the @n@'th positional result of a filter.
-position :: Int -> CFilter -> CFilter
+position :: Int -> CFilter i -> CFilter i
 position n f = (\cs-> [cs!!n]) . f
 
 
@@ -99,29 +100,29 @@ position n f = (\cs-> [cs!!n]) . f
 -- attribute value, @tagWith@ keeps only an element whose tag name
 -- satisfies the given predicate.
 
-elm, txt   :: CFilter
-tag        :: String -> CFilter
-attr       :: Name -> CFilter
-attrval    :: Attribute -> CFilter
-tagWith    :: (String->Bool) -> CFilter
+elm, txt   :: CFilter i
+tag        :: String -> CFilter i
+attr       :: Name -> CFilter i
+attrval    :: Attribute -> CFilter i
+tagWith    :: (String->Bool) -> CFilter i
 
-elm x@(CElem _)   = [x]
+elm x@(CElem _ _) = [x]
 elm _             = []
 
-txt x@(CString _ _) = [x]
-txt x@(CRef _)      = [x]
-txt _               = []
+txt x@(CString _ _ _) = [x]
+txt x@(CRef _ _)      = [x]
+txt _                 = []
 
-tag t x@(CElem (Elem n _ _)) | t==n  = [x]
+tag t x@(CElem (Elem n _ _) _) | t==n  = [x]
 tag t _  = []
 
-tagWith p x@(CElem (Elem n _ _)) | p n  = [x]
+tagWith p x@(CElem (Elem n _ _) _) | p n  = [x]
 tagWith p _  = []
 
-attr n x@(CElem (Elem _ as _)) | n `elem` (map fst as)  = [x]
+attr n x@(CElem (Elem _ as _) _) | n `elem` (map fst as)  = [x]
 attr n _  = []
 
-attrval av x@(CElem (Elem _ as _)) | av `elem` as  = [x]
+attrval av x@(CElem (Elem _ as _) _) | av `elem` as  = [x]
 attrval av _  = []
 
 
@@ -131,8 +132,8 @@ attrval av _  = []
 -- | For a mandatory attribute field, @find key cont@ looks up the value of
 --   the attribute name @key@, and applies the continuation @cont@ to
 --   the value.
-find :: String -> (String->CFilter) -> CFilter
-find key cont c@(CElem (Elem _ as _)) = cont (value (lookfor key as)) c
+find :: String -> (String->CFilter i) -> CFilter i
+find key cont c@(CElem (Elem _ as _) _) = cont (value (lookfor key as)) c
   where lookfor x = fromMaybe (error ("missing attribute: "++show x)) . lookup x
         value (AttValue [Left x]) = x
 -- 'lookfor' has the more general type :: (Eq a,Show a) => a -> [(a,b)] -> b
@@ -140,8 +141,8 @@ find key cont c@(CElem (Elem _ as _)) = cont (value (lookfor key as)) c
 -- | When an attribute field may be absent, use @iffind key yes no@ to lookup
 --   its value.  If the attribute is absent, it acts as the @no@ filter,
 --   otherwise it applies the @yes@ filter.
-iffind :: String -> (String->CFilter) -> CFilter -> CFilter
-iffind key yes no c@(CElem (Elem _ as _)) =
+iffind :: String -> (String->CFilter i) -> CFilter i -> CFilter i
+iffind key yes no c@(CElem (Elem _ as _) _) =
   case (lookup key as) of
     Nothing  -> no c
     (Just (AttValue [Left s])) -> yes s c
@@ -149,9 +150,9 @@ iffind key yes no other = no other
 
 -- | @ifTxt yes no@ processes any textual content with the @yes@ filter,
 --   but otherwise is the same as the @no@ filter.
-ifTxt :: (String->CFilter) -> CFilter -> CFilter
-ifTxt yes no c@(CString _ s) = yes s c
-ifTxt yes no c               = no c
+ifTxt :: (String->CFilter i) -> CFilter i -> CFilter i
+ifTxt yes no c@(CString _ s _) = yes s c
+ifTxt yes no c                 = no c
 
 
 
@@ -175,7 +176,7 @@ p ?> (f :> g) = \c-> if (not.null.p) c then f c else g c
 
 
 -- | Sequential (/Irish/,/backwards/) composition
-o :: CFilter -> CFilter -> CFilter
+o :: CFilter i -> CFilter i -> CFilter i
 f `o` g = concatMap f . g
 
 -- | Binary parallel composition.  Each filter uses a copy of the input,
@@ -202,7 +203,7 @@ andThen :: (a->c) -> (c->a->b) -> (a->b)
 andThen f g = \x-> g (f x) x			-- lift g f id
 
 -- | Process children using specified filters.  /not exported/
-childrenBy :: CFilter -> CFilter
+childrenBy :: CFilter i -> CFilter i 
 childrenBy f = f `o` children
 
 -- | Directional choice:
@@ -213,24 +214,24 @@ f |>| g = \x-> let fx = f x in if null fx then g x else fx
 
 -- | Pruning: in @f `with` g@,
 --   keep only those f-productions which have at least one g-production
-with :: CFilter -> CFilter -> CFilter
+with :: CFilter i -> CFilter i -> CFilter i
 f `with` g = filter (not.null.g) . f
 
 -- | Pruning: in @f `without` g@,
 --   keep only those f-productions which have no g-productions
-without :: CFilter -> CFilter -> CFilter
+without :: CFilter i -> CFilter i -> CFilter i
 f `without` g = filter (null.g) . f
 
 -- | Pronounced /slash/, @f \/> g@ means g inside f
-(/>) :: CFilter -> CFilter -> CFilter
+(/>) :: CFilter i -> CFilter i -> CFilter i
 f /> g = g `o` children `o` f
 
 -- | Pronounced /outside/, @f \<\/ g@ means f containing g
-(</) :: CFilter -> CFilter -> CFilter
+(</) :: CFilter i -> CFilter i -> CFilter i
 f </ g = f `with` (g `o` children)
 
 -- | Join an element-matching filter with a text-only filter
-et :: (String->CFilter) -> CFilter -> CFilter
+et :: (String->CFilter i) -> CFilter i -> CFilter i
 et f g = (f `oo` tagged elm)
             |>|
          (g `o` txt)
@@ -238,7 +239,7 @@ et f g = (f `oo` tagged elm)
 -- | Express a list of filters like an XPath query, e.g.
 --   @path [children, tag \"name1\", attr \"attr1\", children, tag \"name2\"]@
 --   is like the XPath query @\/name1[\@attr1]\/name2@.
-path :: [CFilter] -> CFilter
+path :: [CFilter i] -> CFilter i
 path fs = foldr (flip (o)) keep fs
 
 
@@ -248,7 +249,7 @@ path fs = foldr (flip (o)) keep fs
 -- search of the tree, @deepest@ does a depth-first search, @multi@ returns
 -- content at all tree-levels, even those strictly contained within results
 -- that have already been returned.
-deep, deepest, multi :: CFilter -> CFilter
+deep, deepest, multi :: CFilter i -> CFilter i
 deep f     = f |>| (deep f `o` children)
 deepest f  = (deepest f `o` children) |>| f
 multi f    = f `union` (multi f `o` children)
@@ -256,23 +257,23 @@ multi f    = f `union` (multi f `o` children)
 -- | Interior editing:
 --   @f `when` g@ applies @f@ only when the predicate @g@ succeeds,
 --   otherwise the content is unchanged.
-when   :: CFilter -> CFilter -> CFilter
+when   :: CFilter i -> CFilter i -> CFilter i
 -- | Interior editing:
 --   @g `guards` f@ applies @f@ only when the predicate @g@ succeeds,
 --   otherwise the content is discarded.
-guards :: CFilter -> CFilter -> CFilter
+guards :: CFilter i -> CFilter i -> CFilter i
 f `when` g       = g ?> f :> keep
 g `guards` f     = g ?> f :> none	-- = f `o` (keep `with` g)
 
 -- | Process CHildren In Place.  The filter is applied to any children
 --   of an element content, and the element rebuilt around the results.
-chip :: CFilter -> CFilter
-chip f (CElem (Elem n as cs)) = [ CElem (Elem n as (concatMap f cs)) ]
+chip :: CFilter i -> CFilter i
+chip f (CElem (Elem n as cs) i) = [ CElem (Elem n as (concatMap f cs)) i ]
 chip f c = [c]
 
 -- | Recursive application of filters: a fold-like operator.  Defined
 --   as @f `o` chip (foldXml f)@.
-foldXml :: CFilter -> CFilter
+foldXml :: CFilter i -> CFilter i
 foldXml f = f `o` chip (foldXml f)
 
 
@@ -282,32 +283,32 @@ foldXml f = f `o` chip (foldXml f)
 
 -- | Build an element with the given tag name - its content is the results
 --   of the given list of filters.
-mkElem :: String -> [CFilter] -> CFilter
-mkElem h cfs = \t-> [ CElem (Elem h [] (cat cfs t)) ]
+mkElem :: String -> [CFilter i] -> CFilter i
+mkElem h cfs = \t-> [ CElem (Elem h [] (cat cfs t)) undefined ]
 
 -- | Build an element with the given name, attributes, and content.
-mkElemAttr :: String -> [(String,CFilter)] -> [CFilter] -> CFilter
-mkElemAttr h as cfs = \t-> [ CElem (Elem h (map (attr t) as) (cat cfs t)) ]
+mkElemAttr :: String -> [(String,CFilter i)] -> [CFilter i] -> CFilter i
+mkElemAttr h as cfs = \t-> [ CElem (Elem h (map (attr t) as) (cat cfs t)) undefined ]
   where attr t (n,vf) =
-            let v = concat [ s | (CString _ s) <- (deep txt `o` vf) t ]
+            let v = concat [ s | (CString _ s _) <- (deep txt `o` vf) t ]
             in  (n, AttValue [Left v])
 
 -- | Build some textual content.
-literal :: String -> CFilter
-literal s = const [CString False s]
+literal :: String -> CFilter i
+literal s = const [CString False s undefined]
 
 -- | Build some CDATA content.
-cdata :: String -> CFilter
-cdata s = const [CString True s]
+cdata :: String -> CFilter i
+cdata s = const [CString True s undefined]
 
--- | Rename an element tag.
-replaceTag :: String -> CFilter
-replaceTag n (CElem (Elem _ _ cs)) = [CElem (Elem n [] cs)]
+-- | Rename an element tag (leaving attributes in place).
+replaceTag :: String -> CFilter i
+replaceTag n (CElem (Elem _ as cs) i) = [CElem (Elem n as cs) i]
 replaceTag n _ = []
 
--- | Replace the attributes of an element.
-replaceAttrs :: [(String,String)] -> CFilter
-replaceAttrs as (CElem (Elem n _ cs)) = [CElem (Elem n as' cs)]
+-- | Replace the attributes of an element (leaving tag the same).
+replaceAttrs :: [(String,String)] -> CFilter i
+replaceAttrs as (CElem (Elem n _ cs) i) = [CElem (Elem n as' cs) i]
     where as' = map (\(n,v)-> (n, AttValue [Left v])) as
 replaceAttrs as _ = []
 
@@ -317,15 +318,26 @@ replaceAttrs as _ = []
 
 -- | A LabelFilter is like a CFilter except that it pairs up a polymorphic
 --   value (label) with each of its results.
-type LabelFilter a = Content -> [(a,Content)]
+type LabelFilter i a = Content i -> [(a,Content i)]
 
 -- | Compose a label-processing filter with a label-generating filter.
-oo :: (a->CFilter) -> LabelFilter a -> CFilter
+oo :: (a->CFilter i) -> LabelFilter i a -> CFilter i
 f `oo` g = concatMap (uncurry f) . g
 
+{-
+-- | Process the information labels (very nearly monadic bind).
+oo :: (b -> CFilter b c) -> CFilter a b -> CFilter a c
+f `oo` g = concatMap info . g
+    where info c@(CElem _ i)     = f i c
+          info c@(CString _ _ i) = f i c
+          info c@(CRef _ i)      = f i c
+          info c                 = [c]
+-}
+
 -- | Combine labels.  Think of this as a pair-wise zip on labels.
-x :: (CFilter->LabelFilter a) -> (CFilter->LabelFilter b) ->
-       (CFilter->LabelFilter (a,b))
+--   e.g. @(numbered `x` tagged)@
+x :: (CFilter i->LabelFilter i a) -> (CFilter i->LabelFilter i b) ->
+       (CFilter i->LabelFilter i (a,b))
 f `x` g = \cf c-> let gs = map fst (g cf c)
                       fs = map fst (f cf c)
                   in zip (zip fs gs) (cf c)
@@ -334,12 +346,12 @@ f `x` g = \cf c-> let gs = map fst (g cf c)
 -- Some basic label-generating filters.
 
 -- | Number the results from 1 upwards.
-numbered :: CFilter -> LabelFilter String
-numbered f = zip (map show [(1::Int)..]) . f
+numbered :: CFilter i -> LabelFilter i Int
+numbered f = zip [1..] . f
 
 -- | In @interspersed a f b@, label each result of @f@ with the string @a@,
 --   except for the last one which is labelled with the string @b@.
-interspersed :: String -> CFilter -> String -> LabelFilter String
+interspersed :: String -> CFilter i -> String -> LabelFilter i String
 interspersed a f b =
   (\xs-> zip (replicate (len xs) a ++ [b]) xs) . f
   where
@@ -348,17 +360,17 @@ interspersed a f b =
 
 -- | Label each element in the result with its tag name.  Non-element
 --   results get an empty string label.
-tagged :: CFilter -> LabelFilter String
+tagged :: CFilter i -> LabelFilter i String
 tagged f = extracted name f
-  where name (CElem (Elem n _ _)) = n
-        name _                    = ""
+  where name (CElem (Elem n _ _) _) = n
+        name _                      = ""
 
 -- | Label each element in the result with the value of the named attribute.
 --   Elements without the attribute, and non-element results, get an
 --   empty string label.
-attributed :: String -> CFilter -> LabelFilter String
+attributed :: String -> CFilter i -> LabelFilter i String
 attributed key f = extracted att f
-  where att (CElem (Elem _ as _)) =
+  where att (CElem (Elem _ as _) _) =
             case (lookup key as) of
               Nothing  -> ""
               (Just (AttValue [Left s])) -> s
@@ -366,13 +378,13 @@ attributed key f = extracted att f
 
 -- | Label each textual part of the result with its text.  Element
 --   results get an empty string label.
-textlabelled :: CFilter -> LabelFilter (Maybe String)
+textlabelled :: CFilter i -> LabelFilter i (Maybe String)
 textlabelled f = extracted text f
-  where text (CString _ s) = Just s
-        text _             = Nothing
+  where text (CString _ s _) = Just s
+        text _               = Nothing
 
 -- | Label each content with some information extracted from itself.
-extracted :: (Content->a) -> CFilter -> LabelFilter a
+extracted :: (Content i->a) -> CFilter i -> LabelFilter i a
 extracted proj f = concatMap (\c->[(proj c, c)]) . f
                                                                                 
 

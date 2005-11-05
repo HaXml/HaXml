@@ -9,9 +9,9 @@
    -}
 module Text.XML.HaXml.Escape(
    xmlEscape,
-      -- :: XmlEscaper -> Element -> Element
+      -- :: XmlEscaper -> Element i -> Element i
    xmlUnEscape,
-      -- :: XmlEscaper -> Element -> Element
+      -- :: XmlEscaper -> Element i -> Element i
 
    XmlEscaper,
       -- Something describing a particular set of escapes.
@@ -75,11 +75,11 @@ data XmlEscaper = XmlEscaper {
 
 
 
-xmlEscape :: XmlEscaper -> Element -> Element
+xmlEscape :: XmlEscaper -> Element i -> Element i
 xmlEscape xmlEscaper element = 
    compressElement (escapeElement xmlEscaper element)
 
-escapeElement :: XmlEscaper -> Element -> Element
+escapeElement :: XmlEscaper -> Element i -> Element i
 escapeElement xmlEscaper (Elem name attributes content) =
    Elem name (escapeAttributes xmlEscaper attributes) 
       (escapeContent xmlEscaper content)
@@ -111,21 +111,21 @@ escapeAttValue xmlEscaper (AttValue attValList) =
          )
       )
 
-escapeContent :: XmlEscaper -> [Content] -> [Content]
+escapeContent :: XmlEscaper -> [Content i] -> [Content i]
 escapeContent xmlEscaper contents =
    concat
       (map
           (\ content -> case content of
-             (CString b str) ->
+             (CString b str i) ->
                 map
                    (\ c -> if isEscape xmlEscaper c
                       then
-                         CRef (mkEscape xmlEscaper c)
+                         CRef (mkEscape xmlEscaper c) i
                       else
-                         CString b [c]
+                         CString b [c] i
                       )
                    str
-             (CElem elem) -> [CElem (escapeElement xmlEscaper elem)]
+             (CElem elem i) -> [CElem (escapeElement xmlEscaper elem) i]
              _ -> [content]
              )
           contents
@@ -144,11 +144,11 @@ mkEscape (XmlEscaper {toEscape = toEscape}) ch =
 -- Unescaping
 -- ------------------------------------------------------------------------
 
-xmlUnEscape :: XmlEscaper -> Element -> Element
+xmlUnEscape :: XmlEscaper -> Element i -> Element i
 xmlUnEscape xmlEscaper element =
    compressElement (unEscapeElement xmlEscaper element)
 
-unEscapeElement :: XmlEscaper -> Element -> Element
+unEscapeElement :: XmlEscaper -> Element i -> Element i
 unEscapeElement xmlEscaper (Elem name attributes content) =
    Elem name (unEscapeAttributes xmlEscaper attributes)
       (unEscapeContent xmlEscaper content)
@@ -172,14 +172,14 @@ unEscapeAttValue xmlEscaper (AttValue attValList) =
          attValList
       )
 
-unEscapeContent :: XmlEscaper -> [Content] -> [Content]
+unEscapeContent :: XmlEscaper -> [Content i] -> [Content i]
 unEscapeContent xmlEscaper content =
    map
       (\ content -> case content of
-         CRef ref -> case unEscapeChar xmlEscaper ref of
-            Just c -> CString True [c]
+         CRef ref i -> case unEscapeChar xmlEscaper ref of
+            Just c -> CString True [c] i
             Nothing -> content
-         CElem elem -> CElem (unEscapeElement xmlEscaper elem)
+         CElem elem i -> CElem (unEscapeElement xmlEscaper elem) i
          _ -> content
          )
       content
@@ -195,7 +195,7 @@ unEscapeChar xmlEscaper ref =
 -- adjacent identical character data.
 -- ------------------------------------------------------------------------
 
-compressElement :: Element -> Element
+compressElement :: Element i -> Element i
 compressElement (Elem name attributes content) =
    Elem name (compressAttributes attributes) (compressContent content)
 
@@ -216,16 +216,16 @@ compressAttValue (AttValue l) = AttValue (compress l)
             (Left s2 : es2) -> Left (s1 ++ s2) : es2
             es2 -> ls : es2
 
-compressContent :: [Content] -> [Content]
+compressContent :: [Content i] -> [Content i]
 compressContent [] = []
-compressContent ((csb @ (CString b1 s1)) : cs) =
+compressContent ((csb @ (CString b1 s1 i1)) : cs) =
    case compressContent cs of
-      (CString b2 s2) : cs2
+      (CString b2 s2 i2) : cs2
           | b1 == b2
-          -> CString b1 (s1 ++ s2) : cs2
+          -> CString b1 (s1 ++ s2) i1: cs2
       cs2 -> csb : cs2
-compressContent (CElem element : cs) = 
-   CElem (compressElement element) : compressContent cs
+compressContent (CElem element i : cs) = 
+   CElem (compressElement element) i : compressContent cs
 compressContent (c : cs) = c : compressContent cs
 
 

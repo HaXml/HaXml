@@ -38,7 +38,7 @@ maybe f (Just x) = f x
 
 ----
 
-document :: Document -> Doc
+document :: Document i -> Doc
 prolog   :: Prolog -> Doc
 xmldecl  :: XMLDecl -> Doc
 misc     :: Misc -> Doc
@@ -50,9 +50,9 @@ extsubset   :: ExtSubset -> Doc
 extsubsetdecl :: ExtSubsetDecl -> Doc
 cp          :: CP -> Doc
 
-element   :: Element -> Doc
+element   :: Element i -> Doc
 attribute :: Attribute -> Doc                     --etc
-content   :: Content -> Doc
+content   :: Content i -> Doc
 
 ----
 
@@ -99,9 +99,9 @@ element e@(Elem n as cs)
     | otherwise        = let (d,c) = carryelem e empty
                          in d <> c
 
-isText (CString _ _) = True
-isText (CRef _)    = True
-isText _           = False
+isText (CString _ _ _) = True
+isText (CRef _ _)      = True
+isText _               = False
 
 carryelem (Elem n as []) c
                        = ( c <>
@@ -116,11 +116,11 @@ carryelem e@(Elem n as cs) c
                             nest 2 (vcat cs0) <> --- $$
                             d0 <> text "</" <> text n
                           , text ">")
-carrycontent (CElem e) c   = carryelem e c
-carrycontent (CString False s) c = (c <> chardata s, empty)
-carrycontent (CString True  s) c = (c <> cdsect s, empty)
-carrycontent (CRef r) c    = (c <> reference r, empty)
-carrycontent (CMisc m) c   = (c <> misc m, empty)
+carrycontent (CElem e _) c   = carryelem e c
+carrycontent (CString False s _) c = (c <> chardata s, empty)
+carrycontent (CString True  s _) c = (c <> cdsect s, empty)
+carrycontent (CRef r _) c    = (c <> reference r, empty)
+carrycontent (CMisc m _) c   = (c <> misc m, empty)
 
 carryscan :: (a->c->(b,c)) -> [a] -> c -> ([b],c)
 carryscan f []     c = ([],c)
@@ -146,12 +146,12 @@ carryscan f (a:as) c = let (b, c0) = f a c
 --carrycontent (d,c) (CMisc m)   = (d $$ c <> misc m,     empty)
 
 
-attribute (n,v)        = text n <> text "=" <> attvalue v
-content (CElem e)      = element e
-content (CString False s) = chardata s
-content (CString True s)  = cdsect s
-content (CRef r)       = reference r
-content (CMisc m)      = misc m
+attribute (n,v)             = text n <> text "=" <> attvalue v
+content (CElem e _)         = element e
+content (CString False s _) = chardata s
+content (CString True s _)  = cdsect s
+content (CRef r _)          = reference r
+content (CMisc m _)         = misc m
 
 elementdecl (ElementDecl n cs) = text "<!ELEMENT" <+> text n <+>
                                  contentspec cs <> text ">"

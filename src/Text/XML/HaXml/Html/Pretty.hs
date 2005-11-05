@@ -25,7 +25,7 @@ maybe f (Just x) = f x
 
 ----
 
-document :: Document -> Doc
+document :: Document i -> Doc
 prolog   :: Prolog -> Doc
 xmldecl  :: XMLDecl -> Doc
 misc     :: Misc -> Doc
@@ -36,9 +36,9 @@ markupdecl  :: MarkupDecl -> Doc
 extsubset   :: ExtSubset -> Doc
 extsubsetdecl :: ExtSubsetDecl -> Doc
 
-element   :: Element -> Doc
+element   :: Element i -> Doc
 attribute :: Attribute -> Doc                     --etc
-content   :: Content -> Doc
+content   :: Content i -> Doc
 
 ----
 
@@ -85,9 +85,9 @@ element e@(Elem n as cs)
     | otherwise        = let (d,c) = carryelem e empty
                          in d <> c
 
-isText (CString _ _) = True
-isText (CRef _)    = True
-isText _           = False
+isText (CString _ _ _) = True
+isText (CRef _ _)      = True
+isText _               = False
 
 carryelem (Elem n as []) c
                        = ( c <>
@@ -124,18 +124,18 @@ carryelem e@(Elem n as cs) c
         , text ">")
   where start = c <> text "<" <> text n <+> fsep (map attribute as)
 
-carrycontent (d,c) (CElem e)   = let (d',c') = carryelem e c in
-                                 (d $$ nest 2 d',       c')
-carrycontent (d,c) (CString _ s) = (d <> c <> chardata s, empty)
-carrycontent (d,c) (CRef r)    = (d <> c <> reference r,empty)
-carrycontent (d,c) (CMisc m)   = (d $$ c <> misc m,     empty)
+carrycontent (d,c) (CElem e _)     = let (d',c') = carryelem e c in
+                                     (d $$ nest 2 d',       c')
+carrycontent (d,c) (CString _ s _) = (d <> c <> chardata s, empty)
+carrycontent (d,c) (CRef r _)      = (d <> c <> reference r,empty)
+carrycontent (d,c) (CMisc m _)     = (d $$ c <> misc m,     empty)
 
 
-attribute (n,v)        = text n <> text "=" <> attvalue v
-content (CElem e)      = element e
-content (CString _ s)  = chardata s
-content (CRef r)       = reference r
-content (CMisc m)      = misc m
+attribute (n,v)          = text n <> text "=" <> attvalue v
+content (CElem e _)      = element e
+content (CString _ s _)  = chardata s
+content (CRef r _)       = reference r
+content (CMisc m _)      = misc m
 
 elementdecl (ElementDecl n cs) = text "<!ELEMENT" <+> text n <+>
                                  contentspec cs <> text ">"

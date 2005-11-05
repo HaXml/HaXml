@@ -39,7 +39,7 @@ import qualified Text.PrettyPrint.HughesPJ as Pretty
 
 html, hhead, htitle, hbody, h1, h2, h3, h4, hpara, hpre, hcentre,
     hem, htt, hbold, htable, hrow, hcol, hdiv, hspan, margin
-       :: [CFilter] -> CFilter
+       :: [CFilter i] -> CFilter i
 html    = mkElem "html"
 hhead   = mkElem "head"
 htitle  = mkElem "title"
@@ -64,28 +64,28 @@ hspan  = mkElem "span"
 margin = mkElemAttr "div" [("margin-left",("2em"!)),
                            ("margin-top", ("1em"!))]
 
-anchor      :: [(String, CFilter)] -> [CFilter] -> CFilter
+anchor      :: [(String, CFilter i)] -> [CFilter i] -> CFilter  i
 anchor       = mkElemAttr "a"
 
-makehref, anchorname :: CFilter -> [CFilter] -> CFilter
+makehref, anchorname :: CFilter i -> [CFilter i] -> CFilter i
 makehref r   = anchor [ ("href",r) ]
 anchorname n = anchor [ ("name",n) ]
 
 
-hbr, hhr :: CFilter
+hbr, hhr :: CFilter i
 hbr       = mkElem "br" []
 hhr       = mkElem "hr" []
 
 
-showattr, (!), (?) :: String -> CFilter
+showattr, (!), (?) :: String -> CFilter i
 showattr n = find n literal
 (!) = literal
 (?) = showattr
 
-parens :: CFilter -> CFilter
+parens :: CFilter i -> CFilter i
 parens f = cat [ literal "(", f, literal ")" ]
 
-bullet :: [CFilter] -> CFilter
+bullet :: [CFilter i] -> CFilter i
 bullet = cat . (literal "M-^U":)
 
 
@@ -105,12 +105,12 @@ bullet = cat . (literal "M-^U":)
 --   attr (n,v) = " "++n++"='"++v++"'"
 
 
-htmlprint :: [Content] -> Pretty.Doc
+htmlprint :: [Content i] -> Pretty.Doc
 htmlprint = Pretty.cat . map cprint . foldrefs 
   where
   foldrefs [] = []
-  foldrefs (CString ws s1:CRef r:CString _ s2:cs) =
-              CString ws (s1++"&"++ref r++";"++s2): foldrefs cs
+  foldrefs (CString ws s1 i:CRef r _:CString _ s2 _:cs) =
+              CString ws (s1++"&"++ref r++";"++s2) i: foldrefs cs
   foldrefs (c:cs) = c : foldrefs cs
 
 --ref (RefEntity (EntityRef n)) = n	-- Actually, should look-up symtable.
@@ -118,11 +118,11 @@ htmlprint = Pretty.cat . map cprint . foldrefs
   ref (RefEntity n) = n	-- Actually, should look-up symtable.
   ref (RefChar s) = show s
 
-  cprint (CElem e)      = elem e
-  cprint (CString ws s) = Pretty.cat (map Pretty.text (fmt 60
+  cprint (CElem e _)      = elem e
+  cprint (CString ws s _) = Pretty.cat (map Pretty.text (fmt 60
                                              ((if ws then id else deSpace) s)))
-  cprint (CRef r)       = Pretty.text ("&"++ref r++";")
-  cprint (CMisc m)      = Pretty.empty
+  cprint (CRef r _)       = Pretty.text ("&"++ref r++";")
+  cprint (CMisc m _)      = Pretty.empty
  
   elem (Elem n as []) = Pretty.text "<"   Pretty.<>
                         Pretty.text n     Pretty.<>

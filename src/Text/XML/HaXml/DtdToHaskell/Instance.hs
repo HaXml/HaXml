@@ -28,7 +28,13 @@ mkInstance (DataDef aux n fs []) =
            $$
              text "toElem" <+> topatval <+> text "=" $$
              nest 4 (text "[CElem (Elem \"" <> ppXName n <> text "\""
-                          <+> toattr <+> text "[])]")
+                          <+> toattr <+> text "[] ())]")
+           $$
+             text "parseElem = do" $$
+             nest 4 (text "{ (Elem _ as _) <- element \""
+                             <> ppXName n <> text "\"" $$
+                     text "; return" <+> frretval $$
+                     text "}")
            )
     $$
     mkInstanceAttrs Same n fs
@@ -52,6 +58,12 @@ mkInstance (DataDef False n fs [(n0,sts)]) =
              text "toElem" <+> parens (mkCpat n0 topat vs) <+> text "=" $$
              nest 4 (text "[CElem (Elem \"" <> ppXName n <> text "\""
                           <+> toattr <+> parens (mkToElem sts vs) <> text ")]")
+           $$
+             text "parseElem = do" $$
+             nest 4 (text "{ e@(Elem _ as _) <- element \""
+                             <> ppXName n <> text "\"" $$
+                     text "; return" <+> parens (mkCpat n0 frattr vs) $$
+                     text "}")
            )
     $$
     mkInstanceAttrs Extended n fs

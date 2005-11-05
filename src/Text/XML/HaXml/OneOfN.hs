@@ -1,88 +1,113 @@
 module Text.XML.HaXml.OneOfN where
 
-import Text.XML.HaXml.Xml2Haskell
+import Text.XML.HaXml.XmlContent
 
 data OneOf2 a b
     = OneOf2 a | TwoOf2 b
     deriving (Eq,Show)
 
+instance (HTypeable a,HTypeable b)
+    => HTypeable (OneOf2 a b)
+  where      toHType m = Defined "OneOf2" [] []
+  --         toHType m = Defined "OneOf2" [a,b] []
+  --            where a = toHType $ (\ (OneOf2 a)->a) $ m
+  --                  b = toHType $ (\ (TwoOf2 b)->b) $ m
+
+
 instance (XmlContent a,XmlContent b)
     => XmlContent (OneOf2 a b)
   where
-    fromElem cs =
+    parseContents =
         (choice OneOf2 $ choice TwoOf2
-        $ (\c->(Nothing,c))) cs
-    toElem (OneOf2 x) = toElem x
-    toElem (TwoOf2 x) = toElem x
+        $ fail "OneOf2")
+    toContents (OneOf2 x) = toContents x
+    toContents (TwoOf2 x) = toContents x
 
 ----
 data OneOf3 a b c
     = OneOf3 a | TwoOf3 b | ThreeOf3 c
     deriving (Eq,Show)
 
+instance (HTypeable a,HTypeable b,HTypeable c)
+    => HTypeable (OneOf3 a b c)
+  where      toHType m = Defined "OneOf3" [] []
+
 instance (XmlContent a,XmlContent b,XmlContent c)
     => XmlContent (OneOf3 a b c)
   where
-    fromElem cs =
+    parseContents =
         (choice OneOf3 $ choice TwoOf3 $ choice ThreeOf3
-        $ (\c->(Nothing,c))) cs
-    toElem (OneOf3 x) = toElem x
-    toElem (TwoOf3 x) = toElem x
-    toElem (ThreeOf3 x) = toElem x
+        $ fail "OneOf3")
+    toContents (OneOf3 x) = toContents x
+    toContents (TwoOf3 x) = toContents x
+    toContents (ThreeOf3 x) = toContents x
 
 ----
 data OneOf4 a b c d
     = OneOf4 a | TwoOf4 b | ThreeOf4 c | FourOf4 d
     deriving (Eq,Show)
 
+instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d)
+    => HTypeable (OneOf4 a b c d)
+  where      toHType m = Defined "OneOf4" [] []
+
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d)
     => XmlContent (OneOf4 a b c d)
   where
-    fromElem cs =
+    parseContents =
         (choice OneOf4 $ choice TwoOf4 $ choice ThreeOf4 $ choice FourOf4
-        $ (\c->(Nothing,c))) cs
-    toElem (OneOf4 x) = toElem x
-    toElem (TwoOf4 x) = toElem x
-    toElem (ThreeOf4 x) = toElem x
-    toElem (FourOf4 x) = toElem x
+        $ fail "OneOf4")
+    toContents (OneOf4 x) = toContents x
+    toContents (TwoOf4 x) = toContents x
+    toContents (ThreeOf4 x) = toContents x
+    toContents (FourOf4 x) = toContents x
 
 ----
 data OneOf5 a b c d e
     = OneOf5 a | TwoOf5 b | ThreeOf5 c | FourOf5 d | FiveOf5 e
     deriving (Eq,Show)
 
+instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e)
+    => HTypeable (OneOf5 a b c d e)
+  where      toHType m = Defined "OneOf5" [] []
+
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e)
     => XmlContent (OneOf5 a b c d e)
   where
-    fromElem cs =
+    parseContents =
         (choice OneOf5 $ choice TwoOf5 $ choice ThreeOf5 $ choice FourOf5
         $ choice FiveOf5
-        $ (\c->(Nothing,c))) cs
-    toElem (OneOf5 x) = toElem x
-    toElem (TwoOf5 x) = toElem x
-    toElem (ThreeOf5 x) = toElem x
-    toElem (FourOf5 x) = toElem x
-    toElem (FiveOf5 x) = toElem x
+        $ fail "OneOf5")
+    toContents (OneOf5 x) = toContents x
+    toContents (TwoOf5 x) = toContents x
+    toContents (ThreeOf5 x) = toContents x
+    toContents (FourOf5 x) = toContents x
+    toContents (FiveOf5 x) = toContents x
 
 ----
 data OneOf6 a b c d e f
     = OneOf6 a | TwoOf6 b | ThreeOf6 c | FourOf6 d | FiveOf6 e | SixOf6 f
     deriving (Eq,Show)
 
+instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
+          ,HTypeable f)
+    => HTypeable (OneOf6 a b c d e f)
+  where      toHType m = Defined "OneOf6" [] []
+
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f)
     => XmlContent (OneOf6 a b c d e f)
   where
-    fromElem cs =
+    parseContents =
         (choice OneOf6 $ choice TwoOf6 $ choice ThreeOf6 $ choice FourOf6
         $ choice FiveOf6 $ choice SixOf6
-        $ (\c->(Nothing,c))) cs
-    toElem (OneOf6 x) = toElem x
-    toElem (TwoOf6 x) = toElem x
-    toElem (ThreeOf6 x) = toElem x
-    toElem (FourOf6 x) = toElem x
-    toElem (FiveOf6 x) = toElem x
-    toElem (SixOf6 x) = toElem x
+        $ fail "OneOf6")
+    toContents (OneOf6 x) = toContents x
+    toContents (TwoOf6 x) = toContents x
+    toContents (ThreeOf6 x) = toContents x
+    toContents (FourOf6 x) = toContents x
+    toContents (FiveOf6 x) = toContents x
+    toContents (SixOf6 x) = toContents x
 
 ----
 data OneOf7 a b c d e f g
@@ -90,21 +115,26 @@ data OneOf7 a b c d e f g
     | SevenOf7 g
     deriving (Eq,Show)
 
+instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
+          ,HTypeable f,HTypeable g)
+    => HTypeable (OneOf7 a b c d e f g)
+  where      toHType m = Defined "OneOf7" [] []
+
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g)
     => XmlContent (OneOf7 a b c d e f g)
   where
-    fromElem cs =
+    parseContents =
         (choice OneOf7 $ choice TwoOf7 $ choice ThreeOf7 $ choice FourOf7
         $ choice FiveOf7 $ choice SixOf7 $ choice SevenOf7
-        $ (\c->(Nothing,c))) cs
-    toElem (OneOf7 x) = toElem x
-    toElem (TwoOf7 x) = toElem x
-    toElem (ThreeOf7 x) = toElem x
-    toElem (FourOf7 x) = toElem x
-    toElem (FiveOf7 x) = toElem x
-    toElem (SixOf7 x) = toElem x
-    toElem (SevenOf7 x) = toElem x
+        $ fail "OneOf7")
+    toContents (OneOf7 x) = toContents x
+    toContents (TwoOf7 x) = toContents x
+    toContents (ThreeOf7 x) = toContents x
+    toContents (FourOf7 x) = toContents x
+    toContents (FiveOf7 x) = toContents x
+    toContents (SixOf7 x) = toContents x
+    toContents (SevenOf7 x) = toContents x
 
 ----
 data OneOf8 a b c d e f g h
@@ -112,22 +142,27 @@ data OneOf8 a b c d e f g h
     | SevenOf8 g | EightOf8 h
     deriving (Eq,Show)
 
+instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
+          ,HTypeable f,HTypeable g,HTypeable h)
+    => HTypeable (OneOf8 a b c d e f g h)
+  where      toHType m = Defined "OneOf8" [] []
+
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h)
     => XmlContent (OneOf8 a b c d e f g h)
   where
-    fromElem cs =
+    parseContents =
         (choice OneOf8 $ choice TwoOf8 $ choice ThreeOf8 $ choice FourOf8
         $ choice FiveOf8 $ choice SixOf8 $ choice SevenOf8 $ choice EightOf8
-        $ (\c->(Nothing,c))) cs
-    toElem (OneOf8 x) = toElem x
-    toElem (TwoOf8 x) = toElem x
-    toElem (ThreeOf8 x) = toElem x
-    toElem (FourOf8 x) = toElem x
-    toElem (FiveOf8 x) = toElem x
-    toElem (SixOf8 x) = toElem x
-    toElem (SevenOf8 x) = toElem x
-    toElem (EightOf8 x) = toElem x
+        $ fail "OneOf8")
+    toContents (OneOf8 x) = toContents x
+    toContents (TwoOf8 x) = toContents x
+    toContents (ThreeOf8 x) = toContents x
+    toContents (FourOf8 x) = toContents x
+    toContents (FiveOf8 x) = toContents x
+    toContents (SixOf8 x) = toContents x
+    toContents (SevenOf8 x) = toContents x
+    toContents (EightOf8 x) = toContents x
 
 ----
 data OneOf9 a b c d e f g h i
@@ -135,24 +170,29 @@ data OneOf9 a b c d e f g h i
     | SevenOf9 g | EightOf9 h | NineOf9 i
     deriving (Eq,Show)
 
+instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
+          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i)
+    => HTypeable (OneOf9 a b c d e f g h i)
+  where      toHType m = Defined "OneOf9" [] []
+
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i)
     => XmlContent (OneOf9 a b c d e f g h i)
   where
-    fromElem cs =
+    parseContents =
         (choice OneOf9 $ choice TwoOf9 $ choice ThreeOf9 $ choice FourOf9
         $ choice FiveOf9 $ choice SixOf9 $ choice SevenOf9 $ choice EightOf9
         $ choice NineOf9
-        $ (\c->(Nothing,c))) cs
-    toElem (OneOf9 x) = toElem x
-    toElem (TwoOf9 x) = toElem x
-    toElem (ThreeOf9 x) = toElem x
-    toElem (FourOf9 x) = toElem x
-    toElem (FiveOf9 x) = toElem x
-    toElem (SixOf9 x) = toElem x
-    toElem (SevenOf9 x) = toElem x
-    toElem (EightOf9 x) = toElem x
-    toElem (NineOf9 x) = toElem x
+        $ fail "OneOf9")
+    toContents (OneOf9 x) = toContents x
+    toContents (TwoOf9 x) = toContents x
+    toContents (ThreeOf9 x) = toContents x
+    toContents (FourOf9 x) = toContents x
+    toContents (FiveOf9 x) = toContents x
+    toContents (SixOf9 x) = toContents x
+    toContents (SevenOf9 x) = toContents x
+    toContents (EightOf9 x) = toContents x
+    toContents (NineOf9 x) = toContents x
 
 ----
 data OneOf10 a b c d e f g h i j
@@ -160,25 +200,30 @@ data OneOf10 a b c d e f g h i j
     | SixOf10 f | SevenOf10 g | EightOf10 h | NineOf10 i | TenOf10 j
     deriving (Eq,Show)
 
+instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
+          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j)
+    => HTypeable (OneOf10 a b c d e f g h i j)
+  where      toHType m = Defined "OneOf10" [] []
+
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j)
     => XmlContent (OneOf10 a b c d e f g h i j)
   where
-    fromElem cs =
+    parseContents =
         (choice OneOf10 $ choice TwoOf10 $ choice ThreeOf10 $ choice FourOf10
         $ choice FiveOf10 $ choice SixOf10 $ choice SevenOf10
         $ choice EightOf10 $ choice NineOf10 $ choice TenOf10
-        $ (\c->(Nothing,c))) cs
-    toElem (OneOf10 x) = toElem x
-    toElem (TwoOf10 x) = toElem x
-    toElem (ThreeOf10 x) = toElem x
-    toElem (FourOf10 x) = toElem x
-    toElem (FiveOf10 x) = toElem x
-    toElem (SixOf10 x) = toElem x
-    toElem (SevenOf10 x) = toElem x
-    toElem (EightOf10 x) = toElem x
-    toElem (NineOf10 x) = toElem x
-    toElem (TenOf10 x) = toElem x
+        $ fail "OneOf10")
+    toContents (OneOf10 x) = toContents x
+    toContents (TwoOf10 x) = toContents x
+    toContents (ThreeOf10 x) = toContents x
+    toContents (FourOf10 x) = toContents x
+    toContents (FiveOf10 x) = toContents x
+    toContents (SixOf10 x) = toContents x
+    toContents (SevenOf10 x) = toContents x
+    toContents (EightOf10 x) = toContents x
+    toContents (NineOf10 x) = toContents x
+    toContents (TenOf10 x) = toContents x
 
 ----
 data OneOf11 a b c d e f g h i j k
@@ -187,28 +232,34 @@ data OneOf11 a b c d e f g h i j k
     | ElevenOf11 k
     deriving (Eq,Show)
 
+instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
+          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
+          ,HTypeable k)
+    => HTypeable (OneOf11 a b c d e f g h i j k)
+  where      toHType m = Defined "OneOf11" [] []
+
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
           ,XmlContent k)
     => XmlContent (OneOf11 a b c d e f g h i j k)
   where
-    fromElem cs =
+    parseContents =
         (choice OneOf11 $ choice TwoOf11 $ choice ThreeOf11 $ choice FourOf11
         $ choice FiveOf11 $ choice SixOf11 $ choice SevenOf11
         $ choice EightOf11 $ choice NineOf11 $ choice TenOf11
         $ choice ElevenOf11
-        $ (\c->(Nothing,c))) cs
-    toElem (OneOf11 x) = toElem x
-    toElem (TwoOf11 x) = toElem x
-    toElem (ThreeOf11 x) = toElem x
-    toElem (FourOf11 x) = toElem x
-    toElem (FiveOf11 x) = toElem x
-    toElem (SixOf11 x) = toElem x
-    toElem (SevenOf11 x) = toElem x
-    toElem (EightOf11 x) = toElem x
-    toElem (NineOf11 x) = toElem x
-    toElem (TenOf11 x) = toElem x
-    toElem (ElevenOf11 x) = toElem x
+        $ fail "OneOf11")
+    toContents (OneOf11 x) = toContents x
+    toContents (TwoOf11 x) = toContents x
+    toContents (ThreeOf11 x) = toContents x
+    toContents (FourOf11 x) = toContents x
+    toContents (FiveOf11 x) = toContents x
+    toContents (SixOf11 x) = toContents x
+    toContents (SevenOf11 x) = toContents x
+    toContents (EightOf11 x) = toContents x
+    toContents (NineOf11 x) = toContents x
+    toContents (TenOf11 x) = toContents x
+    toContents (ElevenOf11 x) = toContents x
 
 ----
 data OneOf12 a b c d e f g h i j k l
@@ -217,29 +268,35 @@ data OneOf12 a b c d e f g h i j k l
     | ElevenOf12 k | TwelveOf12 l
     deriving (Eq,Show)
 
+instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
+          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
+          ,HTypeable k,HTypeable l)
+    => HTypeable (OneOf12 a b c d e f g h i j k l)
+  where      toHType m = Defined "OneOf12" [] []
+
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
           ,XmlContent k,XmlContent l)
     => XmlContent (OneOf12 a b c d e f g h i j k l)
   where
-    fromElem cs =
+    parseContents =
         (choice OneOf12 $ choice TwoOf12 $ choice ThreeOf12 $ choice FourOf12
         $ choice FiveOf12 $ choice SixOf12 $ choice SevenOf12
         $ choice EightOf12 $ choice NineOf12 $ choice TenOf12
         $ choice ElevenOf12 $ choice TwelveOf12
-        $ (\c->(Nothing,c))) cs
-    toElem (OneOf12 x) = toElem x
-    toElem (TwoOf12 x) = toElem x
-    toElem (ThreeOf12 x) = toElem x
-    toElem (FourOf12 x) = toElem x
-    toElem (FiveOf12 x) = toElem x
-    toElem (SixOf12 x) = toElem x
-    toElem (SevenOf12 x) = toElem x
-    toElem (EightOf12 x) = toElem x
-    toElem (NineOf12 x) = toElem x
-    toElem (TenOf12 x) = toElem x
-    toElem (ElevenOf12 x) = toElem x
-    toElem (TwelveOf12 x) = toElem x
+        $ fail "OneOf12")
+    toContents (OneOf12 x) = toContents x
+    toContents (TwoOf12 x) = toContents x
+    toContents (ThreeOf12 x) = toContents x
+    toContents (FourOf12 x) = toContents x
+    toContents (FiveOf12 x) = toContents x
+    toContents (SixOf12 x) = toContents x
+    toContents (SevenOf12 x) = toContents x
+    toContents (EightOf12 x) = toContents x
+    toContents (NineOf12 x) = toContents x
+    toContents (TenOf12 x) = toContents x
+    toContents (ElevenOf12 x) = toContents x
+    toContents (TwelveOf12 x) = toContents x
 
 ----
 data OneOf13 a b c d e f g h i j k l m
@@ -248,30 +305,36 @@ data OneOf13 a b c d e f g h i j k l m
     | ElevenOf13 k | TwelveOf13 l | ThirteenOf13 m
     deriving (Eq,Show)
 
+instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
+          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
+          ,HTypeable k,HTypeable l,HTypeable m)
+    => HTypeable (OneOf13 a b c d e f g h i j k l m)
+  where      toHType m = Defined "OneOf13" [] []
+
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
           ,XmlContent k,XmlContent l,XmlContent m)
     => XmlContent (OneOf13 a b c d e f g h i j k l m)
   where
-    fromElem cs =
+    parseContents =
         (choice OneOf13 $ choice TwoOf13 $ choice ThreeOf13 $ choice FourOf13
         $ choice FiveOf13 $ choice SixOf13 $ choice SevenOf13
         $ choice EightOf13 $ choice NineOf13 $ choice TenOf13
         $ choice ElevenOf13 $ choice TwelveOf13 $ choice ThirteenOf13
-        $ (\c->(Nothing,c))) cs
-    toElem (OneOf13 x) = toElem x
-    toElem (TwoOf13 x) = toElem x
-    toElem (ThreeOf13 x) = toElem x
-    toElem (FourOf13 x) = toElem x
-    toElem (FiveOf13 x) = toElem x
-    toElem (SixOf13 x) = toElem x
-    toElem (SevenOf13 x) = toElem x
-    toElem (EightOf13 x) = toElem x
-    toElem (NineOf13 x) = toElem x
-    toElem (TenOf13 x) = toElem x
-    toElem (ElevenOf13 x) = toElem x
-    toElem (TwelveOf13 x) = toElem x
-    toElem (ThirteenOf13 x) = toElem x
+        $ fail "OneOf13")
+    toContents (OneOf13 x) = toContents x
+    toContents (TwoOf13 x) = toContents x
+    toContents (ThreeOf13 x) = toContents x
+    toContents (FourOf13 x) = toContents x
+    toContents (FiveOf13 x) = toContents x
+    toContents (SixOf13 x) = toContents x
+    toContents (SevenOf13 x) = toContents x
+    toContents (EightOf13 x) = toContents x
+    toContents (NineOf13 x) = toContents x
+    toContents (TenOf13 x) = toContents x
+    toContents (ElevenOf13 x) = toContents x
+    toContents (TwelveOf13 x) = toContents x
+    toContents (ThirteenOf13 x) = toContents x
 
 ----
 data OneOf14 a b c d e f g h i j k l m n
@@ -280,32 +343,38 @@ data OneOf14 a b c d e f g h i j k l m n
     | ElevenOf14 k | TwelveOf14 l | ThirteenOf14 m | FourteenOf14 n
     deriving (Eq,Show)
 
+instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
+          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
+          ,HTypeable k,HTypeable l,HTypeable m,HTypeable n)
+    => HTypeable (OneOf14 a b c d e f g h i j k l m n)
+  where      toHType m = Defined "OneOf14" [] []
+
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
           ,XmlContent k,XmlContent l,XmlContent m,XmlContent n)
     => XmlContent (OneOf14 a b c d e f g h i j k l m n)
   where
-    fromElem cs =
+    parseContents =
         (choice OneOf14 $ choice TwoOf14 $ choice ThreeOf14 $ choice FourOf14
         $ choice FiveOf14 $ choice SixOf14 $ choice SevenOf14
         $ choice EightOf14 $ choice NineOf14 $ choice TenOf14
         $ choice ElevenOf14 $ choice TwelveOf14 $ choice ThirteenOf14
         $ choice FourteenOf14
-        $ (\c->(Nothing,c))) cs
-    toElem (OneOf14 x) = toElem x
-    toElem (TwoOf14 x) = toElem x
-    toElem (ThreeOf14 x) = toElem x
-    toElem (FourOf14 x) = toElem x
-    toElem (FiveOf14 x) = toElem x
-    toElem (SixOf14 x) = toElem x
-    toElem (SevenOf14 x) = toElem x
-    toElem (EightOf14 x) = toElem x
-    toElem (NineOf14 x) = toElem x
-    toElem (TenOf14 x) = toElem x
-    toElem (ElevenOf14 x) = toElem x
-    toElem (TwelveOf14 x) = toElem x
-    toElem (ThirteenOf14 x) = toElem x
-    toElem (FourteenOf14 x) = toElem x
+        $ fail "OneOf14")
+    toContents (OneOf14 x) = toContents x
+    toContents (TwoOf14 x) = toContents x
+    toContents (ThreeOf14 x) = toContents x
+    toContents (FourOf14 x) = toContents x
+    toContents (FiveOf14 x) = toContents x
+    toContents (SixOf14 x) = toContents x
+    toContents (SevenOf14 x) = toContents x
+    toContents (EightOf14 x) = toContents x
+    toContents (NineOf14 x) = toContents x
+    toContents (TenOf14 x) = toContents x
+    toContents (ElevenOf14 x) = toContents x
+    toContents (TwelveOf14 x) = toContents x
+    toContents (ThirteenOf14 x) = toContents x
+    toContents (FourteenOf14 x) = toContents x
 
 ----
 data OneOf15 a b c d e f g h i j k l m n o
@@ -315,33 +384,39 @@ data OneOf15 a b c d e f g h i j k l m n o
     | FifteenOf15 o
     deriving (Eq,Show)
 
+instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
+          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
+          ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o)
+    => HTypeable (OneOf15 a b c d e f g h i j k l m n o)
+  where      toHType m = Defined "OneOf15" [] []
+
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
           ,XmlContent k,XmlContent l,XmlContent m,XmlContent n,XmlContent o)
     => XmlContent (OneOf15 a b c d e f g h i j k l m n o)
   where
-    fromElem cs =
+    parseContents =
         (choice OneOf15 $ choice TwoOf15 $ choice ThreeOf15 $ choice FourOf15
         $ choice FiveOf15 $ choice SixOf15 $ choice SevenOf15
         $ choice EightOf15 $ choice NineOf15 $ choice TenOf15
         $ choice ElevenOf15 $ choice TwelveOf15 $ choice ThirteenOf15
         $ choice FourteenOf15 $ choice FifteenOf15
-        $ (\c->(Nothing,c))) cs
-    toElem (OneOf15 x) = toElem x
-    toElem (TwoOf15 x) = toElem x
-    toElem (ThreeOf15 x) = toElem x
-    toElem (FourOf15 x) = toElem x
-    toElem (FiveOf15 x) = toElem x
-    toElem (SixOf15 x) = toElem x
-    toElem (SevenOf15 x) = toElem x
-    toElem (EightOf15 x) = toElem x
-    toElem (NineOf15 x) = toElem x
-    toElem (TenOf15 x) = toElem x
-    toElem (ElevenOf15 x) = toElem x
-    toElem (TwelveOf15 x) = toElem x
-    toElem (ThirteenOf15 x) = toElem x
-    toElem (FourteenOf15 x) = toElem x
-    toElem (FifteenOf15 x) = toElem x
+        $ fail "OneOf15")
+    toContents (OneOf15 x) = toContents x
+    toContents (TwoOf15 x) = toContents x
+    toContents (ThreeOf15 x) = toContents x
+    toContents (FourOf15 x) = toContents x
+    toContents (FiveOf15 x) = toContents x
+    toContents (SixOf15 x) = toContents x
+    toContents (SevenOf15 x) = toContents x
+    toContents (EightOf15 x) = toContents x
+    toContents (NineOf15 x) = toContents x
+    toContents (TenOf15 x) = toContents x
+    toContents (ElevenOf15 x) = toContents x
+    toContents (TwelveOf15 x) = toContents x
+    toContents (ThirteenOf15 x) = toContents x
+    toContents (FourteenOf15 x) = toContents x
+    toContents (FifteenOf15 x) = toContents x
 
 ----
 data OneOf16 a b c d e f g h i j k l m n o p
@@ -351,35 +426,42 @@ data OneOf16 a b c d e f g h i j k l m n o p
     | FifteenOf16 o | SixteenOf16 p
     deriving (Eq,Show)
 
+instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
+          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
+          ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o
+          ,HTypeable p)
+    => HTypeable (OneOf16 a b c d e f g h i j k l m n o p)
+  where      toHType m = Defined "OneOf16" [] []
+
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
           ,XmlContent k,XmlContent l,XmlContent m,XmlContent n,XmlContent o
           ,XmlContent p)
     => XmlContent (OneOf16 a b c d e f g h i j k l m n o p)
   where
-    fromElem cs =
+    parseContents =
         (choice OneOf16 $ choice TwoOf16 $ choice ThreeOf16 $ choice FourOf16
         $ choice FiveOf16 $ choice SixOf16 $ choice SevenOf16
         $ choice EightOf16 $ choice NineOf16 $ choice TenOf16
         $ choice ElevenOf16 $ choice TwelveOf16 $ choice ThirteenOf16
         $ choice FourteenOf16 $ choice FifteenOf16 $ choice SixteenOf16
-        $ (\c->(Nothing,c))) cs
-    toElem (OneOf16 x) = toElem x
-    toElem (TwoOf16 x) = toElem x
-    toElem (ThreeOf16 x) = toElem x
-    toElem (FourOf16 x) = toElem x
-    toElem (FiveOf16 x) = toElem x
-    toElem (SixOf16 x) = toElem x
-    toElem (SevenOf16 x) = toElem x
-    toElem (EightOf16 x) = toElem x
-    toElem (NineOf16 x) = toElem x
-    toElem (TenOf16 x) = toElem x
-    toElem (ElevenOf16 x) = toElem x
-    toElem (TwelveOf16 x) = toElem x
-    toElem (ThirteenOf16 x) = toElem x
-    toElem (FourteenOf16 x) = toElem x
-    toElem (FifteenOf16 x) = toElem x
-    toElem (SixteenOf16 x) = toElem x
+        $ fail "OneOf16")
+    toContents (OneOf16 x) = toContents x
+    toContents (TwoOf16 x) = toContents x
+    toContents (ThreeOf16 x) = toContents x
+    toContents (FourOf16 x) = toContents x
+    toContents (FiveOf16 x) = toContents x
+    toContents (SixOf16 x) = toContents x
+    toContents (SevenOf16 x) = toContents x
+    toContents (EightOf16 x) = toContents x
+    toContents (NineOf16 x) = toContents x
+    toContents (TenOf16 x) = toContents x
+    toContents (ElevenOf16 x) = toContents x
+    toContents (TwelveOf16 x) = toContents x
+    toContents (ThirteenOf16 x) = toContents x
+    toContents (FourteenOf16 x) = toContents x
+    toContents (FifteenOf16 x) = toContents x
+    toContents (SixteenOf16 x) = toContents x
 
 ----
 data OneOf17 a b c d e f g h i j k l m n o p q
@@ -389,37 +471,44 @@ data OneOf17 a b c d e f g h i j k l m n o p q
     | FifteenOf17 o | SixteenOf17 p | SeventeenOf17 q
     deriving (Eq,Show)
 
+instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
+          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
+          ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o
+          ,HTypeable p,HTypeable q)
+    => HTypeable (OneOf17 a b c d e f g h i j k l m n o p q)
+  where      toHType m = Defined "OneOf17" [] []
+
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
           ,XmlContent k,XmlContent l,XmlContent m,XmlContent n,XmlContent o
           ,XmlContent p,XmlContent q)
     => XmlContent (OneOf17 a b c d e f g h i j k l m n o p q)
   where
-    fromElem cs =
+    parseContents =
         (choice OneOf17 $ choice TwoOf17 $ choice ThreeOf17 $ choice FourOf17
         $ choice FiveOf17 $ choice SixOf17 $ choice SevenOf17
         $ choice EightOf17 $ choice NineOf17 $ choice TenOf17
         $ choice ElevenOf17 $ choice TwelveOf17 $ choice ThirteenOf17
         $ choice FourteenOf17 $ choice FifteenOf17 $ choice SixteenOf17
         $ choice SeventeenOf17
-        $ (\c->(Nothing,c))) cs
-    toElem (OneOf17 x) = toElem x
-    toElem (TwoOf17 x) = toElem x
-    toElem (ThreeOf17 x) = toElem x
-    toElem (FourOf17 x) = toElem x
-    toElem (FiveOf17 x) = toElem x
-    toElem (SixOf17 x) = toElem x
-    toElem (SevenOf17 x) = toElem x
-    toElem (EightOf17 x) = toElem x
-    toElem (NineOf17 x) = toElem x
-    toElem (TenOf17 x) = toElem x
-    toElem (ElevenOf17 x) = toElem x
-    toElem (TwelveOf17 x) = toElem x
-    toElem (ThirteenOf17 x) = toElem x
-    toElem (FourteenOf17 x) = toElem x
-    toElem (FifteenOf17 x) = toElem x
-    toElem (SixteenOf17 x) = toElem x
-    toElem (SeventeenOf17 x) = toElem x
+        $ fail "OneOf17")
+    toContents (OneOf17 x) = toContents x
+    toContents (TwoOf17 x) = toContents x
+    toContents (ThreeOf17 x) = toContents x
+    toContents (FourOf17 x) = toContents x
+    toContents (FiveOf17 x) = toContents x
+    toContents (SixOf17 x) = toContents x
+    toContents (SevenOf17 x) = toContents x
+    toContents (EightOf17 x) = toContents x
+    toContents (NineOf17 x) = toContents x
+    toContents (TenOf17 x) = toContents x
+    toContents (ElevenOf17 x) = toContents x
+    toContents (TwelveOf17 x) = toContents x
+    toContents (ThirteenOf17 x) = toContents x
+    toContents (FourteenOf17 x) = toContents x
+    toContents (FifteenOf17 x) = toContents x
+    toContents (SixteenOf17 x) = toContents x
+    toContents (SeventeenOf17 x) = toContents x
 
 ----
 data OneOf18 a b c d e f g h i j k l m n o p q r
@@ -429,38 +518,45 @@ data OneOf18 a b c d e f g h i j k l m n o p q r
     | FifteenOf18 o | SixteenOf18 p | SeventeenOf18 q | EighteenOf18 r
     deriving (Eq,Show)
 
+instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
+          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
+          ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o
+          ,HTypeable p,HTypeable q,HTypeable r)
+    => HTypeable (OneOf18 a b c d e f g h i j k l m n o p q r)
+  where      toHType m = Defined "OneOf18" [] []
+
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
           ,XmlContent k,XmlContent l,XmlContent m,XmlContent n,XmlContent o
           ,XmlContent p,XmlContent q,XmlContent r)
     => XmlContent (OneOf18 a b c d e f g h i j k l m n o p q r)
   where
-    fromElem cs =
+    parseContents =
         (choice OneOf18 $ choice TwoOf18 $ choice ThreeOf18 $ choice FourOf18
         $ choice FiveOf18 $ choice SixOf18 $ choice SevenOf18
         $ choice EightOf18 $ choice NineOf18 $ choice TenOf18
         $ choice ElevenOf18 $ choice TwelveOf18 $ choice ThirteenOf18
         $ choice FourteenOf18 $ choice FifteenOf18 $ choice SixteenOf18
         $ choice SeventeenOf18 $ choice EighteenOf18
-        $ (\c->(Nothing,c))) cs
-    toElem (OneOf18 x) = toElem x
-    toElem (TwoOf18 x) = toElem x
-    toElem (ThreeOf18 x) = toElem x
-    toElem (FourOf18 x) = toElem x
-    toElem (FiveOf18 x) = toElem x
-    toElem (SixOf18 x) = toElem x
-    toElem (SevenOf18 x) = toElem x
-    toElem (EightOf18 x) = toElem x
-    toElem (NineOf18 x) = toElem x
-    toElem (TenOf18 x) = toElem x
-    toElem (ElevenOf18 x) = toElem x
-    toElem (TwelveOf18 x) = toElem x
-    toElem (ThirteenOf18 x) = toElem x
-    toElem (FourteenOf18 x) = toElem x
-    toElem (FifteenOf18 x) = toElem x
-    toElem (SixteenOf18 x) = toElem x
-    toElem (SeventeenOf18 x) = toElem x
-    toElem (EighteenOf18 x) = toElem x
+        $ fail "OneOf18")
+    toContents (OneOf18 x) = toContents x
+    toContents (TwoOf18 x) = toContents x
+    toContents (ThreeOf18 x) = toContents x
+    toContents (FourOf18 x) = toContents x
+    toContents (FiveOf18 x) = toContents x
+    toContents (SixOf18 x) = toContents x
+    toContents (SevenOf18 x) = toContents x
+    toContents (EightOf18 x) = toContents x
+    toContents (NineOf18 x) = toContents x
+    toContents (TenOf18 x) = toContents x
+    toContents (ElevenOf18 x) = toContents x
+    toContents (TwelveOf18 x) = toContents x
+    toContents (ThirteenOf18 x) = toContents x
+    toContents (FourteenOf18 x) = toContents x
+    toContents (FifteenOf18 x) = toContents x
+    toContents (SixteenOf18 x) = toContents x
+    toContents (SeventeenOf18 x) = toContents x
+    toContents (EighteenOf18 x) = toContents x
 
 ----
 data OneOf19 a b c d e f g h i j k l m n o p q r s
@@ -471,39 +567,46 @@ data OneOf19 a b c d e f g h i j k l m n o p q r s
     | NineteenOf19 s
     deriving (Eq,Show)
 
+instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
+          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
+          ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o
+          ,HTypeable p,HTypeable q,HTypeable r,HTypeable s)
+    => HTypeable (OneOf19 a b c d e f g h i j k l m n o p q r s)
+  where      toHType m = Defined "OneOf19" [] []
+
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
           ,XmlContent k,XmlContent l,XmlContent m,XmlContent n,XmlContent o
           ,XmlContent p,XmlContent q,XmlContent r,XmlContent s)
     => XmlContent (OneOf19 a b c d e f g h i j k l m n o p q r s)
   where
-    fromElem cs =
+    parseContents =
         (choice OneOf19 $ choice TwoOf19 $ choice ThreeOf19 $ choice FourOf19
         $ choice FiveOf19 $ choice SixOf19 $ choice SevenOf19
         $ choice EightOf19 $ choice NineOf19 $ choice TenOf19
         $ choice ElevenOf19 $ choice TwelveOf19 $ choice ThirteenOf19
         $ choice FourteenOf19 $ choice FifteenOf19 $ choice SixteenOf19
         $ choice SeventeenOf19 $ choice EighteenOf19 $ choice NineteenOf19
-        $ (\c->(Nothing,c))) cs
-    toElem (OneOf19 x) = toElem x
-    toElem (TwoOf19 x) = toElem x
-    toElem (ThreeOf19 x) = toElem x
-    toElem (FourOf19 x) = toElem x
-    toElem (FiveOf19 x) = toElem x
-    toElem (SixOf19 x) = toElem x
-    toElem (SevenOf19 x) = toElem x
-    toElem (EightOf19 x) = toElem x
-    toElem (NineOf19 x) = toElem x
-    toElem (TenOf19 x) = toElem x
-    toElem (ElevenOf19 x) = toElem x
-    toElem (TwelveOf19 x) = toElem x
-    toElem (ThirteenOf19 x) = toElem x
-    toElem (FourteenOf19 x) = toElem x
-    toElem (FifteenOf19 x) = toElem x
-    toElem (SixteenOf19 x) = toElem x
-    toElem (SeventeenOf19 x) = toElem x
-    toElem (EighteenOf19 x) = toElem x
-    toElem (NineteenOf19 x) = toElem x
+        $ fail "OneOf19")
+    toContents (OneOf19 x) = toContents x
+    toContents (TwoOf19 x) = toContents x
+    toContents (ThreeOf19 x) = toContents x
+    toContents (FourOf19 x) = toContents x
+    toContents (FiveOf19 x) = toContents x
+    toContents (SixOf19 x) = toContents x
+    toContents (SevenOf19 x) = toContents x
+    toContents (EightOf19 x) = toContents x
+    toContents (NineOf19 x) = toContents x
+    toContents (TenOf19 x) = toContents x
+    toContents (ElevenOf19 x) = toContents x
+    toContents (TwelveOf19 x) = toContents x
+    toContents (ThirteenOf19 x) = toContents x
+    toContents (FourteenOf19 x) = toContents x
+    toContents (FifteenOf19 x) = toContents x
+    toContents (SixteenOf19 x) = toContents x
+    toContents (SeventeenOf19 x) = toContents x
+    toContents (EighteenOf19 x) = toContents x
+    toContents (NineteenOf19 x) = toContents x
 
 ----
 data OneOf20 a b c d e f g h i j k l m n o p q r s t
@@ -514,13 +617,20 @@ data OneOf20 a b c d e f g h i j k l m n o p q r s t
     | NineteenOf20 s | TwentyOf20 t
     deriving (Eq,Show)
 
+instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
+          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
+          ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o
+          ,HTypeable p,HTypeable q,HTypeable r,HTypeable s,HTypeable t)
+    => HTypeable (OneOf20 a b c d e f g h i j k l m n o p q r s t)
+  where      toHType m = Defined "OneOf20" [] []
+
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
           ,XmlContent k,XmlContent l,XmlContent m,XmlContent n,XmlContent o
           ,XmlContent p,XmlContent q,XmlContent r,XmlContent s,XmlContent t)
     => XmlContent (OneOf20 a b c d e f g h i j k l m n o p q r s t)
   where
-    fromElem cs =
+    parseContents =
         (choice OneOf20 $ choice TwoOf20 $ choice ThreeOf20 $ choice FourOf20
         $ choice FiveOf20 $ choice SixOf20 $ choice SevenOf20
         $ choice EightOf20 $ choice NineOf20 $ choice TenOf20
@@ -528,26 +638,26 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
         $ choice FourteenOf20 $ choice FifteenOf20 $ choice SixteenOf20
         $ choice SeventeenOf20 $ choice EighteenOf20 $ choice NineteenOf20
         $ choice TwentyOf20
-        $ (\c->(Nothing,c))) cs
-    toElem (OneOf20 x) = toElem x
-    toElem (TwoOf20 x) = toElem x
-    toElem (ThreeOf20 x) = toElem x
-    toElem (FourOf20 x) = toElem x
-    toElem (FiveOf20 x) = toElem x
-    toElem (SixOf20 x) = toElem x
-    toElem (SevenOf20 x) = toElem x
-    toElem (EightOf20 x) = toElem x
-    toElem (NineOf20 x) = toElem x
-    toElem (TenOf20 x) = toElem x
-    toElem (ElevenOf20 x) = toElem x
-    toElem (TwelveOf20 x) = toElem x
-    toElem (ThirteenOf20 x) = toElem x
-    toElem (FourteenOf20 x) = toElem x
-    toElem (FifteenOf20 x) = toElem x
-    toElem (SixteenOf20 x) = toElem x
-    toElem (SeventeenOf20 x) = toElem x
-    toElem (EighteenOf20 x) = toElem x
-    toElem (NineteenOf20 x) = toElem x
-    toElem (TwentyOf20 x) = toElem x
+        $ fail "OneOf20")
+    toContents (OneOf20 x) = toContents x
+    toContents (TwoOf20 x) = toContents x
+    toContents (ThreeOf20 x) = toContents x
+    toContents (FourOf20 x) = toContents x
+    toContents (FiveOf20 x) = toContents x
+    toContents (SixOf20 x) = toContents x
+    toContents (SevenOf20 x) = toContents x
+    toContents (EightOf20 x) = toContents x
+    toContents (NineOf20 x) = toContents x
+    toContents (TenOf20 x) = toContents x
+    toContents (ElevenOf20 x) = toContents x
+    toContents (TwelveOf20 x) = toContents x
+    toContents (ThirteenOf20 x) = toContents x
+    toContents (FourteenOf20 x) = toContents x
+    toContents (FifteenOf20 x) = toContents x
+    toContents (SixteenOf20 x) = toContents x
+    toContents (SeventeenOf20 x) = toContents x
+    toContents (EighteenOf20 x) = toContents x
+    toContents (NineteenOf20 x) = toContents x
+    toContents (TwentyOf20 x) = toContents x
 
 ----

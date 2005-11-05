@@ -10,13 +10,26 @@ import System
 import IO
 import List (nub,takeWhile,dropWhile)
 
-import Text.XML.HaXml.Wrappers   (fix2Args)
+--import Text.XML.HaXml.Wrappers   (fix2Args)
 import Text.XML.HaXml.Types      (DocTypeDecl(..))
 import Text.XML.HaXml.Parse      (dtdParse)
 import Text.XML.HaXml.DtdToHaskell.TypeDef  (TypeDef,ppTypeDef,mangle)
 import Text.XML.HaXml.DtdToHaskell.Convert  (dtd2TypeDef)
 import Text.XML.HaXml.DtdToHaskell.Instance (mkInstance)
 import Text.PrettyPrint.HughesPJ (render,vcat)
+
+-- sucked in from Text.XML.HaXml.Wrappers to avod dependency on T.X.H.Html
+fix2Args :: IO (String,String)
+fix2Args = do
+  args <- getArgs
+  case length args of
+    0 -> return ("-",     "-")
+    1 -> return (args!!0, "-")
+    2 -> return (args!!0, args!!1)
+    _ -> do prog <- getProgName
+            putStrLn ("Usage: "++prog++" [xmlfile] [outfile]")
+            exitFailure
+
 
 main =
   fix2Args >>= \(inf,outf)->
