@@ -546,16 +546,16 @@ conditionalsect = oneOf
            p <- posn
            tok TokSqOpen `onFail` failP "missing [ after INCLUDE"
            i <- many (peRef extsubsetdecl)
-           tok TokSectionClose `onFail` failP "missing ]]> for INCLUDE section"
-                                              ++"\n    begun at "++show p)
+           tok TokSectionClose `onFail` (failP "missing ]]> for INCLUDE section"
+                                               ++"\n    begun at "++show p)
            return (IncludeSect i))
     , ( do tok TokSectionOpen
            peRef (tok (TokSection IGNOREx))
            p <- posn
            tok TokSqOpen `onFail` failP "missing [ after IGNORE"
            i <- many newIgnore  -- many ignoresectcontents
-           tok TokSectionClose `onFail` failP "missing ]]> for IGNORE section"
-                                              ++"\n    begun at "++show p)
+           tok TokSectionClose `onFail` (failP "missing ]]> for IGNORE section"
+                                               ++"\n    begun at "++show p)
            return (IgnoreSect []))
     ] `adjustErr` (++"\nLooking for an INCLUDE or IGNORE section")
 
