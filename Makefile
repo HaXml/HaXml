@@ -1,5 +1,5 @@
 SOFTWARE = HaXml
-VERSION  = 1.14
+VERSION  = 1.15
 
 CPP      = cpp -P -traditional
 #CPP     = cpphs --noline --text 	# useful e.g. on MacOS X
@@ -25,7 +25,9 @@ SRCS = \
 	src/Text/ParserCombinators/HuttonMeijer.hs \
 	src/Text/ParserCombinators/HuttonMeijerWallace.hs \
 	src/Text/ParserCombinators/Poly.hs \
+	src/Text/ParserCombinators/PolyState.hs \
 	src/Text/ParserCombinators/TextParser.hs
+
 TOOLSRCS = \
 	src/tools/DtdToHaskell.hs src/tools/Xtract.hs src/tools/Validate.hs \
 	src/tools/Canonicalise.hs src/tools/MkOneOf.hs

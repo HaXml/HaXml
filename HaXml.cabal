@@ -1,5 +1,5 @@
 name:		HaXml
-version:	1.14
+version:	1.15
 license:	LGPL
 license-file:	COPYRIGHT
 author:		Malcolm Wallace <Malcolm.Wallace@cs.york.ac.uk>
@@ -13,6 +13,7 @@ exposed-modules:
 	Text.ParserCombinators.HuttonMeijer,
 	Text.ParserCombinators.HuttonMeijerWallace,
 	Text.ParserCombinators.Poly,
+	Text.ParserCombinators.PolyState,
 	Text.ParserCombinators.TextParser,
 	Text.XML.HaXml,
 	Text.XML.HaXml.Combinators,

@@ -24,11 +24,11 @@
 
 <p>
 <font color="red">
-<b>Warning!</b> Version 1.14 signficantly changes the API of some
-modules!  It may be incomplete, inconsistent, and liable to change
+<b>Warning!</b> Versions 1.14 and 1.15 significantly changes the API of some
+modules!  They may be incomplete, inconsistent, and liable to change
 before the next release!  Do not expect code written against an earlier
-API to be compatible!  DtdToHaskell has not yet been fixed to work with
-the 1.14 APIs! <b>Warning!</b>
+API to be compatible!  DtdToHaskell has only recently been fixed to work with
+the 1.15 APIs! <b>Warning!</b>
 </font>
 
 <hr>
@@ -60,10 +60,6 @@ For processing XML documents, the following components are also provided:
     can automatically derive this class for you.
 <li><em>DtdToHaskell</em> is a tool for translating any valid XML DTD
     into equivalent Haskell types, together with <em>XmlContent</em> instances.
-<!--li>In conjunction with the <em>Xml2Haskell</em> class framework,
-    this allows you to generate, edit, and transform documents as normal
-    typed values in programs, and to read and write them as human-readable
-    XML documents. -->
 <li>Finally, <em>Xtract</em> is a <em>grep</em>-like tool for XML documents,
     loosely based on the XPath and XQL query languages.  It can be used
     either from the command-line, or within your own code as part of the
@@ -122,7 +118,16 @@ Some additional info about using the various facilities is here:
 <hr>
 <center><h3><a name="download">Downloads</a></h3></center>
 <p>
-<b>Current version:</b>
+<b>Current versions:</b>
+HaXml-1.15, release date 2005.12.02<br>
+By HTTP:
+<a href="http://www.cs.york.ac.uk/HaXml-1.14/HaXml-1.15.tar.gz">.tar.gz</a>,
+<a href="http://www.cs.york.ac.uk/HaXml-1.14/HaXml-1.15.zip">.zip</a>.
+<br>
+By FTP: 
+<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/">
+ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/</a>
+<br>
 HaXml-1.14, release date 2005.10.17 (refreshed 2005.11.02)<br>
 By HTTP:
 <a href="http://www.cs.york.ac.uk/HaXml-1.14/HaXml-1.14.tar.gz">.tar.gz</a>,
@@ -131,10 +136,6 @@ By HTTP:
 By FTP: 
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/">
 ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/</a>
-<br>
-FreeBSD port:
-<a href="http://freshports.org/textproc/hs-haxml/">
-http://freshports.org/textproc/haxml/</a>
 
 <p>
 <b>Development version:</b>
@@ -155,6 +156,10 @@ the darcs copy may lag behind CVS.
 By FTP: 
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/">
 ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/</a>
+<br>
+FreeBSD port:
+<a href="http://freshports.org/textproc/hs-haxml/">
+http://freshports.org/textproc/haxml/</a>
 
 <center><h3><a name="install">Installation</a></h3></center>
 <p>
@@ -184,6 +189,18 @@ of your compiler etc.
 
 <hr>
 <center><h3><a name="news">Recent news</a></h3></center>
+<p>
+Version 1.15 is essentially 1.14 with some bugfixes, and some new
+functionality, especially in the parser combinator libraries.  DrIFT now
+supports deriving the XmlContent class, and DtdToHaskell now also
+derives the XmlContent class, in addition to determining a collection of
+Haskell datatypes equivalent to a given DTD.
+
+<p>
+Error messages from parsing are much improved in 1.15 - they should
+locate any error far more specifically and accurately.  Let me know
+about examples which do not report correctly.
+
 <p>
 Prior to 1.14, there were two separate classes, Xml2Haskell and
 Haskell2Xml.  They are now combined into the single class XmlContent.
@@ -252,7 +269,9 @@ your requirements.)
     <a href="http://www.flightlab.com/~joe/hxml/">Available here</a>.
 <li>Uwe Schmidt designed another
     <a href="http://www.fh-wedel.de/~si/HXmlToolbox/">Haskell XML Toolbox</a>
-    based on the ideas of HaXml and hxml.  It is well-maintained.
+    based on the ideas of HaXml and hxml.  It is well-maintained, and has
+    recently been updated to use arrow-based combinators rather than filters
+    as in HaXml.
 <li>Some comparisons between functional language approaches to processing
     XML can be found in
     <a href="http://www.xml.com/pub/a/2001/02/14/functional.html">
@@ -285,7 +304,7 @@ your requirements.)
     the Java Architecture for XML Binding
     (<a href="http://java.sun.com/xml/jaxb/">JAXB</a>).  JAXB translates
     an XML Schema Definition into a set of Java classes, and provides
-    the runtime machinery (like <em>Xml2Haskell</em>) for reading and
+    the runtime machinery (like <em>XmlContent</em>) for reading and
     writing objects of those classes to/from XML files.
 <li>There is a comprehensive reading list for XML and web programming in
     functional languages <a href="http://readscheme.org/xml-web/">here</a>.

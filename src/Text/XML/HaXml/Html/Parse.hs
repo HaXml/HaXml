@@ -52,8 +52,8 @@ htmlParse name = Prelude.either error id . htmlParse' name
 --   contents of the file.  The result is the generic representation of
 --   an XML document.  Any parsing errors are returned in the @Either@ type.
 htmlParse' :: String -> String -> Either String (Document Posn)
-htmlParse' name = Prelude.either Left (Right . simplify) . fst3
-                  . runParser document () . xmlLex name
+htmlParse' name = Prelude.either Left (Right . simplify) . fst
+                  . runParser document . xmlLex name
 
 ---- Document simplification ----
 
@@ -131,20 +131,29 @@ thd3 (_,_,a) = a
 
 ---- Auxiliary Parsing Functions ----
 
-type HParser a = Parser () (Posn,TokenT) a
+type HParser a = Parser (Posn,TokenT) a
 
 tok :: TokenT -> HParser TokenT
 tok t = do (p,t') <- next
-           if t==t' then return t
-                    else fail ("Expected a "++show t++" but found a "++show t'
-                              ++"\n  at "++show p)
+           case t' of TokError s    -> report failBad (show t) p t'
+                      _ | t'==t     -> return t
+                        | otherwise -> report fail (show t) p t'
 
 name :: HParser Name
-name = do {(p,TokName s) <- next; return s}
+--name = do {(p,TokName s) <- next; return s}
+name = do (p,tok) <- next
+          case tok of 
+            TokName s  -> return s 
+            TokError s -> report failBad "a name" p tok
+            _          -> report fail "a name" p tok
 
 string, freetext :: HParser String
-string   = do {(p,TokName s) <- next; return s}
-freetext = do {(p,TokFreeText s) <- next; return s}
+string   = do (p,t) <- next
+              case t of TokName s -> return s
+                        _         -> report fail "text" p t
+freetext = do (p,t) <- next
+              case t of TokFreeText s -> return s
+                        _             -> report fail "text" p t
 
 maybe :: HParser a -> HParser (Maybe a)
 maybe p =
@@ -161,7 +170,8 @@ word s = do { x <- next
             ; case x of
                 (p,TokName n)     | s==n -> return ()
                 (p,TokFreeText n) | s==n -> return ()
-                (p,t) -> failP ("Expected "++show s++" but found "++show t)
+                (p,t@(TokError _)) -> report failBad (show s) p t
+                (p,t) -> report fail (show s) p t
             }
 
 posn :: HParser Posn
@@ -173,9 +183,13 @@ posn = do { x@(p,_) <- next
 nmtoken :: HParser NmToken
 nmtoken = (string `onFail` freetext)
 
-failP :: String -> HParser a
-failP msg = do { p <- posn
-               ; fail (msg++"\n    at "++show p) }
+failP, failBadP :: String -> HParser a
+failP msg    = do { p <- posn; fail (msg++"\n    at "++show p) }
+failBadP msg = do { p <- posn; failBad (msg++"\n    at "++show p) }
+
+report :: (String->HParser a) -> String -> Posn -> TokenT -> HParser a
+report fail exp p t = fail ("Expected "++show exp++" but found "++show t
+                           ++"\n  at "++show p)
 
 adjustErrP :: HParser a -> (String->String) -> HParser a
 p `adjustErrP` f = p `onFail` do pn <- posn
@@ -185,7 +199,7 @@ p `adjustErrP` f = p `onFail` do pn <- posn
 
 document :: HParser (Document Posn)
 document = do
-    p     <- prolog `onFail` failP "unrecognisable XML prolog"
+    p     <- prolog `adjustErr` ("unrecognisable XML prolog\n"++)
     es    <- many1 (element "HTML document")
     ms    <- many misc
     return (Document p emptyST (case map snd es of
@@ -201,10 +215,11 @@ comment = do
 processinginstruction :: HParser ProcessingInstruction
 processinginstruction = do
     tok TokPIOpen
-    n <- string  `onFail` failP "processing instruction has no target"
-    f <- freetext
-    (tok TokPIClose `onFail` tok TokAnyClose) `onFail` failP "missing ?> or >"
-    return (n, f)
+    commit $ do
+      n <- string  `onFail` failP "processing instruction has no target"
+      f <- freetext
+      (tok TokPIClose `onFail` tok TokAnyClose) `onFail` failP "missing ?> or >"
+      return (n, f)
 
 cdsect :: HParser CDSect
 cdsect = do
@@ -225,8 +240,8 @@ xmldecl = do
     (word "xml" `onFail` word "XML")
     p <- posn
     s <- freetext
-    tok TokPIClose `onFail` failP "missing ?> in <?xml ...?>"
-    (Prelude.either fail return . fst3 . runParser aux () . xmlReLex p) s
+    tok TokPIClose `onFail` failBadP "missing ?> in <?xml ...?>"
+    (Prelude.either failP return . fst . runParser aux . xmlReLex p) s
   where
     aux = do
       v <- versioninfo  `onFail` failP "missing XML version info"
@@ -242,8 +257,9 @@ versioninfo = do
 
 misc :: HParser Misc
 misc = 
-    ( comment >>= return . Comment) `onFail`
-    ( processinginstruction >>= return . PI)
+    oneOf' [ ("<!--comment-->", comment >>= return . Comment)
+           , ("<?PI?>",         processinginstruction >>= return . PI)
+           ]
 
 
 -- Question: for HTML, should we disallow in-line DTDs, allowing only externals?
@@ -253,12 +269,13 @@ doctypedecl :: HParser DocTypeDecl
 doctypedecl = do
     tok TokSpecialOpen
     tok (TokSpecial DOCTYPEx)
-    n <- name
-    eid <- maybe externalid
---  es <- maybe (bracket (tok TokSqOpen) (tok TokSqClose)) (many markupdecl)
-    tok TokAnyClose  `onFail` failP "missing > in DOCTYPE decl"
---  return (DTD n eid (case es of { Nothing -> []; Just e -> e }))
-    return (DTD n eid [])
+    commit $ do
+      n <- name
+      eid <- maybe externalid
+--    es <- maybe (bracket (tok TokSqOpen) (tok TokSqClose)) (many markupdecl)
+      tok TokAnyClose  `onFail` failP "missing > in DOCTYPE decl"
+--    return (DTD n eid (case es of { Nothing -> []; Just e -> e }))
+      return (DTD n eid [])
 
 --markupdecl :: HParser MarkupDecl
 --markupdecl =
@@ -284,11 +301,12 @@ doctypedecl = do
 sddecl :: HParser SDDecl
 sddecl = do
     (word "standalone" `onFail` word "STANDALONE")
-    tok TokEqual `onFail` failP "missing = in 'standalone' decl"
-    bracket (tok TokQuote) (tok TokQuote)
-            ( (word "yes" >> return True) `onFail`
-              (word "no" >> return False) `onFail` fail
-              "'standalone' decl requires 'yes' or 'no' value" )
+    commit $ do
+      tok TokEqual `onFail` failP "missing = in 'standalone' decl"
+      bracket (tok TokQuote) (tok TokQuote)
+              ( (word "yes" >> return True) `onFail`
+                (word "no" >> return False) `onFail`
+                failP "'standalone' decl requires 'yes' or 'no' value" )
 
 
 
@@ -305,7 +323,7 @@ element ctx =
     tok TokAnyOpen
     (ElemTag e avs) <- elemtag
     ( if e `closes` ctx then
-         -- insert the missing close-tag, failP forward, and reparse.
+         -- insert the missing close-tag, fail forward, and reparse.
          ( do debug ("/")
               unparse ([TokEndOpen, TokName ctx, TokAnyClose,
                         TokAnyOpen, TokName e] ++ reformatAttrs avs)
@@ -374,7 +392,7 @@ content ctx = do { p <- posn; content' p ctx }
 ----
 elemtag :: HParser ElemTag
 elemtag = do
-    n <- name `onFail` failP "malformed element tag"
+    n <- name `adjustErrBad` ("malformed element tag\n"++)
     as <- many attribute
     return (ElemTag (map toLower n) as)
 
@@ -642,7 +660,7 @@ textdecl = do
 encodingdecl :: HParser EncodingDecl
 encodingdecl = do
     (word "encoding" `onFail` word "ENCODING")
-    tok TokEqual `onFail` failP "expected = in 'encoding' decl"
+    tok TokEqual `onFail` failBadP "expected = in 'encoding' decl"
     f <- bracket (tok TokQuote) (tok TokQuote) freetext
     return (EncodingDecl f)
 

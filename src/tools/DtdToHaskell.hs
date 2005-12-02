@@ -44,13 +44,14 @@ main =
                  else mangle name
   in
   do hPutStrLn o ("module "++realname
-                  ++" where\n\nimport Text.XML.HaXml.Xml2Haskell"
-                  ++"\nimport Text.XML.HaXml.OneOfN"
-                  ++"\nimport Char (isSpace)")
+                  ++" where\n\nimport Text.XML.HaXml.XmlContent"
+                  ++"\nimport Text.XML.HaXml.OneOfN")
+    --            ++"\nimport Char (isSpace)"
+    --            ++"\nimport List (isPrefixOf)"
      hPutStrLn o "\n\n{-Type decls-}\n"
      (hPutStrLn o . render . vcat . map ppTypeDef) decls
      hPutStrLn o "\n\n{-Instance decls-}\n"
-     (hPutStrLn o . render . vcat . map mkInstance) decls
+     mapM_ (hPutStrLn o . (++"\n") . render . mkInstance) decls
      hPutStrLn o "\n\n{-Done-}"
      hFlush o
 

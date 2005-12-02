@@ -37,6 +37,7 @@ module Text.XML.HaXml.XmlContent
   , module Text.ParserCombinators.Poly
   , XMLParser
   , content, posnElement, element, interior, inElement, text, attributes
+  , posnElementWith, elementWith, inElementWith
   , choice, definite -- ???
   -- ** Auxiliaries for generating in the XmlContent class
   , mkElem, mkElemC, mkAttr
@@ -76,6 +77,17 @@ import Text.XML.HaXml.Parse    (xmlParse, fst3)
 import Text.XML.HaXml.Verbatim (Verbatim(verbatim))
 
 import Text.ParserCombinators.Poly
+
+--  #define DEBUG
+
+#if defined(DEBUG)
+import Debug.Trace(trace)
+debug :: a -> String -> a
+v `debug` s = trace s v
+#else
+v `debug` s = v
+#endif
+
 
 ------------------------------------------------------------------------
 -- | Read a single attribute called "value".
@@ -117,7 +129,7 @@ fReadXml fp = do
     x <- hGetContents f 
     let (Document _ _ y _) = xmlParse fp x
         y' = CElem y (posInNewCxt fp Nothing)
-    either fail return (fst3 (runParser parseContents () [y']))
+    either fail return (fst (runParser parseContents [y']))
 
 -- | Write a fully-typed Haskell value to the given file as an XML
 --   document.
@@ -133,8 +145,8 @@ fWriteXml fp x = do
 readXml :: XmlContent a => String -> Either String a
 readXml s =
     let (Document _ _ y _) = xmlParse "string input" s in
-    fst3 (runParser parseContents ()
-                    [CElem y (posInNewCxt "string input" Nothing)])
+    fst (runParser parseContents
+                   [CElem y (posInNewCxt "string input" Nothing)])
 
 -- | Convert a fully-typed XML document to a string (without DTD).
 showXml :: XmlContent a => Bool -> a -> String
@@ -161,10 +173,10 @@ toXml dtd value =
 --   using the Haskell result type to determine how to parse it.
 fromXml :: XmlContent a => Document Posn -> Either String a
 fromXml (Document _ _ e@(Elem n _ cs) _)
-  | "tuple" `isPrefixOf` n = fst3 (runParser parseContents () cs)
-  | "-XML"  `isSuffixOf` n = fst3 (runParser parseContents () cs)
-  | otherwise = fst3 (runParser parseContents ()
-                                [CElem e (posInNewCxt "document" Nothing)])
+  | "tuple" `isPrefixOf` n = fst (runParser parseContents cs)
+  | "-XML"  `isSuffixOf` n = fst (runParser parseContents cs)
+  | otherwise = fst (runParser parseContents
+                               [CElem e (posInNewCxt "document" Nothing)])
 
 
 -- | Read a fully-typed XML document from a file handle.
@@ -173,8 +185,8 @@ hGetXml h = do
     x <- hGetContents h 
     let (Document _ _ y _) = xmlParse "file handle" x
     either fail return
-           (fst3 (runParser parseContents ()
-                            [CElem y (posInNewCxt "file handle" Nothing)]))
+           (fst (runParser parseContents
+                           [CElem y (posInNewCxt "file handle" Nothing)]))
 
 -- | Write a fully-typed XML document to a file handle.
 hPutXml :: XmlContent a => Handle -> Bool -> a -> IO ()
@@ -193,7 +205,7 @@ hPutXml h dtd x = do
 -- | We need a parsing monad for reading generic XML Content into specific
 --   datatypes.  This is a specialisation of the Text.ParserCombinators.Poly
 --   ones, where the input token type is fixed as XML Content.
-type XMLParser a = Parser () (Content Posn) a
+type XMLParser a = Parser (Content Posn) a
 
 
 ------------------------------------------------------------------------
@@ -205,34 +217,47 @@ content :: String -> XMLParser (Content Posn)
 content word = next `adjustErr` (++" when expecting "++word)
 
 -- | Get the next content element, checking that it has one of the required
---   tags.  (Skips over comments and whitespace, rejects text and refs.
---   Also returns position of element.)
-posnElement :: [String] -> XMLParser (Posn, Element Posn)
-posnElement tags = do
+--   tags, using the given matching function. 
+--   (Skips over comments and whitespace, rejects text and refs.
+--    Also returns position of element.)
+posnElementWith :: (String->String->Bool) -> [String]
+                   -> XMLParser (Posn, Element Posn)
+posnElementWith match tags = do
     { c <- content (formatted tags)
     ; case c of
           CElem e@(Elem t _ _) pos
-              | any (==t) tags -> return (pos, e)
-              | otherwise      -> fail ("Found a <"++t++">, but expected "
-                                       ++formatted tags++"\nat "++show pos)
+              | any (match t) tags -> return (pos, e)
+              | otherwise          -> fail ("Found a <"++t++">, but expected "
+                                           ++formatted tags++"\nat "++show pos)
           CString b s pos
-              | not b && all isSpace s -> posnElement tags -- ignore blank space
+              | not b && all isSpace s -> posnElementWith match tags
+							-- ignore blank space
               | otherwise -> fail ("Found text content, but expected "
                                   ++formatted tags++"\ntext is: "++s
                                   ++"\nat "++show pos)
           CRef r pos -> fail ("Found reference, but expected "
                              ++formatted tags++"\nreference is: "++verbatim r
                              ++"\nat "++show pos)
-          CMisc _ _ -> posnElement tags     -- skip comments, PIs, etc.
+          CMisc _ _ -> posnElementWith match tags  -- skip comments, PIs, etc.
     }
   where
     formatted [t]  = "a <"++t++">"
     formatted tags = "one of"++ concatMap (\t->" <"++t++">") tags
 
+-- | A specialisation of @posnElementWith (==)@.
+posnElement :: [String] -> XMLParser (Posn, Element Posn)
+posnElement = posnElementWith (==)
+
 -- | Get the next content element, checking that it has one of the required
 --   tags.  (Skips over comments and whitespace, rejects text and refs.)
 element :: [String] -> XMLParser (Element Posn)
 element tags = fmap snd (posnElement tags)
+				`debug` ("Element: "++unwords tags++"\n")
+
+-- | Like element, only permits a more flexible match against the tagname.
+elementWith :: (String->String->Bool) -> [String] -> XMLParser (Element Posn)
+elementWith match tags = fmap snd (posnElementWith match tags)
+				`debug` ("Element: "++unwords tags++"\n")
 
 -- | Run an XMLParser on the contents of the given element (i.e. not on the
 --   current monadic content sequence), checking that the contents are
@@ -240,10 +265,10 @@ element tags = fmap snd (posnElement tags)
 --   parser context.
 interior :: Element Posn -> XMLParser a -> XMLParser a
 interior (Elem e _ cs) p =
-    case runParser p () cs of
-        (Left msg, _, _) -> fail msg
-        (Right x, _, []) -> return x
-        (Right x, _, cs@(c:_))
+    case runParser p cs of
+        (Left msg, _) -> fail msg
+        (Right x, []) -> return x
+        (Right x, cs@(c:_))
             | all onlyMisc cs -> return x
             | otherwise       -> fail ("Too many elements inside <"++e++"> at\n"
                                       ++show (info c)++"\n"
@@ -254,7 +279,12 @@ interior (Elem e _ cs) p =
 
 -- | A combination of element + interior.
 inElement :: String -> XMLParser a -> XMLParser a
-inElement tag p = do { e <- element [tag]; interior e p }
+inElement tag p = do { e <- element [tag]; commit (interior e p) }
+
+-- | A combination of elementWith + interior.
+inElementWith :: (String->String->Bool) -> String -> XMLParser a -> XMLParser a
+inElementWith match tag p = do { e <- elementWith match [tag]
+                               ; commit (interior e p) }
 
 -- | Do some parsing of the attributes of the given element
 attributes :: XmlAttributes a => Element Posn -> XMLParser a
@@ -271,17 +301,22 @@ text = text' []
                  CRef (RefChar s) _   -> text' (("&#"++show s++";") :acc)
                  CRef (RefEntity s) _ -> text' (('&':s++";"):acc)
                  CMisc _ _            -> text' acc
-                 CElem _ _            -> return (concat (reverse acc))
+                 CElem _ _         -> do { reparse [c] -- put it back!
+                                         ; if null acc then fail "empty string"
+                                           else return (concat (reverse acc))
+                                         }
              }
-          `onFail` return (concat (reverse acc))
+          `onFail` ( if null acc then fail "empty string"
+                     else return (concat (reverse acc)) )
 
 
 -- | 'choice f p' means if parseElem succeeds, apply f to the result, otherwise
 --   use the continuation parser.
 choice :: XmlContent a => (a -> b) -> XMLParser b -> XMLParser b
-choice cons other = P (\u cs-> case runParser parseContents u cs of
-                                (Left msg, _, _)  -> runParser other u cs
-                                (Right x, u, cs') -> (Right (cons x), u, cs'))
+choice cons (P other) =
+    P (\cs-> case runParser parseContents cs of
+                 (Left msg, _)  -> other cs
+                 (Right x, cs') -> (Right (cons x), cs'))
 
 --choice cons other = fmap cons parseContents `onFail` other
 
@@ -289,9 +324,9 @@ choice cons other = P (\u cs-> case runParser parseContents u cs of
 --   an element was definitely present.  Now I think the monad might take
 --   care of that for us.
 definite :: XmlContent a => XMLParser a -> String -> String -> XMLParser a
-definite p inner tag = P (\u cs-> case runParser p u cs of
-                                   (Left msg, _, cs') -> (Left msg', u, cs')
-                                   (Right x, u, cs')  -> (Right x,   u, cs'))
+definite p inner tag = P (\cs-> case runParser p cs of
+                                   (Left msg, cs') -> (Left (False,msg'), cs')
+                                   (Right x, cs')  -> (Right x,   cs'))
   where msg' = "content error: expected "++inner++" inside <"++tag
                ++"> element\n"
 
@@ -367,33 +402,36 @@ instance XmlContent a => XmlContent [a] where
                             [mkElem "string" [CString True (map xToChar xs) ()]]
                        _ -> [mkElem xs (concatMap toContents xs)]
                    where   (x:_) = xs
-    parseContents = P (\u x ->
+    parseContents = P (\x ->
         case x of
             (CString _ s _:cs)
-                   -> (Right (map xFromChar s), u, cs)
+                   -> (Right (map xFromChar s), cs)
             (CElem (Elem "string" [] [CString _ s _]) _:cs)
-                   -> (Right (map xFromChar s), u, cs)
+                   -> (Right (map xFromChar s), cs)
             (CElem (Elem e [] xs) _:cs) | "list" `isPrefixOf` e
                    -> scanElements xs
                    where
                   -- scanElements :: [Content] -> (Either String [a],[Content])
-                     scanElements [] = (Right [], u, cs)
+                     scanElements [] = (Right [], cs)
                      scanElements es =
-                        case runParser parseContents u es of
-                            (Left msg, _, es') -> (Left msg, u, es')
-                            (Right x, u, es') ->
+                        case runParser parseContents es of
+                            (Left msg, es') -> (Left (False,msg), es')
+                            (Right x, es') ->
                                 case scanElements es' of
-                                    (Left msg, _, cs) -> (Left msg, u, cs)
-                                    (Right xs, u, cs) -> (Right (x:xs), u, cs)
+                                    (Left msg, cs) -> (Left msg, cs)
+                                    (Right xs, cs) -> (Right (x:xs), cs)
             (CElem (Elem e _ _) pos: cs)
-                   -> (Left ("Expected a <list-...>, but found a <"++e++"> at\n"
-                            ++ show pos), u, cs)
+                   -> (Left (False
+                            ,"Expected a <list-...>, but found a <"++e++"> at\n"
+                            ++ show pos), cs)
             (CRef r pos: cs)
-                   -> (Left ("Expected a <list-...>, but found a ref "
-                            ++verbatim r++" at\n"++ show pos), u, cs)
-            (_:cs) -> runParser parseContents u cs       -- skip comments etc.
-            []     -> (Left ("Ran out of input XML whilst secondary parsing")
-                      , u, [])
+                   -> (Left (False
+                            ,"Expected a <list-...>, but found a ref "
+                            ++verbatim r++" at\n"++ show pos), cs)
+            (_:cs) -> ((\ (P p)-> p) parseContents) cs  -- skip comments etc.
+            []     -> (Left (False
+                            ,"Ran out of input XML whilst secondary parsing")
+                      , [])
         )
 
 instance XmlContent () where
@@ -420,7 +458,7 @@ instance (XmlContent a, XmlContent b, XmlContent c) => XmlContent (a,b,c) where
 instance (XmlContent a) => XmlContent (Maybe a) where
     toContents m   = [mkElem m (maybe [] toContents m)]
     parseContents = do
-        { e <- element ["maybe"]
+        { e <- elementWith (flip isPrefixOf) ["maybe"]
         ; case e of (Elem _ [] []) -> return Nothing
                     (Elem _ [] _)  -> fmap Just (interior e parseContents)
         }
@@ -431,9 +469,9 @@ instance (XmlContent a, XmlContent b) => XmlContent (Either a b) where
     toContents v@(Right ab) =
         [mkElemC (showConstr 1 (toHType v)) (toContents ab)]
     parseContents =
-        (inElement "Left"  $ fmap Left  parseContents)
+        (inElementWith (flip isPrefixOf) "Left"  $ fmap Left  parseContents)
           `onFail`
-        (inElement "Right" $ fmap Right parseContents)
+        (inElementWith (flip isPrefixOf) "Right" $ fmap Right parseContents)
 
 --    do{ e@(Elem t [] _) <- element ["Left","Right"]
 --      ; case t of
@@ -568,7 +606,7 @@ instance HTypeable ANYContent where
 instance XmlContent ANYContent where
     toContents (ANYContent a)  = toContents a
     toContents (UnConverted s) = map (fmap (const ())) s
-    parseContents = P (\u cs -> (Right (UnConverted cs), u, []))
+    parseContents = P (\cs -> (Right (UnConverted cs), []))
 
 ------------------------------------------------------------------------
 --  

@@ -13,7 +13,21 @@
 </center>
 <hr>
 
-<h3>Changes in CVS</h3>
+<h3>Changes in 1.15</h3>
+<p>
+<ul>
+<li> New: DrIFT and DtdToHaskell have now both been fully updated to
+     produce instances of XmlContent.
+<li> New: the parser combinator library Poly has been split into two
+     variations, Poly and PolyState.  They have almost the same API,
+     only the latter includes a running state where the former does not.
+<li> The TextParser library (a replacement for the Haskell'98 Read class)
+     has also been improved with more new combinators.  Really, these
+     parser combinator experiments do not belong in HaXml, and will
+     eventually be split out into a separate package.
+</ul>
+
+<h3>Changes in 1.14</h3>
 <p>
 <ul>
 <li> New: Completely replace the Xml2Haskell and Haskell2Xml modules.
@@ -22,10 +36,10 @@
      to typed values more robust, with better error messages, etc.
      DrIFT and DtdToHaskell are being updated to both produce instances
      of XmlContent, depending on whether you start from Haskell or from
-     the DTD.
+     the DTD.  (not yet complete)
+<li> New: a SAX-like stream parser for XML events.
 <li> Improve the content handling that corresponds to an ANY contentspec.
      (Now represented as an existential type.)
-<li> New: a SAX-like stream parser for XML events.
 <li> Bugfix: accept attribute values containing the % character, without
      starting a PERef.
 <li> Bugfix: for expanding PERefs correctly in entity values.

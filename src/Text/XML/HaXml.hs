@@ -1,3 +1,4 @@
+#define dummy	-- just to ensure cpp gets called on this file
 -- | This is just a convenient way of bunching the XML combinators
 --   together with some other things you are likely to want at the
 --   same time.
@@ -31,4 +32,5 @@ import Text.PrettyPrint.HughesPJ  (render)
 
 -- | The version of the library.
 version :: String
-version  = "1.14"
+version  = show VERSION
+		-- expect cpp to fill in value

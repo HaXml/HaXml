@@ -26,28 +26,28 @@ parseXtract = either error id . parseXtract'
 
 -- | @parseXtract'@ returns error messages through the Either type.
 parseXtract' :: String -> Either String (DFilter i)
-parseXtract' = (\ (x,_,_)->x) . runParser xql () . lexXtract
+parseXtract' = fst . runParser xql . lexXtract
 
 xql = aquery (local keep)
 
 ---- Auxiliary Parsing Functions ----
-type XParser a = Parser () (Either String (Posn,TokenT)) a
+type XParser a = Parser (Either String (Posn,TokenT)) a
 
 string :: XParser String
-string = P (\st inp -> case inp of
-                (Left err: _) -> (Left err, st, inp)
-                (Right (p,TokString n):ts) -> (Right n, st, ts)
-                ts -> (Left "expected a string", st, ts) )
+string = P (\inp -> case inp of
+                (Left err: _) -> (Left (False,err), inp)
+                (Right (p,TokString n):ts) -> (Right n, ts)
+                ts -> (Left (False,"expected a string"), ts) )
 number :: XParser Integer
-number = P (\st inp -> case inp of
-                (Left err: _) -> (Left err, st, inp)
-                (Right (p,TokNum n):ts) -> (Right n, st, ts)
-                ts -> (Left "expected a number", st, ts) )
+number = P (\inp -> case inp of
+                (Left err: _) -> (Left (False,err), inp)
+                (Right (p,TokNum n):ts) -> (Right n, ts)
+                ts -> (Left (False,"expected a number"), ts) )
 symbol :: String -> XParser ()
-symbol s = P (\st inp -> case inp of
-                (Left err: _) -> (Left err, st, inp)
-                (Right (p, Symbol n):ts) | n==s -> (Right (), st, ts)
-                ts -> (Left ("expected symbol "++s), st, ts) )
+symbol s = P (\inp -> case inp of
+                (Left err: _) -> (Left (False,err), inp)
+                (Right (p, Symbol n):ts) | n==s -> (Right (), ts)
+                ts -> (Left (False,"expected symbol "++s), ts) )
 
 quote = oneOf [ symbol "'",  symbol "\"" ]
 

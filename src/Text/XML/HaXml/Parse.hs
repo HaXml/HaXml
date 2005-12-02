@@ -35,7 +35,7 @@ import Numeric (readDec,readHex)
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Posn
 import Text.XML.HaXml.Lex
-import Text.ParserCombinators.Poly
+import Text.ParserCombinators.PolyState
 
 
 #if defined(__GLASGOW_HASKELL__) && ( __GLASGOW_HASKELL__ > 502 )
@@ -136,21 +136,28 @@ type XParser a = Parser SymTabs (Posn,TokenT) a
 
 tok :: TokenT -> XParser TokenT
 tok t = do (p,t') <- next
-           if t==t' then return t
-                    else fail ("Expected a "++show t++" but found a "++show t'
-                              ++"\n  at "++show p)
+           case t' of TokError _    -> report failBad (show t) p t'
+                      _ | t'==t     -> return t
+                        | otherwise -> report fail (show t) p t'
 nottok :: [TokenT] -> XParser TokenT
 nottok ts = do (p,t) <- next
-               if t`elem`ts then fail ("Expected no "++show t++" but found one"
-                                      ++"\n  at "++show p)
+               if t`elem`ts then report fail ("no "++show t) p t
                             else return t
 
 name :: XParser Name
-name = do {(p,TokName s) <- next; return s}
+name = do (p,tok) <- next
+          case tok of
+            TokName s  -> return s
+            TokError _ -> report failBad "a name" p tok
+            _          -> report fail "a name" p tok
 
 string, freetext :: XParser String
-string   = do {(p,TokName s) <- next; return s}
-freetext = do {(p,TokFreeText s) <- next; return s}
+string   = do (p,t) <- next
+              case t of TokName s -> return s
+                        _         -> report fail "text" p t
+freetext = do (p,t) <- next
+              case t of TokFreeText s -> return s
+                        _             -> report fail "text" p t
 
 maybe :: XParser a -> XParser (Maybe a)
 maybe p =
@@ -167,7 +174,8 @@ word s = do { x <- next
             ; case x of
                 (p,TokName n)     | s==n -> return ()
                 (p,TokFreeText n) | s==n -> return ()
-                (p,t) -> failP ("Expected "++show s++" but found "++show t)
+                (p,t@(TokError _)) -> report failBad (show s) p t
+                (p,t) -> report fail (show s) p t
             }
 
 posn = do { x@(p,_) <- next
@@ -175,16 +183,20 @@ posn = do { x@(p,_) <- next
           ; return p
           }
 
-failP :: String -> XParser a
-failP msg = do { p <- posn
-               ; fail (msg++"\n    at "++show p) }
+nmtoken :: XParser NmToken
+nmtoken = (string `onFail` freetext)
+
+failP, failBadP :: String -> XParser a
+failP msg = do { p <- posn; fail (msg++"\n    at "++show p) }
+failBadP msg = do { p <- posn; failBad (msg++"\n    at "++show p) }
+
+report :: (String->XParser a) -> String -> Posn -> TokenT -> XParser a
+report fail exp p t = fail ("Expected "++exp++" but found "++show t
+                           ++"\n  in "++show p)
 
 adjustErrP :: XParser a -> (String->String) -> XParser a
 p `adjustErrP` f = p `onFail` do pn <- posn
                                  (p `adjustErr` f) `adjustErr` (++show pn)
-
-nmtoken :: XParser NmToken
-nmtoken = (string `onFail` freetext)
 
 peRef :: XParser a -> XParser a
 peRef p =
@@ -244,7 +256,7 @@ justDTD =
 
 document :: XParser (Document Posn)
 document = do
-    p <- prolog `onFail` failP "unrecognisable XML prolog"
+    p <- prolog `adjustErr` ("unrecognisable XML prolog\n"++)
     e <- element
     ms <- many misc
     (_,ge) <- stGet
@@ -253,14 +265,20 @@ document = do
 comment :: XParser Comment
 comment = do
     bracket (tok TokCommentOpen) (tok TokCommentClose) freetext
+--  tok TokCommentOpen
+--  commit $ do
+--    c <- freetext
+--    tok TokCommentClose
+--    return c
 
 processinginstruction :: XParser ProcessingInstruction
 processinginstruction = do
     tok TokPIOpen
-    n <- string  `onFail` failP "processing instruction has no target"
-    f <- freetext
-    tok TokPIClose `onFail` failP "missing ?>"
-    return (n, f)
+    commit $ do
+      n <- string  `onFail` failP "processing instruction has no target"
+      f <- freetext
+      tok TokPIClose `onFail` failP ("missing ?> in <?"++n)
+      return (n, f)
 
 cdsect :: XParser CDSect
 cdsect = do
@@ -281,7 +299,7 @@ xmldecl = do
     (word "xml" `onFail` word "XML")
     p <- posn
     s <- freetext
-    tok TokPIClose `onFail` failP "missing ?> in <?xml ...?>"
+    tok TokPIClose `onFail` failBadP "missing ?> in <?xml ...?>"
     raise ((runParser aux emptySTs . xmlReLex p) s)
   where
     aux = do
@@ -300,31 +318,33 @@ versioninfo = do
 
 misc :: XParser Misc
 misc =
-    ( comment >>= return . Comment) `onFail`
-    ( processinginstruction >>= return . PI)
+    oneOf' [ ("<!--comment-->",  comment >>= return . Comment)
+           , ("<?PI?>",          processinginstruction >>= return . PI)
+           ]
 
 doctypedecl :: XParser DocTypeDecl
 doctypedecl = do
     tok TokSpecialOpen
     tok (TokSpecial DOCTYPEx)
-    n   <- name
-    eid <- maybe externalid
-    es  <- maybe (bracket (tok TokSqOpen) (tok TokSqClose)
-                          (many (peRef markupdecl)))
-    blank (tok TokAnyClose)  `onFail` failP "missing > in DOCTYPE decl"
-    return (DTD n eid (case es of { Nothing -> []; Just e -> e }))
+    commit $ do
+      n   <- name
+      eid <- maybe externalid
+      es  <- maybe (bracket (tok TokSqOpen) (tok TokSqClose)
+                            (many (peRef markupdecl)))
+      blank (tok TokAnyClose)  `onFail` failP "missing > in DOCTYPE decl"
+      return (DTD n eid (case es of { Nothing -> []; Just e -> e }))
 
 markupdecl :: XParser MarkupDecl
 markupdecl =
-  oneOf [ ( elementdecl  >>= return . Element)
-        , ( attlistdecl  >>= return . AttList)
-        , ( entitydecl   >>= return . Entity)
-        , ( notationdecl >>= return . Notation)
-        , ( misc         >>= return . MarkupMisc)
-        ]
+  oneOf' [ ("ELEMENT",  elementdecl  >>= return . Element)
+         , ("ATTLIST",  attlistdecl  >>= return . AttList)
+         , ("ENTITY",   entitydecl   >>= return . Entity)
+         , ("NOTATION", notationdecl >>= return . Notation)
+         , ("misc",     misc         >>= return . MarkupMisc)
+         ]
     `adjustErrP`
-          (++"\nLooking for a markup decl:\n\  
-          \  (ELEMENT, ATTLIST, ENTITY, NOTATION, <!--comment-->, or <?PI?>")
+          ("when looking for a markup decl,\n"++)
+ --       (\  (ELEMENT, ATTLIST, ENTITY, NOTATION, <!--comment-->, or <?PI?>")
 
 extsubset :: XParser ExtSubset
 extsubset = do
@@ -340,42 +360,63 @@ extsubsetdecl =
 sddecl :: XParser SDDecl
 sddecl = do
     (word "standalone" `onFail` word "STANDALONE")
-    tok TokEqual `onFail` failP "missing = in 'standalone' decl"
-    bracket (tok TokQuote) (tok TokQuote)
-            ( (word "yes" >> return True) `onFail`
-              (word "no" >> return False) `onFail`
-              failP "'standalone' decl requires 'yes' or 'no' value" )
+    commit $ do
+      tok TokEqual `onFail` failP "missing = in 'standalone' decl"
+      bracket (tok TokQuote) (tok TokQuote)
+              ( (word "yes" >> return True) `onFail`
+                (word "no" >> return False) `onFail`
+                failP "'standalone' decl requires 'yes' or 'no' value" )
+
+{-
+element :: XParser (Element Posn)
+element = do
+    tok TokAnyOpen
+    (ElemTag n as) <- elemtag
+    oneOf' [ ("self-closing tag <"++n++"/>"
+             ,  do tok TokEndClose
+                   return (Elem n as []))
+           , ("after open tag <"++n++">"
+             ,  do tok TokAnyClose
+                   cs <- many content
+                   p  <- posn
+                   m  <- bracket (tok TokEndOpen) (tok TokAnyClose) name
+                   checkmatch p n m
+                   return (Elem n as cs))
+           ] `adjustErr` (("in element tag "++n++",\n")++)
+-}
 
 element :: XParser (Element Posn)
 element = do
     tok TokAnyOpen
     (ElemTag n as) <- elemtag
-    (( do tok TokEndClose
-          return (Elem n as [])) `onFail`
-     ( do tok TokAnyClose
-          cs <- many content
-          p  <- posn
-          m  <- bracket (tok TokEndOpen) (tok TokAnyClose) name
-          checkmatch p n m
-          return (Elem n as cs))
-     `onFail` failP "missing > or /> in element tag")
+    ( do tok TokEndClose
+         return (Elem n as [])
+        `onFail`
+      do tok TokAnyClose
+         cs <- manyFinally content
+                           (do p <- posn
+                               m <- bracket (tok TokEndOpen)
+                                            (tok TokAnyClose) name
+                               checkmatch p n m)
+         return (Elem n as cs)
+      ) `adjustErrBad` (("in element tag "++n++",\n")++)
 
 checkmatch :: Posn -> Name -> Name -> XParser ()
 checkmatch p n m =
   if n == m then return ()
-  else failP ("tag <"++n++"> terminated by </"++m++">")
+  else failBadP ("tag <"++n++"> terminated by </"++m++">")
 
 elemtag :: XParser ElemTag
 elemtag = do
-    n  <- name `onFail` failP "malformed element tag"
+    n  <- name `adjustErrBad` ("malformed element tag\n"++)
     as <- many attribute
     return (ElemTag n as)
 
 attribute :: XParser Attribute
 attribute = do
-    n <- name
-    tok TokEqual `onFail` failP "missing = in attribute"
-    v <- attvalue `onFail` failP "missing attvalue"
+    n <- name `adjustErr` ("malformed attribute name\n"++)
+    tok TokEqual `onFail` failBadP "missing = in attribute"
+    v <- attvalue `onFail` failBadP "missing attvalue"
     return (n,v)
 
 content :: XParser (Content Posn)
@@ -384,21 +425,24 @@ content =
      ; c' <- content'
      ; return (c' p)
      }
-  where content' = oneOf [ ( element >>= return . CElem)
-                         , ( chardata >>= return . CString False)
-                         , ( reference >>= return . CRef)
-                         , ( cdsect >>= return . CString True)
-                         , ( misc >>= return . CMisc)
-                         ] `adjustErrP` (++"\nLooking for content:\n\ 
-\    (element, text, reference, CDATA section, <!--comment-->, or <?PI?>")
+  where
+     content' = oneOf' [ ("element",   element   >>= return . CElem)
+                       , ("chardata",  chardata  >>= return . CString False)
+                       , ("reference", reference >>= return . CRef)
+                       , ("CDATA",     cdsect    >>= return . CString True)
+                       , ("misc",      misc      >>= return . CMisc)
+                       ]
+                  `adjustErrP` ("when looking for a content item,\n"++)
+-- (\    (element, text, reference, CDATA section, <!--comment-->, or <?PI?>")
 
 elementdecl :: XParser ElementDecl
 elementdecl = do
     tok TokSpecialOpen
     tok (TokSpecial ELEMENTx)
-    n <- peRef name `onFail` failP "missing identifier in ELEMENT decl"
-    c <- peRef contentspec `onFail` failP "missing content spec in ELEMENT decl"
-    blank (tok TokAnyClose) `onFail` failP
+    n <- peRef name `adjustErrBad` ("expecting identifier in ELEMENT decl\n"++)
+    c <- peRef contentspec
+             `adjustErrBad` (("in content spec of ELEMENT decl: "++n++"\n")++)
+    blank (tok TokAnyClose) `onFail` failBadP
        ("expected > terminating ELEMENT decl"
        ++"\n    element name was "++show n
        ++"\n    contentspec was "++(\ (ContentSpec p)-> show p) c)
@@ -406,12 +450,13 @@ elementdecl = do
 
 contentspec :: XParser ContentSpec
 contentspec =
-    oneOf [ ( peRef (word "EMPTY") >> return EMPTY)
-          , ( peRef (word "ANY") >> return ANY)
-          , ( peRef mixed >>= return . Mixed)
-          , ( peRef cp >>= return . ContentSpec)
-          ]
-      `adjustErr` (++"\nLooking for content spec (EMPTY, ANY, mixed, etc)")
+    oneOf' [ ("EMPTY",  peRef (word "EMPTY") >> return EMPTY)
+           , ("ANY",    peRef (word "ANY") >> return ANY)
+           , ("mixed",  peRef mixed >>= return . Mixed)
+           , ("simple", peRef cp >>= return . ContentSpec)
+           ]
+ --   `adjustErr` ("when looking for content spec,\n"++)
+ --   `adjustErr` (++"\nLooking for content spec (EMPTY, ANY, mixed, etc)")
 
 choice :: XParser [CP]
 choice = do
@@ -420,10 +465,14 @@ choice = do
             (peRef cp `sepBy1` blank (tok TokPipe))
 
 sequence :: XParser [CP]
-sequence = do
-    bracket (tok TokBraOpen `debug` "Trying sequence")
-            (blank (tok TokBraClose `debug` "Succeeded with sequence"))
-            (peRef cp `sepBy1` blank (tok TokComma))
+sequence = do	-- bracket is inappropriate because of inner failBad
+ -- bracket (tok TokBraOpen `debug` "Trying sequence")
+ --         (blank (tok TokBraClose `debug` "Succeeded with sequence"))
+ --         (peRef cp `sepBy1` blank (tok TokComma))
+    tok TokBraOpen `debug` "Trying sequence"
+    cps <- peRef cp `sepBy1` blank (tok TokComma)
+    blank (tok TokBraClose `debug` "Succeeded with sequence")
+    return cps
 
 cp :: XParser CP
 cp = oneOf [ ( do n <- name
@@ -438,7 +487,7 @@ cp = oneOf [ ( do n <- name
                   m <- modifier
                   let c = Choice cs m
                   return c `debug` ("ContentSpec: choice "++show c))
-           ] `adjustErr` (++"\nLooking for a content particle")
+           ] `adjustErr` (++"\nwhen looking for a content particle")
 
 modifier :: XParser Modifier
 modifier = oneOf [ ( tok TokStar >> return Star )
@@ -466,37 +515,40 @@ mixed = do
     tok TokBraOpen
     peRef (do tok TokHash
               word "PCDATA")
-    oneOf [ ( do cs <- many (peRef (do tok TokPipe
-                                       peRef name))
-                 blank (tok TokBraClose >> tok TokStar)
-                 return (PCDATAplus cs))
-          , ( blank (tok TokBraClose >> tok TokStar) >> return PCDATA)
-          , ( blank (tok TokBraClose) >> return PCDATA)
-          ] `adjustErr` (++"\nLooking for mixed content spec (#PCDATA | ...)*")
+    commit $
+      oneOf [ ( do cs <- many (peRef (do tok TokPipe
+                                         peRef name))
+                   blank (tok TokBraClose >> tok TokStar)
+                   return (PCDATAplus cs))
+            , ( blank (tok TokBraClose >> tok TokStar) >> return PCDATA)
+            , ( blank (tok TokBraClose) >> return PCDATA)
+            ]
+        `adjustErrP` (++"\nLooking for mixed content spec (#PCDATA | ...)*\n")
 
 attlistdecl :: XParser AttListDecl
 attlistdecl = do
     tok TokSpecialOpen
     tok (TokSpecial ATTLISTx)
-    n <- peRef name `onFail` failP "missing identifier in ATTLIST"
-    ds <- peRef (many (peRef attdef))
-    blank (tok TokAnyClose) `onFail` failP "missing > terminating ATTLIST"
+    n <- peRef name `adjustErrBad` ("expecting identifier in ATTLIST\n"++)
+    ds <- peRef (many1 (peRef attdef))
+    blank (tok TokAnyClose) `onFail` failBadP "missing > terminating ATTLIST"
     return (AttListDecl n ds)
 
 attdef :: XParser AttDef
 attdef =
-  do n <- peRef name
-     t <- peRef atttype `onFail` failP "missing attribute type in attlist defn"
-     d <- peRef defaultdecl
+  do n <- peRef name `adjustErr` ("expecting attribute name\n"++)
+     t <- peRef atttype `adjustErr` (("within attlist defn: "++n++",\n")++)
+     d <- peRef defaultdecl `adjustErr` (("in attlist defn: "++n++",\n")++)
      return (AttDef n t d)
 
 atttype :: XParser AttType
 atttype =
-    oneOf [ ( word "CDATA" >> return StringType)
-          , ( tokenizedtype >>= return . TokenizedType)
-          , ( enumeratedtype >>= return . EnumeratedType)
-          ]
-      `adjustErr` (++"\nLooking for ATTTYPE (CDATA, tokenized, or enumerated")
+    oneOf' [ ("CDATA",      word "CDATA" >> return StringType)
+           , ("tokenized",  tokenizedtype >>= return . TokenizedType)
+           , ("enumerated", enumeratedtype >>= return . EnumeratedType)
+           ]
+      `adjustErr` ("looking for ATTTYPE,\n"++)
+ --   `adjustErr` (++"\nLooking for ATTTYPE (CDATA, tokenized, or enumerated")
 
 tokenizedtype :: XParser TokenizedType
 tokenizedtype =
@@ -507,15 +559,21 @@ tokenizedtype =
           , ( word "ENTITIES" >> return ENTITIES)
           , ( word "NMTOKEN" >> return NMTOKEN)
           , ( word "NMTOKENS" >> return NMTOKENS)
-          ] `adjustErr` (++"\nLooking for a tokenized type:\n\ 
-\    (ID, IDREF, IDREFS, ENTITY, ENTITIES, NMTOKEN, NMTOKENS)")
+          ] `onFail`
+    do { t <- next
+       ; failP ("Expected one of\ 
+               \ (ID, IDREF, IDREFS, ENTITY, ENTITIES, NMTOKEN, NMTOKENS)\ 
+               \\nbut got "++show t)
+       }
+-- `adjustErr` (++"\nLooking for a tokenized type:\n\ 
+-- \    (ID, IDREF, IDREFS, ENTITY, ENTITIES, NMTOKEN, NMTOKENS)")
 
 enumeratedtype :: XParser EnumeratedType
 enumeratedtype =
-    oneOf [ ( notationtype >>= return . NotationType)
-          , ( enumeration >>= return . Enumeration)
-          ]
-      `adjustErr` (++"\nLooking for an enumerated or NOTATION type")
+    oneOf' [ ("NOTATION",   notationtype >>= return . NotationType)
+           , ("enumerated", enumeration >>= return . Enumeration)
+           ]
+      `adjustErr` ("looking for an enumerated or NOTATION type,\n"++)
 
 notationtype :: XParser NotationType
 notationtype = do
@@ -530,34 +588,40 @@ enumeration =
 
 defaultdecl :: XParser DefaultDecl
 defaultdecl =
-    oneOf [ ( tok TokHash >> word "REQUIRED" >> return REQUIRED)
-          , ( tok TokHash >> word "IMPLIED" >> return IMPLIED)
-          , ( do f <- maybe (tok TokHash >> word "FIXED" >> return FIXED)
-                 a <- peRef attvalue
-                 return (DefaultTo a f))
-          ]
-      `adjustErr` (++"\nLooking for an attribute default decl:\n\ 
-\    (REQUIRED, IMPLIED, FIXED)")
+    oneOf' [ ("REQUIRED",  tok TokHash >> word "REQUIRED" >> return REQUIRED)
+           , ("IMPLIED",   tok TokHash >> word "IMPLIED" >> return IMPLIED)
+           , ("FIXED",     do f <- maybe (tok TokHash >> word "FIXED"
+                                                      >> return FIXED)
+                              a <- peRef attvalue
+                              return (DefaultTo a f) )
+           ]
+        `adjustErr` ("looking for an attribute default decl,\n"++)
+--      `adjustErr` (++"\nLooking for an attribute default decl:\n\ 
+-- \    (REQUIRED, IMPLIED, FIXED)")
 
 conditionalsect :: XParser ConditionalSect
-conditionalsect = oneOf
-    [ ( do tok TokSectionOpen
+conditionalsect = oneOf'
+    [ ( "INCLUDE"
+      , do tok TokSectionOpen
            peRef (tok (TokSection INCLUDEx))
            p <- posn
-           tok TokSqOpen `onFail` failP "missing [ after INCLUDE"
+           tok TokSqOpen `onFail` failBadP "missing [ after INCLUDE"
            i <- many (peRef extsubsetdecl)
-           tok TokSectionClose `onFail` (failP "missing ]]> for INCLUDE section"
-                                               ++"\n    begun at "++show p)
+           tok TokSectionClose
+                   `onFail` failBadP ("missing ]]> for INCLUDE section"
+                                     ++"\n    begun at "++show p)
            return (IncludeSect i))
-    , ( do tok TokSectionOpen
+    , ( "IGNORE"
+      , do tok TokSectionOpen
            peRef (tok (TokSection IGNOREx))
            p <- posn
-           tok TokSqOpen `onFail` failP "missing [ after IGNORE"
+           tok TokSqOpen `onFail` failBadP "missing [ after IGNORE"
            i <- many newIgnore  -- many ignoresectcontents
-           tok TokSectionClose `onFail` (failP "missing ]]> for IGNORE section"
-                                               ++"\n    begun at "++show p)
+           tok TokSectionClose
+                   `onFail` failBadP ("missing ]]> for IGNORE section"
+                                     ++"\n    begun at "++show p)
            return (IgnoreSect []))
-    ] `adjustErr` (++"\nLooking for an INCLUDE or IGNORE section")
+    ] `adjustErr` ("in a conditional section,\n"++)
 
 newIgnore :: XParser Ignore
 newIgnore =
@@ -627,8 +691,8 @@ gedecl = do
     tok TokSpecialOpen
     tok (TokSpecial ENTITYx)
     n <- name
-    e <- entitydef `onFail` failP "missing entity defn in G ENTITY decl"
-    tok TokAnyClose `onFail` failP "expected > terminating G ENTITY decl"
+    e <- entitydef `adjustErrBad` (("in general entity defn "++n++",\n")++)
+    tok TokAnyClose `onFail` failBadP ("expected > terminating G ENTITY decl "++n)
     stUpdate (addGE n e) `debug` ("added GE defn &"++n++";")
     return (GEDecl n e)
 
@@ -638,32 +702,36 @@ pedecl = do
     tok (TokSpecial ENTITYx)
     tok TokPercent
     n <- name
-    e <- pedef `onFail` failP "missing entity defn in P ENTITY decl"
-    tok TokAnyClose `onFail` failP "expected > terminating P ENTITY decl"
+    e <- pedef `adjustErrBad` (("in parameter entity defn "++n++",\n")++)
+    tok TokAnyClose `onFail` failBadP ("expected > terminating P ENTITY decl "++n)
     stUpdate (addPE n e) `debug` ("added PE defn %"++n++";\n"++show e)
     return (PEDecl n e)
 
 entitydef :: XParser EntityDef
 entitydef =
-    ( entityvalue >>= return . DefEntityValue) `onFail`
-    ( do eid <- externalid
-         ndd <- maybe ndatadecl
-         return (DefExternalID eid ndd))
+    oneOf' [ ("entityvalue", entityvalue >>= return . DefEntityValue)
+           , ("external",    do eid <- externalid
+                                ndd <- maybe ndatadecl
+                                return (DefExternalID eid ndd))
+           ]
 
 pedef :: XParser PEDef
 pedef =
-    ( entityvalue >>= return . PEDefEntityValue) `onFail`
-    ( externalid  >>= return . PEDefExternalID)
+    oneOf' [ ("entityvalue", entityvalue >>= return . PEDefEntityValue)
+           , ("externalid",  externalid  >>= return . PEDefExternalID)
+           ]
 
 externalid :: XParser ExternalID
 externalid =
-    ( do word "SYSTEM"
-         s <- systemliteral
-         return (SYSTEM s)) `onFail`
-    ( do word "PUBLIC"
-         p <- pubidliteral
-         s <- systemliteral
-         return (PUBLIC p s))
+    oneOf' [ ("SYSTEM", do word "SYSTEM"
+                           s <- systemliteral
+                           return (SYSTEM s) )
+           , ("PUBLIC", do word "PUBLIC"
+                           p <- pubidliteral
+                           s <- systemliteral
+                           return (PUBLIC p s) )
+           ]
+      `adjustErr` ("looking for an external id,\n"++)
 
 ndatadecl :: XParser NDataDecl
 ndatadecl = do
@@ -695,7 +763,7 @@ extpe = do
 encodingdecl :: XParser EncodingDecl
 encodingdecl = do
     (word "encoding" `onFail` word "ENCODING")
-    tok TokEqual `onFail` failP "expected = in 'encoding' decl"
+    tok TokEqual `onFail` failBadP "expected = in 'encoding' decl"
     f <- bracket (tok TokQuote) (tok TokQuote) freetext
     return (EncodingDecl f)
 
@@ -705,7 +773,7 @@ notationdecl = do
     tok (TokSpecial NOTATIONx)
     n <- name
     e <- either externalid publicid
-    tok TokAnyClose `onFail` failP "expected > terminating NOTATION decl"
+    tok TokAnyClose `onFail` failBadP ("expected > terminating NOTATION decl "++n)
     return (NOTATION n e)
 
 publicid :: XParser PublicID
@@ -720,10 +788,10 @@ entityvalue = do
     tok TokQuote
     pn <- posn
     evs <- many ev
-    tok TokQuote `onFail` failP "expected quote to terminate entityvalue"
+    tok TokQuote `onFail` failBadP "expected quote to terminate entityvalue"
     -- quoted text must be rescanned for possible PERefs
     st <- stGet
-    Prelude.either fail (return . EntityValue) . fst3 $
+    Prelude.either failBad (return . EntityValue) . fst3 $
                 (runParser (many ev) st
                          (reLexEntityValue (\s-> stringify (lookupPE s st))
                                            pn
@@ -734,8 +802,10 @@ entityvalue = do
 
 ev :: XParser EV
 ev =
-    ( (string`onFail`freetext) >>= return . EVString) `onFail`
-    ( reference >>= return . EVRef)
+    oneOf' [ ("string",    (string`onFail`freetext) >>= return . EVString)
+           , ("reference", reference >>= return . EVRef)
+           ]
+      `adjustErr` ("looking for entity value,\n"++)
 
 attvalue :: XParser AttValue
 attvalue = do

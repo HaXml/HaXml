@@ -1,5 +1,5 @@
 SOFTWARE = HaXml
-VERSION = 1.14
+VERSION = 1.15
 
 LIBSRCS = \
 	Text/XML/HaXml.hs Text/XML/HaXml/Combinators.hs Text/XML/HaXml/Lex.hs \
@@ -18,7 +18,9 @@ LIBSRCS = \
 	Text/XML/HaXml/Xtract/Parse.hs \
 	Text/ParserCombinators/HuttonMeijer.hs \
 	Text/ParserCombinators/HuttonMeijerWallace.hs \
-	Text/ParserCombinators/Poly.hs Text/ParserCombinators/TextParser.hs \
+	Text/ParserCombinators/Poly.hs \
+	Text/ParserCombinators/PolyState.hs \
+	Text/ParserCombinators/TextParser.hs \
 
 LIBOBJS = $(patsubst %.hs, %.o, $(LIBSRCS))
 
@@ -41,12 +43,14 @@ WHOLEARCHIVE = $(shell cat ../ldopt)
 # The caller *must* set the HC variable.
 COMPILER := $(findstring ghc, $(HC))
 ifeq "$(COMPILER)" "ghc"
-COMPILE  = $(HC) --make -cpp -i. $(shell cat ghcpkgs) -package-name HaXml
+COMPILE  = $(HC) --make -cpp -i. $(shell cat ghcpkgs) -package-name HaXml \
+		-DVERSION=$(VERSION)
 RENAME   = mv $(OUT)
 endif
 COMPILER := $(findstring nhc98, $(HC))
 ifeq "$(COMPILER)" "nhc98"
-COMPILE  = hmake -hc=$(HC) -I. -K4M +CTS -H8M -CTS -package base
+COMPILE  = hmake -hc=$(HC) -I. -K4M +CTS -H8M -CTS -package base \
+		-DVERSION=$(VERSION)
 RENAME   = echo Built
 endif
 
@@ -81,7 +85,7 @@ install-tools-hugs: toolset-hugs $(INSTALLDIR)
 	cp $(patsubst ../../%, %, ${TOOLSET}) $(INSTALLDIR)
 
 # update the sources if necessary
-$(LIBSRCS) $(TOOLSRCS) Makefile Text/PrettyPrint/HughesPJ.hs: %: ../../src/%
+$(LIBSRCS) $(TOOLSRCS) Makefile: %: ../../src/%
 	cp $< $@
 HaXml.pkgconf: ../../HaXml.cabal ghcincdirraw ghclibdirraw
 	cp ../../HaXml.cabal $@

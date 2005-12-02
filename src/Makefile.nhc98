@@ -1,6 +1,7 @@
 THISPKG	= HaXml
+VERSION = 1.15
 SEARCH	= -package base
-EXTRA_H_FLAGS   = -K6M
+EXTRA_H_FLAGS   = -K6M -DVERSION=$(VERSION)
 EXTRA_HBC_FLAGS = -H50M -A4M
 
 SRCS	= \
@@ -20,7 +21,9 @@ SRCS	= \
 	Text/XML/HaXml/Xtract/Parse.hs \
 	Text/ParserCombinators/HuttonMeijer.hs \
 	Text/ParserCombinators/HuttonMeijerWallace.hs \
-	Text/ParserCombinators/Poly.hs Text/ParserCombinators/TextParser.hs \
+	Text/ParserCombinators/Poly.hs \
+	Text/ParserCombinators/PolyState.hs \
+	Text/ParserCombinators/TextParser.hs \
 
 
 # Here are the main rules.
