@@ -32,7 +32,9 @@ type TextParser a = Parser Char a
 class Parse a where
     parse     :: TextParser a
     parseList :: TextParser [a]	-- only to distinguish [] and ""
-    parseList  = bracket (isWord "[") (isWord "]") (return [])
+    parseList  = do { isWord "[]"; return [] }
+                   `onFail`
+                 do { isWord "["; isWord "]"; return [] }
                    `onFail`
                  bracketSep (isWord "[") (isWord ",") (isWord "]") parse
                    `adjustErr` ("Expected a list, but\n"++)
