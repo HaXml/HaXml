@@ -154,28 +154,33 @@ derives = text "deriving" <+> parens (commaList (map text ["Eq","Show"]))
 
 ---- Some operations on Names ----
 
--- | Make a name valid in both XML and Haskell.
+-- | Make a type name valid in both XML and Haskell.
 name :: String -> Name
-name n     = Name n (mangle n)
+name n     = Name { xName = n
+                  , hName = mangle n }
 
 -- | Append an underscore to the Haskell version of the name.
 name_ :: String -> Name
-name_ n    = Name n (mangle n ++ "_")
+name_ n    = Name { xName = n
+                  , hName = mangle n ++ "_" }
 
 -- | Prefix an attribute enumeration type name with its containing element
 --   name.
 name_a :: String -> String -> Name
-name_a e n = Name n (mangle e ++ "_" ++ map decolonify n)
+name_a e n = Name { xName = n
+                  , hName = mangle e ++ "_" ++ map decolonify n }
 
 -- | Prefix an attribute enumeration constructor with its element-tag name,
 --   and its enumeration type name.
 name_ac :: String -> String -> String -> Name
-name_ac e t n = Name n (mangle e ++ "_" ++ map decolonify t
-                                 ++ "_" ++ map decolonify n)
+name_ac e t n = Name { xName = n
+                     , hName = mangle e ++ "_" ++ map decolonify t
+                                        ++ "_" ++ map decolonify n }
 
 -- | Prefix a field name with its enclosing element name.
 name_f :: String -> String -> Name
-name_f e n = Name n (manglef e ++ mangle n)
+name_f e n = Name { xName = n
+                  , hName = manglef e ++ mangle n }
 
 ---- obsolete
 -- elementname_at :: String -> Name
@@ -184,9 +189,23 @@ name_f e n = Name n (manglef e ++ mangle n)
 -- | Convert an XML name to a Haskell conid.
 mangle :: String -> String
 mangle (n:ns)
-    | isLower n   = toUpper n: map decolonify ns
+    | isLower n   = notPrelude (toUpper n: map decolonify ns)
     | isDigit n   = 'I': n: map decolonify ns
-    | otherwise   = n: map decolonify ns
+    | otherwise   = notPrelude (n: map decolonify ns)
+
+-- | Ensure a generated name does not conflict with a standard haskell one.
+notPrelude :: String -> String
+notPrelude "String"  = "AString"
+notPrelude "Maybe"   = "AMaybe"
+notPrelude "Either"  = "AEither"
+notPrelude "Char"    = "AChar"
+notPrelude "Int"     = "AInt"
+notPrelude "Integer" = "AInteger"
+notPrelude "Float"   = "AFloat"
+notPrelude "Double"  = "ADouble"
+notPrelude "List1"   = "AList1"	-- part of HaXml
+notPrelude "IO"      = "AIO"
+notPrelude n         = n
 
 -- | Convert an XML name to a Haskell varid.
 manglef :: String -> String
