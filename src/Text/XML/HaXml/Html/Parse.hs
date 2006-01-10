@@ -64,7 +64,7 @@ simplify (Document p st (Elem n avs cs) ms) =
     simp (CElem (Elem "null" [] []) _) = False
     simp (CElem (Elem  n     _  []) _) | n `elem` ["font","p","i","b","em"
                                                   ,"tt","big","small"] = False
-    simp (CString False s _) | all isSpace s = False
+ -- simp (CString False s _) | all isSpace s = False
     simp _ = True
     deepfilter p =
         filter p . map (\c-> case c of
@@ -178,7 +178,7 @@ posn :: HParser Posn
 posn = do { x@(p,_) <- next
           ; reparse [x]
           ; return p
-          }
+          } `onFail` return noPos
 
 nmtoken :: HParser NmToken
 nmtoken = (string `onFail` freetext)
@@ -349,12 +349,15 @@ element ctx =
               return ([], Elem e avs [])) `onFail`
          ( do tok TokAnyClose `onFail` failP "missing > or /> in element tag"
               debug (e++"[")
-              zz <- many (content e)
-           -- (if null zz then return (error ("empty content in context: "++e)) else return ())
+           -- zz <- many (content e)
+           -- n <- bracket (tok TokEndOpen) (tok TokAnyClose) name
+              zz <- manyFinally (content e)
+                                (tok TokEndOpen)
+              n <- name
+              commit (tok TokAnyClose)
+              debug "]"
               let (ss,cs) = unzip zz
               let s       = if null ss then [] else last ss
-              n <- bracket (tok TokEndOpen) (tok TokAnyClose) name
-              debug "]"
               ( if e == (map toLower n :: Name) then
                   do unparse (reformatTags (closeInner e s))
                      debug "^"
@@ -381,13 +384,14 @@ reformatTags ts = concatMap f0 ts
     where f0 (t,avs) = [TokAnyOpen, TokName t]++reformatAttrs avs++[TokAnyClose]
 
 content :: Name -> HParser (Stack,Content Posn)
-content ctx = do { p <- posn; content' p ctx }
-  where content' p ctx =
-          ( element ctx >>= \(s,e)-> return (s, CElem e p)) `onFail`
-          ( chardata >>= \s-> return ([], CString False s p)) `onFail`
-          ( reference >>= \r-> return ([], CRef r p)) `onFail`
-          ( cdsect >>= \c-> return ([], CString True c p)) `onFail`
-          ( misc >>= \m->  return ([], CMisc m p))
+content ctx = do { p <- posn ; content' p ctx }
+  where content' p ctx = oneOf'
+          [ ( "element", element ctx >>= \(s,e)-> return (s, CElem e p))
+          , ( "chardata", chardata >>= \s-> return ([], CString False s p))
+          , ( "reference", reference >>= \r-> return ([], CRef r p))
+          , ( "cdsect", cdsect >>= \c-> return ([], CString True c p))
+          , ( "misc", misc >>= \m->  return ([], CMisc m p))
+          ] `adjustErrP` ("when looking for a content item,\n"++)
 
 ----
 elemtag :: HParser ElemTag
