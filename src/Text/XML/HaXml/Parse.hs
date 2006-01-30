@@ -6,13 +6,16 @@ module Text.XML.HaXml.Parse
     xmlParse, xmlParse'
   -- * Parse just a DTD
   , dtdParse, dtdParse'
-  -- * These functions are exported because they are needed by the SAX parser
-  , emptySTs, XParser
-  , elemtag, name, tok
+  -- * Parse a partial document
+  , xmlParseWith
+  -- * Individual parsers for use with /xmlParseWith/ and module SAX
+  , document, element, content
   , comment, chardata
   , reference, doctypedecl
   , processinginstruction
-  -- * This general utility functions don't belong here
+  , elemtag, name, tok
+  , emptySTs, XParser
+  -- * These general utility functions don't belong here
   , fst3, snd3, thd3
   ) where
 
@@ -97,7 +100,17 @@ dtdParse  name  = Prelude.either error id . dtdParse' name
 xmlParse' name  = fst3 . runParser (toEOF document) emptySTs . xmlLex name
 dtdParse' name  = fst3 . runParser justDTD  emptySTs . xmlLex name
 
-toEOF = id
+toEOF = id	-- there are other possible implementations...
+
+-- | To parse a partial document, e.g. from an XML-based stream protocol,
+--   where you may later want to get more document elements from the same
+--   stream.  Arguments are: a parser for the item you want, and the
+--   already-lexed input to parse from.  Returns the item you wanted
+--   (or an error message), plus the remainder of the input.
+xmlParseWith :: XParser a -> [(Posn,TokenT)]
+                -> (Either String a, [(Posn,TokenT)])
+xmlParseWith p = (\(v,_,s)->(v,s)) . runParser p emptySTs
+
 
 ---- Symbol table stuff ----
 
