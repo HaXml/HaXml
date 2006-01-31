@@ -288,7 +288,7 @@ xmlSection = blank xmlSection0
       let p0 = addcol n p in
       textUntil "]]>" TokSectionClose "" p0 p0 (drop n s) (blank xmlAny w)
     k w p s n =
-      skip n p s (xmlAny ({-InTag "<![section[ ... ]]>":-}w))
+      skip n p s (xmlAny ({-InTag "<![section[ ... ]]>": -}w))
 
 xmlSpecial w p s
     | "DOCTYPE"  `prefixes` s = emit (TokSpecial DOCTYPEx)  p: k 7

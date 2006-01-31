@@ -88,13 +88,13 @@ mkData tss  fs aux n  = [DataDef aux n fs (map (mkConstr n) tss)]
   where
     mkConstr n ts = (mkConsName n ts, ts)
     mkConsName (Name x n) sts = Name x (n++concat (intersperse "_" (map flatten sts)))
-    flatten (Maybe st)   = {-"Maybe_" ++-} flatten st
-    flatten (List st)    = {-"List_" ++-} flatten st
-    flatten (List1 st)   = {-"List1_" ++-} flatten st
-    flatten (Tuple sts)  = {-"Tuple" ++ show (length sts) ++ "_" ++-}
+    flatten (Maybe st)   = {-"Maybe_" ++ -} flatten st
+    flatten (List st)    = {-"List_" ++ -} flatten st
+    flatten (List1 st)   = {-"List1_" ++ -} flatten st
+    flatten (Tuple sts)  = {-"Tuple" ++ show (length sts) ++ "_" ++ -}
                             concat (intersperse "_" (map flatten sts))
     flatten String       = "Str"
-    flatten (OneOf sts)  = {-"OneOf" ++ show (length sts) ++ "_" ++-}
+    flatten (OneOf sts)  = {-"OneOf" ++ show (length sts) ++ "_" ++ -}
                             concat (intersperse "_" (map flatten sts))
     flatten Any          = "Any"
     flatten (Defined (Name _ n))  = n
