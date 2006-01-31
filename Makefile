@@ -1,8 +1,12 @@
 SOFTWARE = HaXml
 VERSION  = 1.15
 
-CPP      = cpp -P -traditional
-#CPP     = cpphs --noline --text 	# useful e.g. on MacOS X
+CPP      = cpp -traditional
+#CPP     = cpphs --text 	# useful e.g. on MacOS X
+
+DIRS = Text Text/XML Text/XML/HaXml Text/XML/HaXml/Html \
+	Text/XML/HaXml/Xtract Text/XML/HaXml/DtdToHaskell \
+	Text/ParserCombinators
 
 SRCS = \
 	src/Text/XML/HaXml.hs src/Text/XML/HaXml/Combinators.hs \
@@ -77,11 +81,18 @@ install-filesonly-nhc98:
 	cd obj/nhc98; $(MAKE) HC=nhc98 install-filesonly-nhc98
 install-filesonly-hugs: install-hugs
 haddock:
+	mkdir -p docs/HaXml
+	for dir in $(DIRS); \
+		do mkdir -p docs/HaXml/src/$$dir; \
+		done
 	for file in $(SRCS); \
 		do $(CPP) -D__NHC__ $$file >$$file.uncpp; \
+		   HsColour -anchorHTML $$file >docs/HaXml/`dirname $$file`/`basename $$file .hs`.html; \
 		done
-	-mkdir docs/HaXml
-	haddock -h -t HaXml -o docs/HaXml $(patsubst %, %.uncpp, $(SRCS))
+	haddock --html --title=HaXml --odir=docs/HaXml --package=HaXml \
+		--source-module="src/%{MODULE/.//}.html" \
+		--source-entity="src/%{MODULE/.//}.html#%{NAME}" \
+		$(patsubst %, %.uncpp, $(SRCS))
 	rm $(patsubst %, %.uncpp, $(SRCS))
 
 # packaging a distribution
