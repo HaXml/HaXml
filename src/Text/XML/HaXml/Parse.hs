@@ -14,6 +14,7 @@ module Text.XML.HaXml.Parse
   , reference, doctypedecl
   , processinginstruction
   , elemtag, name, tok
+  , elemOpenTag, elemCloseTag
   , emptySTs, XParser
   -- * These general utility functions don't belong here
   , fst3, snd3, thd3
@@ -116,6 +117,7 @@ xmlParseWith p = (\(v,_,s)->(v,s)) . runParser p emptySTs
 
 type SymTabs = (SymTab PEDef, SymTab EntityDef)
 
+-- | Some empty symbol tables for GE and PE references.
 emptySTs :: SymTabs
 emptySTs = (emptyST, emptyST)
 
@@ -138,6 +140,9 @@ flattenEV (EntityValue evs) = concatMap flatten evs
 
 
 ---- Misc ----
+fst3 :: (a,b,c) -> a
+snd3 :: (a,b,c) -> b
+thd3 :: (a,b,c) -> c
 
 fst3 (a,_,_) = a
 snd3 (_,a,_) = a
@@ -145,6 +150,8 @@ thd3 (_,_,a) = a
 
 
 ---- Auxiliary Parsing Functions ----
+
+-- | XParser is just a specialisation of the PolyState parser.
 type XParser a = Parser SymTabs (Posn,TokenT) a
 
 tok :: TokenT -> XParser TokenT
@@ -157,6 +164,7 @@ nottok ts = do (p,t) <- next
                if t`elem`ts then report fail ("no "++show t) p t
                             else return t
 
+-- | Return just a name, e.g. element name, attribute name.
 name :: XParser Name
 name = do (p,tok) <- next
           case tok of
@@ -267,6 +275,7 @@ justDTD =
        extract (ExtConditionalSect (IncludeSect i)) = concatMap extract i
        extract (ExtConditionalSect (IgnoreSect i)) = []
 
+-- | Return an entire XML document including prolog and trailing junk.
 document :: XParser (Document Posn)
 document = do
     p <- prolog `adjustErr` ("unrecognisable XML prolog\n"++)
@@ -275,6 +284,7 @@ document = do
     (_,ge) <- stGet
     return (Document p ge e ms)
 
+-- | Return an XML comment <!-- ... -->
 comment :: XParser Comment
 comment = do
     bracket (tok TokCommentOpen) (tok TokCommentClose) freetext
@@ -284,6 +294,7 @@ comment = do
 --    tok TokCommentClose
 --    return c
 
+-- | Parse a processing instruction <? ... ?>
 processinginstruction :: XParser ProcessingInstruction
 processinginstruction = do
     tok TokPIOpen
@@ -335,6 +346,7 @@ misc =
            , ("<?PI?>",          processinginstruction >>= return . PI)
            ]
 
+-- | Return a DOCTYPE decl, indicating a DTD.
 doctypedecl :: XParser DocTypeDecl
 doctypedecl = do
     tok TokSpecialOpen
@@ -347,6 +359,7 @@ doctypedecl = do
       blank (tok TokAnyClose)  `onFail` failP "missing > in DOCTYPE decl"
       return (DTD n eid (case es of { Nothing -> []; Just e -> e }))
 
+-- | Return a DTD markup decl, e.g. ELEMENT, ATTLIST, etc
 markupdecl :: XParser MarkupDecl
 markupdecl =
   oneOf' [ ("ELEMENT",  elementdecl  >>= return . Element)
@@ -398,6 +411,7 @@ element = do
            ] `adjustErr` (("in element tag "++n++",\n")++)
 -}
 
+-- | Return a complete element including all its inner content.
 element :: XParser (Element Posn)
 element = do
     tok TokAnyOpen
@@ -419,11 +433,29 @@ checkmatch p n m =
   if n == m then return ()
   else failBadP ("tag <"++n++"> terminated by </"++m++">")
 
+-- | Partial parser, just for the parts between < and > in an element tag.
 elemtag :: XParser ElemTag
 elemtag = do
     n  <- name `adjustErrBad` ("malformed element tag\n"++)
     as <- many attribute
     return (ElemTag n as)
+
+-- | For use with stream parsers - returns the complete opening element tag.
+elemOpenTag :: XParser ElemTag
+elemOpenTag = do
+    tok TokAnyOpen
+    e <- elemtag
+    tok TokAnyClose
+    return e
+
+-- | Parse a closing tag, provided it matches the given element name.
+elemCloseTag :: Name -> XParser ()
+elemCloseTag n = do
+    tok TokEndOpen
+    p <- posn
+    m <- name
+    tok TokAnyClose
+    checkmatch p n m
 
 attribute :: XParser Attribute
 attribute = do
@@ -432,6 +464,7 @@ attribute = do
     v <- attvalue `onFail` failBadP "missing attvalue"
     return (n,v)
 
+-- | Return a content particle, e.g. text, element, reference, etc
 content :: XParser (Content Posn)
 content =
   do { p  <- posn
@@ -662,6 +695,7 @@ ignore = do
   return Ignore  `debug` ("ignored all of: "++show is)
 ----
 
+-- | Return either a general entity reference, or a character reference.
 reference :: XParser Reference
 reference = do
     bracket (tok TokAmp) (tok TokSemi) (freetext >>= val)
