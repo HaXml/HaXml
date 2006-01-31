@@ -154,6 +154,7 @@ thd3 (_,_,a) = a
 -- | XParser is just a specialisation of the PolyState parser.
 type XParser a = Parser SymTabs (Posn,TokenT) a
 
+-- | Return the next token from the input only if it matches the given token.
 tok :: TokenT -> XParser TokenT
 tok t = do (p,t') <- next
            case t' of TokError _    -> report failBad (show t) p t'
@@ -284,7 +285,7 @@ document = do
     (_,ge) <- stGet
     return (Document p ge e ms)
 
--- | Return an XML comment <!-- ... -->
+-- | Return an XML comment.
 comment :: XParser Comment
 comment = do
     bracket (tok TokCommentOpen) (tok TokCommentClose) freetext
@@ -294,7 +295,7 @@ comment = do
 --    tok TokCommentClose
 --    return c
 
--- | Parse a processing instruction <? ... ?>
+-- | Parse a processing instruction.
 processinginstruction :: XParser ProcessingInstruction
 processinginstruction = do
     tok TokPIOpen
@@ -433,7 +434,7 @@ checkmatch p n m =
   if n == m then return ()
   else failBadP ("tag <"++n++"> terminated by </"++m++">")
 
--- | Partial parser, just for the parts between < and > in an element tag.
+-- | Parse only the parts between angle brackets in an element tag.
 elemtag :: XParser ElemTag
 elemtag = do
     n  <- name `adjustErrBad` ("malformed element tag\n"++)
@@ -448,7 +449,8 @@ elemOpenTag = do
     tok TokAnyClose
     return e
 
--- | Parse a closing tag, provided it matches the given element name.
+-- | For use with stream parsers - accepts a closing tag, provided it
+--   matches the given element name.
 elemCloseTag :: Name -> XParser ()
 elemCloseTag n = do
     tok TokEndOpen
@@ -870,6 +872,7 @@ pubidliteral = do
     s <- bracket (tok TokQuote) (tok TokQuote) freetext
     return (PubidLiteral s)             -- note: freetext is too liberal here
 
+-- | Return parsed freetext (i.e. until the next markup)
 chardata :: XParser CharData
 chardata = freetext
 
