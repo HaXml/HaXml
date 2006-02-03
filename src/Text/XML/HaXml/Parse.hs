@@ -609,9 +609,9 @@ tokenizedtype =
           , ( word "NMTOKENS" >> return NMTOKENS)
           ] `onFail`
     do { t <- next
-       ; failP ("Expected one of\ 
-               \ (ID, IDREF, IDREFS, ENTITY, ENTITIES, NMTOKEN, NMTOKENS)\ 
-               \\nbut got "++show t)
+       ; failP ("Expected one of"
+               ++" (ID, IDREF, IDREFS, ENTITY, ENTITIES, NMTOKEN, NMTOKENS)"
+               ++"\nbut got "++show t)
        }
 -- `adjustErr` (++"\nLooking for a tokenized type:\n\ 
 -- \    (ID, IDREF, IDREFS, ENTITY, ENTITIES, NMTOKEN, NMTOKENS)")

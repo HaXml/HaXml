@@ -54,8 +54,8 @@ sax = oneOf [ saxelementopen
             , saxreference
             , saxchardata
             ]
-	`adjustErr` (++"\nLooking for a SAX event:\n\ 
-                 \  elem-open, elem-close, PI, comment, DTD, ref, or chardata")
+	`adjustErr` (++("\nLooking for a SAX event:\n"
+               ++"  elem-open, elem-close, PI, comment, DTD, ref, or chardata"))
 
 saxelementopen :: XParser SaxElement
 saxelementopen = do
