@@ -26,8 +26,15 @@
 --  
 
 module Text.XML.HaXml.XmlContent
-  ( -- * Re-export the entire set of generic XML document type definitions
-    module Text.XML.HaXml.Types
+  ( -- * Re-export the relevant set of generic XML document type definitions
+    Document(..)
+  , Element(..)
+  , ElemTag(..)
+  , Content(..)
+  , Attribute(..)
+  , AttValue(..)
+  , Prolog(..)
+  , Reference(..)
   -- * The enabling classes, that define parsing\/unparsing between Haskell
   --   datatypes and a generic XML representation.
   , XmlContent(..)
