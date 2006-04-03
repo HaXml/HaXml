@@ -283,7 +283,8 @@ xmlSection = blank xmlSection0
       | "INCLUDE"  `prefixes` s  = emit (TokSection INCLUDEx) p:    k w p s 7
       | "IGNORE"   `prefixes` s  = emit (TokSection IGNOREx) p:     k w p s 6
       | "%"        `prefixes` s  = emit TokPercent p:               k w p s 1
-      | otherwise = lexerror ("expected CDATA, IGNORE, or INCLUDE") p
+      | otherwise = lexerror ("expected CDATA, IGNORE, or INCLUDE, but got "
+                             ++take 7 s) p
     accum w p s n =
       let p0 = addcol n p in
       textUntil "]]>" TokSectionClose "" p0 p0 (drop n s) (blank xmlAny w)
@@ -297,7 +298,8 @@ xmlSpecial w p s
     | "ENTITY"   `prefixes` s = emit (TokSpecial ENTITYx)   p: k 6
     | "NOTATION" `prefixes` s = emit (TokSpecial NOTATIONx) p: k 8
     | otherwise = lexerror
-                    "expected DOCTYPE, ELEMENT, ENTITY, ATTLIST, or NOTATION" p
+                    ("expected DOCTYPE, ELEMENT, ENTITY, ATTLIST, or NOTATION,"
+                    ++" but got "++take 7 s) p
   where k n = skip n p s (blank xmlAny w)
 
 xmlName p (s:ss) cxt k
