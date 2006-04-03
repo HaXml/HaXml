@@ -13,7 +13,7 @@ import Text.XML.HaXml.Combinators (CFilter)
 import Text.XML.HaXml.Posn        (Posn,posInNewCxt)
 import Text.XML.HaXml.Parse       (xmlParse)
 import Text.XML.HaXml.Html.Parse  (htmlParse)
-import Text.XML.HaXml.Pretty      (element)
+import Text.XML.HaXml.Pretty as PP(document)
 import Text.PrettyPrint.HughesPJ  (render)
 
 
@@ -48,14 +48,14 @@ processXmlWith f = do
   o          <- if outf=="-" then return stdout else openFile outf WriteMode
   parse      <- if ".html" `isSuffixOf` inf || ".htm" `isSuffixOf` inf
                 then return (htmlParse inf)
-                else do hPutStrLn o "<?xml version='1.0'?>"
-                        return (xmlParse inf)
-  ( hPutStrLn o . render . ppContent . f . getContent inf . parse) input
+                else return (xmlParse inf)
+  ( hPutStrLn o . render . PP.document . onContent inf f . parse ) input
+  hFlush o
 
   where
-    getContent f (Document _ _ e _) = CElem e (posInNewCxt f Nothing)
-
-    ppContent [CElem e _] = element e
-    ppContent []  = error "produced no output"
-    ppContent _   = error "produced more than one output"
-
+    onContent :: FilePath -> (CFilter Posn) -> Document Posn -> Document Posn
+    onContent file filter (Document p s e m) =
+        case filter (CElem e (posInNewCxt file Nothing)) of
+            [CElem e' _] -> Document p s e' m
+            []           -> error "produced no output"
+            _            -> error "produced more than one output"
