@@ -700,7 +700,13 @@ attvalue =
                       (many (either freetext reference))
        return (AttValue avs) ) `onFail`
   ( do v <- nmtoken
-       return (AttValue [Left v]) )
+       return (AttValue [Left v]) ) `onFail`
+  ( do s <- oneOf [ tok TokPlus >> return "+"
+                  , tok TokHash >> return "#"
+                  ]
+       v <- nmtoken
+       return (AttValue [Left (s++v)]) ) `onFail`
+  failP "Badly formatted attribute value"
 
 systemliteral :: HParser SystemLiteral
 systemliteral = do
