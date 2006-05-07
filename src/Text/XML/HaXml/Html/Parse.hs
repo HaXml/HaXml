@@ -700,7 +700,8 @@ attvalue =
                       (many (either freetext reference))
        return (AttValue avs) ) `onFail`
   ( do v <- nmtoken
-       return (AttValue [Left v]) ) `onFail`
+       s <- (tok TokPercent >> return "%") `onFail` return ""
+       return (AttValue [Left (v++s)]) ) `onFail`
   ( do s <- oneOf [ tok TokPlus >> return "+"
                   , tok TokHash >> return "#"
                   ]
