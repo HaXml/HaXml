@@ -93,7 +93,7 @@ haddock:
 		--source-module="src/%{MODULE/.//}.html" \
 		--source-entity="src/%{MODULE/.//}.html#%{NAME}" \
 		$(patsubst %, %.uncpp, $(SRCS))
-	rm $(patsubst %, %.uncpp, $(SRCS))
+	rm -f $(patsubst %, %.uncpp, $(SRCS))
 
 # packaging a distribution
 
@@ -101,10 +101,10 @@ srcDist: $(ALLFILES) haddock
 	rm -f $(SOFTWARE)-$(VERSION).tar $(SOFTWARE)-$(VERSION).tar.gz
 	mkdir $(SOFTWARE)-$(VERSION)
 	tar cf - $(ALLFILES) | ( cd $(SOFTWARE)-$(VERSION); tar xf - )
-	-rm -rf $(SOFTWARE)-$(VERSION)/docs/CVS
-	-rm -rf $(SOFTWARE)-$(VERSION)/examples/CVS
-	-rm -rf $(SOFTWARE)-$(VERSION)/examples/SMIL/CVS
-	-rm -rf $(SOFTWARE)-$(VERSION)/examples/OpenOffice.org/CVS
+	rm -rf $(SOFTWARE)-$(VERSION)/docs/CVS
+	rm -rf $(SOFTWARE)-$(VERSION)/examples/CVS
+	rm -rf $(SOFTWARE)-$(VERSION)/examples/SMIL/CVS
+	rm -rf $(SOFTWARE)-$(VERSION)/examples/OpenOffice.org/CVS
 	tar cf $(SOFTWARE)-$(VERSION).tar $(SOFTWARE)-$(VERSION)
 	rm -rf $(SOFTWARE)-$(VERSION)
 	gzip $(SOFTWARE)-$(VERSION).tar
@@ -123,8 +123,8 @@ zipDist: $(ALLFILES) haddock
 
 # clear up rubbish
 clean:
-	-rm -r obj/ghc obj/nhc98 obj/hugs
-	-cd examples;    rm -f *.hi *.o
+	rm -rf obj/ghc obj/nhc98 obj/hugs
+	cd examples;    rm -f *.hi *.o
 realclean: clean
-	-rm -f DtdToHaskell Xtract Validate Canonicalise MkOneOf
+	rm -f DtdToHaskell Xtract Validate Canonicalise MkOneOf
 

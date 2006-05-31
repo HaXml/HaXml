@@ -34,10 +34,12 @@ which () {
 DARWIN=false
 CYGWIN=false
 MINGW=false
+SUNOS=false
 case `uname -s` in
   CYGWIN*) CYGWIN=true;;
   MINGW*)  MINGW=true ;;
   Darwin*) DARWIN=true ;;
+  SunOS*)  SUNOS=true ;;
 esac
 
 # Process command-line arguments
@@ -49,7 +51,7 @@ do
     --prefix=*)     INSTALLDIR=`echo "$1" | cut -c10-` ;;
     --help|-h)
   echo "`basename $0` options:     [default in brackets]"
-  echo "  --buildwith=comp     Build HaXml for the given compiler [detected]"
+  echo "  --buildwith=(ghc|hugs|nhc98) Build HaXml for the given compiler [detected]"
   echo "  --buildopts=flags    Give extra flags needed by your build compiler [none]"
   echo "  --prefix=bindir      Installed executables go in bindir [/usr/local/bin]"
             exit 0 ;;
@@ -78,7 +80,7 @@ if which hmake >/dev/null 2>&1
 then
   HMAKEKNOWN=`which hmake`
   HMAKEVERSION=`${HMAKEKNOWN} --version | head -1 | cut -d' ' -f2`
-  HMAKENUM=`echo $HMAKEVERSION | tr "v." "  " | ( read x y z; echo $x$y )`
+  HMAKENUM=`echo $HMAKEVERSION | tr v. ' ' | ( read x y z; echo $x$y )`
 fi
 if [ "$HMAKEKNOWN" != "" ]
 then echo "found ${HMAKEVERSION}"
@@ -90,7 +92,7 @@ if which ghc >/dev/null 2>&1
 then
   GHCKNOWN=`which ghc`
   GHCVERSION=`${GHCKNOWN} --version 2>&1 | sed 's/^.*version[ ]*\([0-9.]*\).*/\1/'`
-  GHCNUM=`echo $GHCVERSION | tr "v." " " | ( read x y z; echo $x$y; )`
+  GHCNUM=`echo $GHCVERSION | tr v. ' ' | ( read x y z; echo $x$y; )`
   if [ "$GHCNUM" -lt "100" ]
   then GHCNUM=${GHCNUM}0
   fi
@@ -122,7 +124,7 @@ then
     then
       GHC2KNOWN=`which $BUILDWITH`
       GHC2VERSION=`${GHC2KNOWN} --version 2>&1 | sed 's/^.*version[ ]*\([0-9.]*\).*/\1/'`
-      GHC2NUM=`echo $GHC2VERSION | tr "." " " | ( read x y z; echo $x$y; )`
+      GHC2NUM=`echo $GHC2VERSION | tr . ' ' | ( read x y z; echo $x$y; )`
       if [ "$GHC2NUM" -lt "100" ]
       then GHC2NUM=${GHC2NUM}0
       fi
@@ -152,7 +154,7 @@ if which nhc98 >/dev/null 2>&1
 then
   NHCKNOWN=`which nhc98`
   NHCVERSION=`${NHCKNOWN} --version | head -1 | cut -d' ' -f2`
-  NHCNUM=`echo $NHCVERSION | tr "v." "  " | ( read x y z; echo $x$y )`
+  NHCNUM=`echo $NHCVERSION | tr v. ' ' | ( read x y z; echo $x$y )`
 fi
 if [ "$NHCKNOWN" = "" ]
 then  echo "(not found)"
@@ -302,6 +304,7 @@ echo $INSTALLDIR >obj/prefix
 if $CYGWIN || $MINGW ; then echo .exe >obj/exe; else touch obj/exe; fi
 if $CYGWIN || $MINGW ; then echo main.exe >obj/out; else echo a.out >obj/out; fi
 if $DARWIN ; then echo "-all_load -x"; else echo --whole-archive; fi >obj/ldopt
+if $SUNOS ; then echo "-z allextract" >obj/ldopt; fi
 
 
 echo "Ready to build.  Type 'make' then (as root) 'make install'."

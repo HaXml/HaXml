@@ -63,16 +63,16 @@ install-filesonly-ghc: libs $(INSTALLDIR)
 	cp libHSHaXml.a `cat ghclibdir`
 	-ranlib `cat ghclibdir`/libHSHaXml.a	# ignore if fails on Linux
 	-cp HSHaXml.o `cat ghclibdir`		# file may not exist on MacOS X
-	-rm -r `cat ghcincdir`/HaXml
-	mkdir `cat ghcincdir`/HaXml
+	rm -rf `cat ghcincdir`/HaXml
+	mkdir -p `cat ghcincdir`/HaXml
 	cp interfaces.tar `cat ghcincdir`/HaXml
 	cd `cat ghcincdir`/HaXml; tar xf interfaces.tar; rm interfaces.tar
 	cp $(TOOLSET) $(INSTALLDIR)
 install-filesonly-nhc98: libs $(INSTALLDIR)
 	cp libHSHaXml.a `cat nhc98libdir`/`harch`
 	-ranlib `cat nhc98libdir`/`harch`/libHSHaXml.a
-	-rm -r `cat nhc98incdir`/HaXml
-	mkdir `cat nhc98incdir`/HaXml
+	rm -rf `cat nhc98incdir`/HaXml
+	mkdir -p `cat nhc98incdir`/HaXml
 	cp interfaces.tar `cat nhc98incdir`/packages/HaXml
 	cd `cat nhc98incdir`/packages/HaXml; tar xf interfaces.tar; rm interfaces.tar
 	cp $(TOOLSET) $(INSTALLDIR)
