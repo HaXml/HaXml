@@ -4,12 +4,12 @@ import IO
 import System (getArgs)
 --import List (isPrefixOf)
 
-import Text.XML.HaXml.Haskell2Xml
+import Text.XML.HaXml.XmlContent
 
 -- Test stuff
 data MyType a = ConsA Int a
               | ConsB String
-          {-! derive : Haskell2Xml !-}
+          {-! derive : XmlContent !-}
 
 instance Eq a => Eq (MyType a) where
   (ConsA a b) == (ConsA c d) = a==c && b==d

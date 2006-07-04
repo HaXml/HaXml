@@ -1,20 +1,20 @@
 module DTypes where
 
-import Text.XML.HaXml.Haskell2Xml hiding (Name)
+import Text.XML.HaXml.XmlContent hiding (Name)
 
 -- data types for a simple test program
 
-data Person = Person Name Email [Rating] Version {-! derive :Haskell2Xml !-}
+data Person = Person Name Email [Rating] Version {-! derive : XmlContent !-}
 
-newtype Name = Name String {-! derive :Haskell2Xml !-}
-newtype Email = Email String {-! derive :Haskell2Xml !-}
-newtype Version = Version Int {-! derive :Haskell2Xml !-}
+newtype Name = Name String {-! derive : XmlContent !-}
+newtype Email = Email String {-! derive : XmlContent !-}
+newtype Version = Version Int {-! derive : XmlContent !-}
 
-data Rating = Rating SubjectID Interest Skill {-! derive :Haskell2Xml !-}
+data Rating = Rating SubjectID Interest Skill {-! derive : XmlContent !-}
 
-newtype SubjectID = SubjectID Int {-! derive :Haskell2Xml !-}
-newtype Interest = Interest Score {-! derive :Haskell2Xml !-}
-newtype Skill = Skill Score {-! derive :Haskell2Xml !-}
+newtype SubjectID = SubjectID Int {-! derive : XmlContent !-}
+newtype Interest = Interest Score {-! derive : XmlContent !-}
+newtype Skill = Skill Score {-! derive : XmlContent !-}
 
-data Score = ScoreNone | ScoreLow | ScoreMedium | ScoreHigh {-! derive :Haskell2Xml !-}
+data Score = ScoreNone | ScoreLow | ScoreMedium | ScoreHigh {-! derive : XmlContent !-}
 

@@ -1,7 +1,7 @@
 module Main where
 
 import List (isPrefixOf)
-import Text.XML.HaXml.Haskell2Xml
+import Text.XML.HaXml.XmlContent
 import Text.XML.HaXml.Types
 import Text.PrettyPrint.HughesPJ (render)
 import Text.XML.HaXml.Pretty     (document)

@@ -4,7 +4,7 @@ import System (getArgs)
 import IO
 
 import Text.XML.HaXml.Wrappers (fix2Args)
-import Text.XML.HaXml.Xml2Haskell (fReadXml, fWriteXml)
+import Text.XML.HaXml.XmlContent (fReadXml, fWriteXml)
 import AlbumDTD
 
 main =
