@@ -5,7 +5,7 @@ import IO
 import List   (isSuffixOf)
 
 import Text.XML.HaXml.ParseLazy  (xmlParse)
-import Text.XML.HaXml.Html.Parse (htmlParse)
+import Text.XML.HaXml.Html.ParseLazy (htmlParse)
 import Text.XML.HaXml.Pretty     (document)
 import Text.XML.HaXml.Wrappers   (fix2Args)
 import Text.PrettyPrint.HughesPJ (render)

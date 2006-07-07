@@ -10,7 +10,7 @@ import List         (isSuffixOf)
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Posn          (posInNewCxt)
 import Text.XML.HaXml.ParseLazy     (xmlParse)
-import Text.XML.HaXml.Html.Parse    (htmlParse)
+import Text.XML.HaXml.Html.ParseLazy(htmlParse)
 import Text.XML.HaXml.Xtract.Parse  (xtract)
 import Text.PrettyPrint.HughesPJ    (render, vcat, hcat, empty)
 import Text.XML.HaXml.Pretty        (content)
