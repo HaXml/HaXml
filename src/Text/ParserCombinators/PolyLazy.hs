@@ -36,7 +36,7 @@ module Text.ParserCombinators.PolyLazy
   , reparse	-- :: [t] -> Parser t ()
   ) where
 
-import Control.Exception
+import Control.Exception hiding (bracket)
 
 throwE :: String -> a
 throwE msg = throw (ErrorCall msg)
@@ -171,7 +171,7 @@ oneOf' ps = accum [] ps
                          (Left err,_) -> let (P p) = accum ((e,err):errs) ps
                                          in p ts
                          right        -> right )
-          showErr (name,err)) = name++":\n"++indent 2 err
+          showErr (name,err) = name++":\n"++indent 2 err
 
 -- | Helper for formatting error messages: indents all lines by a fixed amount.
 indent :: Int -> String -> String
