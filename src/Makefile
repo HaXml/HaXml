@@ -14,6 +14,7 @@ LIBSRCS = \
 	Text/XML/HaXml/SAX.hs \
 	Text/XML/HaXml/Html/Generate.hs Text/XML/HaXml/Html/Parse.hs \
 	Text/XML/HaXml/Html/Pretty.hs \
+	Text/XML/HaXml/Html/ParseLazy.hs \
 	Text/XML/HaXml/Xtract/Combinators.hs \
 	Text/XML/HaXml/Xtract/Lex.hs \
 	Text/XML/HaXml/Xtract/Parse.hs \

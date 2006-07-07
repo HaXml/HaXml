@@ -25,6 +25,7 @@ exposed-modules:
 	Text.XML.HaXml.Escape,
 	Text.XML.HaXml.Html.Generate,
 	Text.XML.HaXml.Html.Parse,
+	Text.XML.HaXml.Html.ParseLazy,
 	Text.XML.HaXml.Html.Pretty,
 	Text.XML.HaXml.Lex,
 	Text.XML.HaXml.OneOfN,

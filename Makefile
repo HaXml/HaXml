@@ -21,6 +21,7 @@ SRCS = \
 	src/Text/XML/HaXml/SAX.hs \
 	src/Text/XML/HaXml/Html/Generate.hs src/Text/XML/HaXml/Html/Parse.hs \
 	src/Text/XML/HaXml/Html/Pretty.hs \
+	src/Text/XML/HaXml/Html/ParseLazy.hs \
 	src/Text/XML/HaXml/Xtract/Combinators.hs \
 	src/Text/XML/HaXml/Xtract/Lex.hs \
 	src/Text/XML/HaXml/Xtract/Parse.hs \
