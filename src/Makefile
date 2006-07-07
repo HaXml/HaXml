@@ -8,6 +8,7 @@ LIBSRCS = \
 	Text/XML/HaXml/Types.hs Text/XML/HaXml/Validate.hs \
 	Text/XML/HaXml/Wrappers.hs \
 	Text/XML/HaXml/OneOfN.hs \
+	Text/XML/HaXml/ParseLazy.hs \
 	Text/XML/HaXml/TypeMapping.hs  Text/XML/HaXml/XmlContent.hs \
 	Text/XML/HaXml/Verbatim.hs Text/XML/HaXml/Escape.hs \
 	Text/XML/HaXml/SAX.hs \
@@ -20,6 +21,8 @@ LIBSRCS = \
 	Text/ParserCombinators/HuttonMeijerWallace.hs \
 	Text/ParserCombinators/Poly.hs \
 	Text/ParserCombinators/PolyState.hs \
+	Text/ParserCombinators/PolyLazy.hs \
+	Text/ParserCombinators/PolyStateLazy.hs \
 	Text/ParserCombinators/TextParser.hs \
 
 LIBOBJS = $(patsubst %.hs, %.o, $(LIBSRCS))
@@ -29,11 +32,13 @@ TOOLSRCS = \
 	Text/XML/HaXml/DtdToHaskell/Convert.hs \
 	Text/XML/HaXml/DtdToHaskell/Instance.hs \
 	tools/DtdToHaskell.hs tools/Xtract.hs tools/Validate.hs \
- 	tools/Canonicalise.hs tools/MkOneOf.hs
+ 	tools/Canonicalise.hs tools/MkOneOf.hs \
+ 	tools/CanonicaliseLazy.hs tools/XtractLazy.hs
 
 TOOLSET = \
 	../../DtdToHaskell$(EXE) ../../Xtract$(EXE) ../../Validate$(EXE) \
 	../../Canonicalise$(EXE) ../../MkOneOf$(EXE)
+	../../CanonicaliseLazy$(EXE) ../../XtractLazy$(EXE)
 
 EXE = $(shell cat ../exe)
 OUT = $(shell cat ../out)

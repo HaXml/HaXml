@@ -38,6 +38,7 @@ What this package contains:
 			(The main APIs are as follows:)
 	Types.hs	Defines a (generic) representation for any XML document.
 	Parse.hs	Parses an XML document into the generic representation.
+	ParseLazy.hs	A more space-efficient parser.
 	Pretty.hs	Pretty-prints an XML document.
 	Validate.hs	Validates an XML document against a DTD.
 	Combinators.hs	Provides the combinators described in the ICFP'99 paper

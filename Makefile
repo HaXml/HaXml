@@ -16,6 +16,7 @@ SRCS = \
 	src/Text/XML/HaXml/Wrappers.hs \
 	src/Text/XML/HaXml/Verbatim.hs src/Text/XML/HaXml/Escape.hs \
 	src/Text/XML/HaXml/OneOfN.hs \
+	src/Text/XML/HaXml/ParseLazy.hs \
 	src/Text/XML/HaXml/TypeMapping.hs src/Text/XML/HaXml/XmlContent.hs \
 	src/Text/XML/HaXml/SAX.hs \
 	src/Text/XML/HaXml/Html/Generate.hs src/Text/XML/HaXml/Html/Parse.hs \
@@ -30,11 +31,14 @@ SRCS = \
 	src/Text/ParserCombinators/HuttonMeijerWallace.hs \
 	src/Text/ParserCombinators/Poly.hs \
 	src/Text/ParserCombinators/PolyState.hs \
+	src/Text/ParserCombinators/PolyLazy.hs \
+	src/Text/ParserCombinators/PolyStateLazy.hs \
 	src/Text/ParserCombinators/TextParser.hs
 
 TOOLSRCS = \
 	src/tools/DtdToHaskell.hs src/tools/Xtract.hs src/tools/Validate.hs \
-	src/tools/Canonicalise.hs src/tools/MkOneOf.hs
+	src/tools/Canonicalise.hs src/tools/MkOneOf.hs \
+	src/tools/CanonicaliseLazy.hs src/tools/XtractLazy.hs \
 
 AUX =	configure Makefile src/Makefile src/pkg.conf docs/* examples/* \
 	README LICENCE* COPYRIGHT script/echo.c rpm.spec Build.bat \
@@ -127,4 +131,5 @@ clean:
 	cd examples;    rm -f *.hi *.o
 realclean: clean
 	rm -f DtdToHaskell Xtract Validate Canonicalise MkOneOf
+	rm -f XtractLazy CanonicaliseLazy
 
