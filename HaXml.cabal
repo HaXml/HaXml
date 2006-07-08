@@ -1,5 +1,6 @@
 name:		HaXml
 version:	1.16
+ghc-options:	-DVERSION="1.16"
 license:	LGPL
 license-file:	COPYRIGHT
 author:		Malcolm Wallace <Malcolm.Wallace@cs.york.ac.uk>
