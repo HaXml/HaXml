@@ -13,6 +13,31 @@
 </center>
 <hr>
 
+<h3>Changes in 1.16</h3>
+<p>
+<ul>
+<li> New: lazier parsers
+     <ul>
+     <li> <tt>Text.XML.HaXml.ParseLazy</tt>
+     <li> <tt>Text.XML.HaXml.Html.ParseLazy</tt>
+     <li> <tt>Text.ParserCombinators.PolyLazy</tt>
+     <li> <tt>Text.ParserCombinators.PolyStateLazy</tt>
+     </ul>
+<li> New: lazier tools
+     <ul>
+     <li> <tt>CanonicaliseLazy</tt>
+     <li> <tt>XtractLazy</tt>
+     </ul>
+<li> New: API call "xmlParseWith"
+<li> Bugfix: to permit percent character in attribute values.
+<li> Bugfix: to parse unquoted attribute values starting '+' or '#' in HTML.
+<li> Bugfix: to keep the original DTD in output of 'processXmlWith'.
+<li> Bugfixes: to configuration/build systems.
+<li> Bugfix: DtdToHaskell nows avoids generating types whose names clash
+             with existing (Prelude,HaXml) types
+<li>
+</ul>
+
 <h3>Changes in 1.15</h3>
 <p>
 <ul>
@@ -45,6 +70,14 @@
 <li> Bugfix: for expanding PERefs correctly in entity values.
 <li> The DTD for SVG (Scalable Vector Graphics) now goes through DtdToHaskell
      successfully.
+</ul>
+
+<h3>Changes for 1.13.1 </h3>
+<p>
+<ul>
+<li> Bugfix: to permit percent character in attribute values.
+<li> Bugfix: to parse unquoted attribute values starting '+' or '#' in HTML.
+<li> Bugfix: to keep the original DTD in output of 'processXmlWith'.
 </ul>
 
 <h3>Changes for 1.13 </h3>

@@ -24,11 +24,11 @@
 
 <p>
 <font color="red">
-<b>Warning!</b> Versions 1.14 and 1.15 significantly changes the API of some
-modules!  They may be incomplete, inconsistent, and liable to change
-before the next release!  Do not expect code written against an earlier
-API to be compatible!  DtdToHaskell has only recently been fixed to work with
-the 1.15 APIs! <b>Warning!</b>
+<b>Warning!</b> The development versions (1.14 upwards) significantly
+change the API of some modules!  They may be incomplete, inconsistent,
+and liable to change before the next release!  Do not expect code
+written against an earlier API to be compatible!  DtdToHaskell has only
+recently been fixed to work with the 1.15 APIs! <b>Warning!</b>
 </font>
 
 <hr>
@@ -72,7 +72,7 @@ For processing XML documents, the following components are also provided:
 <a href="HaXml/index.html">Detailed documentation of the HaXml APIs</a>
 is generated automatically by Haddock directly from the source code.
 <a href="http://haskell.org/HaXml/index.html">Documentation for the
-previous (stable) version, HaXml-1.13</a>.
+previous (stable) version, HaXml-1.13.1</a>.
 
 <p>
 An introduction to HaXml for people who know more about XML than
@@ -118,41 +118,33 @@ Some additional info about using the various facilities is here:
 <hr>
 <center><h3><a name="download">Downloads</a></h3></center>
 <p>
-<b>Current versions:</b>
+<b>Development versions:</b><br>
+HaXml-1.16, release date 2006.07.10<br>
+By HTTP:
+<a href="http://www.cs.york.ac.uk/fp/HaXml-devel/HaXml-1.16.tar.gz">.tar.gz</a>,
+<a href="http://www.cs.york.ac.uk/fp/HaXml-devel/HaXml-1.16.zip">.zip</a>.
+<br>
+By FTP: 
+<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/">
+ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/</a>
+<br>
 HaXml-1.15, release date 2005.12.02<br>
 By HTTP:
-<a href="http://www.cs.york.ac.uk/fp/HaXml-1.14/HaXml-1.15.tar.gz">.tar.gz</a>,
-<a href="http://www.cs.york.ac.uk/fp/HaXml-1.14/HaXml-1.15.zip">.zip</a>.
-<br>
-By FTP: 
-<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/">
-ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/</a>
-<br>
-HaXml-1.14, release date 2005.10.17 (refreshed 2005.11.02)<br>
-By HTTP:
-<a href="http://www.cs.york.ac.uk/fp/HaXml-1.14/HaXml-1.14.tar.gz">.tar.gz</a>,
-<a href="http://www.cs.york.ac.uk/fp/HaXml-1.14/HaXml-1.14.zip">.zip</a>.
-<br>
-By FTP: 
-<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/">
-ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/</a>
+<a href="http://www.cs.york.ac.uk/fp/HaXml-devel/HaXml-1.15.tar.gz">.tar.gz</a>,
+<a href="http://www.cs.york.ac.uk/fp/HaXml-devel/HaXml-1.15.zip">.zip</a>.
 
 <p>
-<b>Development version:</b>
-The development version of HaXml is available by anonymous CVS
-(write-access is also available to core Haskell developers).  Read the
-instructions for getting ghc by CVS:
-<a href="http://haskell.org/ghc/docs/latest/html/building/sec-cvs.html">
-http://haskell.org/ghc/docs/latest/html/building/sec-cvs.html</a>
-and simply replace the project name <em>fpconfig</em> with
-<em>fptools/libraries/HaXml</em>.  Access is also available through
+<b>Ongoing development:</b>
+The development version of HaXml is also available through
 <br><tt><a href="http://darcs.net/">darcs</a> get
     http://www.cs.york.ac.uk/fp/darcs/HaXml</tt>
-<br>but note that the gateway between darcs and CVS is manual, so
-the darcs copy may lag behind CVS.
 
 <p>
 <b>Older versions:</b><br>
+Stable version: for 1.13.1 see
+<a href="http://haskell.org/HaXml/">
+http://haskell.org/HaXml/</a>
+<br>
 By FTP: 
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/">
 ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/</a>
@@ -189,6 +181,25 @@ of your compiler etc.
 
 <hr>
 <center><h3><a name="news">Recent news</a></h3></center>
+<p>
+Version 1.16 adds laziness to the parser combinator libraries, such that
+they can start to return partial results before a whole entity has been
+parsed.  Partial is also used in the sense that the returned value can
+contain bottom - an error which gets thrown as an exception when you try
+to explore the inner regions of the value.  In terms of XML, it means you
+get an element back as soon as its start-tag has been consumed, but if
+there are parse errors later on, BOOM.  However, if there are no errors,
+it does mean that your processing will be (a) faster and (b) less memory
+hungry.  Another cool thing is that, even in the presence of errors, you
+still might get enough output to satisfy your processing task before the
+error is noticed.
+
+<p>
+Use <tt>Text.XML.HaXml.ParseLazy</tt> and
+<tt>Text.XML.HaXml.Html.ParseLazy</tt> to try it out.  There are also
+lazy versions of the supplied demo programs: <tt>CanonicaliseLazy</tt>
+and <tt>XtractLazy</tt>.
+
 <p>
 Version 1.15 is essentially 1.14 with some bugfixes, and some new
 functionality, especially in the parser combinator libraries.  DrIFT now
