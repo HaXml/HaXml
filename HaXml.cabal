@@ -47,3 +47,45 @@ exposed-modules:
 hs-source-dir:	src
 build-depends:	base, haskell98
 extensions:	CPP
+
+Executable: Canonicalise
+GHC-Options: -Wall -O2
+Extensions:  CPP
+Hs-Source-Dirs: src/tools, src
+Main-Is: Canonicalise.hs
+
+Executable: CanonicaliseLazy
+GHC-Options: -Wall -O2
+Extensions:  CPP
+Hs-Source-Dirs: src/tools, src
+Main-Is: CanonicaliseLazy.hs
+
+Executable: Xtract
+GHC-Options: -Wall -O2
+Extensions:  CPP
+Hs-Source-Dirs: src/tools, src
+Main-Is: Xtract.hs
+
+Executable: XtractLazy
+GHC-Options: -Wall -O2
+Extensions:  CPP
+Hs-Source-Dirs: src/tools, src
+Main-Is: XtractLazy.hs
+
+Executable: Validate
+GHC-Options: -Wall -O2
+Extensions:  CPP
+Hs-Source-Dirs: src/tools, src
+Main-Is: Validate.hs
+
+Executable: MkOneOf
+GHC-Options: -Wall -O2
+Extensions:  CPP
+Hs-Source-Dirs: src/tools, src
+Main-Is: MkOneOf.hs
+
+Executable: DtdToHaskell
+GHC-Options: -Wall -O2
+Extensions:  CPP
+Hs-Source-Dirs: src/tools, src
+Main-Is: DtdToHaskell.hs
