@@ -35,7 +35,7 @@ import List (intersperse)       -- debugging only
 import Char (isSpace,isDigit,isHexDigit)
 import Monad hiding (sequence)
 import Numeric (readDec,readHex)
-import Control.Exception (catch)
+--import Control.Exception (catch)
 
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Posn

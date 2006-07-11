@@ -36,10 +36,14 @@ module Text.ParserCombinators.PolyLazy
   , reparse	-- :: [t] -> Parser t ()
   ) where
 
+#if __GLASGOW_HASKELL__
 import Control.Exception hiding (bracket)
-
 throwE :: String -> a
 throwE msg = throw (ErrorCall msg)
+#else
+throwE :: String -> a
+throwE msg = error msg
+#endif
 
 -- | The @Parser@ datatype is a fairly generic parsing monad with error
 --   reporting.  It can be used for arbitrary token types, not just
