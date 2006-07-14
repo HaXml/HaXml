@@ -429,8 +429,8 @@ element = do
     (ElemTag n as) <- elemtag
     return (Elem n as) `apply`
         ( do tok TokEndClose
-             return ([])
-             `onFail`
+             return []
+          `onFail`
           do tok TokAnyClose
              manyFinally content
                          (do p <- posn
