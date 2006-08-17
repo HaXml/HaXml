@@ -12,6 +12,8 @@ module Text.XML.HaXml.Escape(
       -- :: XmlEscaper -> Element i -> Element i
    xmlUnEscape,
       -- :: XmlEscaper -> Element i -> Element i
+   xmlEscapeContent
+      -- :: XmlEscaper -> [Content i] -> [Content i]
 
    XmlEscaper,
       -- Something describing a particular set of escapes.
@@ -78,6 +80,10 @@ data XmlEscaper = XmlEscaper {
 xmlEscape :: XmlEscaper -> Element i -> Element i
 xmlEscape xmlEscaper element = 
    compressElement (escapeElement xmlEscaper element)
+
+xmlEscapeContent :: XmlEscaper -> [Content i] -> [Content i]
+xmlEscapeContent xmlEscaper cs = 
+   compressContent (escapeContent xmlEscaper cs)
 
 escapeElement :: XmlEscaper -> Element i -> Element i
 escapeElement xmlEscaper (Elem name attributes content) =
