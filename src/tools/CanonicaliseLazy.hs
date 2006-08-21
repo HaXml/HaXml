@@ -1,14 +1,14 @@
 module Main where
 
-import System (getArgs)
 import IO
-import List   (isSuffixOf)
+import List (isSuffixOf)
 
-import Text.XML.HaXml.ParseLazy  (xmlParse)
+import Text.XML.HaXml.ParseLazy      (xmlParse)
 import Text.XML.HaXml.Html.ParseLazy (htmlParse)
-import Text.XML.HaXml.Pretty     (document)
-import Text.XML.HaXml.Wrappers   (fix2Args)
-import Text.PrettyPrint.HughesPJ (render)
+import Text.XML.HaXml.Wrappers       (fix2Args)
+import Text.PrettyPrint.HughesPJ     (render)
+import qualified Text.XML.HaXml.Pretty      as XmlPP
+import qualified Text.XML.HaXml.Html.Pretty as HtmlPP
 
 -- This is just a trivial application that reads an XML or HTML document
 -- from a file (or stdin) and writes it back to another file (or stdout).
@@ -21,9 +21,10 @@ main =
     else readFile inf )            >>= \content->
   ( if outf=="-" then return stdout
     else openFile outf WriteMode ) >>= \o->
-  let parse = if ".html" `isSuffixOf` inf || ".htm" `isSuffixOf` inf
-              then htmlParse inf else xmlParse inf
+  let (parse,format) =
+         if ".html" `isSuffixOf` inf || ".htm" `isSuffixOf` inf
+           then (htmlParse inf, HtmlPP.document)
+           else (xmlParse  inf, XmlPP.document)
   in
-  do ( mapM_ (hPutStrLn o) . lines . render . document . parse) content
+  do ( mapM_ (hPutStrLn o) . lines . render . format . parse) content
      hFlush o
-
