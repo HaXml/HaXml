@@ -12,7 +12,7 @@ module Text.XML.HaXml.Escape(
       -- :: XmlEscaper -> Element i -> Element i
    xmlUnEscape,
       -- :: XmlEscaper -> Element i -> Element i
-   xmlEscapeContent
+   xmlEscapeContent,
       -- :: XmlEscaper -> [Content i] -> [Content i]
 
    XmlEscaper,
