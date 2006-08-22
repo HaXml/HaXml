@@ -38,7 +38,7 @@ TOOLSRCS = \
 
 TOOLSET = \
 	../../DtdToHaskell$(EXE) ../../Xtract$(EXE) ../../Validate$(EXE) \
-	../../Canonicalise$(EXE) ../../MkOneOf$(EXE)
+	../../Canonicalise$(EXE) ../../MkOneOf$(EXE) \
 	../../CanonicaliseLazy$(EXE) ../../XtractLazy$(EXE)
 
 EXE = $(shell cat ../exe)
