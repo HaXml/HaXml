@@ -10,7 +10,7 @@ module Text.XML.HaXml.Parse
   , xmlParseWith
   -- * Individual parsers for use with /xmlParseWith/ and module SAX
   , document, element, content
-  , comment, chardata
+  , comment, cdsect, chardata
   , reference, doctypedecl
   , processinginstruction
   , elemtag, name, tok

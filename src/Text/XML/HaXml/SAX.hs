@@ -78,7 +78,10 @@ saxcomment :: XParser SaxElement
 saxcomment = comment >>= return . SaxComment
 
 saxchardata :: XParser SaxElement
-saxchardata = chardata >>= return . SaxCharData
+saxchardata = 
+  (cdsect >>= return . SaxCharData)
+  `onFail`
+  (chardata >>= return . SaxCharData)
 
 saxreference :: XParser SaxElement
 saxreference = reference >>= return . SaxReference	
