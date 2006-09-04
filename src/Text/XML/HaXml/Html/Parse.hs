@@ -27,9 +27,9 @@ import Text.ParserCombinators.Poly
  
 #if defined(DEBUG)
 #  if ( defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ > 502 ) || \
-      ( defined(__NHC__) && __NHC__ > 114 )
+      ( defined(__NHC__) && __NHC__ > 114 ) || defined(__HUGS__)
 import Debug.Trace(trace)
-#  elif defined(__GLASGOW_HASKELL__) || defined(__HUGS__)
+#  elif defined(__GLASGOW_HASKELL__)
 import IOExts(trace)
 #  elif defined(__NHC__) || defined(__HBC__)
 import NonStdTrace
