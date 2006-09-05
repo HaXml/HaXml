@@ -55,10 +55,21 @@ module Text.XML.HaXml.Escape(
 
 import Char
 import Numeric
-
-import Data.FiniteMap
-
 import Text.XML.HaXml.Types
+
+#if ( defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ < 606 ) || \
+    ( defined(__HUGS__) && __HUGS__ < 20060901 )
+-- real finite map, if it is available (e.g. only earlier than ghc-6.6)
+import Data.FiniteMap
+#else
+-- otherwise, a very simple and inefficient implementation of a finite map
+type FiniteMap a b = [(a,b)]
+listToFM :: Eq a => [(a,b)] -> FiniteMap a b
+listToFM = id
+lookupFM :: Eq a => FiniteMap a b -> a -> Maybe b
+lookupFM fm k = lookup k fm
+#endif
+
 
 -- ------------------------------------------------------------------------
 -- Data types

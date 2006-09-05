@@ -11,8 +11,9 @@ import Maybe (fromMaybe,isNothing,fromJust)
 import List (intersperse,nub,(\\))
 import Char (isSpace)
 
-#if defined(__GLASGOW_HASKELL__) || defined(__HUGS__)
--- real finite map, if it is available
+#if ( defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ < 606 ) || \
+    ( defined(__HUGS__) && __HUGS__ < 20060901 )
+-- real finite map, if it is available (e.g. only earlier than ghc-6.6)
 import Data.FiniteMap
 #else
 -- otherwise, a very simple and inefficient implementation of a finite map
