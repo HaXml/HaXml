@@ -11,9 +11,16 @@ import Maybe (fromMaybe,isNothing,fromJust)
 import List (intersperse,nub,(\\))
 import Char (isSpace)
 
-#if ( defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ < 606 ) || \
-    ( defined(__HUGS__) && __HUGS__ < 20060901 )
--- real finite map, if it is available (e.g. only earlier than ghc-6.6)
+#if __GLASGOW_HASKELL__ >= 604 || __NHC__ >= 118 || defined(__HUGS__)
+-- emulate older finite map interface using Data.Map, if it is available
+import qualified Data.Map as Map
+type FiniteMap a b = Map.Map a b
+listToFM :: Ord a => [(a,b)] -> FiniteMap a b
+listToFM = Map.fromList
+lookupFM :: Ord a => FiniteMap a b -> a -> Maybe b
+lookupFM = flip Map.lookup
+#elif __GLASGOW_HASKELL__ >= 504 || __NHC__ > 114
+-- real finite map, if it is available
 import Data.FiniteMap
 #else
 -- otherwise, a very simple and inefficient implementation of a finite map
