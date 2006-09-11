@@ -19,6 +19,7 @@ SRCS = \
 	src/Text/XML/HaXml/ParseLazy.hs \
 	src/Text/XML/HaXml/TypeMapping.hs src/Text/XML/HaXml/XmlContent.hs \
 	src/Text/XML/HaXml/SAX.hs \
+	src/Text/XML/HaXml/ShowXmlLazy.hs \
 	src/Text/XML/HaXml/Html/Generate.hs src/Text/XML/HaXml/Html/Parse.hs \
 	src/Text/XML/HaXml/Html/Pretty.hs \
 	src/Text/XML/HaXml/Html/ParseLazy.hs \

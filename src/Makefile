@@ -12,6 +12,7 @@ LIBSRCS = \
 	Text/XML/HaXml/TypeMapping.hs  Text/XML/HaXml/XmlContent.hs \
 	Text/XML/HaXml/Verbatim.hs Text/XML/HaXml/Escape.hs \
 	Text/XML/HaXml/SAX.hs \
+	Text/XML/HaXml/ShowXmlLazy.hs \
 	Text/XML/HaXml/Html/Generate.hs Text/XML/HaXml/Html/Parse.hs \
 	Text/XML/HaXml/Html/Pretty.hs \
 	Text/XML/HaXml/Html/ParseLazy.hs \

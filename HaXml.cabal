@@ -36,6 +36,7 @@ exposed-modules:
 	Text.XML.HaXml.Posn,
 	Text.XML.HaXml.Pretty,
 	Text.XML.HaXml.SAX,
+	Text.XML.HaXml.ShowXmlLazy,
 	Text.XML.HaXml.Types,
 	Text.XML.HaXml.TypeMapping,
 	Text.XML.HaXml.Validate,
