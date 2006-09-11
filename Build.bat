@@ -9,7 +9,7 @@ rem -- Change the following variables (upto and including SRC)
 rem -- to suit the local system environment --
 
 rem    GHC version
-set GHCVER=6.2.2
+set GHCVER=6.4.2
 
 rem    GHC installation directory:
 set GHCDIR=C:\DEV\ghc\ghc-%GHCVER%
@@ -25,7 +25,7 @@ set AR=C:\DEV\MinGW\bin\ar.exe
 set LD=C:\DEV\ghc\ghc-%GHCVER%\gcc-lib\ld.exe
 
 rem    Source directory for HaXml:
-set SRC=C:\DEV\Haskell\lib\HaXml-1.16\src
+set SRC=C:\DEV\Haskell\lib\HaXml-1.17\src
 
 rem    Two very long lines (500-600 chars) follow here.  
 rem    They should not need changing.
@@ -59,11 +59,11 @@ XCOPY /S /F *.hi %GHCDIR%\imports
 
 rem -- Finally, register the package with GHC
 if "%GHCVER%"=="6.2.2" %GHCPKG% --add-package -i pkg.conf
-if "%GHCVER%"=="6.4"   ECHO import-dirs:   %GHCDIR%\imports >>pkg.conf
-if "%GHCVER%"=="6.4"   ECHO library-dirs:  %GHCDIR% >>pkg.conf
-if "%GHCVER%"=="6.4"   ECHO depends:       base, haskell98 >>pkg.conf
-if "%GHCVER%"=="6.4"   ECHO hs-libraries:  HSHaXml >>pkg.conf
-if "%GHCVER%"=="6.4"   %GHCPKG% register pkg.conf
+if "%GHCVER%"=="6.4.2"   ECHO import-dirs:   %GHCDIR%\imports >>pkg.conf
+if "%GHCVER%"=="6.4.2"   ECHO library-dirs:  %GHCDIR% >>pkg.conf
+if "%GHCVER%"=="6.4.2"   ECHO depends:       base, haskell98 >>pkg.conf
+if "%GHCVER%"=="6.4.2"   ECHO hs-libraries:  HSHaXml >>pkg.conf
+if "%GHCVER%"=="6.4.2"   %GHCPKG% register pkg.conf
 
 goto Exit
 

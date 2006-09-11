@@ -2,7 +2,7 @@
 
 Summary: Haskell utilities for processing XML
 Name: HaXml
-Version: 1.14
+Version: 1.17
 Release: 1
 License: GPL/LGPL
 Group: Development/Languages/Haskell
