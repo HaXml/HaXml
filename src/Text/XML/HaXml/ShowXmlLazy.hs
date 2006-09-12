@@ -1,5 +1,5 @@
 
-module ShowXmlLazy (showXmlLazy) where
+module Text.XML.HaXml.ShowXmlLazy (showXmlLazy) where
 
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.TypeMapping
