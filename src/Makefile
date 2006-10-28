@@ -50,8 +50,8 @@ WHOLEARCHIVE = $(shell cat ../ldopt)
 # The caller *must* set the HC variable.
 COMPILER := $(findstring ghc, $(HC))
 ifeq "$(COMPILER)" "ghc"
-COMPILE  = $(HC) --make -cpp -i. $(shell cat ghcpkgs) -package-name HaXml \
-		-DVERSION=$(VERSION)
+COMPILE  = $(HC) --make -cpp -i. $(shell cat ghcpkgs) \
+		-package-name HaXml-$(VERSION) -DVERSION=$(VERSION)
 RENAME   = mv $(OUT)
 endif
 COMPILER := $(findstring nhc98, $(HC))
@@ -84,9 +84,10 @@ install-filesonly-nhc98: libs $(INSTALLDIR)
 	cd `cat nhc98incdir`/packages/HaXml; tar xf interfaces.tar; rm interfaces.tar
 	cp $(TOOLSET) $(INSTALLDIR)
 install-ghc: install-filesonly-ghc HaXml.pkgconf
-	`cat ghcpkgcmd` --remove-package=HaXml || true
+	`cat ghcpkgcmd` --remove-package=HaXml || true	# ignore any error
 	`cat ghcpkgcmd` --add-package <pkg.conf || \
 	`cat ghcpkgcmd` register HaXml.pkgconf
+	echo "you can safely ignore any errors from --add-package"
 install-nhc98: install-filesonly-nhc98
 install-tools-hugs: toolset-hugs $(INSTALLDIR)
 	cp $(patsubst ../../%, %, ${TOOLSET}) $(INSTALLDIR)
