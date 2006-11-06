@@ -34,6 +34,21 @@ merged into a single new class: <b>XmlContent</b>.  Because the new
 class is based on combinator parsers that return good error
 messages, some of the signatures of user-accessible I/O routines 
 have changed to enable the possibility of reporting parse errors.
+See <a href="XmlContent.html">this page</a> for details.
+
+If you are playing with the class methods themselves, then the
+translation from old-style to new-style is more-or-less like this:
+<pre>
+    class XmlContent a where	-- old
+      fromElem :: [Content] -&gt; (Maybe a, [Content])
+      toElem :: a -&gt; [Content]
+</pre>
+becomes
+<pre>
+    class XMLContent a where	--new
+      parseContents :: XMLParser a
+      toContents    :: a -&gt; [Content ()]
+</pre>
 
 <h3>Lazy parsing</h3>
 Parsing of generic XML documents can now be lazy, that is, it can
