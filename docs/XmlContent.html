@@ -57,18 +57,23 @@ Strings; <tt>fWriteXml/fReadXml</tt> convert to/from named files;
 <tt>hPutXml/hGetXml</tt> convert to/from file Handles.
 
 <pre>
-    toXml     :: XmlContent a =&gt; a        -&gt; Document
-    fromXml   :: XmlContent a =&gt; Document -&gt; a
+    toXml     :: XmlContent a =&gt; Bool -&gt; a  -&gt; Document ()
+    fromXml   :: XmlContent a =&gt; Document Posn -&gt; Either String a
 
-    readXml   :: XmlContent a =&gt; String   -&gt; Maybe a
-    showXml   :: XmlContent a =&gt; a        -&gt; String
+    readXml   :: XmlContent a =&gt; String        -&gt; Either String a
+    showXml   :: XmlContent a =&gt; Bool -&gt; a  -&gt; String
 
     fReadXml  :: XmlContent a =&gt; FilePath -&gt; IO a
     fWriteXml :: XmlContent a =&gt; FilePath -&gt; a -&gt; IO ()
 
     hGetXml   :: XmlContent a =&gt; Handle   -&gt; IO a
-    hPutXml   :: XmlContent a =&gt; Handle   -&gt; a -&gt; IO ()
+    hPutXml   :: XmlContent a =&gt; Handle   -&gt; Bool -&gt; a -&gt; IO ()
 </pre>
+
+Because parsing the document might fail, some of these functions return
+an Either String, where the string contains an error message.  Boolean
+arguments to output-writing functions indicate whether or not to include
+a DTD in the output.
 
 <p>
 Particularly when you read from XML, you may need to resolve the
