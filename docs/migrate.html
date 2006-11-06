@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html> <head> <title> HaXml: Haskell and XML </title> </head>
+
+<body bgcolor='#ffffff'>
+
+<center>
+<h2>Migrating from HaXml 1.13 to HaXml >= 1.17</h2>
+</center>
+<hr>
+
+<p>
+There are 3 main changes between 1.13 and 1.17:
+
+<h3>More info fields in the generic document tree</h3>
+Content items in the generic document representation now have an
+extra polymorphic component field.  This can be used for
+propagating information throughout the document tree, like
+namespace scopes.  However, if you simply want to change some old
+code to use the new types, essentially you can just use unit
+() values as dummies to fill in this field.
+
+<p>
+<tt>data Document</tt>  --&gt;  <tt>data Document i</tt>
+
+<p>
+<tt>data Element</tt>  --&gt;  <tt>data Element i</tt>
+
+<p>
+<tt>data Content</tt>  --&gt;  <tt>data Content i</tt>
+
+<h3>New XmlContent class, replaces old classes</h3>
+The <i>Haskell2Xml</i> and <i>Xml2Haskell</i> classes have been
+merged into a single new class: <b>XmlContent</b>.  Because the new
+class is based on combinator parsers that return good error
+messages, some of the signatures of user-accessible I/O routines 
+have changed to enable the possibility of reporting parse errors.
+
+<h3>Lazy parsing</h3>
+Parsing of generic XML documents can now be lazy, that is, it can
+start returning part of the document tree, before seeing the end of
+it.  However, this does mean that parse errors can be discovered
+too late to do anything sensible with them - your program will
+likely just stop with the error message.  To use the lazy parser,
+
+     <p>
+<tt>import Text.XML.HaXml.Parse<tt> --&gt; <tt>import Text.XML.HaXml.ParseLazy</tt>
+
+
+<hr>
+
+</body>
+</html>
