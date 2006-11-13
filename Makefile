@@ -17,6 +17,7 @@ SRCS = \
 	src/Text/XML/HaXml/Verbatim.hs src/Text/XML/HaXml/Escape.hs \
 	src/Text/XML/HaXml/OneOfN.hs \
 	src/Text/XML/HaXml/ParseLazy.hs \
+	src/Text/XML/HaXml/ByteStringPP.hs \
 	src/Text/XML/HaXml/TypeMapping.hs src/Text/XML/HaXml/XmlContent.hs \
 	src/Text/XML/HaXml/SAX.hs \
 	src/Text/XML/HaXml/ShowXmlLazy.hs \

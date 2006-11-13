@@ -57,9 +57,9 @@ module Text.XML.HaXml.XmlContent
   , catMaybes	-- re-exported from Maybe
   -- * Whole-document conversion functions
   , toXml, fromXml
-  , readXml, showXml
-  , fReadXml, fWriteXml
-  , hGetXml,  hPutXml
+  , readXml, showXml, fpsShowXml
+  , fReadXml, fWriteXml, fpsWriteXml
+  , hGetXml,  hPutXml, fpsHPutXml
   -- * Explicit representation of Haskell datatype information
   --   (for conversion to a DTD)
   , module Text.XML.HaXml.TypeMapping
@@ -82,6 +82,8 @@ import Text.XML.HaXml.Posn     (Posn, posInNewCxt)
 import Text.XML.HaXml.Pretty   (document)
 import Text.XML.HaXml.Parse    (xmlParse, fst3)
 import Text.XML.HaXml.Verbatim (Verbatim(verbatim))
+import qualified Text.XML.HaXml.ByteStringPP as FPS (document)
+import qualified Data.ByteString.Lazy.Char8 as FPS
 
 import Text.ParserCombinators.Poly
 
@@ -147,6 +149,14 @@ fWriteXml fp x = do
     hPutXml f False x
     hClose f
 
+-- | Write any Haskell value to the given file as an XML document,
+--   using the FastPackedString interface (output will not be prettified).
+fpsWriteXml :: XmlContent a => FilePath -> a -> IO ()
+fpsWriteXml fp x = do
+    f <- ( if fp=="-" then return stdout
+           else openFile fp WriteMode )
+    fpsHPutXml f False x
+    hClose f
 
 -- | Read a fully-typed XML document from a string.
 readXml :: XmlContent a => String -> Either String a
@@ -159,8 +169,15 @@ readXml s =
 showXml :: XmlContent a => Bool -> a -> String
 showXml dtd x =
     case toContents x of
-      [CElem _ _] -> (render . document) $ toXml dtd x
+      [CElem _ _] -> (render . document . toXml dtd) x
       _ -> ""
+
+-- | Convert a fully-typed XML document to a ByteString (without DTD).
+fpsShowXml :: XmlContent a => Bool -> a -> FPS.ByteString
+fpsShowXml dtd x =
+    case toContents x of
+      [CElem _ _] -> (FPS.document . toXml dtd) x
+      _ -> FPS.empty
 
 
 -- | Convert a fully-typed XML document to a string (with or without DTD).
@@ -198,14 +215,13 @@ hGetXml h = do
 -- | Write a fully-typed XML document to a file handle.
 hPutXml :: XmlContent a => Handle -> Bool -> a -> IO ()
 hPutXml h dtd x = do
- -- y <-  deCont doc
-    (hPutStrLn h . render . document)
-          (toXml dtd x)
- --       (Document (Prolog Nothing [] Nothing []) emptyST y [])
---where
- -- deCont [CElem x _] = return x
- -- deCont [] = fail "no XML content generated"
- -- deCont _  = fail "too much XML content generated"
+    (hPutStrLn h . render . document . toXml dtd) x
+
+-- | Write a fully-typed XML document to a file handle, using the
+--   FastPackedString interface (output will not be prettified).
+fpsHPutXml :: XmlContent a => Handle -> Bool -> a -> IO ()
+fpsHPutXml h dtd x = do
+    (FPS.hPut h . FPS.document . toXml dtd) x
 
 ------------------------------------------------------------------------
 

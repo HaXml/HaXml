@@ -20,6 +20,7 @@ exposed-modules:
 	Text.ParserCombinators.PolyStateLazy,
 	Text.ParserCombinators.TextParser,
 	Text.XML.HaXml,
+	Text.XML.HaXml.ByteStringPP,
 	Text.XML.HaXml.Combinators,
 	Text.XML.HaXml.DtdToHaskell.Convert,
 	Text.XML.HaXml.DtdToHaskell.Instance,

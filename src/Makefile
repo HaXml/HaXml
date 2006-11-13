@@ -9,6 +9,7 @@ LIBSRCS = \
 	Text/XML/HaXml/Wrappers.hs \
 	Text/XML/HaXml/OneOfN.hs \
 	Text/XML/HaXml/ParseLazy.hs \
+	Text/XML/HaXml/ByteStringPP.hs \
 	Text/XML/HaXml/TypeMapping.hs  Text/XML/HaXml/XmlContent.hs \
 	Text/XML/HaXml/Verbatim.hs Text/XML/HaXml/Escape.hs \
 	Text/XML/HaXml/SAX.hs \
