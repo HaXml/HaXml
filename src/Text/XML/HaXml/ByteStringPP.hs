@@ -22,9 +22,9 @@ module Text.XML.HaXml.ByteStringPP
 
 import Prelude hiding (maybe,either,elem)
 import Maybe hiding (maybe)
-import Data.List (intersperse, foldl') 
+import Data.List (intersperse) 
 import Data.ByteString.Lazy hiding (pack,map,head,any,singleton)
-import Data.ByteString.Lazy.Char8 (pack, unlines, singleton,unwords, join)
+import Data.ByteString.Lazy.Char8 (pack, singleton, join)
 import Text.XML.HaXml.Types
 
 either f g (Left x)  = f x
