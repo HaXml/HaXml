@@ -1,0 +1,11 @@
+--- process.hs.orig     2006-12-11 16:50:45.000000000 +0900
++++ process.hs  2006-12-11 16:41:50.000000000 +0900
+@@ -1,5 +1,7 @@
+ module Main where
+-import XmlLib
++import Data.Char
++import Text.XML.HaXml
++
+ -- Concise XSLT-like specification of output
+ main = processXmlWith (hexagrams `o` tag "IChing")
+ hexagrams =
