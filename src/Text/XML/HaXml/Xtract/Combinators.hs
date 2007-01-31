@@ -63,7 +63,7 @@ oiffindo :: String -> (String -> DFilter i) -> DFilter i -> DFilter i
 oiffindo key yes no xml c@(CElem (Elem _ as _) _) =
   case (lookup key as) of
     Nothing -> no xml c
-    (Just (AttValue [Left s])) -> yes s xml c
+    (Just v@(AttValue _)) -> yes (show v) xml c
 oiffindo key yes no xml other = no xml other
 
 oifTxto :: (String->DFilter i) -> DFilter i -> DFilter i

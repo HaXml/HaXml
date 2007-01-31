@@ -148,11 +148,11 @@ htmlprint = Pretty.cat . map cprint . foldrefs
                                     ]
 
   attrs = Pretty.cat . map attr
-  attr (n,AttValue [Left v]) =
+  attr (n,v@(AttValue _)) =
                Pretty.text " "  Pretty.<>
                Pretty.text n    Pretty.<>
                Pretty.text "='" Pretty.<>
-               Pretty.text v    Pretty.<>
+               Pretty.text (show v) Pretty.<>
                Pretty.text "'"
 
   fmt n [] = []

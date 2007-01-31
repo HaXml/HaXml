@@ -381,8 +381,8 @@ unparse ts = do p <- posn
                 reparse (zip (repeat p) ts)
 
 reformatAttrs avs = concatMap f0 avs
-    where f0 (a, AttValue [Left s]) = [TokName a, TokEqual, TokQuote,
-                                       TokFreeText s, TokQuote]
+    where f0 (a, v@(AttValue _)) = [TokName a, TokEqual, TokQuote,
+                                       TokFreeText (show v), TokQuote]
 reformatTags ts = concatMap f0 ts
     where f0 (t,avs) = [TokAnyOpen, TokName t]++reformatAttrs avs++[TokAnyClose]
 

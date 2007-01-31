@@ -114,13 +114,13 @@ mkAttrField e (AttDef n typ req) = (name_f e n, mkType typ req)
   where
     mkType StringType REQUIRED = String
     mkType StringType IMPLIED  = Maybe String
-    mkType StringType (DefaultTo (AttValue [Left s]) f) = Defaultable String s
+    mkType StringType (DefaultTo v@(AttValue _) f) = Defaultable String (show v)
     mkType (TokenizedType _) REQUIRED  = String
     mkType (TokenizedType _) IMPLIED   = Maybe String
-    mkType (TokenizedType _) (DefaultTo (AttValue [Left s]) f) =
-							Defaultable String s
+    mkType (TokenizedType _) (DefaultTo v@(AttValue _) f) =
+							Defaultable String (show v)
     mkType (EnumeratedType _) REQUIRED = Defined (name_a e n)
     mkType (EnumeratedType _) IMPLIED  = Maybe (Defined (name_a e n))
-    mkType (EnumeratedType _) (DefaultTo (AttValue [Left s]) f) =
-		Defaultable (Defined (name_a e n)) (hName (name_ac e n s))
+    mkType (EnumeratedType _) (DefaultTo v@(AttValue _) f) =
+		Defaultable (Defined (name_a e n)) (hName (name_ac e n (show v)))
 

@@ -133,9 +133,8 @@ attrval av _  = []
 --   the attribute name @key@, and applies the continuation @cont@ to
 --   the value.
 find :: String -> (String->CFilter i) -> CFilter i
-find key cont c@(CElem (Elem _ as _) _) = cont (value (lookfor key as)) c
+find key cont c@(CElem (Elem _ as _) _) = cont (show (lookfor key as)) c
   where lookfor x = fromMaybe (error ("missing attribute: "++show x)) . lookup x
-        value (AttValue [Left x]) = x
 -- 'lookfor' has the more general type :: (Eq a,Show a) => a -> [(a,b)] -> b
 
 -- | When an attribute field may be absent, use @iffind key yes no@ to lookup
@@ -145,7 +144,7 @@ iffind :: String -> (String->CFilter i) -> CFilter i -> CFilter i
 iffind key yes no c@(CElem (Elem _ as _) _) =
   case (lookup key as) of
     Nothing  -> no c
-    (Just (AttValue [Left s])) -> yes s c
+    (Just v@(AttValue _)) -> yes (show v) c
 iffind key yes no other = no other
 
 -- | @ifTxt yes no@ processes any textual content with the @yes@ filter,
@@ -373,7 +372,7 @@ attributed key f = extracted att f
   where att (CElem (Elem _ as _) _) =
             case (lookup key as) of
               Nothing  -> ""
-              (Just (AttValue [Left s])) -> s
+              (Just v@(AttValue _)) -> show v
         att _ = ""
 
 -- | Label each textual part of the result with its text.  Element

@@ -254,6 +254,13 @@ type NmTokens = [NmToken]	 -- non-empty list
 
 data AttValue    = AttValue [Either String Reference]
                  deriving Eq
+instance Show AttValue where
+  show (AttValue v) = concatMap decode v
+    where
+      decode (Left  v)               = v
+      decode (Right (RefEntity ent)) = "&"++ent++";"
+      decode (Right (RefChar cref))  = "&"++show cref++";"
+
 data EntityValue = EntityValue [EV] deriving (Show)
 data EV = EVString String
  --  -- | EVPERef PEReference

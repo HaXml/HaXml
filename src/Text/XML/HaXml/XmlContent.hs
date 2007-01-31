@@ -101,7 +101,7 @@ v `debug` s = v
 ------------------------------------------------------------------------
 -- | Read a single attribute called "value".
 attval :: (Read a) => Element i -> a
-attval (Elem _ [("value",AttValue [Left s])] []) = read s
+attval (Elem _ [("value",v@(AttValue _))] []) = read (show v)
 
 -- | Generate a single attribute.
 mkAttr :: String -> String -> Attribute
