@@ -37,9 +37,9 @@ main =
     mapM_ (\x-> do c <- (if x=="-" then getContents else readFile x)
                    ( if isHTML x then
                           hPutStrLn stdout . render . htmlprint .
-                          xtract (map toLower pattern) . getElem x . htmlParse x
+                          xtract (map toLower) pattern . getElem x . htmlParse x
                      else hPutStrLn stdout . render . format .
-                          xtract pattern . getElem x . xmlParse x) c
+                          xtract id pattern . getElem x . xmlParse x) c
                    hFlush stdout)
           files
 

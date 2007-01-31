@@ -14,19 +14,19 @@ import Text.XML.HaXml.Combinators
 import List(isPrefixOf)
 
 -- | To convert an Xtract query into an ordinary HaXml combinator expression.
-xtract :: String -> CFilter i
-xtract query = dfilter (parseXtract query)
+xtract :: (String->String) -> String -> CFilter i
+xtract f query = dfilter (parseXtract f query)
 
 -- | The cool thing is that the Xtract command parser directly builds
 --   a higher-order 'DFilter' (see "Text.XML.HaXml.Xtract.Combinators")
 --   which can be applied to an XML document without further ado.
 --   (@parseXtract@ halts the program if a parse error is found.)
-parseXtract :: String -> DFilter i
-parseXtract = either error id . parseXtract'
+parseXtract :: (String->String) -> String -> DFilter i
+parseXtract f = either error id . parseXtract' f
 
 -- | @parseXtract'@ returns error messages through the Either type.
-parseXtract' :: String -> Either String (DFilter i)
-parseXtract' = fst . runParser xql . lexXtract
+parseXtract' :: (String->String) -> String -> Either String (DFilter i)
+parseXtract' f = fst . runParser xql . lexXtract f
 
 xql = aquery (local keep)
 

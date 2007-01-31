@@ -68,46 +68,50 @@ blank k p ('\xa0': s) = blank k (addcol 1 p) s
 blank k p    s     = k p s
 
 ----
-lexXtract :: String -> [Token]
-lexXtract = selAny (Pn 1)
+-- | First argument is a transformer for pattern strings, e.g. map toLower,
+--   but only applying to parts of the pattern not in quotation marks.
+--   (Needed to canonicalise HTML where tags are case-insensitive, but
+--   attribute values are case sensitive.)
+lexXtract :: (String->String) -> String -> [Token]
+lexXtract f = selAny f (Pn 1)
 
 syms = "/[]()@,=*&|~$+-<>"
 
-selAny :: Posn -> String -> [Token]
-selAny p [] = []
-selAny p ('/':ss)
-    | '/' == head ss  = emit (Symbol "//") p:  selAny (addcol 2 p) (tail ss)
-selAny p ('!':ss)
-    | '=' == head ss  = emit (Symbol "!=") p:  selAny (addcol 2 p) (tail ss)
-selAny p ('<':ss)
-    | '=' == head ss  = emit (Symbol "<=") p:  selAny (addcol 2 p) (tail ss)
-selAny p ('>':ss)
-    | '=' == head ss  = emit (Symbol ">=") p:  selAny (addcol 2 p) (tail ss)
-selAny p ('\'':ss)    = emit (Symbol "'") p:
-                        accumulateUntil '\'' (Symbol "'") [] p (addcol 1 p) ss selAny
-selAny p ('"':ss)     = emit (Symbol "\"") p:
-                        accumulateUntil '"' (Symbol "\"") [] p (addcol 1 p) ss selAny
-selAny p ('_':ss)     = gatherName "_" p (addcol 1 p) ss (blank selAny)
-selAny p (':':ss)     = gatherName ":" p (addcol 1 p) ss (blank selAny)
-selAny p ('.':ss)
-    | "=."  `isPrefixOf` ss  = emit (Symbol ".=.") p:  selAny (addcol 3 p) (drop 2 ss)
-    | "!=." `isPrefixOf` ss  = emit (Symbol ".!=.") p: selAny (addcol 4 p) (drop 3 ss)
-    | "<."  `isPrefixOf` ss  = emit (Symbol ".<.") p:  selAny (addcol 3 p) (drop 2 ss)
-    | "<=." `isPrefixOf` ss  = emit (Symbol ".<=.") p: selAny (addcol 4 p) (drop 3 ss)
-    | ">."  `isPrefixOf` ss  = emit (Symbol ".>.") p:  selAny (addcol 3 p) (drop 2 ss)
-    | ">=." `isPrefixOf` ss  = emit (Symbol ".>=.") p: selAny (addcol 4 p) (drop 3 ss)
-    | "/"   `isPrefixOf` ss  = emit (Symbol "./") p: selAny (addcol 2 p) (drop 1 ss)
-selAny p (s:ss)
-    | s `elem` syms   = emit (Symbol [s]) p:     selAny (addcol 1 p) ss
-    | isSpace s       = blank selAny p (s:ss)
-    | isAlpha s       = gatherName [s] p (addcol 1 p) ss (blank selAny)
-    | isDigit s       = gatherNum  [s] p (addcol 1 p) ss (blank selAny)
+selAny :: (String->String) -> Posn -> String -> [Token]
+selAny f p [] = []
+selAny f p ('/':ss)
+    | '/' == head ss  = emit (Symbol "//") p:  selAny f (addcol 2 p) (tail ss)
+selAny f p ('!':ss)
+    | '=' == head ss  = emit (Symbol "!=") p:  selAny f (addcol 2 p) (tail ss)
+selAny f p ('<':ss)
+    | '=' == head ss  = emit (Symbol "<=") p:  selAny f (addcol 2 p) (tail ss)
+selAny f p ('>':ss)
+    | '=' == head ss  = emit (Symbol ">=") p:  selAny f (addcol 2 p) (tail ss)
+selAny f p ('\'':ss)  = emit (Symbol "'") p:
+                        accumulateUntil '\'' (Symbol "'") [] p (addcol 1 p) ss (selAny f)
+selAny f p ('"':ss)   = emit (Symbol "\"") p:
+                        accumulateUntil '"' (Symbol "\"") [] p (addcol 1 p) ss (selAny f)
+selAny f p ('_':ss)   = gatherName f "_" p (addcol 1 p) ss (blank (selAny f))
+selAny f p (':':ss)   = gatherName f ":" p (addcol 1 p) ss (blank (selAny f))
+selAny f p ('.':ss)
+    | "=."  `isPrefixOf` ss  = emit (Symbol ".=.") p:  selAny f (addcol 3 p) (drop 2 ss)
+    | "!=." `isPrefixOf` ss  = emit (Symbol ".!=.") p: selAny f (addcol 4 p) (drop 3 ss)
+    | "<."  `isPrefixOf` ss  = emit (Symbol ".<.") p:  selAny f (addcol 3 p) (drop 2 ss)
+    | "<=." `isPrefixOf` ss  = emit (Symbol ".<=.") p: selAny f (addcol 4 p) (drop 3 ss)
+    | ">."  `isPrefixOf` ss  = emit (Symbol ".>.") p:  selAny f (addcol 3 p) (drop 2 ss)
+    | ">=." `isPrefixOf` ss  = emit (Symbol ".>=.") p: selAny f (addcol 4 p) (drop 3 ss)
+    | "/"   `isPrefixOf` ss  = emit (Symbol "./") p: selAny f (addcol 2 p) (drop 1 ss)
+selAny f p (s:ss)
+    | s `elem` syms   = emit (Symbol [s]) p:     selAny f (addcol 1 p) ss
+    | isSpace s       = blank (selAny f) p (s:ss)
+    | isAlpha s       = gatherName f [s] p (addcol 1 p) ss (blank (selAny f))
+    | isDigit s       = gatherNum    [s] p (addcol 1 p) ss (blank (selAny f))
     | otherwise       = lexerror "unrecognised pattern" p
 
-gatherName acc pos p (s:ss) k
-  | isAlphaNum s || s `elem` "-_:" = gatherName (s:acc) pos (addcol 1 p) ss k
-gatherName acc pos p ss k =
-  emit (TokString (reverse acc)) pos: k p ss
+gatherName f acc pos p (s:ss) k
+  | isAlphaNum s || s `elem` "-_:" = gatherName f (s:acc) pos (addcol 1 p) ss k
+gatherName f acc pos p ss k =
+  emit (TokString (f (reverse acc))) pos: k p ss
 
 gatherNum acc pos p (s:ss) k
   | isHexDigit s = gatherNum (s:acc) pos (addcol 1 p) ss k
