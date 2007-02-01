@@ -10,6 +10,14 @@ can then be used as "-package HaXml" (for ghc/nhc98 - no extra options
 required for Hugs).  The standalone tools are installed to a directory of
 your choice.
 
+For newer compilers, use Cabal to build and install:
+
+    runhaskell Setup.hs configure
+    runhaskell Setup.hs build
+    runhaskell Setup.hs install
+
+For older compilers, use the traditional sequence:
+
     ./configure
     make
     make install
