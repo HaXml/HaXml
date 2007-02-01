@@ -20,13 +20,6 @@ LIBSRCS = \
 	Text/XML/HaXml/Xtract/Combinators.hs \
 	Text/XML/HaXml/Xtract/Lex.hs \
 	Text/XML/HaXml/Xtract/Parse.hs \
-	Text/ParserCombinators/HuttonMeijer.hs \
-	Text/ParserCombinators/HuttonMeijerWallace.hs \
-	Text/ParserCombinators/Poly.hs \
-	Text/ParserCombinators/PolyState.hs \
-	Text/ParserCombinators/PolyLazy.hs \
-	Text/ParserCombinators/PolyStateLazy.hs \
-	Text/ParserCombinators/TextParser.hs \
 
 LIBOBJS = $(patsubst %.hs, %.o, $(LIBSRCS))
 
@@ -52,13 +45,14 @@ WHOLEARCHIVE = $(shell cat ../ldopt)
 COMPILER := $(findstring ghc, $(HC))
 ifeq "$(COMPILER)" "ghc"
 COMPILE  = $(HC) --make -cpp -i. $(shell cat ghcpkgs) \
-		-package-name HaXml-$(VERSION) -DVERSION=$(VERSION)
+		-package-name HaXml-$(VERSION) \
+		-package polyparse -DVERSION=$(VERSION)
 RENAME   = mv $(OUT)
 endif
 COMPILER := $(findstring nhc98, $(HC))
 ifeq "$(COMPILER)" "nhc98"
 COMPILE  = hmake -hc=$(HC) -I. -K4M +CTS -H8M -CTS -package base \
-		-DVERSION=$(VERSION)
+		-package polyparse -DVERSION=$(VERSION)
 RENAME   = echo Built
 endif
 
@@ -100,7 +94,7 @@ HaXml.pkgconf: ../../HaXml.cabal ghcincdirraw ghclibdirraw
 	cp ../../HaXml.cabal $@
 	echo "import-dirs:	`cat ghcincdirraw`HaXml" >>$@
 	echo "library-dirs:	`cat ghclibdirraw`" >>$@
-	echo "depends:		base, haskell98" >>$@
+	echo "depends:		base, haskell98, polyparse" >>$@
 	echo "hs-libraries:	HS$(SOFTWARE)" >>$@
 
 

@@ -100,8 +100,8 @@ fi
 if [ "$GHCKNOWN" = "" ]
 then echo "(not found)"
 else echo "found ${GHCVERSION}"
-     if [ "$GHCNUM" -lt "504" ]
-     then  echo "    Warning: HaXml needs ghc-5.04 or later.  Ignoring ghc."
+     if [ "$GHCNUM" -lt "602" ]
+     then  echo "    Warning: HaXml needs ghc-6.2 or later.  Ignoring ghc."
            GHCKNOWN=
      else  GHCLIBDIR=`${GHCKNOWN} -v 2>&1 | grep ' package config file: ' | head -1 | sed 's/.* package config file: //'`
            if $CYGWIN; then GHCLIBDIR=`cygpath -u $GHCLIBDIR`; fi
@@ -132,8 +132,8 @@ then
     if [ "$GHC2KNOWN" = "" ]
     then  echo "(not found)"
     else  echo "found ${GHC2VERSION}"
-          if [ "$GHC2NUM" -lt "504" ]
-          then echo "    Warning: HaXml needs ghc-5.04 or later.  Ignoring."
+          if [ "$GHC2NUM" -lt "602" ]
+          then echo "    Warning: HaXml needs ghc-6.2 or later.  Ignoring."
                GHC2KNOWN=
           else GHCKNOWN="$GHC2KNOWN"
                GHCVERSION="$GHC2VERSION"
@@ -279,9 +279,8 @@ then
   echo ${BUILDWITH-ghc} >obj/ghccmd
   cp -Rp src/Text src/tools src/Makefile src/pkg.conf obj/ghc
   if [ "$GHCNUM" -ge "504" ]
-  then rm -rf obj/ghc/Text/PrettyPrint
-       echo "-package base" >obj/ghc/ghcpkgs
-  else echo "-package lang -package data" >obj/ghc/ghcpkgs
+  then echo "-package base -package polyparse" >obj/ghc/ghcpkgs
+  else echo "-package lang -package data -package polyparse" >obj/ghc/ghcpkgs
   fi
 fi
 if [ "$NHCKNOWN" != "" ]
@@ -295,7 +294,7 @@ then
   cp -Rp src/Text src/tools src/Makefile obj/nhc98
   if [ "$NHCNUM" -ge "116" ]
   then rm -rf obj/ghc/Text/PrettyPrint
-       echo "-package base" >obj/nhc98/nhc98pkgs
+       echo "-package base -package polyparse" >obj/nhc98/nhc98pkgs
   else echo "" >obj/nhc98/nhc98pkgs
   fi
 fi

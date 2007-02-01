@@ -5,8 +5,7 @@ CPP      = cpp -traditional
 #CPP     = cpphs --text 	# useful e.g. on MacOS X
 
 DIRS = Text Text/XML Text/XML/HaXml Text/XML/HaXml/Html \
-	Text/XML/HaXml/Xtract Text/XML/HaXml/DtdToHaskell \
-	Text/ParserCombinators
+	Text/XML/HaXml/Xtract Text/XML/HaXml/DtdToHaskell
 
 SRCS = \
 	src/Text/XML/HaXml.hs src/Text/XML/HaXml/Combinators.hs \
@@ -30,13 +29,6 @@ SRCS = \
 	src/Text/XML/HaXml/DtdToHaskell/TypeDef.hs \
 	src/Text/XML/HaXml/DtdToHaskell/Convert.hs \
 	src/Text/XML/HaXml/DtdToHaskell/Instance.hs \
-	src/Text/ParserCombinators/HuttonMeijer.hs \
-	src/Text/ParserCombinators/HuttonMeijerWallace.hs \
-	src/Text/ParserCombinators/Poly.hs \
-	src/Text/ParserCombinators/PolyState.hs \
-	src/Text/ParserCombinators/PolyLazy.hs \
-	src/Text/ParserCombinators/PolyStateLazy.hs \
-	src/Text/ParserCombinators/TextParser.hs
 
 TOOLSRCS = \
 	src/tools/DtdToHaskell.hs src/tools/Xtract.hs src/tools/Validate.hs \
@@ -108,10 +100,6 @@ srcDist: $(ALLFILES) haddock
 	rm -f $(SOFTWARE)-$(VERSION).tar $(SOFTWARE)-$(VERSION).tar.gz
 	mkdir $(SOFTWARE)-$(VERSION)
 	tar cf - $(ALLFILES) | ( cd $(SOFTWARE)-$(VERSION); tar xf - )
-	rm -rf $(SOFTWARE)-$(VERSION)/docs/CVS
-	rm -rf $(SOFTWARE)-$(VERSION)/examples/CVS
-	rm -rf $(SOFTWARE)-$(VERSION)/examples/SMIL/CVS
-	rm -rf $(SOFTWARE)-$(VERSION)/examples/OpenOffice.org/CVS
 	tar cf $(SOFTWARE)-$(VERSION).tar $(SOFTWARE)-$(VERSION)
 	rm -rf $(SOFTWARE)-$(VERSION)
 	gzip $(SOFTWARE)-$(VERSION).tar
@@ -120,10 +108,6 @@ zipDist: $(ALLFILES) haddock
 	rm -f $(SOFTWARE)-$(VERSION).zip
 	mkdir $(SOFTWARE)-$(VERSION)
 	tar cf - $(ALLFILES) | ( cd $(SOFTWARE)-$(VERSION); tar xf - )
-	-rm -rf $(SOFTWARE)-$(VERSION)/docs/CVS
-	-rm -rf $(SOFTWARE)-$(VERSION)/examples/CVS
-	-rm -rf $(SOFTWARE)-$(VERSION)/examples/SMIL/CVS
-	-rm -rf $(SOFTWARE)-$(VERSION)/examples/OpenOffice.org/CVS
 	zip -r $(SOFTWARE)-$(VERSION).zip $(SOFTWARE)-$(VERSION)
 	rm -rf $(SOFTWARE)-$(VERSION)
 

@@ -12,13 +12,6 @@ description:
 	Haskell utilities for parsing, filtering, transforming and
 	generating XML documents.
 exposed-modules:
-	Text.ParserCombinators.HuttonMeijer,
-	Text.ParserCombinators.HuttonMeijerWallace,
-	Text.ParserCombinators.Poly,
-	Text.ParserCombinators.PolyState,
-	Text.ParserCombinators.PolyLazy,
-	Text.ParserCombinators.PolyStateLazy,
-	Text.ParserCombinators.TextParser,
 	Text.XML.HaXml,
 	Text.XML.HaXml.ByteStringPP,
 	Text.XML.HaXml.Combinators,
@@ -48,7 +41,7 @@ exposed-modules:
 	Text.XML.HaXml.Xtract.Lex,
 	Text.XML.HaXml.Xtract.Parse
 hs-source-dir:	src
-build-depends:	base, haskell98
+build-depends:	base, haskell98, polyparse
 extensions:	CPP
 
 Executable: Canonicalise

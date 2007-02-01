@@ -22,13 +22,6 @@ SRCS	= \
 	Text/XML/HaXml/Xtract/Combinators.hs \
 	Text/XML/HaXml/Xtract/Lex.hs \
 	Text/XML/HaXml/Xtract/Parse.hs \
-	Text/ParserCombinators/HuttonMeijer.hs \
-	Text/ParserCombinators/HuttonMeijerWallace.hs \
-	Text/ParserCombinators/Poly.hs \
-	Text/ParserCombinators/PolyState.hs \
-	Text/ParserCombinators/PolyLazy.hs \
-	Text/ParserCombinators/PolyStateLazy.hs \
-	Text/ParserCombinators/TextParser.hs \
 
 
 # Here are the main rules.
@@ -36,7 +29,6 @@ include ../../Makefile.common
 
 # extra rules
 extra:
-	if [ -f Text/PrettyPrint/HughesPJ.hs ]; then mv Text/PrettyPrint/HughesPJ.hs Text/PrettyPrint/HughesPJ.hs.unused; fi
 
 # Here are any extra dependencies.
 
