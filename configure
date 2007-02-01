@@ -294,14 +294,20 @@ then
   cp -Rp src/Text src/tools src/Makefile obj/nhc98
   if [ "$NHCNUM" -ge "116" ]
   then rm -rf obj/ghc/Text/PrettyPrint
-       echo "-package base -package polyparse" >obj/nhc98/nhc98pkgs
+       echo "-package base -package polyparse -package fps" >obj/nhc98/nhc98pkgs
   else echo "" >obj/nhc98/nhc98pkgs
   fi
 fi
 
 echo $INSTALLDIR >obj/prefix
 if $CYGWIN || $MINGW ; then echo .exe >obj/exe; else touch obj/exe; fi
-if $CYGWIN || $MINGW ; then echo main.exe >obj/out; else echo a.out >obj/out; fi
+if $CYGWIN || $MINGW ;
+  then echo mv main.exe >obj/out;
+  else if [ "$GHCNUM" -lt "606" ]
+       then echo mv a.out   >obj/out
+       else echo echo Built >obj/out
+       fi
+fi
 if $DARWIN ; then echo "-all_load -x"; else echo --whole-archive; fi >obj/ldopt
 if $SUNOS ; then echo "-z allextract" >obj/ldopt; fi
 

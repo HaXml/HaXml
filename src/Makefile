@@ -37,22 +37,22 @@ TOOLSET = \
 	../../CanonicaliseLazy$(EXE) ../../XtractLazy$(EXE)
 
 EXE = $(shell cat ../exe)
-OUT = $(shell cat ../out)
 INSTALLDIR = $(shell cat ../prefix)
 WHOLEARCHIVE = $(shell cat ../ldopt)
 
 # The caller *must* set the HC variable.
 COMPILER := $(findstring ghc, $(HC))
 ifeq "$(COMPILER)" "ghc"
-COMPILE  = $(HC) --make -cpp -i. $(shell cat ghcpkgs) \
-		-package-name HaXml-$(VERSION) \
+COMPILEXEC = $(HC) --make -cpp -i. $(shell cat ghcpkgs) \
 		-package polyparse -DVERSION=$(VERSION)
-RENAME   = mv $(OUT)
+COMPILE  = $(COMPILEXEC) -package-name HaXml-$(VERSION)
+RENAME   = $(shell cat ../out)
 endif
 COMPILER := $(findstring nhc98, $(HC))
 ifeq "$(COMPILER)" "nhc98"
-COMPILE  = hmake -hc=$(HC) -I. -K4M +CTS -H8M -CTS -package base \
-		-package polyparse -DVERSION=$(VERSION)
+COMPILEXEC = hmake -hc=$(HC) -I. -K4M +CTS -H8M -CTS -package base \
+		-package polyparse -package fps -DVERSION=$(VERSION)
+COMPILE  = $(COMPILEXEC)
 RENAME   = echo Built
 endif
 
@@ -109,7 +109,7 @@ libHSHaXml.a: $(LIBSRCS)
 
 # standalone tools
 $(TOOLSET): $(LIBSRCS) $(TOOLSRCS)
-	cd tools; $(COMPILE) -i.. $(patsubst ../../%${EXE}, %, $@)
+	cd tools; $(COMPILEXEC) -i.. $(patsubst ../../%${EXE}, %, $@)
 	cd tools; $(RENAME) $(patsubst ../../%, %, $@)
 	mv $(patsubst ../../%, tools/%, $@) ../..
 
