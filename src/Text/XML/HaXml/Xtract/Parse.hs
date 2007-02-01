@@ -190,7 +190,7 @@ bracket p =
 aquery :: DFilter i -> XParser (DFilter i)
 aquery localise = oneOf
     [ do symbol "//"
-         tquery [oglobo deep]
+         tquery [oglobo multi]
     , do symbol "/"
          tquery [oglobo id]
     , do symbol "./"
@@ -233,7 +233,7 @@ xquery cxt q1 = oneOf
            `onFail`
            tquery ((q1 //>>):cxt) )
     , do symbol "//"
-         tquery ((\q2-> (oloco deep) q2 `ooo` local children `ooo` q1):cxt)
+         tquery ((\q2-> (oloco multi) q2 `ooo` local children `ooo` q1):cxt)
     , do symbol "+"
          q2 <- tquery cxt
          return (ocato [q1,q2])
