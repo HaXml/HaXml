@@ -3,16 +3,17 @@
 --   The main difference is that the Content Filter type becomes a
 --   Double Filter.  A Double Filter always takes the whole document
 --   as an extra argument, so you can start to traverse it again from
---   any inner location within the document tree.
+--   the root, when at any inner location within the document tree.
 --
---   The new combinators definitions are derived from the old ones.
---   New names are derived from the old by surrounding with the letter @o@,
---   or by doubling the operator symbols.
+--   The new combinator definitions are derived from the old ones.
+--   The same names have the equivalent meaning - use module qualification
+--   on imports to distinguish between CFilter and DFilter variations.
 
 module Text.XML.HaXml.Xtract.Combinators where
 
 import Text.XML.HaXml.Types
-import Text.XML.HaXml.Combinators
+import Text.XML.HaXml.Combinators (CFilter)
+import qualified Text.XML.HaXml.Combinators as C
 
 
 -- | double content filter - takes document root + local subtree.
@@ -28,57 +29,64 @@ dfilter :: DFilter i -> CFilter i
 dfilter f = \xml-> f xml xml
 
 -- | lift a CFilter combinator to a DFilter combinator
-oloco, oglobo :: (CFilter i->CFilter i) -> (DFilter i->DFilter i)
-oloco ff  = \df-> \xml sub-> (ff (df xml)) sub
-oglobo ff = \df-> \xml sub-> (ff (df xml)) xml
+liftLocal, liftGlobal :: (CFilter i->CFilter i) -> (DFilter i->DFilter i)
+liftLocal  ff = \df-> \xml sub-> (ff (df xml)) sub
+liftGlobal ff = \df-> \xml sub-> (ff (df xml)) xml
 
 -- | lifted composition over double filters.
-ooo :: DFilter i -> DFilter i -> DFilter i
-g `ooo` f = \xml-> concatMap (g xml) . (f xml)
+o :: DFilter i -> DFilter i -> DFilter i
+g `o` f = \xml-> concatMap (g xml) . (f xml)
 
 -- | lifted choice.
-(||>||) :: (a->b->[c]) -> (a->b->[c]) -> (a->b->[c])
-f ||>|| g = \xml sub-> let first = f xml sub in
-                       if null first then g xml sub else first
+(|>|) :: (a->b->[c]) -> (a->b->[c]) -> (a->b->[c])
+f |>| g = \xml sub-> let first = f xml sub in
+                     if null first then g xml sub else first
+
+-- | lifted union.
+union :: (a->b->[c]) -> (a->b->[c]) -> (a->b->[c])
+union = lift (++)
+  where
+    lift f g h = \x y-> f (g x y) (h x y)
 
 -- | lifted predicates.
-owitho, owithouto :: DFilter i -> DFilter i -> DFilter i
-f `owitho` g    = \xml-> filter (not.null.g xml) . f xml
-f `owithouto` g = \xml-> filter     (null.g xml) . f xml
+with, without :: DFilter i -> DFilter i -> DFilter i
+f `with` g    = \xml-> filter (not.null.g xml) . f xml
+f `without` g = \xml-> filter     (null.g xml) . f xml
 
 -- | lifted unit and zero.
-okeepo, ononeo :: DFilter i
-okeepo = \xml sub-> [sub]	-- local keep
-ononeo = \xml sub-> []		-- local none
+keep, none :: DFilter i
+keep = \xml sub-> [sub]	-- local C.keep
+none = \xml sub-> []	-- local C.none
 
-ochildreno, oelmo, otxto :: DFilter i
-ochildreno = local children
-oelmo      = local elm
-otxto      = local txt
+children, elm, txt :: DFilter i
+children = local C.children
+elm      = local C.elm
+txt      = local C.txt
 
 applypred :: CFilter i -> DFilter i -> CFilter i
-applypred f p = \xml-> (const f `owitho` p) xml xml
+applypred f p = \xml-> (const f `with` p) xml xml
 
-oiffindo :: String -> (String -> DFilter i) -> DFilter i -> DFilter i
-oiffindo key yes no xml c@(CElem (Elem _ as _) _) =
+iffind :: String -> (String -> DFilter i) -> DFilter i -> DFilter i
+iffind key yes no xml c@(CElem (Elem _ as _) _) =
   case (lookup key as) of
     Nothing -> no xml c
     (Just v@(AttValue _)) -> yes (show v) xml c
-oiffindo key yes no xml other = no xml other
+iffind key yes no xml other = no xml other
 
-oifTxto :: (String->DFilter i) -> DFilter i -> DFilter i
-oifTxto yes no xml c@(CString _ s _) = yes s xml c
-oifTxto yes no xml c                 = no xml c
+ifTxt :: (String->DFilter i) -> DFilter i -> DFilter i
+ifTxt yes no xml c@(CString _ s _) = yes s xml c
+ifTxt yes no xml c                 = no xml c
 
-ocato :: [a->b->[c]] -> (a->b->[c])
-ocato fs = \xml sub-> concat [ f xml sub | f <- fs ]
+cat :: [a->b->[c]] -> (a->b->[c])
+cat fs = \xml sub-> concat [ f xml sub | f <- fs ]
 
-(//>>) :: DFilter i -> DFilter i -> DFilter i
-f //>> g = g `ooo` ochildreno `ooo` f
+(/>) :: DFilter i -> DFilter i -> DFilter i
+f /> g = g `o` children `o` f
 
-(<<//) :: DFilter i -> DFilter i -> DFilter i
-f <<// g = f `owitho` (g `ooo` ochildreno)
+(</) :: DFilter i -> DFilter i -> DFilter i
+f </ g = f `with` (g `o` children)
 
-odeepo :: DFilter i -> DFilter i
-odeepo f   = f ||>|| (odeepo f `ooo` ochildreno)
-
+deep, deepest, multi :: DFilter i -> DFilter i
+deep f    = f |>| (deep f `o` children)
+deepest f = (deepest f `o` children) |>| f
+multi f   = f `union` (multi f `o` children)
