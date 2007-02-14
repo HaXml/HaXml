@@ -19,6 +19,17 @@
 <li> Removed all the Text.ParserCombinator.* libraries into a separate
      package <a href="http://www.cs.york.ac.uk/fp/polyparse">polyparse</a>,
      which must now be installed prior to HaXml.
+<li> New Feature: functions for pretty-printing to Data.ByteString.
+<li> Bugfix: Xtract on HTML documents used to downcase both the
+     document tags and the query string.  But in fact only the
+     tag-matching parts of the query should be downcased.  In
+     particular, attribute values now remain case-sensitive.
+<li> Bugfix: Xtract did not match attribute values that contained any
+     kind of entity reference (general or character).  Now matches
+     correctly.
+<li> More fixes to the non-Cabal route for building/installing with ghc-6.6.
+<li> Changed the name of the Xtract combinators to match the ordinary
+     combinators.
 <li>
 </ul>
 
