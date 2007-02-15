@@ -1,6 +1,6 @@
 THISPKG	= HaXml
 VERSION = 1.18
-SEARCH	= -package base -package polyparse
+SEARCH	= -package base -package polyparse -package fps
 EXTRA_H_FLAGS   = -K6M -DVERSION=$(VERSION)
 EXTRA_HBC_FLAGS = -H50M -A4M
 
