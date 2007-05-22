@@ -32,7 +32,7 @@ module Text.XML.HaXml.Combinators
    -- $recursive
   , deep, deepest, multi
    -- ** Interior editing.
-  , when, guards, chip, foldXml
+  , when, guards, chip, inplace, foldXml
    -- ** Constructive filters.
   , mkElem, mkElemAttr, literal, cdata, replaceTag, replaceAttrs
 
@@ -269,6 +269,14 @@ g `guards` f     = g ?> f :> none	-- = f `o` (keep `with` g)
 chip :: CFilter i -> CFilter i
 chip f (CElem (Elem n as cs) i) = [ CElem (Elem n as (concatMap f cs)) i ]
 chip f c = [c]
+-- chip f = inplace (f `o` children)
+
+-- | Process an element In Place.  The filter is applied to the element
+--   itself, and then the original element rebuilt around the results.
+inplace :: CFilter i -> CFilter i
+inplace f c@(CElem (Elem name as _) i) = [ CElem (Elem name as (f c)) i ]
+inplace f c = [c]
+
 
 -- | Recursive application of filters: a fold-like operator.  Defined
 --   as @f `o` chip (foldXml f)@.
