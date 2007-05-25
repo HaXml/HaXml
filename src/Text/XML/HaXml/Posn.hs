@@ -22,8 +22,8 @@ import Char
 data Posn = Pn String !Int !Int (Maybe Posn)
         deriving (Eq)
 
-posnFileName :: Posn -> FilePath
-posnFileName (Pn f _ _ _) = f
+posnFilename :: Posn -> FilePath
+posnFilename (Pn f _ _ _) = f
 
 posnLine, posnColumn :: Posn -> Int
 posnLine   (Pn _ x _ _) = x
