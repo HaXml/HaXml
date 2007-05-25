@@ -10,6 +10,8 @@ module Text.XML.HaXml.Posn
   , forcep
   -- ** Modifiers
   , addcol, newline, tab, white
+  -- ** Accessors
+  , posnFilename, posnLine, posnColumn
   ) where
 
 import Char
@@ -19,6 +21,13 @@ import Char
 --   recursively.
 data Posn = Pn String !Int !Int (Maybe Posn)
         deriving (Eq)
+
+posnFileName :: Posn -> FilePath
+posnFileName (Pn f _ _ _) = f
+
+posnLine, posnColumn :: Posn -> Int
+posnLine   (Pn _ x _ _) = x
+posnColumn (Pn _ _ x _) = x
 
 -- | Dummy value for generated data, where a true source position does
 --   not exist.
