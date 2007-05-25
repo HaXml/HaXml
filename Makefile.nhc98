@@ -1,8 +1,0 @@
-all:
-	cd src; $(MAKE) -f Makefile.nhc98 all
-cfiles:
-	cd src; $(MAKE) -f Makefile.nhc98 cfiles
-fromC:
-	cd src; $(MAKE) -f Makefile.nhc98 fromC
-clean:
-	cd src; $(MAKE) -f Makefile.nhc98 clean
