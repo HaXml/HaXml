@@ -270,7 +270,7 @@ stdXmlEscaper = mkXmlEscaper
       let
          i = ord ch
       in
-         i < 32 || i >= 127 ||
+         i < 10 || (10<i && i<32) || i >= 127 ||
             case ch of
                '\'' -> True
                '\"' -> True
