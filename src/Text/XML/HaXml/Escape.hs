@@ -14,6 +14,8 @@ module Text.XML.HaXml.Escape(
       -- :: XmlEscaper -> Element i -> Element i
    xmlEscapeContent,
       -- :: XmlEscaper -> [Content i] -> [Content i]
+   xmlUnEscapeContent,
+      -- :: XmlEscaper -> [Content i] -> [Content i]
 
    XmlEscaper,
       -- Something describing a particular set of escapes.
@@ -172,6 +174,10 @@ xmlUnEscape :: XmlEscaper -> Element i -> Element i
 xmlUnEscape xmlEscaper element =
    compressElement (unEscapeElement xmlEscaper element)
 
+xmlUnEscapeContent :: XmlEscaper -> [Content i] -> [Content i]
+xmlUnEscapeContent xmlEscaper cs = 
+   compressContent (unEscapeContent xmlEscaper cs)
+
 unEscapeElement :: XmlEscaper -> Element i -> Element i
 unEscapeElement xmlEscaper (Elem name attributes content) =
    Elem name (unEscapeAttributes xmlEscaper attributes)
@@ -201,7 +207,7 @@ unEscapeContent xmlEscaper content =
    map
       (\ content -> case content of
          CRef ref i -> case unEscapeChar xmlEscaper ref of
-            Just c -> CString True [c] i
+            Just c -> CString False [c] i
             Nothing -> content
          CElem elem i -> CElem (unEscapeElement xmlEscaper elem) i
          _ -> content
