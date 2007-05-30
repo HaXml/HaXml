@@ -12,8 +12,15 @@ import Text.XML.HaXml.Xtract.Lex
 import Text.XML.HaXml.Xtract.Combinators as D
 import Text.XML.HaXml.Combinators as C
 import List(isPrefixOf)
+import Text.XML.HaXml.Escape (xmlUnEscapeContent,stdXmlEscaper)
+
+-- output transformer - to ensure that text/references are glued together
+unescape = xmlUnEscapeContent stdXmlEscaper
+
 
 -- | To convert an Xtract query into an ordinary HaXml combinator expression.
+--   First arg is a tag-transformation function (e.g. map toLower) applied
+---  before matching.  Second arg is the query string.
 xtract :: (String->String) -> String -> CFilter i
 xtract f query = dfilter (parseXtract f query)
 
@@ -202,7 +209,7 @@ tquery (qf:cxt) = oneOf
     [ do q <- bracket (tquery (qf:qf:cxt))
          xquery cxt q
     , do q <- xtag
-         xquery cxt (qf q)
+         xquery cxt (qf ((unescape .).q))	-- glue inners texts together
     , do symbol "-"
          return (qf (local C.txt))
     ]
@@ -231,7 +238,8 @@ xquery cxt q1 = oneOf
            `onFail`
            tquery ((q1 D./>):cxt) )
     , do symbol "//"
-         tquery ((\q2-> (liftLocal C.multi) q2 `D.o` local C.children `D.o` q1):cxt)
+         tquery ((\q2-> (liftLocal C.multi) q2
+                            `D.o` local C.children `D.o` q1):cxt)
     , do symbol "+"
          q2 <- tquery cxt
          return (D.cat [q1,q2])

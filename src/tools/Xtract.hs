@@ -15,15 +15,20 @@ import Text.XML.HaXml.Xtract.Parse  (xtract)
 import Text.PrettyPrint.HughesPJ    (render, vcat, hcat, empty)
 import Text.XML.HaXml.Pretty        (content)
 import Text.XML.HaXml.Html.Generate (htmlprint)
+import Text.XML.HaXml.Escape        (xmlEscapeContent,stdXmlEscaper)
 
+escape = xmlEscapeContent stdXmlEscaper
 
 main =
   getArgs >>= \args->
   if length args < 1 then
-    putStrLn "Usage: Xtract <pattern> [xmlfile ...]" >>
+    putStrLn "Usage: Xtract [-n] <pattern> [xmlfile ...]" >>
     exitWith (ExitFailure 1)
   else
-    let (pattern:files) = args
+    let (pattern,files,esc) =
+          case args of ("-n":pat:files) -> (pat,files, (:[]))
+                       (pat:"-n":files) -> (pat,files, (:[]))
+                       (pat:files)      -> (pat,files, escape.(:[]))
 --      findcontents =
 --        if null files then (getContents >>= \x-> return [xmlParse "<stdin>"x])
 --        else mapM (\x-> do c <- (if x=="-" then getContents else readFile x)
@@ -36,10 +41,12 @@ main =
 --  . map (vcat . map content . selection . getElem)) cs
     mapM_ (\x-> do c <- (if x=="-" then getContents else readFile x)
                    ( if isHTML x then
-                          hPutStrLn stdout . render . htmlprint .
-                          xtract (map toLower) pattern . getElem x . htmlParse x
-                     else hPutStrLn stdout . render . format .
-                          xtract id pattern . getElem x . xmlParse x) c
+                          hPutStrLn stdout . render . htmlprint
+                          . xtract (map toLower) pattern
+                          . getElem x . htmlParse x
+                     else hPutStrLn stdout . render . vcat . map (format . esc)
+                          . xtract id pattern
+                          . getElem x . xmlParse x) c
                    hFlush stdout)
           files
 
