@@ -79,28 +79,28 @@ syms = "/[]()@,=*&|~$+-<>"
 
 selAny :: (String->String) -> Posn -> String -> [Token]
 selAny f p [] = []
-selAny f p ('/':ss)
-    | '/' == head ss  = emit (Symbol "//") p:  selAny f (addcol 2 p) (tail ss)
-selAny f p ('!':ss)
-    | '=' == head ss  = emit (Symbol "!=") p:  selAny f (addcol 2 p) (tail ss)
-selAny f p ('<':ss)
-    | '=' == head ss  = emit (Symbol "<=") p:  selAny f (addcol 2 p) (tail ss)
-selAny f p ('>':ss)
-    | '=' == head ss  = emit (Symbol ">=") p:  selAny f (addcol 2 p) (tail ss)
-selAny f p ('\'':ss)  = emit (Symbol "'") p:
-                        accumulateUntil '\'' (Symbol "'") [] p (addcol 1 p) ss (selAny f)
-selAny f p ('"':ss)   = emit (Symbol "\"") p:
-                        accumulateUntil '"' (Symbol "\"") [] p (addcol 1 p) ss (selAny f)
-selAny f p ('_':ss)   = gatherName f "_" p (addcol 1 p) ss (blank (selAny f))
-selAny f p (':':ss)   = gatherName f ":" p (addcol 1 p) ss (blank (selAny f))
-selAny f p ('.':ss)
-    | "=."  `isPrefixOf` ss  = emit (Symbol ".=.") p:  selAny f (addcol 3 p) (drop 2 ss)
-    | "!=." `isPrefixOf` ss  = emit (Symbol ".!=.") p: selAny f (addcol 4 p) (drop 3 ss)
-    | "<."  `isPrefixOf` ss  = emit (Symbol ".<.") p:  selAny f (addcol 3 p) (drop 2 ss)
-    | "<=." `isPrefixOf` ss  = emit (Symbol ".<=.") p: selAny f (addcol 4 p) (drop 3 ss)
-    | ">."  `isPrefixOf` ss  = emit (Symbol ".>.") p:  selAny f (addcol 3 p) (drop 2 ss)
-    | ">=." `isPrefixOf` ss  = emit (Symbol ".>=.") p: selAny f (addcol 4 p) (drop 3 ss)
-    | "/"   `isPrefixOf` ss  = emit (Symbol "./") p: selAny f (addcol 2 p) (drop 1 ss)
+selAny f p ('/':'/':ss) = emit (Symbol "//") p:  selAny f (addcol 2 p) ss
+selAny f p ('!':'=':ss) = emit (Symbol "!=") p:  selAny f (addcol 2 p) ss
+selAny f p ('<':'=':ss) = emit (Symbol "<=") p:  selAny f (addcol 2 p) ss
+selAny f p ('>':'=':ss) = emit (Symbol ">=") p:  selAny f (addcol 2 p) ss
+selAny f p ('\'':ss)    = emit (Symbol "'") p:
+                          accumulateUntil '\'' (Symbol "'") [] p (addcol 1 p) ss
+                                          (selAny f)
+selAny f p ('"':ss)     = emit (Symbol "\"") p:
+                          accumulateUntil '"' (Symbol "\"") [] p (addcol 1 p) ss
+                                          (selAny f)
+selAny f p ('_':ss)     = gatherName f "_" p (addcol 1 p) ss (blank (selAny f))
+selAny f p (':':ss)     = gatherName f ":" p (addcol 1 p) ss (blank (selAny f))
+selAny f p ('.':'=':'.':ss) = emit (Symbol ".=.") p:  selAny f (addcol 3 p) ss
+selAny f p ('.':'!':'=':'.':ss)
+                            = emit (Symbol ".!=.") p: selAny f (addcol 4 p) ss
+selAny f p ('.':'<':'.':ss) = emit (Symbol ".<.") p:  selAny f (addcol 3 p) ss
+selAny f p ('.':'<':'=':'.':ss)
+                            = emit (Symbol ".<=.") p: selAny f (addcol 4 p) ss
+selAny f p ('.':'>':'.':ss) = emit (Symbol ".>.") p:  selAny f (addcol 3 p) ss
+selAny f p ('.':'>':'=':'.':ss)
+                            = emit (Symbol ".>=.") p: selAny f (addcol 4 p) ss
+selAny f p ('.':'/':ss)     = emit (Symbol "./") p:  selAny f (addcol 2 p) ss
 selAny f p (s:ss)
     | s `elem` syms   = emit (Symbol [s]) p:     selAny f (addcol 1 p) ss
     | isSpace s       = blank (selAny f) p (s:ss)
