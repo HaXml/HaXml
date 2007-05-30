@@ -272,6 +272,7 @@ stdXmlEscaper = mkXmlEscaper
       in
          i < 32 || i >= 127 ||
             case ch of
+               '\'' -> True
                '\"' -> True
                '&' -> True
                '<' -> True
