@@ -333,8 +333,8 @@ text = text' []
                      else return (concat (reverse acc)) )
 
 
--- | 'choice f p' means if parseElem succeeds, apply f to the result, otherwise
---   use the continuation parser.
+-- | 'choice f p' means if parseContents succeeds, apply f to the result,
+--   otherwise use the continuation parser.
 choice :: XmlContent a => (a -> b) -> XMLParser b -> XMLParser b
 choice cons (P other) =
     P (\cs-> case runParser parseContents cs of
