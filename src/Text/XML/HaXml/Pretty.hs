@@ -214,7 +214,7 @@ entitydecl (EntityGEDecl d)    = gedecl d
 entitydecl (EntityPEDecl d)    = pedecl d
 gedecl (GEDecl n ed)           = text "<!ENTITY" <+> text n <+> entitydef ed <>
                                  text ">"
-pedecl (PEDecl n pd)           = text "<!ENTITY %" <> text n <+> pedef pd <>
+pedecl (PEDecl n pd)           = text "<!ENTITY %" <+> text n <+> pedef pd <>
                                  text ">"
 entitydef (DefEntityValue ev)  = entityvalue ev
 entitydef (DefExternalID i nd) = externalid i <+> maybe ndatadecl nd
