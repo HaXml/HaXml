@@ -65,8 +65,8 @@ xmldecl (XMLDecl v e sd)   = text "<?xml version='" <> text v <> text "'" <+>
                              maybe encodingdecl e <+>
                              maybe sddecl sd <+>
                              text "?>"
-misc (Comment s)           = text "<!--" <+> text s <+> text "-->"
-misc (PI (n,s))            = text "<?" <> text n <+> text s <+> text "?>"
+misc (Comment s)           = text "<!--" <> text s <> text "-->"
+misc (PI (n,s))            = text "<?" <> text n <+> text s <> text "?>"
 sddecl sd   | sd           = text "standalone='yes'"
             | otherwise    = text "standalone='no'"
 doctypedecl (DTD n eid ds) = if null ds then 
@@ -225,7 +225,7 @@ externalid (PUBLIC i sl)       = text "PUBLIC" <+> pubidliteral i <+>
                                  systemliteral sl
 ndatadecl (NDATA n)            = text "NDATA" <+> text n
 textdecl (TextDecl vi ed)      = text "<?xml" <+> maybe text vi <+>
-                                 encodingdecl ed <> text "?>"
+                                 encodingdecl ed <+> text "?>"
 extparsedent (ExtParsedEnt t c)= maybe textdecl t <+> content c
 extpe (ExtPE t esd)            = maybe textdecl t <+>
                                  vcat (map extsubsetdecl esd)
