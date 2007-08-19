@@ -160,7 +160,7 @@ contentspec ANY                = text "ANY"
 contentspec (Mixed m)          = mixed m
 contentspec (ContentSpec c)    = cp c
 --contentspec (ContentPE p cs)   = peref p
-cp (TagName n m)       = text n <> modifier m
+cp (TagName n m)       = parens (text n) <> modifier m
 cp (Choice cs m)       = parens (hcat (intersperse (text "|") (map cp cs))) <>
                            modifier m
 cp (Seq cs m)          = parens (hcat (intersperse (text ",") (map cp cs))) <>
