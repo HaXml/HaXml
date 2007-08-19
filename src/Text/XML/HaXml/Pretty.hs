@@ -232,7 +232,7 @@ extpe (ExtPE t esd)            = maybe textdecl t <+>
 notationdecl (NOTATION n e)    = text "<!NOTATION" <+> text n <+>
                                  either externalid publicid e <>
                                  text ">"
-publicid (PUBLICID p)          = text "PUBLICID" <+> pubidliteral p
+publicid (PUBLICID p)          = text "PUBLIC" <+> pubidliteral p
 encodingdecl (EncodingDecl s)  = text "encoding='" <> text s <> text "'"
 nmtoken s                      = text s
 attvalue (AttValue esr)        = text "\"" <>
