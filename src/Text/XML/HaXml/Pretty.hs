@@ -1,6 +1,6 @@
 -- | This is a pretty-printer for turning the internal representation
 --   of generic structured XML documents into the Doc type (which can
---   later be rendered using Text.ParserCombinators.HughesPJ.render).
+--   later be rendered using Text.PrettyPrint.HughesPJ.render).
 --   Essentially there is one pp function for each type in
 --   Text.Xml.HaXml.Types, so you can pretty-print as much or as little
 --   of the document as you wish.
