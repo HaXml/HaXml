@@ -46,7 +46,7 @@ debug s = return ()
 --   contents of the file.  The result is the generic representation of
 --   an XML document.  Any errors cause program failure with message to stderr.
 htmlParse :: String -> String -> Document Posn
-htmlParse name = simplify . fst . runParser document . xmlLex name
+htmlParse name = {-simplify .-} fst . runParser document . xmlLex name
 
 {-
 -- | The first argument is the name of the file, the second is the string
@@ -352,7 +352,8 @@ element ctx =
               return ([], Elem e avs [])) `onFail`
          ( do tok TokAnyClose `onFail` failP "missing > or /> in element tag"
               debug (e++"[")
-              return (\ (stack,contained)-> (stack, Elem e avs contained))
+              return (\ interior-> let (stack,contained) = interior
+                                   in  (stack, Elem e avs contained))
                   `apply`
                   (do zz <- manyFinally (content e)
                                         (tok TokEndOpen)
