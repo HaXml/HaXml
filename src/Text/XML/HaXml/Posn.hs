@@ -15,16 +15,12 @@ module Text.XML.HaXml.Posn
   ) where
 
 import Char
-import Test.QuickCheck
 
 -- | Source positions contain a filename, line, column, and an
 --   inclusion point, which is itself another source position,
 --   recursively.
 data Posn = Pn String !Int !Int (Maybe Posn)
         deriving (Eq)
-
-instance Arbitrary Posn where
-  arbitrary = return $ Pn "" 0 0 Nothing
 
 posnFilename :: Posn -> FilePath
 posnFilename (Pn f _ _ _) = f
