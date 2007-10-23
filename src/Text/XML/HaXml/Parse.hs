@@ -40,7 +40,7 @@ import Numeric (readDec,readHex)
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Posn
 import Text.XML.HaXml.Lex
-import Text.ParserCombinators.PolyState
+import Text.ParserCombinators.Poly.NoLeak.State
 
 
 #if ( defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ > 502 ) || \
