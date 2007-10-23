@@ -25,7 +25,7 @@ set AR=C:\DEV\MinGW\bin\ar.exe
 set LD=C:\DEV\ghc\ghc-%GHCVER%\gcc-lib\ld.exe
 
 rem    Source directory for HaXml:
-set SRC=C:\DEV\Haskell\lib\HaXml-1.17\src
+set SRC=C:\DEV\Haskell\lib\HaXml-1.19\src
 
 rem    Two very long lines (500-600 chars) follow here.  
 rem    They should not need changing.
@@ -61,7 +61,7 @@ rem -- Finally, register the package with GHC
 if "%GHCVER%"=="6.2.2" %GHCPKG% --add-package -i pkg.conf
 if "%GHCVER%"=="6.4.2"   ECHO import-dirs:   %GHCDIR%\imports >>pkg.conf
 if "%GHCVER%"=="6.4.2"   ECHO library-dirs:  %GHCDIR% >>pkg.conf
-if "%GHCVER%"=="6.4.2"   ECHO depends:       base, haskell98 >>pkg.conf
+if "%GHCVER%"=="6.4.2"   ECHO depends:       base, haskell98, polyparse >>pkg.conf
 if "%GHCVER%"=="6.4.2"   ECHO hs-libraries:  HSHaXml >>pkg.conf
 if "%GHCVER%"=="6.4.2"   %GHCPKG% register pkg.conf
 

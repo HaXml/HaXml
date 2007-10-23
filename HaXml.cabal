@@ -1,13 +1,13 @@
 name:		HaXml
-version:	1.18
-ghc-options:	-DVERSION="1.18"
-cc-options:	-DVERSION="1.18"
+version:	1.19
+ghc-options:	-DVERSION="1.19"
+cc-options:	-DVERSION="1.19"
 nhc98-options:	-K10M
 license:	LGPL
 license-file:	COPYRIGHT
 author:		Malcolm Wallace <Malcolm.Wallace@cs.york.ac.uk>
 homepage:	http://www.cs.york.ac.uk/fp/HaXml/
-category:	Text
+category:	Text, XML
 synopsis:	Utilities for manipulating XML documents
 description:
 	Haskell utilities for parsing, filtering, transforming and
@@ -42,7 +42,7 @@ exposed-modules:
 	Text.XML.HaXml.Xtract.Lex,
 	Text.XML.HaXml.Xtract.Parse
 hs-source-dir:	src
-build-depends:	base, haskell98, polyparse
+build-depends:	base, haskell98, polyparse >= 1.1
 extensions:	CPP
 
 Executable: Canonicalise

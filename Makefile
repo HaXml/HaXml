@@ -1,8 +1,8 @@
 SOFTWARE = HaXml
-VERSION  = 1.18
+VERSION  = 1.19
 
-CPP      = cpp -traditional
-#CPP     = cpphs --text 	# useful e.g. on MacOS X
+#CPP      = cpp -traditional
+CPP     = cpphs --text --noline	# useful e.g. on MacOS X
 
 DIRS = Text Text/XML Text/XML/HaXml Text/XML/HaXml/Html \
 	Text/XML/HaXml/Xtract Text/XML/HaXml/DtdToHaskell
