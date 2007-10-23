@@ -431,11 +431,11 @@ element = do
              return []
           `onFail`
           do tok TokAnyClose
-             manyFinally content
-                         (do p <- posn
-                             m <- bracket (tok TokEndOpen)
-                                          (tok TokAnyClose) name
-                             checkmatch p n m)
+             commit $ manyFinally content
+                                  (do p <- posn
+                                      m <- bracket (tok TokEndOpen)
+                                                   (tok TokAnyClose) name
+                                      checkmatch p n m)
           ) `adjustErrBad` (("in element tag "++n++",\n")++)
 
 checkmatch :: Posn -> Name -> Name -> XParser ()

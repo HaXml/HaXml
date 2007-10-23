@@ -418,15 +418,16 @@ element = do
     tok TokAnyOpen
     (ElemTag n as) <- elemtag
     ( do tok TokEndClose
-         return (Elem n as [])
+         commit (return (Elem n as []))
         `onFail`
       do tok TokAnyClose
-         cs <- manyFinally content
-                           (do p <- posn
-                               m <- bracket (tok TokEndOpen)
-                                            (tok TokAnyClose) name
-                               checkmatch p n m)
-         return (Elem n as cs)
+         commit $ do
+           return (Elem n as) `apply`
+                 manyFinally content
+                             (do p <- posn
+                                 m <- bracket (tok TokEndOpen)
+                                              (tok TokAnyClose) name
+                                 checkmatch p n m)
       ) `adjustErrBad` (("in element tag "++n++",\n")++)
 
 checkmatch :: Posn -> Name -> Name -> XParser ()
