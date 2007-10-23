@@ -22,19 +22,33 @@ unescape = xmlUnEscapeContent stdXmlEscaper
 --   First arg is a tag-transformation function (e.g. map toLower) applied
 ---  before matching.  Second arg is the query string.
 xtract :: (String->String) -> String -> CFilter i
-xtract f query = dfilter (parseXtract f query)
+xtract f query
+    | interiorRef lexedQ = dfilter (parseXtract lexedQ)
+    | otherwise          = cfilter (parseXtract lexedQ)
+  where
+    lexedQ = lexXtract f query
+    -- test whether query has interior reference to doc root
+    interiorRef (Right (_,Symbol s): Right (_,Symbol "//"): _)
+                                          | s `elem` predicateIntro = True
+    interiorRef (Right (_,Symbol s): Right (_,Symbol "/"): _)
+                                          | s `elem` predicateIntro = True
+    interiorRef (_ : rest) = interiorRef rest
+    interiorRef [] = False
+    predicateIntro = [ "[", "("
+                     ,  "&",   "|",  "~"
+                     ,  "=",  "!=",  "<",  "<=",  ">",  ">="
+                     , ".=.",".!=.",".<.",".<=.",".>.",".>=." ]
 
 -- | The cool thing is that the Xtract command parser directly builds
 --   a higher-order 'DFilter' (see "Text.XML.HaXml.Xtract.Combinators")
 --   which can be applied to an XML document without further ado.
 --   (@parseXtract@ halts the program if a parse error is found.)
-parseXtract :: (String->String) -> String -> DFilter i
-parseXtract f = either error id . parseXtract' f
+parseXtract :: [Token] -> DFilter i
+parseXtract = either error id . parseXtract'
 
 -- | @parseXtract'@ returns error messages through the Either type.
-parseXtract' :: (String->String) -> String -> Either String (DFilter i)
-parseXtract' f = fst . runParser xql . lexXtract f
-  where xql = aquery
+parseXtract' :: [Token] -> Either String (DFilter i)
+parseXtract' = fst . runParser (aquery liftLocal)
 
 ---- Auxiliary Parsing Functions ----
 type XParser a = Parser (Either String (Posn,TokenT)) a
@@ -192,12 +206,13 @@ bracket p =
 ---- Xtract parsers ----
 
 -- aquery chooses to search from the root, or only in local context
-aquery :: XParser (DFilter i)
-aquery = oneOf
+aquery ::  ((CFilter i->CFilter i) -> (DFilter i->DFilter i))
+           -> XParser (DFilter i)
+aquery lift = oneOf
     [ do symbol "//"
-         tquery [liftGlobal C.multi]
+         tquery [lift C.multi]
     , do symbol "/"
-         tquery [liftGlobal id]
+         tquery [lift id]
     , do symbol "./"
          tquery [(local C.keep D./>)]
     , do tquery [(local C.keep D./>)]
@@ -282,7 +297,7 @@ vpredicate = oneOf
 
 tattribute :: XParser (DFilter i)
 tattribute = oneOf
-    [ do q <- aquery
+    [ do q <- aquery liftGlobal
          uattribute q
     , do symbol "@"
          s <- string
@@ -330,12 +345,12 @@ wattribute = oneOf
     [ do symbol "@"
          s <- string
          return (D.keep, D.iffind s)
-    , do q <- aquery
+    , do q <- aquery liftGlobal
          symbol "/"
          symbol "@"
          s <- string
          return (q, D.iffind s)
-    , do q <- aquery
+    , do q <- aquery liftGlobal
          return (q, D.ifTxt)
     ]
 

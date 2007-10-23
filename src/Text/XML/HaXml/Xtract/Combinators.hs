@@ -24,9 +24,21 @@ local,global :: CFilter i -> DFilter i
 local  f = \xml sub-> f sub
 global f = \xml sub-> f xml
 
--- | drop a double filter to an ordinary content filter
+-- | drop a double filter to an ordinary content filter.
+--   (permitting interior access to document root)
 dfilter :: DFilter i -> CFilter i
 dfilter f = \xml-> f xml xml
+
+-- | drop a double filter to an ordinary content filter.
+--   (Where interior access to the document root is not needed, the
+--    retaining pointer to the outer element can be pruned away.
+--   'cfilter' is more space-efficient than 'dfilter' in this situation.)
+cfilter :: DFilter i -> CFilter i
+cfilter f = \xml -> f undefined xml
+--cfilter f = \xml-> flip f xml
+--                          (case xml of
+--                             CElem (Elem n as cs) i -> CElem (Elem n [] []) i
+--                             _ -> xml)
 
 -- | lift a CFilter combinator to a DFilter combinator
 liftLocal, liftGlobal :: (CFilter i->CFilter i) -> (DFilter i->DFilter i)
