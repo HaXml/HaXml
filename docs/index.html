@@ -28,7 +28,7 @@
 change the API of some modules!  They may be incomplete, inconsistent,
 and liable to change before the next release!  Do not expect code
 written against an earlier API to be compatible!  DtdToHaskell has only
-recently been fixed to work with the 1.15 APIs! <b>Warning!</b>
+recently been fixed to work with the new APIs! <b>Warning!</b>
 </font>
 
 <a href="migrate.html">Notes for migrating code from the 1.13 version of
@@ -132,10 +132,10 @@ Some additional info about using the various facilities is here:
 <center><h3><a name="download">Downloads</a></h3></center>
 <p>
 <b>Development versions:</b><br>
-HaXml-1.18, release date 2007.0x.xx<br>
+HaXml-1.19, release date 2007.10.23<br>
 By HTTP:
-<a href="http://www.cs.york.ac.uk/fp/HaXml-devel/HaXml-1.18.tar.gz">.tar.gz</a>,
-<a href="http://www.cs.york.ac.uk/fp/HaXml-devel/HaXml-1.18.zip">.zip</a>.
+<a href="http://www.cs.york.ac.uk/fp/HaXml-devel/HaXml-1.19.tar.gz">.tar.gz</a>,
+<a href="http://www.cs.york.ac.uk/fp/HaXml-devel/HaXml-1.19.zip">.zip</a>.
 <br>
 By FTP: 
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/">
@@ -200,6 +200,11 @@ of your compiler etc.
 
 <hr>
 <center><h3><a name="news">Recent news</a></h3></center>
+
+<p>
+Version 1.19 improved the lazy XML parsing, and fixed some space leaks
+in the XtractLazy tool.
+
 <p>
 Version 1.18 pulled out the parser combinator libraries as a separate
 package (called polyparse), which must now be downloaded and installed
