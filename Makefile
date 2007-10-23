@@ -86,7 +86,7 @@ haddock:
 		done
 	for file in $(SRCS); \
 		do $(CPP) -D__NHC__ $$file >$$file.uncpp; \
-		   HsColour -anchorHTML $$file >docs/HaXml/`dirname $$file`/`basename $$file .hs`.html; \
+		   HsColour -anchor -html $$file >docs/HaXml/`dirname $$file`/`basename $$file .hs`.html; \
 		done
 	haddock --html --title=HaXml --odir=docs/HaXml --package=HaXml \
 		--source-module="src/%{MODULE/.//}.html" \
