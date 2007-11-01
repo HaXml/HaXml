@@ -6,6 +6,7 @@ nhc98-options:	-K10M
 license:	LGPL
 license-file:	COPYRIGHT
 author:		Malcolm Wallace <Malcolm.Wallace@cs.york.ac.uk>
+maintainer:	author
 homepage:	http://www.cs.york.ac.uk/fp/HaXml/
 category:	Text, XML
 synopsis:	Utilities for manipulating XML documents
@@ -41,7 +42,7 @@ exposed-modules:
 	Text.XML.HaXml.Xtract.Combinators,
 	Text.XML.HaXml.Xtract.Lex,
 	Text.XML.HaXml.Xtract.Parse
-hs-source-dir:	src
+hs-source-dirs:	src
 build-depends:	base, haskell98, polyparse >= 1.1
 extensions:	CPP
 
