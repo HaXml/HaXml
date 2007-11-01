@@ -159,7 +159,7 @@ data ExtSubsetDecl = ExtMarkupDecl MarkupDecl
                    deriving Eq
 
 data Element i = Elem Name [Attribute] [Content i] deriving Eq
-                                       	-- ^ intermediate for parsing
+                                       	--  intermediate for parsing
 data ElemTag   = ElemTag Name [Attribute]
 type Attribute = (Name, AttValue)
 data Content i = CElem (Element i) i
