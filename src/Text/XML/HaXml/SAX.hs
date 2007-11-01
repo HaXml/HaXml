@@ -12,7 +12,7 @@ module Text.XML.HaXml.SAX
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Parse
 import Text.XML.HaXml.Lex
-import Text.ParserCombinators.PolyState
+import Text.ParserCombinators.Poly.NoLeak.State
 
 data SaxElement
 	= SaxDocTypeDecl DocTypeDecl
