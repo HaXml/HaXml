@@ -729,7 +729,11 @@ charref = do
 
 pereference :: XParser PEReference
 pereference = do
-    bracket (tok TokPercent) (tok TokSemi) nmtoken
+--  bracket (tok TokPercent) (tok TokSemi) nmtoken
+    tok TokPercent
+    p <- nmtoken
+    tok TokSemi
+    return p
 
 entitydecl :: XParser EntityDecl
 entitydecl =
