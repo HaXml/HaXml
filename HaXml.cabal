@@ -1,7 +1,7 @@
 name:		HaXml
-version:	1.19.1
-ghc-options:	-DVERSION="1.19.1"
-cc-options:	-DVERSION="1.19.1"
+version:	1.19.2
+ghc-options:	-DVERSION="1.19.2"
+cc-options:	-DVERSION="1.19.2"
 nhc98-options:	-K10M
 license:	LGPL
 license-file:	COPYRIGHT
@@ -43,7 +43,7 @@ exposed-modules:
 	Text.XML.HaXml.Xtract.Lex,
 	Text.XML.HaXml.Xtract.Parse
 hs-source-dirs:	src
-build-depends:	base, haskell98, polyparse >= 1.1
+build-depends:	base, haskell98, polyparse, pretty, fps, QuickCheck, random
 extensions:	CPP
 
 Executable: Canonicalise
