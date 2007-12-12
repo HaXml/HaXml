@@ -20,11 +20,12 @@ module Text.XML.HaXml.ByteStringPP
   ,   cp
   ) where
 
-import Prelude hiding (maybe,either,elem)
+import Prelude hiding (maybe,either,elem,concat)
 import Maybe hiding (maybe)
 import Data.List (intersperse) 
-import Data.ByteString.Lazy hiding (pack,map,head,any,singleton)
-import Data.ByteString.Lazy.Char8 (pack, singleton, join)
+--import Data.ByteString.Lazy hiding (pack,map,head,any,singleton,intersperse,join)
+import Data.ByteString.Lazy.Char8 (ByteString(), concat, pack, singleton, join
+                                  , append, elem, empty)
 import Text.XML.HaXml.Types
 
 either f g (Left x)  = f x
@@ -57,7 +58,7 @@ nest   :: Int -> ByteString -> ByteString  -- Nested
 ($$)  b1 b2  = b1 <> pack "\n" <> b2
 ($+$)        = ($$)
 
-hcat = Data.ByteString.Lazy.concat 
+hcat = Data.ByteString.Lazy.Char8.concat 
 hsep = Data.ByteString.Lazy.Char8.join (singleton ' ')
 vcat = Data.ByteString.Lazy.Char8.join (singleton '\n')
 cat  = hcat

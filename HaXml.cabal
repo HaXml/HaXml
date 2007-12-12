@@ -42,8 +42,8 @@ exposed-modules:
 	Text.XML.HaXml.Xtract.Combinators,
 	Text.XML.HaXml.Xtract.Lex,
 	Text.XML.HaXml.Xtract.Parse
-hs-source-dirs:	src
-build-depends:	base, haskell98, polyparse, pretty, fps, QuickCheck, random
+hs-source-dir:	src
+build-depends:	base, haskell98, polyparse, pretty, bytestring, QuickCheck, random
 extensions:	CPP
 
 Executable: Canonicalise
