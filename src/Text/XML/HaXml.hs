@@ -32,5 +32,5 @@ import Text.PrettyPrint.HughesPJ  (render)
 
 -- | The version of the library.
 version :: String
-version  = show VERSION
+version  = "VERSION"
 		-- expect cpp to fill in value

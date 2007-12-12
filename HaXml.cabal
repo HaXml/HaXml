@@ -1,7 +1,7 @@
 name:		HaXml
 version:	1.19.2
-ghc-options:	-DVERSION="1.19.2"
-cc-options:	-DVERSION="1.19.2"
+ghc-options:	-DVERSION=1.19.2
+cc-options:	-DVERSION=1.19.2
 nhc98-options:	-K10M
 license:	LGPL
 license-file:	COPYRIGHT
