@@ -14,7 +14,9 @@ build-type:     Simple
 cabal-version:  >=1.2
 
 flag splitBase
+  default: True
 flag bytestringInBase
+  default: False
 
 library
   exposed-modules:
