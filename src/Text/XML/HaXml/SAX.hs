@@ -35,8 +35,8 @@ saxParse :: String -- ^ The filename
 	 -> ([SaxElement],Maybe String)
 		-- ^ A tuple of the parsed elements and @Nothing@, if no
 		--   error occured, or @Just@ @String@ if an error occured.
-saxParse file content = parseStream sax emptySTs
-                                    (xmlLex file content)
+saxParse file cntnt = parseStream sax emptySTs
+                                    (xmlLex file cntnt)
 
 parseStream :: Parser s t a -> s -> [t] -> ([a], Maybe String)
 parseStream _ _ [] = ([],Nothing)
@@ -78,13 +78,13 @@ saxcomment :: XParser SaxElement
 saxcomment = comment >>= return . SaxComment
 
 saxchardata :: XParser SaxElement
-saxchardata = 
+saxchardata =
   (cdsect >>= return . SaxCharData)
   `onFail`
   (chardata >>= return . SaxCharData)
 
 saxreference :: XParser SaxElement
-saxreference = reference >>= return . SaxReference	
+saxreference = reference >>= return . SaxReference
 
 saxdoctypedecl :: XParser SaxElement
 saxdoctypedecl = doctypedecl >>= return . SaxDocTypeDecl
