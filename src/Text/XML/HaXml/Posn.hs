@@ -42,7 +42,7 @@ posInNewCxt :: String -> Maybe Posn -> Posn
 posInNewCxt name pos = Pn name 1 1 pos
 
 instance Show Posn where
-      showsPrec p (Pn f l c i) = showString f .
+      showsPrec _ (Pn f l c i) = showString f .
                                  showString "  at line " . shows l .
                                  showString " col " . shows c .
                                  ( case i of
@@ -53,7 +53,7 @@ instance Show Posn where
 -- | Just used to strictify the internal values of a position, to avoid
 --   space leaks.
 forcep :: Posn -> Int
-forcep (Pn f n m i) = m `seq` n
+forcep (Pn _ n m _) = m `seq` n
 
 -- | Add n character positions to the given position.
 addcol :: Int -> Posn -> Posn
@@ -61,7 +61,7 @@ addcol n (Pn f r c i) = Pn f r (c+n) i
 
 -- | Add a newline or tab to the given position.
 newline, tab :: Posn -> Posn
-newline (Pn f r c i) = Pn f (r+1) 1 i
+newline (Pn f r _ i) = Pn f (r+1) 1 i
 tab     (Pn f r c i) = Pn f r (((c`div`8)+1)*8) i
 
 -- | Add the given whitespace char to the given position.
