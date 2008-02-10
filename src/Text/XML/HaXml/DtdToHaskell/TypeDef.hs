@@ -26,25 +26,25 @@ import Text.PrettyPrint.HughesPJ
 ---- Internal representation for typedefs ----
 
 -- | Need to keep both the XML and Haskell versions of a name.
-data Name = Name { xName :: String	-- ^ original XML name
-		 , hName :: String	-- ^ mangled Haskell name
+data Name = Name { xName :: String       -- ^ original XML name
+                 , hName :: String       -- ^ mangled Haskell name
                  }
           deriving Eq
 
 data TypeDef =
-      DataDef Bool Name AttrFields Constructors	-- ^ Bool for main\/aux.
+      DataDef Bool Name AttrFields Constructors -- ^ Bool for main\/aux.
     | EnumDef Name [Name]
     deriving Eq
 type Constructors = [(Name,[StructType])]
 type AttrFields   = [(Name, StructType)]
 data StructType =
       Maybe StructType
-    | Defaultable StructType String	-- ^ String holds default value.
+    | Defaultable StructType String     -- ^ String holds default value.
     | List StructType
-    | List1 StructType			-- ^ Non-empty lists.
+    | List1 StructType                  -- ^ Non-empty lists.
     | Tuple [StructType]
     | OneOf [StructType]
-    | Any				-- ^ XML's contentspec allows ANY
+    | Any                               -- ^ XML's contentspec allows ANY
     | String
     | Defined Name
     deriving Eq
@@ -52,50 +52,50 @@ data StructType =
 -- used for converting StructType (roughly) back to an XML content model
 instance Show StructType where
     showsPrec p (Maybe s)         = showsPrec (p+1) s . showChar '?'
-    showsPrec p (Defaultable s _) = shows s
+    showsPrec _ (Defaultable s _) = shows s
     showsPrec p (List s)          = showsPrec (p+1) s . showChar '*'
     showsPrec p (List1 s)         = showsPrec (p+1) s . showChar '+'
-    showsPrec p (Tuple ss)        = showChar '('
+    showsPrec _ (Tuple ss)        = showChar '('
                                     . foldr1 (.) (intersperse (showChar ',')
                                                               (map shows ss))
                                     . showChar ')'
-    showsPrec p (OneOf ss)        = showChar '('
+    showsPrec _ (OneOf ss)        = showChar '('
                                     . foldr1 (.) (intersperse (showChar '|')
                                                               (map shows ss))
                                     . showChar ')'
-    showsPrec p (Any)             = showString "ANY"
-    showsPrec p (String)          = showString "#PCDATA"
-    showsPrec p (Defined (Name n _)) = showString n
+    showsPrec _ (Any)             = showString "ANY"
+    showsPrec _ (String)          = showString "#PCDATA"
+    showsPrec _ (Defined (Name n _)) = showString n
 
 
 ---- Pretty-printing typedefs ----
 ppTypeDef :: TypeDef -> Doc
 
---	no attrs, no constructors
+--      no attrs, no constructors
 ppTypeDef (DataDef _ n [] []) =
-    let name = ppHName n in
-    text "data" <+> name <+> text "=" <+> name <+> text "\t\t" <> derives
+    let nme = ppHName n in
+    text "data" <+> nme <+> text "=" <+> nme <+> text "\t\t" <> derives
 
---	no attrs, single constructor
+--      no attrs, single constructor
 ppTypeDef (DataDef _ n [] [c@(_,[_])]) =
     text "newtype" <+> ppHName n <+> text "=" <+> ppC c <+> text "\t\t" <> derives
 
---	no attrs, multiple constrs
+--      no attrs, multiple constrs
 ppTypeDef (DataDef _ n [] cs) =
     text "data" <+> ppHName n <+>
            ( text "=" <+> ppC (head cs) $$
              vcat (map (\c-> text "|" <+> ppC c) (tail cs)) $$
              derives )
 
---	nonzero attrs, no constructors
+--      nonzero attrs, no constructors
 ppTypeDef (DataDef _ n fs []) =
-    let name = ppHName n in
-    text "data" <+> name <+> text "=" <+> name $$
+    let nme = ppHName n in
+    text "data" <+> nme <+> text "=" <+> nme $$
     nest 4 ( text "{" <+> ppF (head fs) $$
              vcat (map (\f-> text "," <+> ppF f) (tail fs)) $$
              text "}" <+> derives )
 
---	nonzero attrs, one or more constrs
+--      nonzero attrs, one or more constrs
 ppTypeDef (DataDef _ n fs cs) =
     let attr = ppAName n in
     text "data" <+> ppHName n <+>
@@ -107,7 +107,7 @@ ppTypeDef (DataDef _ n fs cs) =
              vcat (map (\f-> text "," <+> ppF f) (tail fs)) $$
              text "}" <+> derives )
 
---	enumerations (of attribute values)
+--      enumerations (of attribute values)
 ppTypeDef (EnumDef n es) =
     text "data" <+> ppHName n <+>
     ( text "=" <+>
@@ -148,7 +148,8 @@ ppXName (Name s _) = text s
 -- | Pretty print Haskell attributes name.
 ppAName :: Name -> Doc
 ppAName (Name _ s) = text s <> text "_Attrs"
-                      
+
+derives :: Doc
 derives = text "deriving" <+> parens (commaList (map text ["Eq","Show"]))
 
 
@@ -195,39 +196,38 @@ mangle (n:ns)
 
 -- | Ensure a generated name does not conflict with a standard haskell one.
 notPrelude :: String -> String
-notPrelude "String"  = "AString"
-notPrelude "Maybe"   = "AMaybe"
-notPrelude "Either"  = "AEither"
+notPrelude "Bool"    = "ABool"
+notPrelude "Bounded" = "ABounded"
 notPrelude "Char"    = "AChar"
-notPrelude "String"  = "AString"
-notPrelude "Int"     = "AInt"
-notPrelude "Integer" = "AInteger"
-notPrelude "Float"   = "AFloat"
 notPrelude "Double"  = "ADouble"
-notPrelude "List1"   = "AList1"	-- part of HaXml
+notPrelude "Either"  = "AEither"
+notPrelude "Enum"    = "AEnum"
+notPrelude "Eq"      = "AEq"
+notPrelude "FilePath"= "AFilePath"
+notPrelude "Float"   = "AFloat"
+notPrelude "Floating"= "AFloating"
+notPrelude "Fractional"= "AFractional"
+notPrelude "Functor" = "AFunctor"
 notPrelude "IO"      = "AIO"
 notPrelude "IOError" = "AIOError"
-notPrelude "FilePath"= "AFilePath"
-notPrelude "Bool"    = "ABool"
-notPrelude "Ordering"= "AOrdering"
-notPrelude "Eq"      = "AEq"
-notPrelude "Ord"     = "AOrd"
-notPrelude "Enum"    = "AEnum"
-notPrelude "Bounded" = "ABounded"
-notPrelude "Functor" = "AFunctor"
-notPrelude "Monad"   = "AMonad"
-notPrelude "Rational"= "ARational"
+notPrelude "Int"     = "AInt"
+notPrelude "Integer" = "AInteger"
 notPrelude "Integral"= "AIntegral"
+notPrelude "List1"   = "AList1" -- part of HaXml
+notPrelude "Maybe"   = "AMaybe"
+notPrelude "Monad"   = "AMonad"
 notPrelude "Num"     = "ANum"
-notPrelude "Real"    = "AReal"
-notPrelude "RealFrac"= "ARealFrac"
-notPrelude "Floating"= "AFloating"
-notPrelude "RealFloat" = "ARealFloat"
-notPrelude "Fractional"= "AFractional"
+notPrelude "Ord"     = "AOrd"
+notPrelude "Ordering"= "AOrdering"
+notPrelude "Rational"= "ARational"
 notPrelude "Read"    = "ARead"
-notPrelude "Show"    = "AShow"
 notPrelude "ReadS"   = "AReadS"
+notPrelude "Real"    = "AReal"
+notPrelude "RealFloat" = "ARealFloat"
+notPrelude "RealFrac"= "ARealFrac"
+notPrelude "Show"    = "AShow"
 notPrelude "ShowS"   = "AShowS"
+notPrelude "String"  = "AString"
 notPrelude n         = n
 
 -- | Convert an XML name to a Haskell varid.
@@ -244,4 +244,5 @@ decolonify '-' = '_'
 decolonify '.' = '_'
 decolonify  c  = c
 
+commaList :: [Doc] -> Doc
 commaList = hcat . intersperse comma
