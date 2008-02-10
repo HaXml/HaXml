@@ -29,7 +29,6 @@ module Text.XML.HaXml.Html.Generate
   ) where
 
 import Char (isSpace)
-import List (partition)
 
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Combinators
@@ -94,41 +93,41 @@ bullet = cat . (literal "M-^U":)
 -- htmlprint :: [Content] -> String
 -- htmlprint = concatMap cprint
 --   where
---   cprint (CElem e _) = elem e 
+--   cprint (CElem e _) = elem e
 --   cprint (CString _ s) = s
 --   cprint (CMisc m) = ""
---  
+--
 --   elem (Elem n as []) = "\n<"++n++attrs as++" />"
 --   elem (Elem n as cs) = "\n<"++n++attrs as++">"++htmlprint cs++"\n</"++n++">"
--- 
+--
 --   attrs = concatMap attr
 --   attr (n,v) = " "++n++"='"++v++"'"
 
 
 htmlprint :: [Content i] -> Pretty.Doc
-htmlprint = Pretty.cat . map cprint . foldrefs 
+htmlprint = Pretty.cat . map cprint . foldrefs
   where
   foldrefs [] = []
   foldrefs (CString ws s1 i:CRef r _:CString _ s2 _:cs) =
               CString ws (s1++"&"++ref r++";"++s2) i: foldrefs cs
   foldrefs (c:cs) = c : foldrefs cs
 
---ref (RefEntity (EntityRef n)) = n	-- Actually, should look-up symtable.
+--ref (RefEntity (EntityRef n)) = n     -- Actually, should look-up symtable.
 --ref (RefChar (CharRef s)) = s
-  ref (RefEntity n) = n	-- Actually, should look-up symtable.
+  ref (RefEntity n) = n -- Actually, should look-up symtable.
   ref (RefChar s) = show s
 
-  cprint (CElem e _)      = elem e
+  cprint (CElem e _)      = element e
   cprint (CString ws s _) = Pretty.cat (map Pretty.text (fmt 60
                                              ((if ws then id else deSpace) s)))
   cprint (CRef r _)       = Pretty.text ("&"++ref r++";")
-  cprint (CMisc m _)      = Pretty.empty
- 
-  elem (Elem n as []) = Pretty.text "<"   Pretty.<>
+  cprint (CMisc _ _)      = Pretty.empty
+
+  element (Elem n as []) = Pretty.text "<"   Pretty.<>
                         Pretty.text n     Pretty.<>
                         attrs as          Pretty.<>
                         Pretty.text " />"
-  elem (Elem n as cs) =
+  element (Elem n as cs) =
                     --  ( Pretty.text "<"   Pretty.<>
                     --    Pretty.text n     Pretty.<>
                     --    attrs as          Pretty.<>
@@ -147,15 +146,15 @@ htmlprint = Pretty.cat . map cprint . foldrefs
                                         Pretty.text ">" )
                                     ]
 
-  attrs = Pretty.cat . map attr
-  attr (n,v@(AttValue _)) =
+  attrs = Pretty.cat . map attribute
+  attribute (n,v@(AttValue _)) =
                Pretty.text " "  Pretty.<>
                Pretty.text n    Pretty.<>
                Pretty.text "='" Pretty.<>
                Pretty.text (show v) Pretty.<>
                Pretty.text "'"
 
-  fmt n [] = []
+  fmt _ [] = []
   fmt n s  = let (top,bot) = splitAt n s
                  (word,left) = keepUntil isSpace (reverse top)
              in if length top < n then [s]
@@ -170,6 +169,7 @@ htmlprint = Pretty.cat . map cprint . foldrefs
                  | otherwise = c : deSpace cs
 
   keepUntil p xs = select p ([],xs)
-      where select p (ls,[])     = (ls,[])
-            select p (ls,(x:xs)) | p x       = (ls,x:xs)
-                                 | otherwise = select p (x:ls,xs)
+      where select _ (ls,[])     = (ls,[])
+            select q (ls,(y:ys)) | q y       = (ls,y:ys)
+                                 | otherwise = select q (y:ls,ys)
+
