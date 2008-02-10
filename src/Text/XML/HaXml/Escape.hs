@@ -1,5 +1,5 @@
 {- This module contains code for escaping/unescaping text in attributes
-   and elements in the HaXml Element type, replacing characters by character 
+   and elements in the HaXml Element type, replacing characters by character
    references or vice-versa.  Two uses are envisaged for this:
 
    (1) stopping HaXml generating incorrect XML when a character is included
@@ -21,7 +21,7 @@ module Text.XML.HaXml.Escape(
       -- Something describing a particular set of escapes.
 
    stdXmlEscaper,
-      -- Standard boilerplate escaper, escaping everything that is 
+      -- Standard boilerplate escaper, escaping everything that is
       -- nonprintable, non-ASCII, or might conceivably cause problems by
       -- parsing XML, for example quotes, < signs, and ampersands.
 
@@ -56,7 +56,7 @@ module Text.XML.HaXml.Escape(
    ) where
 
 import Char
-import Numeric
+-- import Numeric
 import Text.XML.HaXml.Types
 
 #if __GLASGOW_HASKELL__ >= 604 || __NHC__ >= 118 || defined(__HUGS__)
@@ -98,16 +98,16 @@ data XmlEscaper = XmlEscaper {
 
 
 xmlEscape :: XmlEscaper -> Element i -> Element i
-xmlEscape xmlEscaper element = 
+xmlEscape xmlEscaper element =
    compressElement (escapeElement xmlEscaper element)
 
 xmlEscapeContent :: XmlEscaper -> [Content i] -> [Content i]
-xmlEscapeContent xmlEscaper cs = 
+xmlEscapeContent xmlEscaper cs =
    compressContent (escapeContent xmlEscaper cs)
 
 escapeElement :: XmlEscaper -> Element i -> Element i
 escapeElement xmlEscaper (Elem name attributes content) =
-   Elem name (escapeAttributes xmlEscaper attributes) 
+   Elem name (escapeAttributes xmlEscaper attributes)
       (escapeContent xmlEscaper content)
 
 escapeAttributes :: XmlEscaper -> [Attribute] -> [Attribute]
@@ -115,23 +115,23 @@ escapeAttributes xmlEscaper atts =
    map
       (\ (name,av) -> (name,escapeAttValue xmlEscaper av))
       atts
-   
+
 escapeAttValue :: XmlEscaper -> AttValue -> AttValue
 escapeAttValue xmlEscaper (AttValue attValList) =
    AttValue (
-      concat ( 
+      concat (
          map
             (\ av -> case av of
-               Right ref -> [av]
+               Right _ -> [av]
                Left s ->
                   map
-                     (\ c -> if isEscape xmlEscaper c 
+                     (\ c -> if isEscape xmlEscaper c
                         then
                            Right (mkEscape xmlEscaper c)
                         else
                            Left [c]
                         )
-                     s 
+                     s
                )
             attValList
          )
@@ -151,20 +151,20 @@ escapeContent xmlEscaper contents =
                          CString b [c] i
                       )
                    str
-             (CElem elem i) -> [CElem (escapeElement xmlEscaper elem) i]
+             (CElem element i) -> [CElem (escapeElement xmlEscaper element) i]
              _ -> [content]
              )
           contents
           )
 
 mkEscape :: XmlEscaper -> Char -> Reference
-mkEscape (XmlEscaper {toEscape = toEscape}) ch =
-   case lookupFM toEscape ch of
+mkEscape (XmlEscaper {toEscape = toescape}) ch =
+   case lookupFM toescape ch of
       Nothing  -> RefChar (ord ch)
       Just str -> RefEntity str
-   where
-      showHex = showIntAtBase 16 intToDigit 
-      -- It should be, but in GHC it isn't.
+--    where
+--       _ = showIntAtBase 16 intToDigit
+--       -- It should be, but in GHC it isn't.
 
 -- ------------------------------------------------------------------------
 -- Unescaping
@@ -175,7 +175,7 @@ xmlUnEscape xmlEscaper element =
    compressElement (unEscapeElement xmlEscaper element)
 
 xmlUnEscapeContent :: XmlEscaper -> [Content i] -> [Content i]
-xmlUnEscapeContent xmlEscaper cs = 
+xmlUnEscapeContent xmlEscaper cs =
    compressContent (unEscapeContent xmlEscaper cs)
 
 unEscapeElement :: XmlEscaper -> Element i -> Element i
@@ -194,7 +194,7 @@ unEscapeAttValue xmlEscaper (AttValue attValList) =
    AttValue (
       map
          (\ av -> case av of
-            Left s -> av
+            Left _ -> av
             Right ref -> case unEscapeChar xmlEscaper ref of
                Just c -> Left [c]
                Nothing -> av
@@ -205,12 +205,12 @@ unEscapeAttValue xmlEscaper (AttValue attValList) =
 unEscapeContent :: XmlEscaper -> [Content i] -> [Content i]
 unEscapeContent xmlEscaper content =
    map
-      (\ content -> case content of
+      (\ cntnt -> case cntnt of
          CRef ref i -> case unEscapeChar xmlEscaper ref of
             Just c -> CString False [c] i
-            Nothing -> content
-         CElem elem i -> CElem (unEscapeElement xmlEscaper elem) i
-         _ -> content
+            Nothing -> cntnt
+         CElem element i -> CElem (unEscapeElement xmlEscaper element) i
+         _ -> cntnt
          )
       content
 
@@ -250,11 +250,11 @@ compressContent :: [Content i] -> [Content i]
 compressContent [] = []
 compressContent ((csb @ (CString b1 s1 i1)) : cs) =
    case compressContent cs of
-      (CString b2 s2 i2) : cs2
+      (CString b2 s2 _) : cs2
           | b1 == b2
           -> CString b1 (s1 ++ s2) i1: cs2
       cs2 -> csb : cs2
-compressContent (CElem element i : cs) = 
+compressContent (CElem element i : cs) =
    CElem (compressElement element) i : compressContent cs
 compressContent (c : cs) = c : compressContent cs
 
@@ -266,7 +266,7 @@ compressContent (c : cs) = c : compressContent cs
 stdXmlEscaper :: XmlEscaper
 stdXmlEscaper = mkXmlEscaper
    [('\60',"lt"),('\62',"gt"),('\38',"amp"),('\39',"apos"),('\34',"quot")]
-   (\ ch -> 
+   (\ ch ->
       let
          i = ord ch
       in
@@ -279,13 +279,13 @@ stdXmlEscaper = mkXmlEscaper
                '>' -> True
                _ -> False
       )
-             
-            
+
+
 mkXmlEscaper :: [(Char,String)] -> (Char -> Bool) -> XmlEscaper
-mkXmlEscaper escapes isEscape =
+mkXmlEscaper escapes isescape =
    XmlEscaper {
       toEscape = listToFM escapes,
       fromEscape = listToFM (map (\ (c,str) -> (str,c)) escapes),
-      isEscape = isEscape
+      isEscape = isescape
       }
 
