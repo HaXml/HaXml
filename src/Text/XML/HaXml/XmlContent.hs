@@ -24,7 +24,7 @@
 --   The functions 'hGetXml' and 'hPutXml' do the conversion to and from
 --   the given file handles.
 --   (See the type signatures.)
---  
+--
 
 module Text.XML.HaXml.XmlContent
   ( -- * Re-export the relevant set of generic XML document type definitions
@@ -32,7 +32,7 @@ module Text.XML.HaXml.XmlContent
   , Element(..)
   , ElemTag(..)
   , Content(..)
-  , Attribute(..)
+  , Attribute()
   , AttValue(..)
   , Prolog(..)
   , Reference(..)
@@ -55,7 +55,7 @@ module Text.XML.HaXml.XmlContent
   , definiteA, defaultA, possibleA, fromAttrToStr, toAttrFrStr
   , Defaultable(..)
   , str2attr, attr2str, attval
-  , catMaybes	-- re-exported from Maybe
+  , catMaybes   -- re-exported from Maybe
   -- * Whole-document conversion functions
   , toXml, fromXml
   , readXml, showXml, fpsShowXml
@@ -71,8 +71,8 @@ module Text.XML.HaXml.XmlContent
 
 import IO
 import Maybe (catMaybes)
-import Char  (chr, ord, isSpace)
-import List  (intersperse, isPrefixOf, isSuffixOf, partition)
+import Char  (chr, isSpace)
+import List  (isPrefixOf, isSuffixOf)
 
 import Text.PrettyPrint.HughesPJ (render)
 import qualified Text.XML.HaXml.Pretty as PP
@@ -81,7 +81,7 @@ import Text.XML.HaXml.Types
 import Text.XML.HaXml.TypeMapping
 import Text.XML.HaXml.Posn     (Posn, posInNewCxt)
 import Text.XML.HaXml.Pretty   (document)
-import Text.XML.HaXml.Parse    (xmlParse, fst3)
+import Text.XML.HaXml.Parse    (xmlParse)
 import Text.XML.HaXml.Verbatim (Verbatim(verbatim))
 import qualified Text.XML.HaXml.ByteStringPP as FPS (document)
 import qualified Data.ByteString.Lazy.Char8 as FPS
@@ -95,7 +95,8 @@ import Debug.Trace(trace)
 debug :: a -> String -> a
 v `debug` s = trace s v
 #else
-v `debug` s = v
+debug :: t -> t1 -> t
+v `debug` _ = v
 #endif
 
 
@@ -116,7 +117,7 @@ mkElem x cs  = CElem (Elem (showHType (toHType x) "") [] cs) ()
 mkElemC :: String -> [Content ()] -> Content ()
 mkElemC x cs = CElem (Elem x [] cs) ()
 
--- | Turn a simple string into XML text. 
+-- | Turn a simple string into XML text.
 toText :: String -> [Content ()]
 toText s = [CString False s ()]
 
@@ -126,9 +127,9 @@ toCData :: String -> [Content ()]
 toCData s = [CString True s ()]
 ------------------------------------------------------------------------
 
-	-- probably want to write DTD separately from value, and have
-	-- easy ways to combine DTD + value into a document, or write
-	-- them to separate files.
+        -- probably want to write DTD separately from value, and have
+        -- easy ways to combine DTD + value into a document, or write
+        -- them to separate files.
 
 -- | Read an XML document from a file and convert it to a fully-typed
 --   Haskell value.
@@ -136,7 +137,7 @@ fReadXml  :: XmlContent a => FilePath -> IO a
 fReadXml fp = do
     f <- ( if fp=="-" then return stdin
            else openFile fp ReadMode )
-    x <- hGetContents f 
+    x <- hGetContents f
     let (Document _ _ y _) = xmlParse fp x
         y' = CElem y (posInNewCxt fp Nothing)
     either fail return (fst (runParser parseContents [y']))
@@ -207,7 +208,7 @@ fromXml (Document _ _ e@(Elem n _ cs) _)
 -- | Read a fully-typed XML document from a file handle.
 hGetXml :: XmlContent a => Handle -> IO a
 hGetXml h = do
-    x <- hGetContents h 
+    x <- hGetContents h
     let (Document _ _ y _) = xmlParse "file handle" x
     either fail return
            (fst (runParser parseContents
@@ -241,7 +242,7 @@ content :: String -> XMLParser (Content Posn)
 content word = next `adjustErr` (++" when expecting "++word)
 
 -- | Get the next content element, checking that it has one of the required
---   tags, using the given matching function. 
+--   tags, using the given matching function.
 --   (Skips over comments and whitespace, rejects text and refs.
 --    Also returns position of element.)
 posnElementWith :: (String->String->Bool) -> [String]
@@ -255,7 +256,7 @@ posnElementWith match tags = do
                                            ++formatted tags++"\nat "++show pos)
           CString b s pos
               | not b && all isSpace s -> posnElementWith match tags
-							-- ignore blank space
+                                                        -- ignore blank space
               | otherwise -> fail ("Found text content, but expected "
                                   ++formatted tags++"\ntext is: "++s
                                   ++"\nat "++show pos)
@@ -266,7 +267,7 @@ posnElementWith match tags = do
     }
   where
     formatted [t]  = "a <"++t++">"
-    formatted tags = "one of"++ concatMap (\t->" <"++t++">") tags
+    formatted tgs = "one of"++ concatMap (\t->" <"++t++">") tgs
 
 -- | A specialisation of @posnElementWith (==)@.
 posnElement :: [String] -> XMLParser (Posn, Element Posn)
@@ -276,12 +277,12 @@ posnElement = posnElementWith (==)
 --   tags.  (Skips over comments and whitespace, rejects text and refs.)
 element :: [String] -> XMLParser (Element Posn)
 element tags = fmap snd (posnElement tags)
-				`debug` ("Element: "++unwords tags++"\n")
+                                `debug` ("Element: "++unwords tags++"\n")
 
 -- | Like element, only permits a more flexible match against the tagname.
 elementWith :: (String->String->Bool) -> [String] -> XMLParser (Element Posn)
 elementWith match tags = fmap snd (posnElementWith match tags)
-				`debug` ("Element: "++unwords tags++"\n")
+                                `debug` ("Element: "++unwords tags++"\n")
 
 -- | Run an XMLParser on the contents of the given element (i.e. not on the
 --   current monadic content sequence), checking that the contents are
@@ -292,11 +293,11 @@ interior (Elem e _ cs) p =
     case runParser p cs of
         (Left msg, _) -> fail msg
         (Right x, []) -> return x
-        (Right x, cs@(c:_))
-            | all onlyMisc cs -> return x
+        (Right x, ds@(d:_))
+            | all onlyMisc ds -> return x
             | otherwise       -> fail ("Too many elements inside <"++e++"> at\n"
-                                      ++show (info c)++"\n"
-                                      ++"Found excess: "++verbatim c)
+                                      ++show (info d)++"\n"
+                                      ++"Found excess: "++verbatim d)
   where onlyMisc (CMisc _ _) = True
         onlyMisc (CString False s _) | all isSpace s = True
         onlyMisc _ = False
@@ -339,7 +340,7 @@ text = text' []
 choice :: XmlContent a => (a -> b) -> XMLParser b -> XMLParser b
 choice cons (P other) =
     P (\cs-> case runParser parseContents cs of
-                 (Left msg, _)  -> other cs
+                 (Left _, _)  -> other cs
                  (Right x, cs') -> (Right (cons x), cs'))
 
 --choice cons other = fmap cons parseContents `onFail` other
@@ -349,7 +350,7 @@ choice cons (P other) =
 --   care of that for us.
 definite :: XmlContent a => XMLParser a -> String -> String -> XMLParser a
 definite p inner tag = P (\cs-> case runParser p cs of
-                                   (Left msg, cs') -> (Left (False,msg'), cs')
+                                   (Left _, cs') -> (Left (False,msg'), cs')
                                    (Right x, cs')  -> (Right x,   cs'))
   where msg' = "content error: expected "++inner++" inside <"++tag
                ++"> element\n"
@@ -392,7 +393,7 @@ class XmlAttrType a where
 instance XmlContent Bool where
     toContents b   = [CElem (Elem "bool" [mkAttr "value" (show b)] []) ()]
     parseContents = do { e <- element ["bool"] ; return (attval e) }
-    
+
 instance XmlContent Int where
     toContents i   = [CElem (Elem "int" [mkAttr "value" (show i)] []) ()]
     parseContents = do { e <- element ["int"] ; return (attval e) }
@@ -400,7 +401,7 @@ instance XmlContent Int where
 instance XmlContent Integer where
     toContents i   = [CElem (Elem "integer" [mkAttr "value" (show i)] []) ()]
     parseContents = do { e <- element ["integer"] ; return (attval e) }
-    
+
 instance XmlContent Float where
     toContents i   = [CElem (Elem "float" [mkAttr "value" (show i)] []) ()]
     parseContents = do { e <- element ["float"] ; return (attval e) }
@@ -440,10 +441,10 @@ instance XmlContent a => XmlContent [a] where
                      scanElements es =
                         case runParser parseContents es of
                             (Left msg, es') -> (Left (False,msg), es')
-                            (Right x, es') ->
+                            (Right y, es') ->
                                 case scanElements es' of
-                                    (Left msg, cs) -> (Left msg, cs)
-                                    (Right xs, cs) -> (Right (x:xs), cs)
+                                    (Left msg, ds) -> (Left msg, ds)
+                                    (Right ys, ds) -> (Right (y:ys), ds)
             (CElem (Elem e _ _) pos: cs)
                    -> (Left (False
                             ,"Expected a <list-...>, but found a <"++e++"> at\n"
@@ -505,7 +506,7 @@ instance (XmlContent a, XmlContent b) => XmlContent (Either a b) where
 
 
 ------------------------------------------------------------------------
--- Useful auxiliaries for "fromAttributes" 
+-- Useful auxiliaries for "fromAttributes"
 ------------------------------------------------------------------------
 
 -- | If an attribute is defaultable, then it either takes the default
@@ -514,7 +515,7 @@ instance (XmlContent a, XmlContent b) => XmlContent (Either a b) where
 data Defaultable a  = Default a    | NonDefault a    deriving (Eq,Show)
 
 searchMaybe :: (a -> Maybe b) -> [a] -> Maybe b
-searchMaybe f [] = Nothing
+searchMaybe _ [] = Nothing
 searchMaybe f (x:xs) =
     let fx = f x in
     case fx of
@@ -523,12 +524,12 @@ searchMaybe f (x:xs) =
 
 maybeToAttr :: (String->a->Maybe Attribute) -> String -> Maybe a
                -> Maybe Attribute
-maybeToAttr to n Nothing  = Nothing
+maybeToAttr _ _ Nothing  = Nothing
 maybeToAttr to n (Just v) = to n v
 
 defaultToAttr :: (String->a->Maybe Attribute) -> String -> Defaultable a
                  -> Maybe Attribute
-defaultToAttr to n (Default v)  = Nothing
+defaultToAttr _ _ (Default _)  = Nothing
 defaultToAttr to n (NonDefault v) = to n v
 
 definiteA :: (String->Attribute->Maybe a) -> String -> String
@@ -558,8 +559,8 @@ toAttrFrStr n v = Just (n, str2attr v)
 
 str2attr :: String -> AttValue
 str2attr s =
-    let f s =
-          let (l,r) = span (\c-> not (elem c "\"&<>'")) s
+    let f t =
+          let (l,r) = span (\c-> not (elem c "\"&<>'")) t
           in if null r then [Left l]
              else Left l: Right (g (head r)): f (tail r)
         g '"'  = RefEntity "quot"
@@ -592,8 +593,8 @@ data OneOf4 a b c d
     ... etc are now defined (with instances) in module OneOfN.
 -}
 
--- | A type corresponding to XML's ANY contentspec. 
---   It is either a list of unconverted xml 'Content' 
+-- | A type corresponding to XML's ANY contentspec.
+--   It is either a list of unconverted xml 'Content'
 --   or some 'XmlContent'-able value.
 --
 -- Parsing functions (e.g. 'parseContents') will always produce 'UnConverted'.
@@ -633,5 +634,5 @@ instance XmlContent ANYContent where
     parseContents = P (\cs -> (Right (UnConverted cs), []))
 
 ------------------------------------------------------------------------
---  
+--
 ------------------------------------------------------------------------
