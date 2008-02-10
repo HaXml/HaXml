@@ -135,15 +135,15 @@ data Prolog     = Prolog (Maybe XMLDecl) [Misc] (Maybe DocTypeDecl) [Misc]
 data XMLDecl    = XMLDecl VersionInfo (Maybe EncodingDecl) (Maybe SDDecl)
                   deriving Eq
 data Misc       = Comment Comment
-                | PI ProcessingInstruction 
+                | PI ProcessingInstruction
                 deriving Eq
-              
+
 type ProcessingInstruction = (PITarget,String)
 
-type SDDecl      = Bool 
-type VersionInfo = String 
-type Comment     = String 
-type PITarget    = String 
+type SDDecl      = Bool
+type VersionInfo = String
+type Comment     = String
+type PITarget    = String
 
 data DocTypeDecl = DTD Name (Maybe ExternalID) [MarkupDecl]  deriving Eq
 data MarkupDecl  = Element  ElementDecl
@@ -159,15 +159,17 @@ data ExtSubsetDecl = ExtMarkupDecl MarkupDecl
                    deriving Eq
 
 data Element i = Elem Name [Attribute] [Content i] deriving Eq
-                                       	--  intermediate for parsing
+                                        --  intermediate for parsing
 data ElemTag   = ElemTag Name [Attribute]
 type Attribute = (Name, AttValue)
 data Content i = CElem (Element i) i
                | CString Bool CharData i
-			-- ^ bool is whether whitespace is significant
+                        -- ^ bool is whether whitespace is significant
                | CRef Reference i
                | CMisc Misc i
                deriving Eq
+
+info :: Content t -> t
 info (CElem _ i) = i
 info (CString _ _ i) = i
 info (CRef _ i) = i
@@ -192,21 +194,21 @@ data ContentSpec = EMPTY
 -- FIXME: What is TagName here? Seems to be in disagreement with XML spec.
 data CP = TagName Name Modifier
         | Choice [CP] Modifier
-        | Seq [CP] Modifier 
+        | Seq [CP] Modifier
         deriving Eq
 data Modifier = None  -- ^ Just One
               | Query -- ^ Zero Or One
               | Star  -- ^ Zero Or More
-              | Plus  -- ^ One Or More 
+              | Plus  -- ^ One Or More
               deriving Eq
 data Mixed = PCDATA
-           | PCDATAplus [Name] 
+           | PCDATAplus [Name]
            deriving Eq
 data AttListDecl = AttListDecl Name [AttDef] deriving Eq
 data AttDef      = AttDef Name AttType DefaultDecl deriving Eq
 data AttType     = StringType
                  | TokenizedType TokenizedType
-                 | EnumeratedType EnumeratedType 
+                 | EnumeratedType EnumeratedType
                  deriving Eq
 data TokenizedType = ID
                    | IDREF
@@ -214,21 +216,21 @@ data TokenizedType = ID
                    | ENTITY
                    | ENTITIES
                    | NMTOKEN
-                   | NMTOKENS 
+                   | NMTOKENS
                    deriving Eq
 data EnumeratedType = NotationType NotationType
-                    | Enumeration Enumeration 
+                    | Enumeration Enumeration
                     deriving Eq
-type NotationType   = [Name]	-- nonempty list
-type Enumeration    = [NmToken]	-- nonempty list
+type NotationType   = [Name]    -- nonempty list
+type Enumeration    = [NmToken] -- nonempty list
 data DefaultDecl    = REQUIRED
                     | IMPLIED
-                    | DefaultTo AttValue (Maybe FIXED) 
+                    | DefaultTo AttValue (Maybe FIXED)
                     deriving Eq
 data FIXED          = FIXED deriving Eq
 
 data ConditionalSect = IncludeSect IncludeSect
-                     | IgnoreSect IgnoreSect 
+                     | IgnoreSect IgnoreSect
                      deriving Eq
 type IncludeSect = [ExtSubsetDecl]
 type IgnoreSect  = [IgnoreSectContents]
@@ -236,19 +238,19 @@ data Ignore      = Ignore deriving Eq
 data IgnoreSectContents = IgnoreSectContents Ignore [(IgnoreSectContents,Ignore)]  deriving Eq
 
 data Reference    = RefEntity EntityRef
-                  | RefChar CharRef 
+                  | RefChar CharRef
                   deriving (Eq,Show)
-type EntityRef    = Name 
+type EntityRef    = Name
 type CharRef      = Int
-type PEReference  = Name 
+type PEReference  = Name
 
 data EntityDecl   = EntityGEDecl GEDecl
-                  | EntityPEDecl PEDecl 
+                  | EntityPEDecl PEDecl
                   deriving Eq
 data GEDecl       = GEDecl Name EntityDef deriving Eq
 data PEDecl       = PEDecl Name PEDef deriving Eq
-data EntityDef    = DefEntityValue EntityValue 
-                  | DefExternalID ExternalID (Maybe NDataDecl) 
+data EntityDef    = DefEntityValue EntityValue
+                  | DefExternalID ExternalID (Maybe NDataDecl)
                   deriving Eq
 data PEDef        = PEDefEntityValue EntityValue
                   | PEDefExternalID ExternalID deriving (Eq,Show)
@@ -264,16 +266,16 @@ data NotationDecl    = NOTATION Name (Either ExternalID PublicID) deriving Eq
 newtype PublicID     = PUBLICID PubidLiteral deriving Eq
 newtype EncodingDecl = EncodingDecl String deriving Eq
 
-type Name     = String		 -- non-empty string
-type Names    = [Name]		 -- non-empty list
-type NmToken  = String		 -- non-empty string
-type NmTokens = [NmToken]	 -- non-empty list
+type Name     = String           -- non-empty string
+type Names    = [Name]           -- non-empty list
+type NmToken  = String           -- non-empty string
+type NmTokens = [NmToken]        -- non-empty list
 
 data AttValue    = AttValue [Either String Reference] deriving Eq
 instance Show AttValue where
   show (AttValue v) = concatMap decode v
     where
-      decode (Left  v)               = v
+      decode (Left  w)               = w
       decode (Right (RefEntity ent)) = "&"++ent++";"
       decode (Right (RefChar cref))  = "&"++show cref++";"
 
@@ -283,7 +285,7 @@ data EV = EVString String
         | EVRef Reference  deriving (Eq,Show)
 newtype PubidLiteral  = PubidLiteral String deriving (Eq,Show)
 newtype SystemLiteral = SystemLiteral String deriving (Eq,Show)
-type CharData         = String 
+type CharData         = String
 type CDSect           = CharData
 
 instance Eq ElemTag where
