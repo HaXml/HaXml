@@ -8,7 +8,7 @@ data OneOf2 a b
 
 instance (HTypeable a,HTypeable b)
     => HTypeable (OneOf2 a b)
-  where      toHType m = Defined "OneOf2" [] []
+  where      toHType _ = Defined "OneOf2" [] []
   --         toHType m = Defined "OneOf2" [a,b] []
   --            where a = toHType $ (\ (OneOf2 a)->a) $ m
   --                  b = toHType $ (\ (TwoOf2 b)->b) $ m
@@ -30,7 +30,7 @@ data OneOf3 a b c
 
 instance (HTypeable a,HTypeable b,HTypeable c)
     => HTypeable (OneOf3 a b c)
-  where      toHType m = Defined "OneOf3" [] []
+  where      toHType _ = Defined "OneOf3" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c)
     => XmlContent (OneOf3 a b c)
@@ -49,7 +49,7 @@ data OneOf4 a b c d
 
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d)
     => HTypeable (OneOf4 a b c d)
-  where      toHType m = Defined "OneOf4" [] []
+  where      toHType _ = Defined "OneOf4" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d)
     => XmlContent (OneOf4 a b c d)
@@ -69,7 +69,7 @@ data OneOf5 a b c d e
 
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e)
     => HTypeable (OneOf5 a b c d e)
-  where      toHType m = Defined "OneOf5" [] []
+  where      toHType _ = Defined "OneOf5" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e)
     => XmlContent (OneOf5 a b c d e)
@@ -92,7 +92,7 @@ data OneOf6 a b c d e f
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
           ,HTypeable f)
     => HTypeable (OneOf6 a b c d e f)
-  where      toHType m = Defined "OneOf6" [] []
+  where      toHType _ = Defined "OneOf6" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f)
@@ -118,7 +118,7 @@ data OneOf7 a b c d e f g
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
           ,HTypeable f,HTypeable g)
     => HTypeable (OneOf7 a b c d e f g)
-  where      toHType m = Defined "OneOf7" [] []
+  where      toHType _ = Defined "OneOf7" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g)
@@ -145,7 +145,7 @@ data OneOf8 a b c d e f g h
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
           ,HTypeable f,HTypeable g,HTypeable h)
     => HTypeable (OneOf8 a b c d e f g h)
-  where      toHType m = Defined "OneOf8" [] []
+  where      toHType _ = Defined "OneOf8" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h)
@@ -173,7 +173,7 @@ data OneOf9 a b c d e f g h i
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
           ,HTypeable f,HTypeable g,HTypeable h,HTypeable i)
     => HTypeable (OneOf9 a b c d e f g h i)
-  where      toHType m = Defined "OneOf9" [] []
+  where      toHType _ = Defined "OneOf9" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i)
@@ -203,7 +203,7 @@ data OneOf10 a b c d e f g h i j
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
           ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j)
     => HTypeable (OneOf10 a b c d e f g h i j)
-  where      toHType m = Defined "OneOf10" [] []
+  where      toHType _ = Defined "OneOf10" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j)
@@ -236,7 +236,7 @@ instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
           ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
           ,HTypeable k)
     => HTypeable (OneOf11 a b c d e f g h i j k)
-  where      toHType m = Defined "OneOf11" [] []
+  where      toHType _ = Defined "OneOf11" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
@@ -272,7 +272,7 @@ instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
           ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
           ,HTypeable k,HTypeable l)
     => HTypeable (OneOf12 a b c d e f g h i j k l)
-  where      toHType m = Defined "OneOf12" [] []
+  where      toHType _ = Defined "OneOf12" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
@@ -309,7 +309,7 @@ instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
           ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
           ,HTypeable k,HTypeable l,HTypeable m)
     => HTypeable (OneOf13 a b c d e f g h i j k l m)
-  where      toHType m = Defined "OneOf13" [] []
+  where      toHType _ = Defined "OneOf13" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
@@ -347,7 +347,7 @@ instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
           ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
           ,HTypeable k,HTypeable l,HTypeable m,HTypeable n)
     => HTypeable (OneOf14 a b c d e f g h i j k l m n)
-  where      toHType m = Defined "OneOf14" [] []
+  where      toHType _ = Defined "OneOf14" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
@@ -388,7 +388,7 @@ instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
           ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
           ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o)
     => HTypeable (OneOf15 a b c d e f g h i j k l m n o)
-  where      toHType m = Defined "OneOf15" [] []
+  where      toHType _ = Defined "OneOf15" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
@@ -431,7 +431,7 @@ instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
           ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o
           ,HTypeable p)
     => HTypeable (OneOf16 a b c d e f g h i j k l m n o p)
-  where      toHType m = Defined "OneOf16" [] []
+  where      toHType _ = Defined "OneOf16" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
@@ -476,7 +476,7 @@ instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
           ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o
           ,HTypeable p,HTypeable q)
     => HTypeable (OneOf17 a b c d e f g h i j k l m n o p q)
-  where      toHType m = Defined "OneOf17" [] []
+  where      toHType _ = Defined "OneOf17" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
@@ -523,7 +523,7 @@ instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
           ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o
           ,HTypeable p,HTypeable q,HTypeable r)
     => HTypeable (OneOf18 a b c d e f g h i j k l m n o p q r)
-  where      toHType m = Defined "OneOf18" [] []
+  where      toHType _ = Defined "OneOf18" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
@@ -572,7 +572,7 @@ instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
           ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o
           ,HTypeable p,HTypeable q,HTypeable r,HTypeable s)
     => HTypeable (OneOf19 a b c d e f g h i j k l m n o p q r s)
-  where      toHType m = Defined "OneOf19" [] []
+  where      toHType _ = Defined "OneOf19" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
@@ -622,7 +622,7 @@ instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
           ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o
           ,HTypeable p,HTypeable q,HTypeable r,HTypeable s,HTypeable t)
     => HTypeable (OneOf20 a b c d e f g h i j k l m n o p q r s t)
-  where      toHType m = Defined "OneOf20" [] []
+  where      toHType _ = Defined "OneOf20" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
           ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
