@@ -58,7 +58,7 @@ library
     build-depends: base >= 2 && < 3
   else
     build-depends: base < 2 || >= 3, bytestring
-  extensions: CPP
+  extensions: CPP, ExistentialQuantification
   cpp-options: -DVERSION=1.19.2
   nhc98-options: -K10M
 

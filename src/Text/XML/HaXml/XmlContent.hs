@@ -1,4 +1,5 @@
-{-# OPTIONS -fglasgow-exts #-}
+{-# LANGUAGE ExistentialQuantification #-}
+
 -- | The class 'XmlContent' is a kind of replacement for Read and Show:
 --   it provides conversions between a generic XML tree representation
 --   and your own more specialised typeful Haskell data trees.
