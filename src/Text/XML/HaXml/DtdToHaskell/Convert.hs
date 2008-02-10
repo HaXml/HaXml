@@ -13,7 +13,7 @@ import Text.XML.HaXml.DtdToHaskell.TypeDef
 
 ---- Internal representation for database of DTD decls ----
 data Record = R [AttDef] ContentSpec
-type Db = [(String,Record)]
+-- type Db = [(String,Record)]
 
 
 ---- Build a database of DTD decls then convert them to typedefs ----
@@ -21,7 +21,7 @@ type Db = [(String,Record)]
 ---- Apparently multiple ATTLIST decls for the same element are permitted,
 ---- although only one ELEMENT decl for it is allowed.
 dtd2TypeDef :: [MarkupDecl] -> [TypeDef]
-dtd2TypeDef mds = 
+dtd2TypeDef mds =
   (concatMap convert . reverse . database []) mds
   where
   database db [] = db
@@ -38,7 +38,7 @@ dtd2TypeDef mds =
     --  (MarkupPE _ m') -> database db (m':ms)
         _ -> database db ms
 
-  replace n v [] = error "dtd2TypeDef.replace: no element to replace"
+  replace _ _ [] = error "dtd2TypeDef.replace: no element to replace"
   replace n v (x@(n0,_):db)
       | n==n0     = (n,v): db
       | otherwise = x: replace n v db
@@ -86,8 +86,8 @@ mkData []   fs aux n  = [DataDef aux n fs []]
 mkData [ts] fs aux n  = [DataDef aux n fs [(n, ts)]]
 mkData tss  fs aux n  = [DataDef aux n fs (map (mkConstr n) tss)]
   where
-    mkConstr n ts = (mkConsName n ts, ts)
-    mkConsName (Name x n) sts = Name x (n++concat (intersperse "_" (map flatten sts)))
+    mkConstr m ts = (mkConsName m ts, ts)
+    mkConsName (Name x m) sts = Name x (m++concat (intersperse "_" (map flatten sts)))
     flatten (Maybe st)   = {-"Maybe_" ++ -} flatten st
     flatten (List st)    = {-"List_" ++ -} flatten st
     flatten (List1 st)   = {-"List1_" ++ -} flatten st
@@ -97,15 +97,16 @@ mkData tss  fs aux n  = [DataDef aux n fs (map (mkConstr n) tss)]
     flatten (OneOf sts)  = {-"OneOf" ++ show (length sts) ++ "_" ++ -}
                             concat (intersperse "_" (map flatten sts))
     flatten Any          = "Any"
-    flatten (Defined (Name _ n))  = n
+    flatten (Defined (Name _ m))  = m
 
-mkAttrDef e (AttDef n StringType def) =
+mkAttrDef :: String -> AttDef -> [TypeDef]
+mkAttrDef _ (AttDef _ StringType _) =
     []
-mkAttrDef e (AttDef n (TokenizedType t) def) =
+mkAttrDef _ (AttDef _ (TokenizedType _) _) =
     [] -- mkData [[String]] [] False (name n)
-mkAttrDef e (AttDef n (EnumeratedType (NotationType nt)) def) =
+mkAttrDef e (AttDef n (EnumeratedType (NotationType nt)) _) =
     [EnumDef (name_a e n) (map (name_ac e n) nt)]
-mkAttrDef e (AttDef n (EnumeratedType (Enumeration es)) def) =
+mkAttrDef e (AttDef n (EnumeratedType (Enumeration es)) _) =
     [EnumDef (name_a e n) (map (name_ac e n) es)]
         -- Default attribute values not handled here
 
@@ -114,13 +115,13 @@ mkAttrField e (AttDef n typ req) = (name_f e n, mkType typ req)
   where
     mkType StringType REQUIRED = String
     mkType StringType IMPLIED  = Maybe String
-    mkType StringType (DefaultTo v@(AttValue _) f) = Defaultable String (show v)
+    mkType StringType (DefaultTo v@(AttValue _) _) = Defaultable String (show v)
     mkType (TokenizedType _) REQUIRED  = String
     mkType (TokenizedType _) IMPLIED   = Maybe String
-    mkType (TokenizedType _) (DefaultTo v@(AttValue _) f) =
-							Defaultable String (show v)
+    mkType (TokenizedType _) (DefaultTo v@(AttValue _) _) =
+                                                        Defaultable String (show v)
     mkType (EnumeratedType _) REQUIRED = Defined (name_a e n)
     mkType (EnumeratedType _) IMPLIED  = Maybe (Defined (name_a e n))
-    mkType (EnumeratedType _) (DefaultTo v@(AttValue _) f) =
-		Defaultable (Defined (name_a e n)) (hName (name_ac e n (show v)))
+    mkType (EnumeratedType _) (DefaultTo v@(AttValue _) _) =
+                Defaultable (Defined (name_a e n)) (hName (name_ac e n (show v)))
 
