@@ -213,16 +213,16 @@ defaultdecl :: DefaultDecl -> Doc
 defaultdecl  REQUIRED          = text "#REQUIRED"
 defaultdecl  IMPLIED           = text "#IMPLIED"
 defaultdecl (DefaultTo a f)    = maybe (const (text "#FIXED")) f <+> attvalue a
--- _ (IncludeSect i)= text "<![INCLUDE [" <+>
---                                  vcat (map extsubsetdecl i) <+> text "]]>"
--- conditionalsect (IgnoreSect i) = text "<![IGNORE [" <+>
---                                  fsep (map ignoresectcontents i) <+> text "]]>"
--- _ (Ignore)                = empty
--- _ (IgnoreSectContents i is)
---                                = ignore i <+> vcat (map internal is)
---                           where internal (ics,i) = text "<![[" <+>
---                                                    ignoresectcontents ics <+>
---                                                    text "]]>" <+> ignore i
+conditionalsect (IncludeSect i)= text "<![INCLUDE [" <+>
+                                 vcat (map extsubsetdecl i) <+> text "]]>"
+conditionalsect (IgnoreSect i) = text "<![IGNORE [" <+>
+                                 fsep (map ignoresectcontents i) <+> text "]]>"
+ignore (Ignore)                = empty
+ignore (IgnoreSectContents i is)
+                               = ignore i <+> vcat (map internal is)
+                          where internal (ics,i) = text "<![[" <+>
+                                                   ignoresectcontents ics <+>
+                                                   text "]]>" <+> ignore i
 reference :: Reference -> Doc
 reference (RefEntity er)       = entityref er
 reference (RefChar cr)         = charref cr
