@@ -48,8 +48,8 @@ sddecl   :: Bool -> Doc
 
 doctypedecl :: DocTypeDecl -> Doc
 markupdecl  :: MarkupDecl -> Doc
--- extsubset   :: ExtSubset -> Doc
--- extsubsetdecl :: ExtSubsetDecl -> Doc
+extsubset   :: ExtSubset -> Doc
+extsubsetdecl :: ExtSubsetDecl -> Doc
 cp          :: CP -> Doc
 
 element   :: Element i -> Doc
@@ -82,12 +82,12 @@ markupdecl (AttList a)     = attlistdecl a
 markupdecl (Entity e)      = entitydecl e
 markupdecl (Notation n)    = notationdecl n
 markupdecl (MarkupMisc m)  = misc m
---markupdecl (MarkupPE p m)  = peref p
--- _ (ExtSubset t ds) = maybe textdecl t $$
---                              vcat (map extsubsetdecl ds)
--- _ (ExtMarkupDecl m)      = markupdecl m
--- extsubsetdecl (ExtConditionalSect c) = conditionalsect c
---extsubsetdecl (ExtPEReference p e)   = peref p
+-- markupdecl (MarkupPE p m)  = peref p
+extsubset (ExtSubset t ds) = maybe textdecl t $$
+                             vcat (map extsubsetdecl ds)
+extmarkupdecl (ExtMarkupDecl m)      = markupdecl m
+extsubsetdecl (ExtConditionalSect c) = conditionalsect c
+-- extsubsetdecl (ExtPEReference p e)   = peref p
 
 element (Elem n as []) = text "<" <> text n <+>
                          fsep (map attribute as) <> text "/>"
@@ -218,7 +218,7 @@ conditionalsect (IncludeSect i)= text "<![INCLUDE [" <+>
 conditionalsect (IgnoreSect i) = text "<![IGNORE [" <+>
                                  fsep (map ignoresectcontents i) <+> text "]]>"
 ignore (Ignore)                = empty
-ignore (IgnoreSectContents i is)
+ignoresectcontents (IgnoreSectContents i is)
                                = ignore i <+> vcat (map internal is)
                           where internal (ics,i) = text "<![[" <+>
                                                    ignoresectcontents ics <+>
@@ -251,11 +251,11 @@ externalid (PUBLIC i sl)       = text "PUBLIC" <+> pubidliteral i <+>
                                  systemliteral sl
 ndatadecl :: NDataDecl -> Doc
 ndatadecl (NDATA n)            = text "NDATA" <+> text n
--- _ (TextDecl vi ed)      = text "<?xml" <+> maybe text vi <+>
---                                  encodingdecl ed <+> text "?>"
--- _ (ExtParsedEnt t c)= maybe textdecl t <+> content c
--- _ (ExtPE t esd)            = maybe textdecl t <+>
---                                  vcat (map extsubsetdecl esd)
+textdecl (TextDecl vi ed)      = text "<?xml" <+> maybe text vi <+>
+                                 encodingdecl ed <+> text "?>"
+extparsedent (ExtParsedEnt t c)= maybe textdecl t <+> content c
+extpe (ExtPE t esd)            = maybe textdecl t <+>
+                                 vcat (map extsubsetdecl esd)
 notationdecl :: NotationDecl -> Doc
 notationdecl (NOTATION n e)    = text "<!NOTATION" <+> text n <+>
                                  either externalid publicid e <>
