@@ -480,6 +480,47 @@ instance (XmlContent a, XmlContent b, XmlContent c) => XmlContent (a,b,c) where
         ; return (a,b,c)
         }
 
+instance (XmlContent a, XmlContent b, XmlContent c, XmlContent d) =>
+         XmlContent (a,b,c,d) where
+    toContents (x,y,z,t) = toContents x ++ toContents y ++ toContents z
+                           ++ toContents t
+    parseContents = do
+        { a <- parseContents
+        ; b <- parseContents
+        ; c <- parseContents
+        ; d <- parseContents
+        ; return (a,b,c,d)
+        }
+
+instance ( XmlContent a, XmlContent b, XmlContent c, XmlContent d
+         , XmlContent e ) =>
+         XmlContent (a,b,c,d,e) where
+    toContents (x,y,z,t,u) = toContents x ++ toContents y ++ toContents z
+                             ++ toContents t ++ toContents u
+    parseContents = do
+        { a <- parseContents
+        ; b <- parseContents
+        ; c <- parseContents
+        ; d <- parseContents
+        ; e <- parseContents
+        ; return (a,b,c,d,e)
+        }
+
+instance ( XmlContent a, XmlContent b, XmlContent c, XmlContent d
+         , XmlContent e, XmlContent f ) =>
+         XmlContent (a,b,c,d,e,f) where
+    toContents (x,y,z,t,u,v) = toContents x ++ toContents y ++ toContents z
+                               ++ toContents t ++ toContents u ++ toContents v
+    parseContents = do
+        { a <- parseContents
+        ; b <- parseContents
+        ; c <- parseContents
+        ; d <- parseContents
+        ; e <- parseContents
+        ; f <- parseContents
+        ; return (a,b,c,d,e,f)
+        }
+
 instance (XmlContent a) => XmlContent (Maybe a) where
     toContents m   = [mkElem m (maybe [] toContents m)]
     parseContents = do

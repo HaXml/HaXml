@@ -90,6 +90,21 @@ instance (HTypeable a, HTypeable b) => HTypeable (a,b) where
 instance (HTypeable a, HTypeable b, HTypeable c) => HTypeable (a,b,c) where
     toHType p      = Tuple [toHType a, toHType b, toHType c]
                    where  (a,b,c) = p
+instance (HTypeable a, HTypeable b, HTypeable c, HTypeable d) =>
+         HTypeable (a,b,c,d) where
+    toHType p      = Tuple [toHType a, toHType b, toHType c, toHType d]
+                   where  (a,b,c,d) = p
+instance (HTypeable a, HTypeable b, HTypeable c, HTypeable d, HTypeable e) =>
+         HTypeable (a,b,c,d,e) where
+    toHType p      = Tuple [ toHType a, toHType b, toHType c, toHType d
+                           , toHType e ]
+                   where  (a,b,c,d,e) = p
+instance ( HTypeable a, HTypeable b, HTypeable c, HTypeable d, HTypeable e
+         , HTypeable f) =>
+         HTypeable (a,b,c,d,e,f) where
+    toHType p      = Tuple [ toHType a, toHType b, toHType c, toHType d
+                           , toHType e, toHType f ]
+                   where  (a,b,c,d,e,f) = p
 instance (HTypeable a) => HTypeable (Maybe a) where
     toHType m      = Maybe (toHType x)   where   (Just x) = m
 instance (HTypeable a, HTypeable b) => HTypeable (Either a b) where
