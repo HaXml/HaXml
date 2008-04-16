@@ -38,19 +38,18 @@ main =
     in
 --  findcontents >>= \cs->
 --  ( hPutStrLn stdout . render . vcat
---  . map (vcat . map content . selection . getElem)) cs
+--  . map (vcat . map content . selection . docContent)) cs
     mapM_ (\x-> do c <- (if x=="-" then getContents else readFile x)
                    ( if isHTML x then
                           hPutStrLn stdout . render . htmlprint
                           . xtract (map toLower) pattern
-                          . getElem x . htmlParse x
+                          . docContent (posInNewCxt x Nothing) . htmlParse x
                      else hPutStrLn stdout . render . vcat . map (format . esc)
                           . xtract id pattern
-                          . getElem x . xmlParse x) c
+                          . docContent (posInNewCxt x Nothing) . xmlParse x) c
                    hFlush stdout)
           files
 
-getElem x (Document _ _ e _) = CElem e (posInNewCxt x Nothing)
 isHTML x = ".html" `isSuffixOf` x  ||  ".htm"  `isSuffixOf` x
 
 format [] = empty
