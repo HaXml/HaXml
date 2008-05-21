@@ -220,6 +220,7 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
 
     choice elem ns cps =  -- return only those parses that don't give any errors
         [ rem | ([],rem) <- map (\cp-> checkCP elem (definite cp) ns) cps ]
+        ++ [ ns | all possEmpty cps ]
         where definite (TagName n Query)  = TagName n None
               definite (Choice cps Query) = Choice cps None
               definite (Seq cps Query)    = Seq cps None
@@ -227,6 +228,11 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
               definite (Choice cps Star)  = Choice cps Plus
               definite (Seq cps Star)     = Seq cps Plus
               definite x                  = x
+              possEmpty (TagName _ mod)   = mod `elem` [Query,Star]
+              possEmpty (Choice cps None) = all possEmpty cps
+              possEmpty (Choice _ mod)    = mod `elem` [Query,Star]
+              possEmpty (Seq cps None)    = all possEmpty cps
+              possEmpty (Seq _ mod)       = mod `elem` [Query,Star]
     sequence elem ns cps =  -- accumulate errors down the sequence
         foldl (\(es,ns) cp-> let (es',ns') = checkCP elem cp ns
                              in (es++es', ns'))
