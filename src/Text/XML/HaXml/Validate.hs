@@ -228,11 +228,11 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
               definite (Choice cps Star)  = Choice cps Plus
               definite (Seq cps Star)     = Seq cps Plus
               definite x                  = x
-              possEmpty (TagName _ mod)   = mod `elem` [Query,Star]
+              possEmpty (TagName _ mod)   = mod `Prelude.elem` [Query,Star]
               possEmpty (Choice cps None) = all possEmpty cps
-              possEmpty (Choice _ mod)    = mod `elem` [Query,Star]
+              possEmpty (Choice _ mod)    = mod `Prelude.elem` [Query,Star]
               possEmpty (Seq cps None)    = all possEmpty cps
-              possEmpty (Seq _ mod)       = mod `elem` [Query,Star]
+              possEmpty (Seq _ mod)       = mod `Prelude.elem` [Query,Star]
     sequence elem ns cps =  -- accumulate errors down the sequence
         foldl (\(es,ns) cp-> let (es',ns') = checkCP elem cp ns
                              in (es++es', ns'))
