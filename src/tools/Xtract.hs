@@ -16,6 +16,7 @@ import Text.PrettyPrint.HughesPJ    (render, vcat, hcat, empty)
 import Text.XML.HaXml.Pretty        (content)
 import Text.XML.HaXml.Html.Generate (htmlprint)
 import Text.XML.HaXml.Escape        (xmlEscapeContent,stdXmlEscaper)
+import Text.XML.HaXml.Util          (docContent)
 
 escape = xmlEscapeContent stdXmlEscaper
 
