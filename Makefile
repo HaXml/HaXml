@@ -1,5 +1,5 @@
 SOFTWARE = HaXml
-VERSION  = 1.19.3
+VERSION  = 1.19.4
 
 #CPP      = cpp -traditional
 CPP     = cpphs --text --noline	# useful e.g. on MacOS X
@@ -20,6 +20,7 @@ SRCS = \
 	src/Text/XML/HaXml/TypeMapping.hs src/Text/XML/HaXml/XmlContent.hs \
 	src/Text/XML/HaXml/SAX.hs \
 	src/Text/XML/HaXml/ShowXmlLazy.hs \
+	src/Text/XML/HaXml/Util.hs \
 	src/Text/XML/HaXml/Html/Generate.hs src/Text/XML/HaXml/Html/Parse.hs \
 	src/Text/XML/HaXml/Html/Pretty.hs \
 	src/Text/XML/HaXml/Html/ParseLazy.hs \

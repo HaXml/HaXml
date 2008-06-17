@@ -1,5 +1,5 @@
 name:		HaXml
-version:	1.19.3
+version:	1.19.4
 license:	LGPL
 license-file:	COPYRIGHT
 author:		Malcolm Wallace <Malcolm.Wallace@cs.york.ac.uk>
@@ -41,6 +41,7 @@ library
         Text.XML.HaXml.ShowXmlLazy,
         Text.XML.HaXml.Types,
         Text.XML.HaXml.TypeMapping,
+        Text.XML.HaXml.Util,
         Text.XML.HaXml.Validate,
         Text.XML.HaXml.Verbatim,
         Text.XML.HaXml.Wrappers,
@@ -59,7 +60,7 @@ library
   else
     build-depends: base < 2 || >= 3, bytestring
   extensions: CPP, ExistentialQuantification
-  cpp-options: -DVERSION=1.19.3
+  cpp-options: -DVERSION=1.19.4
   nhc98-options: -K10M
 
 Executable Canonicalise
