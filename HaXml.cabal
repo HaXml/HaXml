@@ -50,7 +50,7 @@ library
         Text.XML.HaXml.Xtract.Lex,
         Text.XML.HaXml.Xtract.Parse
   hs-source-dirs: src
-  build-depends: base, haskell98, polyparse
+  build-depends: base, haskell98, polyparse, filepath
   if flag(splitBase)
     build-depends: base >= 3, pretty, random, containers
   else

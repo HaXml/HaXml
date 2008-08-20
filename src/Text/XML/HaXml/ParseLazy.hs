@@ -42,6 +42,8 @@ import Text.XML.HaXml.Posn
 import Text.XML.HaXml.Lex
 import Text.ParserCombinators.Poly.NoLeak.StateLazy
 
+import System.FilePath (combine)
+
 
 #if ( defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ > 502 ) || \
     ( defined(__NHC__) && __NHC__ > 114 ) || defined(__HUGS__)
@@ -245,16 +247,18 @@ peRef p =
                                `debug` ("  defn:  "++flattenEV ev)
                          peRef p
            Just (PEDefExternalID (PUBLIC _ (SystemLiteral f))) ->
-                      do let val = unsafePerformIO (readFile f)
-                         reparse (xmlReLex (posInNewCxt ("file "++f)
+                      do let f' = combine (posnFilename pn) f
+                             val = unsafePerformIO (readFile f')
+                         reparse (xmlReLex (posInNewCxt ("file "++f')
                                                         (Just pn)) val)
-                               `debug` ("  reading from file "++f)
+                               `debug` ("  reading from file "++f')
                          peRef p
            Just (PEDefExternalID (SYSTEM (SystemLiteral f))) ->
-                      do let val = unsafePerformIO (readFile f)
-                         reparse (xmlReLex (posInNewCxt ("file "++f)
+                      do let f' = combine (posnFilename pn) f
+                             val = unsafePerformIO (readFile f')
+                         reparse (xmlReLex (posInNewCxt ("file "++f')
                                                         (Just pn)) val)
-                               `debug` ("  reading from file "++f)
+                               `debug` ("  reading from file "++f')
                          peRef p
            Nothing -> fail ("PEReference use before definition: "++"%"++n++";"
                            ++"\n    at "++show pn)
