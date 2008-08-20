@@ -154,6 +154,14 @@ thd3 (_,_,a) = a
 
 ---- Auxiliary Parsing Functions ----
 
+-- | Parse a bracketed item, discarding the brackets AND NOT using adjustErrBad
+myBracket :: PolyParse p => p bra -> p ket -> p a -> p a
+myBracket open close p = do
+    do { open    `adjustErr` ("Missing opening bracket:\n\t"++)
+       ; p `discard` (close `adjustErr` ("Missing closing bracket:\n\t"++))
+       }
+
+
 -- | XParser is just a specialisation of the PolyStateLazy parser.
 type XParser a = Parser SymTabs (Posn,TokenT) a
 
@@ -296,7 +304,7 @@ document = do
 -- | Return an XML comment.
 comment :: XParser Comment
 comment = do
-    bracket (tok TokCommentOpen) (tok TokCommentClose) freetext
+    myBracket (tok TokCommentOpen) (tok TokCommentClose) freetext
 --  tok TokCommentOpen
 --  commit $ do
 --    c <- freetext
@@ -517,19 +525,15 @@ contentspec =
 
 choice :: XParser [CP]
 choice = do
-    bracket (tok TokBraOpen `debug` "Trying choice")
-            (blank (tok TokBraClose `debug` "Succeeded with choice"))
-            (peRef cp `sepBy1` blank (tok TokPipe))
+    myBracket (tok TokBraOpen `debug` "Trying choice")
+              (blank (tok TokBraClose `debug` "Succeeded with choice"))
+              (peRef cp `sepBy1` blank (tok TokPipe))
 
 sequence :: XParser [CP]
-sequence = do	-- bracket is inappropriate because of inner failBad
- -- bracket (tok TokBraOpen `debug` "Trying sequence")
- --         (blank (tok TokBraClose `debug` "Succeeded with sequence"))
- --         (peRef cp `sepBy1` blank (tok TokComma))
-    tok TokBraOpen `debug` "Trying sequence"
-    cps <- peRef cp `sepBy1` blank (tok TokComma)
-    blank (tok TokBraClose `debug` "Succeeded with sequence")
-    return cps
+sequence = do
+ myBracket (tok TokBraOpen `debug` "Trying sequence")
+           (blank (tok TokBraClose `debug` "Succeeded with sequence"))
+           (peRef cp `sepBy1` blank (tok TokComma))
 
 cp :: XParser CP
 cp = oneOf [ ( do n <- name
@@ -737,7 +741,7 @@ charref = do
 
 pereference :: XParser PEReference
 pereference = do
-    bracket (tok TokPercent) (tok TokSemi) nmtoken
+    myBracket (tok TokPercent) (tok TokSemi) nmtoken
 
 entitydecl :: XParser EntityDecl
 entitydecl =
