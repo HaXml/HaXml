@@ -42,7 +42,7 @@ import Text.XML.HaXml.Posn
 import Text.XML.HaXml.Lex
 import Text.ParserCombinators.Poly.NoLeak.State
 
-import System.FilePath (combine)
+import System.FilePath (combine, dropFileName)
 
 
 #if ( defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ > 502 ) || \
@@ -243,14 +243,14 @@ peRef p =
                                `debug` ("  defn:  "++flattenEV ev)
                          peRef p
            Just (PEDefExternalID (PUBLIC _ (SystemLiteral f))) ->
-                      do let f' = combine (posnFilename pn) f
+                      do let f' = combine (dropFileName $ posnFilename pn) f
                              val = unsafePerformIO (readFile f')
                          reparse (xmlReLex (posInNewCxt f'
                                                         (Just pn)) val)
                                `debug` ("  reading from file "++f')
                          peRef p
            Just (PEDefExternalID (SYSTEM (SystemLiteral f))) ->
-                      do let f' = combine (posnFilename pn) f
+                      do let f' = combine (dropFileName $ posnFilename pn) f
                              val = unsafePerformIO (readFile f')
                          reparse (xmlReLex (posInNewCxt f'
                                                         (Just pn)) val)
