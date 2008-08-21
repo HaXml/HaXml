@@ -42,7 +42,8 @@ posInNewCxt :: String -> Maybe Posn -> Posn
 posInNewCxt name pos = Pn name 1 1 pos
 
 instance Show Posn where
-      showsPrec _ (Pn f l c i) = showString f .
+      showsPrec _ (Pn f l c i) = showString "file " .
+                                 showString f .
                                  showString "  at line " . shows l .
                                  showString " col " . shows c .
                                  ( case i of

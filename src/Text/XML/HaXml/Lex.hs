@@ -180,7 +180,7 @@ textOrRefUntil close tok acc pos p (s:ss) k
 --   especially in error messages), and the second is the string content of
 --   the XML file.
 xmlLex :: String -> String -> [Token]
-xmlLex filename = xmlAny [] (posInNewCxt ("file "++filename) Nothing)
+xmlLex filename = xmlAny [] (posInNewCxt filename Nothing)
 
 -- | 'xmlReLex' is used when the parser expands a macro (PE reference).
 --    The expansion of the macro must be re-lexed as if for the first time.

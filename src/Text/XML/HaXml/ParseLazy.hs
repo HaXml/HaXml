@@ -249,14 +249,14 @@ peRef p =
            Just (PEDefExternalID (PUBLIC _ (SystemLiteral f))) ->
                       do let f' = combine (posnFilename pn) f
                              val = unsafePerformIO (readFile f')
-                         reparse (xmlReLex (posInNewCxt ("file "++f')
+                         reparse (xmlReLex (posInNewCxt f'
                                                         (Just pn)) val)
                                `debug` ("  reading from file "++f')
                          peRef p
            Just (PEDefExternalID (SYSTEM (SystemLiteral f))) ->
                       do let f' = combine (posnFilename pn) f
                              val = unsafePerformIO (readFile f')
-                         reparse (xmlReLex (posInNewCxt ("file "++f')
+                         reparse (xmlReLex (posInNewCxt f'
                                                         (Just pn)) val)
                                `debug` ("  reading from file "++f')
                          peRef p
