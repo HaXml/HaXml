@@ -1,6 +1,7 @@
 module Text.XML.HaXml.Wrappers
   ( fix2Args
   , processXmlWith
+  , onContent
   ) where
 
 -- imports required for processXmlWith and fix2Args
@@ -59,3 +60,12 @@ processXmlWith f = do
             [CElem e' _] -> Document p s e' m
             []           -> error "produced no output"
             _            -> error "produced more than one output"
+
+-- | The wrapper @onContent@ simply applies a given content filter to a
+--   document.  Ambiguous or empty results raise an error exception.
+onContent :: CFilter i -> Document i -> Document i
+onContent filter (Document p s e m) =
+    case filter (CElem e undefined) of
+      [CElem e' _] -> Document p s e' m
+      []           -> error "onContent: produced no output"
+      _            -> error "onContent: produced more than one output"
