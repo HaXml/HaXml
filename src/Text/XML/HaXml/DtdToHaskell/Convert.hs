@@ -5,7 +5,7 @@ module Text.XML.HaXml.DtdToHaskell.Convert
   ( dtd2TypeDef
   ) where
 
-import List (intersperse)
+import List (intersperse,nub)
 
 import Text.XML.HaXml.Types hiding (Name)
 import Text.XML.HaXml.DtdToHaskell.TypeDef
@@ -34,7 +34,7 @@ dtd2TypeDef mds =
         (AttList (AttListDecl n as)) ->
           case lookup n db of
             Nothing -> database ((n, R as EMPTY):db) ms
-            (Just (R a cs)) -> database (replace n (R (a++as) cs) db) ms
+            (Just (R a cs)) -> database (replace n (R (nub (a++as)) cs) db) ms
     --  (MarkupPE _ m') -> database db (m':ms)
         _ -> database db ms
 
