@@ -105,6 +105,76 @@ instance ( HTypeable a, HTypeable b, HTypeable c, HTypeable d, HTypeable e
     toHType p      = Tuple [ toHType a, toHType b, toHType c, toHType d
                            , toHType e, toHType f ]
                    where  (a,b,c,d,e,f) = p
+instance ( HTypeable a, HTypeable b, HTypeable c, HTypeable d, HTypeable e
+         , HTypeable f, HTypeable g) =>
+         HTypeable (a,b,c,d,e,f,g) where
+    toHType p      = Tuple [ toHType a, toHType b, toHType c, toHType d
+                           , toHType e, toHType f, toHType g ]
+                   where  (a,b,c,d,e,f,g) = p
+instance ( HTypeable a, HTypeable b, HTypeable c, HTypeable d, HTypeable e
+         , HTypeable f, HTypeable g, HTypeable h) =>
+         HTypeable (a,b,c,d,e,f,g,h) where
+    toHType p      = Tuple [ toHType a, toHType b, toHType c, toHType d
+                           , toHType e, toHType f, toHType g, toHType h ]
+                   where  (a,b,c,d,e,f,g,h) = p
+instance ( HTypeable a, HTypeable b, HTypeable c, HTypeable d, HTypeable e
+         , HTypeable f, HTypeable g, HTypeable h, HTypeable i) =>
+         HTypeable (a,b,c,d,e,f,g,h,i) where
+    toHType p      = Tuple [ toHType a, toHType b, toHType c, toHType d
+                           , toHType e, toHType f, toHType g, toHType h
+                           , toHType i ]
+                   where  (a,b,c,d,e,f,g,h,i) = p
+instance ( HTypeable a, HTypeable b, HTypeable c, HTypeable d, HTypeable e
+         , HTypeable f, HTypeable g, HTypeable h, HTypeable i, HTypeable j) =>
+         HTypeable (a,b,c,d,e,f,g,h,i,j) where
+    toHType p      = Tuple [ toHType a, toHType b, toHType c, toHType d
+                           , toHType e, toHType f, toHType g, toHType h
+                           , toHType i, toHType j ]
+                   where  (a,b,c,d,e,f,g,h,i,j) = p
+instance ( HTypeable a, HTypeable b, HTypeable c, HTypeable d, HTypeable e
+         , HTypeable f, HTypeable g, HTypeable h, HTypeable i, HTypeable j
+         , HTypeable k) =>
+         HTypeable (a,b,c,d,e,f,g,h,i,j,k) where
+    toHType p      = Tuple [ toHType a, toHType b, toHType c, toHType d
+                           , toHType e, toHType f, toHType g, toHType h
+                           , toHType i, toHType j, toHType k ]
+                   where  (a,b,c,d,e,f,g,h,i,j,k) = p
+instance ( HTypeable a, HTypeable b, HTypeable c, HTypeable d, HTypeable e
+         , HTypeable f, HTypeable g, HTypeable h, HTypeable i, HTypeable j
+         , HTypeable k, HTypeable l) =>
+         HTypeable (a,b,c,d,e,f,g,h,i,j,k,l) where
+    toHType p      = Tuple [ toHType a, toHType b, toHType c, toHType d
+                           , toHType e, toHType f, toHType g, toHType h
+                           , toHType i, toHType j, toHType k, toHType l ]
+                   where  (a,b,c,d,e,f,g,h,i,j,k,l) = p
+instance ( HTypeable a, HTypeable b, HTypeable c, HTypeable d, HTypeable e
+         , HTypeable f, HTypeable g, HTypeable h, HTypeable i, HTypeable j
+         , HTypeable k, HTypeable l, HTypeable m) =>
+         HTypeable (a,b,c,d,e,f,g,h,i,j,k,l,m) where
+    toHType p      = Tuple [ toHType a, toHType b, toHType c, toHType d
+                           , toHType e, toHType f, toHType g, toHType h
+                           , toHType i, toHType j, toHType k, toHType l
+                           , toHType m ]
+                   where  (a,b,c,d,e,f,g,h,i,j,k,l,m) = p
+instance ( HTypeable a, HTypeable b, HTypeable c, HTypeable d, HTypeable e
+         , HTypeable f, HTypeable g, HTypeable h, HTypeable i, HTypeable j
+         , HTypeable k, HTypeable l, HTypeable m, HTypeable n) =>
+         HTypeable (a,b,c,d,e,f,g,h,i,j,k,l,m,n) where
+    toHType p      = Tuple [ toHType a, toHType b, toHType c, toHType d
+                           , toHType e, toHType f, toHType g, toHType h
+                           , toHType i, toHType j, toHType k, toHType l
+                           , toHType m, toHType n ]
+                   where  (a,b,c,d,e,f,g,h,i,j,k,l,m,n) = p
+instance ( HTypeable a, HTypeable b, HTypeable c, HTypeable d, HTypeable e
+         , HTypeable f, HTypeable g, HTypeable h, HTypeable i, HTypeable j
+         , HTypeable k, HTypeable l, HTypeable m, HTypeable n, HTypeable o) =>
+         HTypeable (a,b,c,d,e,f,g,h,i,j,k,l,m,n,o) where
+    toHType p      = Tuple [ toHType a, toHType b, toHType c, toHType d
+                           , toHType e, toHType f, toHType g, toHType h
+                           , toHType i, toHType j, toHType k, toHType l
+                           , toHType m, toHType n, toHType o ]
+                   where  (a,b,c,d,e,f,g,h,i,j,k,l,m,n,o) = p
+
 instance (HTypeable a) => HTypeable (Maybe a) where
     toHType m      = Maybe (toHType x)   where   (Just x) = m
 instance (HTypeable a, HTypeable b) => HTypeable (Either a b) where
