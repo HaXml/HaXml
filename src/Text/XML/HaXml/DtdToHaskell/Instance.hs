@@ -272,7 +272,9 @@ mkCpat :: Name -> Doc -> [Doc] -> Doc
 mkCpat n i vs = ppHName n <+> i <+> fsep vs
 
 nameSupply :: [b] -> [Doc]
-nameSupply  ss = take (length ss) (map char ['a'..])
+nameSupply  ss = take (length ss) (map char ['a'..'z']
+                                  ++ map text [ a:n:[] | n <- ['0'..'9']
+                                                       , a <- ['a'..'z'] ])
 -- nameSupply2 ss = take (length ss) [ text ('c':v:[]) | v <- ['a'..]]
 
 mkTranslate :: [Name] -> Doc
