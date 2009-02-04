@@ -1,11 +1,12 @@
 SOFTWARE = HaXml
-VERSION  = 1.19.5
+VERSION  = 1.19.6
 
 #CPP      = cpp -traditional
 CPP     = cpphs --text --noline	# useful e.g. on MacOS X
 
 DIRS = Text Text/XML Text/XML/HaXml Text/XML/HaXml/Html \
-	Text/XML/HaXml/Xtract Text/XML/HaXml/DtdToHaskell
+	Text/XML/HaXml/Xtract Text/XML/HaXml/DtdToHaskell \
+	Text/XML/HaXml/XmlContent
 
 SRCS = \
 	src/Text/XML/HaXml.hs src/Text/XML/HaXml/Combinators.hs \
@@ -17,7 +18,10 @@ SRCS = \
 	src/Text/XML/HaXml/OneOfN.hs \
 	src/Text/XML/HaXml/ParseLazy.hs \
 	src/Text/XML/HaXml/ByteStringPP.hs \
-	src/Text/XML/HaXml/TypeMapping.hs src/Text/XML/HaXml/XmlContent.hs \
+	src/Text/XML/HaXml/TypeMapping.hs \
+	src/Text/XML/HaXml/XmlContent.hs \
+	src/Text/XML/HaXml/XmlContent/Parser.hs \
+	src/Text/XML/HaXml/XmlContent/Haskell.hs \
 	src/Text/XML/HaXml/SAX.hs \
 	src/Text/XML/HaXml/ShowXmlLazy.hs \
 	src/Text/XML/HaXml/Util.hs \

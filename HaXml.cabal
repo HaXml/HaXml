@@ -62,7 +62,7 @@ library
   else
     build-depends: base < 2 || >= 3, bytestring
   extensions: CPP, ExistentialQuantification
-  cpp-options: -DVERSION=1.19.4
+  cpp-options: -DVERSION=1.19.6
   nhc98-options: -K10M
 
 Executable Canonicalise

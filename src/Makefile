@@ -1,5 +1,5 @@
 SOFTWARE = HaXml
-VERSION = 1.19.5
+VERSION = 1.19.6
 
 LIBSRCS = \
 	Text/XML/HaXml.hs Text/XML/HaXml/Combinators.hs Text/XML/HaXml/Lex.hs \
@@ -10,7 +10,10 @@ LIBSRCS = \
 	Text/XML/HaXml/OneOfN.hs \
 	Text/XML/HaXml/ParseLazy.hs \
 	Text/XML/HaXml/ByteStringPP.hs \
-	Text/XML/HaXml/TypeMapping.hs  Text/XML/HaXml/XmlContent.hs \
+	Text/XML/HaXml/TypeMapping.hs \
+	Text/XML/HaXml/XmlContent.hs \
+	Text/XML/HaXml/XmlContent/Parser.hs \
+	Text/XML/HaXml/XmlContent/Haskell.hs \
 	Text/XML/HaXml/Verbatim.hs Text/XML/HaXml/Escape.hs \
 	Text/XML/HaXml/SAX.hs \
 	Text/XML/HaXml/ShowXmlLazy.hs \
