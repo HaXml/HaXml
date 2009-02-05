@@ -16,6 +16,7 @@ module Text.XML.HaXml.XmlContent
   (
   -- * Re-export everything from Text.XML.HaXml.XmlContent.Parser.
     module Text.XML.HaXml.XmlContent.Parser
+  , module Text.XML.HaXml.TypeMapping
   -- * Contains instances of the XmlContent classes,
   --   for the basic Haskell datatypes list and Maybe,
   --   intended for use with DtdToHaskell-generated datatypes.
@@ -162,8 +163,9 @@ instance XmlContent a => XmlContent [a] where
                             [CString True (map xToChar xs) ()]
                        _ -> concatMap toContents xs
                    where   (x:_) = xs
-    parseContents = let (Right (x:_),_) = runParser p [] -- for type of x only
-                        p = case toHType x of
+    parseContents = let result = runParser p [] -- for type of result only
+                        p = case (toHType . head . (\ (Right x)->x) . fst)
+                                 result of
                               (Prim "Char" _) -> fmap (map xFromChar) $ text
                               _ -> many parseContents
                     in p
