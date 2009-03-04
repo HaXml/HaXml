@@ -21,7 +21,7 @@ import Monad
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Lex
 import Text.XML.HaXml.Posn
-import Text.ParserCombinators.Poly.NoLeak.Plain
+import Text.ParserCombinators.Poly.Plain
 
 --  #define DEBUG
  

@@ -40,7 +40,7 @@ import Numeric (readDec,readHex)
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Posn
 import Text.XML.HaXml.Lex
-import Text.ParserCombinators.Poly.NoLeak.State
+import Text.ParserCombinators.Poly.State
 
 import System.FilePath (combine, dropFileName)
 
