@@ -191,33 +191,29 @@ instance XmlContent a => XmlContent [a] where
     parseContents = P (\x ->
         case x of
             (CString _ s _:cs)
-                   -> (Right (map xFromChar s), cs)
+                   -> Success cs (map xFromChar s)
             (CElem (Elem "string" [] [CString _ s _]) _:cs)
-                   -> (Right (map xFromChar s), cs)
+                   -> Success cs (map xFromChar s)
             (CElem (Elem e [] xs) _:cs) | "list" `isPrefixOf` e
                    -> scanElements xs
                    where
                   -- scanElements :: [Content] -> (Either String [a],[Content])
-                     scanElements [] = (Right [], cs)
+                     scanElements [] = Success cs []
                      scanElements es =
                         case runParser parseContents es of
-                            (Left msg, es') -> (Left (False,msg), es')
+                            (Left msg, es') -> Failure es' msg
                             (Right y, es') ->
                                 case scanElements es' of
-                                    (Left msg, ds) -> (Left msg, ds)
-                                    (Right ys, ds) -> (Right (y:ys), ds)
+                                    Failure ds msg -> Failure ds msg
+                                    Success ds ys  -> Success ds (y:ys)
             (CElem (Elem e _ _) pos: cs)
-                   -> (Left (False
-                            ,"Expected a <list-...>, but found a <"++e++"> at\n"
-                            ++ show pos), cs)
+                   -> Failure cs ("Expected a <list-...>, but found a <"++e
+                                  ++"> at\n"++show pos)
             (CRef r pos: cs)
-                   -> (Left (False
-                            ,"Expected a <list-...>, but found a ref "
-                            ++verbatim r++" at\n"++ show pos), cs)
+                   -> Failure cs ("Expected a <list-...>, but found a ref "
+                                  ++verbatim r++" at\n"++ show pos)
             (_:cs) -> ((\ (P p)-> p) parseContents) cs  -- skip comments etc.
-            []     -> (Left (False
-                            ,"Ran out of input XML whilst secondary parsing")
-                      , [])
+            []     -> Failure [] "Ran out of input XML whilst secondary parsing"
         )
 
 instance XmlContent () where

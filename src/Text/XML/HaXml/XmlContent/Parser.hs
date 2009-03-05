@@ -241,7 +241,7 @@ choice :: XmlContent a => (a -> b) -> XMLParser b -> XMLParser b
 choice cons (P other) =
     P (\cs-> case runParser parseContents cs of
                  (Left _, _)  -> other cs
-                 (Right x, cs') -> (Right (cons x), cs'))
+                 (Right x, cs') -> Success cs' (cons x) )
 
 --choice cons other = fmap cons parseContents `onFail` other
 
@@ -250,8 +250,8 @@ choice cons (P other) =
 --   care of that for us.
 definite :: XmlContent a => XMLParser a -> String -> String -> XMLParser a
 definite p inner tag = P (\cs-> case runParser p cs of
-                                   (Left _, cs') -> (Left (False,msg'), cs')
-                                   (Right x, cs')  -> (Right x,   cs'))
+                                   (Left _, cs')   -> Failure cs' msg'
+                                   (Right x, cs')  -> Success cs' x )
   where msg' = "content error: expected "++inner++" inside <"++tag
                ++"> element\n"
 
@@ -683,7 +683,7 @@ instance HTypeable ANYContent where
 instance XmlContent ANYContent where
     toContents (ANYContent a)  = toContents a
     toContents (UnConverted s) = map (fmap (const ())) s
-    parseContents = P (\cs -> (Right (UnConverted cs), []))
+    parseContents = P (\cs -> Success [] (UnConverted cs))
 
 ------------------------------------------------------------------------
 --

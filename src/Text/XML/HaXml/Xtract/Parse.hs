@@ -56,19 +56,19 @@ type XParser a = Parser (Either String (Posn,TokenT)) a
 
 string :: XParser String
 string = P (\inp -> case inp of
-                (Left err: _) -> (Left (False,err), inp)
-                (Right (p,TokString n):ts) -> (Right n, ts)
-                ts -> (Left (False,"expected a string"), ts) )
+                (Left err: _) -> Failure inp err
+                (Right (p,TokString n):ts) -> Success ts n
+                ts -> Failure ts "expected a string" )
 number :: XParser Integer
 number = P (\inp -> case inp of
-                (Left err: _) -> (Left (False,err), inp)
-                (Right (p,TokNum n):ts) -> (Right n, ts)
-                ts -> (Left (False,"expected a number"), ts) )
+                (Left err: _) -> Failure inp err
+                (Right (p,TokNum n):ts) -> Success ts n
+                ts -> Failure ts "expected a number" )
 symbol :: String -> XParser ()
 symbol s = P (\inp -> case inp of
-                (Left err: _) -> (Left (False,err), inp)
-                (Right (p, Symbol n):ts) | n==s -> (Right (), ts)
-                ts -> (Left (False,"expected symbol "++s), ts) )
+                (Left err: _) -> Failure inp err
+                (Right (p, Symbol n):ts) | n==s -> Success ts ()
+                ts -> Failure ts ("expected symbol "++s) )
 
 quote = oneOf [ symbol "'",  symbol "\"" ]
 
