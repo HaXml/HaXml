@@ -194,6 +194,8 @@ instance XmlContent a => XmlContent [a] where
                    -> Success cs (map xFromChar s)
             (CElem (Elem "string" [] [CString _ s _]) _:cs)
                    -> Success cs (map xFromChar s)
+            (CElem (Elem "string" [] []) _:cs)
+                   -> Success cs []
             (CElem (Elem e [] xs) _:cs) | "list" `isPrefixOf` e
                    -> scanElements xs
                    where
