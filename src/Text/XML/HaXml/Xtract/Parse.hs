@@ -16,6 +16,7 @@ import List(isPrefixOf)
 import Text.XML.HaXml.Escape (xmlUnEscapeContent,stdXmlEscaper)
 
 -- output transformer - to ensure that text/references are glued together
+unescape :: [Content i] -> [Content i]
 unescape = xmlUnEscapeContent stdXmlEscaper
 
 
@@ -57,21 +58,23 @@ type XParser a = Parser (Either String (Posn,TokenT)) a
 string :: XParser String
 string = P (\inp -> case inp of
                 (Left err: _) -> Failure inp err
-                (Right (p,TokString n):ts) -> Success ts n
+                (Right (_,TokString n):ts) -> Success ts n
                 ts -> Failure ts "expected a string" )
 number :: XParser Integer
 number = P (\inp -> case inp of
                 (Left err: _) -> Failure inp err
-                (Right (p,TokNum n):ts) -> Success ts n
+                (Right (_,TokNum n):ts) -> Success ts n
                 ts -> Failure ts "expected a number" )
 symbol :: String -> XParser ()
 symbol s = P (\inp -> case inp of
                 (Left err: _) -> Failure inp err
-                (Right (p, Symbol n):ts) | n==s -> Success ts ()
+                (Right (_, Symbol n):ts) | n==s -> Success ts ()
                 ts -> Failure ts ("expected symbol "++s) )
 
+quote :: XParser ()
 quote = oneOf [ symbol "'",  symbol "\"" ]
 
+pam :: [a->b] -> a -> [b]
 pam fs x = [ f x | f <- fs ]
 
 
@@ -324,7 +327,7 @@ vattribute (q,a,iffn) = oneOf
        return ((iffn (\s1->if cmp s1 s2 then D.keep else D.none) D.none)
                `D.o` q)
   , do cmp <- op
-       (q2,iffn2) <- wattribute
+       (q2,iffn2) <- wattribute	-- q2 unused?  is this a mistake?
        return ((iffn (\s1-> iffn2 (\s2-> if cmp s1 s2 then D.keep else D.none)
                                   D.none)
                      D.none) `D.o` q)
@@ -333,7 +336,7 @@ vattribute (q,a,iffn) = oneOf
        return ((iffn (\s->if cmp (read s) n then D.keep else D.none) D.none)
                `D.o` q)
   , do cmp <- nop
-       (q2,iffn2) <- wattribute
+       (q2,iffn2) <- wattribute	-- q2 unused?  is this a mistake?
        return ((iffn (\s1-> iffn2 (\s2-> if cmp (read s1) (read s2) then D.keep
                                                                     else D.none)
                                   D.none)

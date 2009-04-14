@@ -15,6 +15,7 @@ import qualified Text.XML.HaXml.Html.Pretty as HtmlPP
 -- It demonstrates the behaviour of the parser and pretty-printer,
 -- including any shortcomings they may have.
 
+main :: IO ()
 main =
   fix2Args >>= \(inf,outf)->
   ( if inf=="-" then getContents

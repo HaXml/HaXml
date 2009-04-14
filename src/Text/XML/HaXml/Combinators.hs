@@ -13,7 +13,7 @@ module Text.XML.HaXml.Combinators
    -- * Simple filters.
    -- ** Selection filters.
    -- $selection
-  , keep, none, children, position
+  , keep, none, children, childrenBy, position
 
    -- ** Predicate filters.
    -- $pred
@@ -114,16 +114,16 @@ txt x@(CRef _ _)      = [x]
 txt _                 = []
 
 tag t x@(CElem (Elem n _ _) _) | t==n  = [x]
-tag t _  = []
+tag _ _  = []
 
 tagWith p x@(CElem (Elem n _ _) _) | p n  = [x]
-tagWith p _  = []
+tagWith _ _  = []
 
 attr n x@(CElem (Elem _ as _) _) | n `elem` (map fst as)  = [x]
-attr n _  = []
+attr _ _  = []
 
 attrval av x@(CElem (Elem _ as _) _) | av `elem` as  = [x]
-attrval av _  = []
+attrval _  _  = []
 
 
 
@@ -141,17 +141,17 @@ find key cont c@(CElem (Elem _ as _) _) = cont (show (lookfor key as)) c
 --   its value.  If the attribute is absent, it acts as the @no@ filter,
 --   otherwise it applies the @yes@ filter.
 iffind :: String -> (String->CFilter i) -> CFilter i -> CFilter i
-iffind key yes no c@(CElem (Elem _ as _) _) =
+iffind  key  yes no c@(CElem (Elem _ as _) _) =
   case (lookup key as) of
-    Nothing  -> no c
+    Nothing               -> no c
     (Just v@(AttValue _)) -> yes (show v) c
-iffind key yes no other = no other
+iffind _key _yes no other = no other
 
 -- | @ifTxt yes no@ processes any textual content with the @yes@ filter,
 --   but otherwise is the same as the @no@ filter.
 ifTxt :: (String->CFilter i) -> CFilter i -> CFilter i
-ifTxt yes no c@(CString _ s _) = yes s c
-ifTxt yes no c                 = no c
+ifTxt  yes _no c@(CString _ s _) = yes s c
+ifTxt _yes  no c                 = no c
 
 
 
@@ -201,7 +201,7 @@ cat fs = foldr1 union fs
 andThen :: (a->c) -> (c->a->b) -> (a->b)
 andThen f g = \x-> g (f x) x			-- lift g f id
 
--- | Process children using specified filters.  /not exported/
+-- | Process children using specified filters.
 childrenBy :: CFilter i -> CFilter i 
 childrenBy f = f `o` children
 
@@ -267,15 +267,15 @@ g `guards` f     = g ?> f :> none	-- = f `o` (keep `with` g)
 -- | Process CHildren In Place.  The filter is applied to any children
 --   of an element content, and the element rebuilt around the results.
 chip :: CFilter i -> CFilter i
-chip f (CElem (Elem n as cs) i) = [ CElem (Elem n as (concatMap f cs)) i ]
-chip f c = [c]
+chip  f (CElem (Elem n as cs) i) = [ CElem (Elem n as (concatMap f cs)) i ]
+chip _f c = [c]
 -- chip f = inplace (f `o` children)
 
 -- | Process an element In Place.  The filter is applied to the element
 --   itself, and then the original element rebuilt around the results.
 inplace :: CFilter i -> CFilter i
-inplace f c@(CElem (Elem name as _) i) = [ CElem (Elem name as (f c)) i ]
-inplace f c = [c]
+inplace  f c@(CElem (Elem name as _) i) = [ CElem (Elem name as (f c)) i ]
+inplace _f c = [c]
 
 
 -- | Recursive application of filters: a fold-like operator.  Defined
@@ -295,7 +295,8 @@ mkElem h cfs = \t-> [ CElem (Elem h [] (cat cfs t)) undefined ]
 
 -- | Build an element with the given name, attributes, and content.
 mkElemAttr :: String -> [(String,CFilter i)] -> [CFilter i] -> CFilter i
-mkElemAttr h as cfs = \t-> [ CElem (Elem h (map (attr t) as) (cat cfs t)) undefined ]
+mkElemAttr h as cfs = \t-> [ CElem (Elem h (map (attr t) as) (cat cfs t))
+                                   undefined ]
   where attr t (n,vf) =
             let v = concat [ s | (CString _ s _) <- (deep txt `o` vf) t ]
             in  (n, AttValue [Left v])
@@ -311,13 +312,13 @@ cdata s = const [CString True s undefined]
 -- | Rename an element tag (leaving attributes in place).
 replaceTag :: String -> CFilter i
 replaceTag n (CElem (Elem _ as cs) i) = [CElem (Elem n as cs) i]
-replaceTag n _ = []
+replaceTag _ _ = []
 
 -- | Replace the attributes of an element (leaving tag the same).
 replaceAttrs :: [(String,String)] -> CFilter i
 replaceAttrs as (CElem (Elem n _ cs) i) = [CElem (Elem n as' cs) i]
     where as' = map (\(n,v)-> (n, AttValue [Left v])) as
-replaceAttrs as _ = []
+replaceAttrs _  _ = []
 
 
 

@@ -38,7 +38,7 @@ debug :: Monad m => String -> m ()
 debug s = trace s (return ())
 #else
 debug :: Monad m => String -> m ()
-debug s = return ()
+debug _ = return ()
 #endif
 
 
@@ -62,21 +62,23 @@ simplify (Document p st (Elem n avs cs) ms) =
     Document p st (Elem n avs (deepfilter simp cs)) ms
   where
     simp (CElem (Elem "null" [] []) _) = False
-    simp (CElem (Elem  n     _  []) _) | n `elem` ["font","p","i","b","em"
+    simp (CElem (Elem  t     _  []) _) | t `elem` ["font","p","i","b","em"
                                                   ,"tt","big","small"] = False
  -- simp (CString False s _) | all isSpace s = False
     simp _ = True
-    deepfilter p =
-        filter p . map (\c-> case c of
-                          CElem (Elem n avs cs) i
-                                  -> CElem (Elem n avs (deepfilter p cs)) i
+    deepfilter f =
+        filter f . map (\c-> case c of
+                          CElem (Elem t avs cs) i
+                                  -> CElem (Elem t avs (deepfilter f cs)) i
                           _       -> c)
 
 -- opening any of these, they close again immediately
+selfclosingtags :: [String]
 selfclosingtags = ["img","hr","br","meta","col","link","base"
                   ,"param","area","frame","input"]
 
 --closing this, implicitly closes any of those which are contained in it
+closeInnerTags :: [(String,[String])]
 closeInnerTags =
   [ ("ul",      ["li"])
   , ("ol",      ["li"])
@@ -120,22 +122,13 @@ t `closes` "p"
 _ `closes` _ = False
 
 
-
----- Misc ----
-
-fst3 (a,_,_) = a
-snd3 (_,a,_) = a
-thd3 (_,_,a) = a
-
-
-
 ---- Auxiliary Parsing Functions ----
 
 type HParser a = Parser (Posn,TokenT) a
 
 tok :: TokenT -> HParser TokenT
 tok t = do (p,t') <- next
-           case t' of TokError s    -> report failBad (show t) p t'
+           case t' of TokError _    -> report failBad (show t) p t'
                       _ | t'==t     -> return t
                         | otherwise -> report fail (show t) p t'
 
@@ -144,7 +137,7 @@ name :: HParser Name
 name = do (p,tok) <- next
           case tok of 
             TokName s  -> return s 
-            TokError s -> report failBad "a name" p tok
+            TokError _ -> report failBad "a name" p tok
             _          -> report fail "a name" p tok
 
 string, freetext :: HParser String
@@ -168,10 +161,10 @@ either p q =
 word :: String -> HParser ()
 word s = do { x <- next
             ; case x of
-                (p,TokName n)     | s==n -> return ()
-                (p,TokFreeText n) | s==n -> return ()
-                (p,t@(TokError _)) -> report failBad (show s) p t
-                (p,t) -> report fail (show s) p t
+                (_p,TokName n)     | s==n -> return ()
+                (_p,TokFreeText n) | s==n -> return ()
+                ( p,t@(TokError _)) -> report failBad (show s) p t
+                ( p,t) -> report fail (show s) p t
             }
 
 posn :: HParser Posn
@@ -188,8 +181,8 @@ failP msg    = do { p <- posn; fail (msg++"\n    at "++show p) }
 failBadP msg = do { p <- posn; failBad (msg++"\n    at "++show p) }
 
 report :: (String->HParser a) -> String -> Posn -> TokenT -> HParser a
-report fail exp p t = fail ("Expected "++show exp++" but found "++show t
-                           ++"\n  at "++show p)
+report fail expect p t = fail ("Expected "++show expect++" but found "++show t
+                               ++"\n  at "++show p)
 
 adjustErrP :: HParser a -> (String->String) -> HParser a
 p `adjustErrP` f = p `onFail` do pn <- posn
@@ -200,9 +193,9 @@ p `adjustErrP` f = p `onFail` do pn <- posn
 document :: HParser (Document Posn)
 document = do
     p     <- prolog `adjustErr` ("unrecognisable XML prolog\n"++)
-    es    <- many1 (element "HTML document")
+    ht    <- many1 (element "HTML document")
     ms    <- many misc
-    return (Document p emptyST (case map snd es of
+    return (Document p emptyST (case map snd ht of
                                   [e] -> e
                                   es  -> Elem "html" [] (map mkCElem es))
                                ms)
@@ -374,18 +367,22 @@ closeInner c ts =
       (Just these) -> filter ((`notElem` these).fst) ts
       Nothing      -> ts
 
+unparse :: [TokenT] -> Parser (Posn, TokenT) ()
 unparse ts = do p <- posn
                 reparse (zip (repeat p) ts)
 
+reformatAttrs :: [(String, AttValue)] -> [TokenT]
 reformatAttrs avs = concatMap f0 avs
     where f0 (a, v@(AttValue _)) = [TokName a, TokEqual, TokQuote,
                                        TokFreeText (show v), TokQuote]
+
+reformatTags :: [(String, [(String, AttValue)])] -> [TokenT]
 reformatTags ts = concatMap f0 ts
     where f0 (t,avs) = [TokAnyOpen, TokName t]++reformatAttrs avs++[TokAnyClose]
 
 content :: Name -> HParser (Stack,Content Posn)
-content ctx = do { p <- posn ; content' p ctx }
-  where content' p ctx = oneOf'
+content ctx = do { p <- posn ; content' p }
+  where content' p = oneOf'
           [ ( "element", element ctx >>= \(s,e)-> return (s, CElem e p))
           , ( "chardata", chardata >>= \s-> return ([], CString False s p))
           , ( "reference", reference >>= \r-> return ([], CRef r p))
@@ -640,14 +637,14 @@ externalid =
 --    n <- name
 --    return (NDATA n)
 
-textdecl :: HParser TextDecl
-textdecl = do
-    tok TokPIOpen
-    (word "xml" `onFail` word "XML")
-    v <- maybe versioninfo
-    e <- encodingdecl
-    tok TokPIClose `onFail` failP "expected ?> terminating text decl"
-    return (TextDecl v e)
+--textdecl :: HParser TextDecl
+--textdecl = do
+--    tok TokPIOpen
+--    (word "xml" `onFail` word "XML")
+--    v <- maybe versioninfo
+--    e <- encodingdecl
+--    tok TokPIClose `onFail` failP "expected ?> terminating text decl"
+--    return (TextDecl v e)
 
 --extparsedent :: HParser ExtParsedEnt
 --extparsedent = do
@@ -677,22 +674,22 @@ encodingdecl = do
 --    tok TokAnyClose `onFail` failP "expected > terminating NOTATION decl"
 --    return (NOTATION n e)
 
-publicid :: HParser PublicID
-publicid = do
-    word "PUBLICID"
-    p <- pubidliteral
-    return (PUBLICID p)
+--publicid :: HParser PublicID
+--publicid = do
+--    word "PUBLICID"
+--    p <- pubidliteral
+--    return (PUBLICID p)
 
-entityvalue :: HParser EntityValue
-entityvalue = do
-    evs <- bracket (tok TokQuote) (tok TokQuote) (many ev)
-    return (EntityValue evs)
+--entityvalue :: HParser EntityValue
+--entityvalue = do
+--    evs <- bracket (tok TokQuote) (tok TokQuote) (many ev)
+--    return (EntityValue evs)
 
-ev :: HParser EV
-ev =
-    ( freetext >>= return . EVString) `onFail`
---  PEREF(EVPERef,ev) `onFail`
-    ( reference >>= return . EVRef)
+--ev :: HParser EV
+--ev =
+--    ( freetext >>= return . EVString) `onFail`
+-- -- PEREF(EVPERef,ev) `onFail`
+--    ( reference >>= return . EVRef)
 
 attvalue :: HParser AttValue
 attvalue =

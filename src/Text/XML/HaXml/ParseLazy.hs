@@ -67,11 +67,11 @@ import IOExts(trace)
 #  elif defined(__NHC__) || defined(__HBC__)
 import NonStdTrace
 #  endif
-debug :: a -> String -> a
 v `debug` s = trace s v
 #else
-v `debug` s = v
+v `debug` _ = v
 #endif
+debug :: a -> String -> a
 
 
 -- | To parse a whole document, @xmlParse file content@ takes a filename
@@ -85,6 +85,7 @@ xmlParse :: String -> String -> Document Posn
 --   Any parse error message is passed back to the caller through the
 --   @Either@ type.
 xmlParse' :: String -> String -> Either String (Document Posn)
+-}
 
 -- | To parse just a DTD, @dtdParse file content@ takes a filename
 --   (for generating error reports) and the string content of that
@@ -92,6 +93,7 @@ xmlParse' :: String -> String -> Either String (Document Posn)
 --   However, if a DTD is found but contains errors, the program crashes.
 dtdParse  :: String -> String -> Maybe DocTypeDecl
 
+{-
 -- | To parse just a DTD, @dtdParse' file content@ takes a filename
 --   (for generating error reports) and the string content of that
 --   file.  If no DTD was found, you get @Right Nothing@.
@@ -105,7 +107,7 @@ dtdParse' name inp = dtdParse name inp `catch` (Left . show)
 xmlParse  name  = fst3 . runParser (toEOF document) emptySTs . xmlLex name
 dtdParse  name  = fst3 . runParser justDTD  emptySTs . xmlLex name
 
-
+toEOF :: XParser a -> XParser a
 toEOF = id	-- there are other possible implementations...
 
 -- | To parse a partial document, e.g. from an XML-based stream protocol,
@@ -133,7 +135,7 @@ addGE :: String -> EntityDef -> SymTabs -> SymTabs
 addGE n v (pe,ge) = let newge = addST n v ge in newge `seq` (pe, newge)
 
 lookupPE :: String -> SymTabs -> Maybe PEDef
-lookupPE s (pe,ge) = lookupST s pe
+lookupPE s (pe,_ge) = lookupST s pe
 
 flattenEV :: EntityValue -> String
 flattenEV (EntityValue evs) = concatMap flatten evs
@@ -207,12 +209,13 @@ either p q =
 word :: String -> XParser ()
 word s = do { x <- next
             ; case x of
-                (p,TokName n)     | s==n -> return ()
-                (p,TokFreeText n) | s==n -> return ()
-                (p,t@(TokError _)) -> report failBad (show s) p t
-                (p,t) -> report fail (show s) p t
+                (_p,TokName n)     | s==n -> return ()
+                (_p,TokFreeText n) | s==n -> return ()
+                ( p,t@(TokError _)) -> report failBad (show s) p t
+                ( p,t) -> report fail (show s) p t
             }
 
+posn :: XParser Posn
 posn = do { x@(p,_) <- next
           ; reparse [x]
           ; return p
@@ -226,8 +229,8 @@ failP msg = do { p <- posn; fail (msg++"\n    at "++show p) }
 failBadP msg = do { p <- posn; failBad (msg++"\n    at "++show p) }
 
 report :: (String->XParser a) -> String -> Posn -> TokenT -> XParser a
-report fail exp p t = fail ("Expected "++exp++" but found "++show t
-                           ++"\n  in "++show p)
+report fail expect p t = fail ("Expected "++expect++" but found "++show t
+                               ++"\n  in "++show p)
 
 adjustErrP :: XParser a -> (String->String) -> XParser a
 p `adjustErrP` f = p `onFail` do pn <- posn
@@ -289,7 +292,7 @@ justDTD =
      return dtd
  where extract (ExtMarkupDecl m) = [m]
        extract (ExtConditionalSect (IncludeSect i)) = concatMap extract i
-       extract (ExtConditionalSect (IgnoreSect i)) = []
+       extract (ExtConditionalSect (IgnoreSect _)) = []
 
 -- | Return an entire XML document including prolog and trailing junk.
 document :: XParser (Document Posn)
@@ -453,7 +456,7 @@ element = do
 checkmatch :: Posn -> Name -> Name -> XParser ()
 checkmatch p n m =
   if n == m then return ()
-  else failBadP ("tag <"++n++"> terminated by </"++m++">")
+  else failBad ("tag <"++n++"> terminated by </"++m++">\n  at "++show p)
 
 -- | Parse only the parts between angle brackets in an element tag.
 elemtag :: XParser ElemTag
@@ -630,8 +633,6 @@ tokenizedtype =
                ++" (ID, IDREF, IDREFS, ENTITY, ENTITIES, NMTOKEN, NMTOKENS)"
                ++"\nbut got "++show t)
        }
--- `adjustErr` (++"\nLooking for a tokenized type:\n\ 
--- \    (ID, IDREF, IDREFS, ENTITY, ENTITIES, NMTOKEN, NMTOKENS)")
 
 enumeratedtype :: XParser EnumeratedType
 enumeratedtype =
@@ -661,8 +662,6 @@ defaultdecl =
                               return (DefaultTo a f) )
            ]
         `adjustErr` ("looking for an attribute default decl,\n"++)
---      `adjustErr` (++"\nLooking for an attribute default decl:\n\ 
--- \    (REQUIRED, IMPLIED, FIXED)")
 
 conditionalsect :: XParser ConditionalSect
 conditionalsect = oneOf'
@@ -698,20 +697,20 @@ newIgnore =
          return Ignore  `debug` ("ignoring: "++show t))
 
 --- obsolete?
-ignoresectcontents :: XParser IgnoreSectContents
-ignoresectcontents = do
-    i <- ignore
-    is <- many (do tok TokSectionOpen
-                   ic <- ignoresectcontents
-                   tok TokSectionClose
-                   ig <- ignore
-                   return (ic,ig))
-    return (IgnoreSectContents i is)
-
-ignore :: XParser Ignore
-ignore = do
-  is <- many1 (nottok [TokSectionOpen,TokSectionClose])
-  return Ignore  `debug` ("ignored all of: "++show is)
+--ignoresectcontents :: XParser IgnoreSectContents
+--ignoresectcontents = do
+--    i <- ignore
+--    is <- many (do tok TokSectionOpen
+--                   ic <- ignoresectcontents
+--                   tok TokSectionClose
+--                   ig <- ignore
+--                   return (ic,ig))
+--    return (IgnoreSectContents i is)
+--
+--ignore :: XParser Ignore
+--ignore = do
+--  is <- many1 (nottok [TokSectionOpen,TokSectionClose])
+--  return Ignore  `debug` ("ignored all of: "++show is)
 ----
 
 -- | Return either a general entity reference, or a character reference.
@@ -814,17 +813,17 @@ textdecl = do
     tok TokPIClose `onFail` failP "expected ?> terminating text decl"
     return (TextDecl v e)
 
-extparsedent :: XParser (ExtParsedEnt Posn)
-extparsedent = do
-    t <- maybe textdecl
-    c <- content
-    return (ExtParsedEnt t c)
-
-extpe :: XParser ExtPE
-extpe = do
-    t <- maybe textdecl
-    e <- many (peRef extsubsetdecl)
-    return (ExtPE t e)
+--extparsedent :: XParser (ExtParsedEnt Posn)
+--extparsedent = do
+--    t <- maybe textdecl
+--    c <- content
+--    return (ExtParsedEnt t c)
+--
+--extpe :: XParser ExtPE
+--extpe = do
+--    t <- maybe textdecl
+--    e <- many (peRef extsubsetdecl)
+--    return (ExtPE t e)
 
 encodingdecl :: XParser EncodingDecl
 encodingdecl = do

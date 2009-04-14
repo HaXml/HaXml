@@ -1,6 +1,5 @@
 module Main where
 
-import System (getArgs)
 import IO
 import List   (isSuffixOf)
 
@@ -15,6 +14,7 @@ import Text.PrettyPrint.HughesPJ (render)
 -- It demonstrates the behaviour of the parser and pretty-printer,
 -- including any shortcomings they may have.
 
+main :: IO ()
 main =
   fix2Args >>= \(inf,outf)->
   ( if inf=="-" then getContents

@@ -1,11 +1,9 @@
 module Main where
 
-import System (getArgs)
 import IO
-import List   (isSuffixOf)
 import Maybe  (fromJust)
 
-import Text.XML.HaXml.Types     (Document(..),Content(..))
+import Text.XML.HaXml.Types     (Document(..))
 import Text.XML.HaXml.Parse     (xmlParse,dtdParse)
 import Text.XML.HaXml.Validate  (validate)
 import Text.XML.HaXml.Wrappers  (fix2Args)
@@ -14,6 +12,7 @@ import Text.XML.HaXml.Wrappers  (fix2Args)
 -- an XML document from another file (or stdin), and writes any validation
 -- errors to stdout.
 
+main :: IO ()
 main = do
   (dtdf,xmlf) <- fix2Args
   dtdtext     <- ( if dtdf=="-" then error "Usage: validate dtdfile [xmlfile]"

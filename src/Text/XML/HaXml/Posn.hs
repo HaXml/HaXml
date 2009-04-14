@@ -73,4 +73,4 @@ white '\n' = newline
 white '\r' = id
 white '\t' = tab
 white '\xa0' = addcol 1
-
+white _    = error "precondition not satisfied: Posn.white c | isSpace c"

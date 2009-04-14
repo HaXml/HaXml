@@ -1,9 +1,11 @@
 module Main where
 
+import Prelude hiding (max)
 import System (getArgs)
 import Char   (isDigit)
 import IO     (hFlush,stdout)
 
+main  :: IO ()
 main = do
     args <- getArgs
     case length args of
@@ -55,11 +57,13 @@ ordinal :: Int -> String
 ordinal n | n <= 20   = ordinals!!n
 ordinal n | otherwise = "Choice"++show n
 
+ordinals :: [String]
 ordinals = ["Zero","One","Two","Three","Four","Five","Six","Seven","Eight"
            ,"Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen"
            ,"Sixteen","Seventeen","Eighteen","Nineteen","Twenty"]
 
 ---- variable names ----
+variables :: [String]
 variables = [ v:[] | v <- ['a'..'z']]
             ++ [ v:w:[] | v <- ['a'..'z'], w <- ['a'..'z']]
 
@@ -72,8 +76,8 @@ format :: Int		-- current position on page
        -> String	-- text to precede subsequent values
        -> [String]	-- list of values to format
         -> String
-format cur max ind s0 s1 []     = ""
-format cur max ind s0 s1 (x:xs)
+format _cur _max _ind _s0 _s1 []     = ""
+format  cur  max  ind  s0  s1 (x:xs)
     | sameline < max  = s0 ++ x ++ format sameline max ind s1 s1 xs
     | otherwise       = "\n" ++ replicate ind ' ' ++
                         s0 ++ x ++ format newline max ind s1 s1 xs

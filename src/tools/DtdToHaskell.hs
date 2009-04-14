@@ -31,6 +31,7 @@ fix2Args = do
             exitFailure
 
 
+main ::IO ()
 main =
   fix2Args >>= \(inf,outf)->
   ( if inf=="-" then getContents
@@ -55,10 +56,11 @@ main =
      hPutStrLn o "\n\n{-Done-}"
      hFlush o
 
-
+getDtd :: Maybe t -> t
 getDtd (Just dtd) = dtd
 getDtd (Nothing)  = error "No DTD in this document"
 
+trim :: [Char] -> [Char]
 trim name | '/' `elem` name  = (trim . tail . dropWhile (/='/')) name
           | '.' `elem` name  = takeWhile (/='.') name
           | otherwise        = name

@@ -49,7 +49,7 @@ instance Eq HType where
     (Tuple xs) == (Tuple ys) =  xs==ys
     (Prim x _) == (Prim y _) =  x==y
     String     == String     =  True
-    (Defined n xs _) == (Defined m ys _)  =  n==m 	-- && xs==ys
+    (Defined n _xs _) == (Defined m _ys _)  =  n==m 	-- && xs==ys
     _          == _          =  False
 
 -- | A concrete representation of any user-defined Haskell constructor.
@@ -65,7 +65,7 @@ data Constr = Constr String [HType] [HType] -- (Maybe [String])
 --   suitable for an XML tagname.
 showConstr :: Int -> HType -> String
 showConstr n (Defined _ _ cs) = flatConstr (cs!!n) ""
-showConstr n _ = error "no constructors for builtin types"
+showConstr _ _ = error "no constructors for builtin types"
 
 ------------------------------------------------------------------------
 -- Some instances
@@ -210,8 +210,8 @@ toDTD ht =
     c0 = False
     h2d :: Bool -> [HType] -> [Constr] -> [HType] -> [MarkupDecl]
     -- toplevel?   history    history   remainingwork     result
-    h2d c history chist []       = []
-    h2d c history chist (ht:hts) =
+    h2d _c _history _chist []       = []
+    h2d  c  history  chist (ht:hts) =
       if ht `elem` history then h2d c0 history chist hts
       else
         case ht of
@@ -219,25 +219,27 @@ toDTD ht =
           List ht0   -> declelem ht: h2d c0 (ht:history) chist (ht0:hts)
           Tuple hts0 -> (c ? (declelem ht:))
                                      (h2d c0 history chist (hts0++hts))
-          Prim s t   -> declprim ht ++ h2d c0 (ht:history) chist hts
+          Prim _ _   -> declprim ht ++ h2d c0 (ht:history) chist hts
           String     -> declstring:    h2d c0 (ht:history) chist hts
-          Defined s _ cs ->
+          Defined _ _ cs ->
                let hts0 = concatMap grab cs in
                (c ? (decltopelem ht:)) (declmacro ht chist)
                ++ h2d c0 (ht:history) (cs++chist) (hts0++hts)
     declelem ht =
-      Element (ElementDecl (showHType ht "") (ContentSpec (outerHtExpr ht)))
+      Element (ElementDecl (showHType ht "")
+                           (ContentSpec (outerHtExpr ht)))
     decltopelem ht =    -- hack to avoid peref at toplevel
-      Element (ElementDecl (showHType ht "-XML") (ContentSpec (innerHtExpr ht None)))
+      Element (ElementDecl (showHType ht "-XML")
+                           (ContentSpec (innerHtExpr ht None)))
     declmacro ht@(Defined _ _ cs) chist =
       Entity (EntityPEDecl (PEDecl (showHType ht "") (PEDefEntityValue ev))):
       concatMap (declConstr chist) cs
       where ev = EntityValue [EVString (render (PP.cp (outerHtExpr ht)))]
     declConstr chist c@(Constr s fv hts)
-      | c `notElem` chist =
-          [Element (ElementDecl (flatConstr c "") (ContentSpec (constrHtExpr c)))]
+      | c `notElem` chist = [Element (ElementDecl (flatConstr c "")
+                                         (ContentSpec (constrHtExpr c)))]
       | otherwise = [] 
-    declprim (Prim s t) =
+    declprim (Prim _ t) =
       [ Element (ElementDecl t EMPTY)
       , AttList (AttListDecl t [AttDef "value" StringType REQUIRED])]
     declstring =
@@ -256,7 +258,7 @@ showHType (Tuple hts) = showString "tuple" . shows (length hts)
                         . showChar '-'
                         . foldr1 (.) (intersperse (showChar '-')
                                                   (map showHType hts))
-showHType (Prim s t)  = showString t
+showHType (Prim _ t)  = showString t
 showHType String      = showString "string"
 showHType (Defined s fv _)
                       = showString s . ((length fv > 0) ? (showChar '-'))
@@ -271,20 +273,20 @@ flatConstr (Constr s fv _)
 outerHtExpr :: HType -> CP
 outerHtExpr (Maybe ht)      = innerHtExpr ht Query
 outerHtExpr (List ht)       = innerHtExpr ht Star
-outerHtExpr (Defined s fv cs) =
+outerHtExpr (Defined _s _fv cs) =
     Choice (map (\c->TagName (flatConstr c "") None) cs) None
 outerHtExpr ht              = innerHtExpr ht None
 
 innerHtExpr :: HType -> Modifier -> CP
-innerHtExpr (Prim s t)  m = TagName t m
+innerHtExpr (Prim _ t)  m = TagName t m
 innerHtExpr (Tuple hts) m = Seq (map (\c-> innerHtExpr c None) hts) m
-innerHtExpr ht@(Defined s hts cs) m = -- CPPE (showHType ht "") (outerHtExpr ht)
-                                      TagName ('%': showHType ht ";") m
+innerHtExpr ht@(Defined _ _ _) m = -- CPPE (showHType ht "") (outerHtExpr ht)
+                                   TagName ('%': showHType ht ";") m
                                                         --  ***HACK!!!***
 innerHtExpr ht m = TagName (showHType ht "") m
 
 constrHtExpr :: Constr -> CP
-constrHtExpr (Constr s fv [])  = TagName "EMPTY" None   --  ***HACK!!!***
-constrHtExpr (Constr s fv hts) = innerHtExpr (Tuple hts) None
+constrHtExpr (Constr _s _fv [])  = TagName "EMPTY" None   --  ***HACK!!!***
+constrHtExpr (Constr _s _fv hts) = innerHtExpr (Tuple hts) None
 
 ------------------------------------------------------------------------

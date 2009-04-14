@@ -5,6 +5,7 @@ module Text.XML.HaXml.Wrappers
   ) where
 
 -- imports required for processXmlWith and fix2Args
+import Prelude hiding (filter)
 import System
 import IO
 import List (isSuffixOf)

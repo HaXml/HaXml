@@ -12,14 +12,16 @@ import Text.XML.HaXml.Posn          (posInNewCxt)
 import Text.XML.HaXml.Parse         (xmlParse)
 import Text.XML.HaXml.Html.Parse    (htmlParse)
 import Text.XML.HaXml.Xtract.Parse  (xtract)
-import Text.PrettyPrint.HughesPJ    (render, vcat, hcat, empty)
+import Text.PrettyPrint.HughesPJ    (Doc,render, vcat, hcat, empty)
 import Text.XML.HaXml.Pretty        (content)
 import Text.XML.HaXml.Html.Generate (htmlprint)
 import Text.XML.HaXml.Escape        (xmlEscapeContent,stdXmlEscaper)
 import Text.XML.HaXml.Util          (docContent)
 
+escape :: [Content i] -> [Content i]
 escape = xmlEscapeContent stdXmlEscaper
 
+main :: IO ()
 main =
   getArgs >>= \args->
   if length args < 1 then
@@ -51,8 +53,10 @@ main =
                    hFlush stdout)
           files
 
+isHTML :: [Char] -> Bool
 isHTML x = ".html" `isSuffixOf` x  ||  ".htm"  `isSuffixOf` x
 
+format :: [Content i] -> Doc
 format [] = empty
 format cs@(CString _ _ _:_) = hcat . map content $ cs
 format cs@(CRef _ _:_)      = hcat . map content $ cs

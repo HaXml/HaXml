@@ -86,38 +86,38 @@ data Section =
     deriving (Eq,Show)
 
 instance Show TokenT where
-  showsPrec p  TokCommentOpen		= showString     "<!--"
-  showsPrec p  TokCommentClose		= showString     "-->"
-  showsPrec p  TokPIOpen		= showString     "<?"
-  showsPrec p  TokPIClose		= showString     "?>"
-  showsPrec p  TokSectionOpen		= showString     "<!["
-  showsPrec p  TokSectionClose		= showString     "]]>"
-  showsPrec p  (TokSection s)		= showsPrec p s
-  showsPrec p  TokSpecialOpen		= showString     "<!"
-  showsPrec p  (TokSpecial s)		= showsPrec p s
-  showsPrec p  TokEndOpen		= showString     "</"
-  showsPrec p  TokEndClose		= showString     "/>"
-  showsPrec p  TokAnyOpen		= showString     "<"
-  showsPrec p  TokAnyClose		= showString     ">"
-  showsPrec p  TokSqOpen		= showString     "["
-  showsPrec p  TokSqClose		= showString     "]"
-  showsPrec p  TokEqual			= showString     "="
-  showsPrec p  TokQuery			= showString     "?"
-  showsPrec p  TokStar			= showString     "*"
-  showsPrec p  TokPlus			= showString     "+"
-  showsPrec p  TokAmp			= showString     "&"
-  showsPrec p  TokSemi			= showString     ";"
-  showsPrec p  TokHash			= showString     "#"
-  showsPrec p  TokBraOpen		= showString     "("
-  showsPrec p  TokBraClose		= showString     ")"
-  showsPrec p  TokPipe			= showString     "|"
-  showsPrec p  TokPercent		= showString     "%"
-  showsPrec p  TokComma			= showString     ","
-  showsPrec p  TokQuote			= showString     "' or \""
-  showsPrec p  (TokName      s)		= showString     s
-  showsPrec p  (TokFreeText  s)		= showString     s
-  showsPrec p  TokNull			= showString     "(null)"
-  showsPrec p  (TokError     s)		= showString     s
+  showsPrec _p TokCommentOpen		= showString     "<!--"
+  showsPrec _p TokCommentClose		= showString     "-->"
+  showsPrec _p TokPIOpen		= showString     "<?"
+  showsPrec _p TokPIClose		= showString     "?>"
+  showsPrec _p TokSectionOpen		= showString     "<!["
+  showsPrec _p TokSectionClose		= showString     "]]>"
+  showsPrec  p (TokSection s)		= showsPrec p s
+  showsPrec _p TokSpecialOpen		= showString     "<!"
+  showsPrec  p (TokSpecial s)		= showsPrec p s
+  showsPrec _p TokEndOpen		= showString     "</"
+  showsPrec _p TokEndClose		= showString     "/>"
+  showsPrec _p TokAnyOpen		= showString     "<"
+  showsPrec _p TokAnyClose		= showString     ">"
+  showsPrec _p TokSqOpen		= showString     "["
+  showsPrec _p TokSqClose		= showString     "]"
+  showsPrec _p TokEqual			= showString     "="
+  showsPrec _p TokQuery			= showString     "?"
+  showsPrec _p TokStar			= showString     "*"
+  showsPrec _p TokPlus			= showString     "+"
+  showsPrec _p TokAmp			= showString     "&"
+  showsPrec _p TokSemi			= showString     ";"
+  showsPrec _p TokHash			= showString     "#"
+  showsPrec _p TokBraOpen		= showString     "("
+  showsPrec _p TokBraClose		= showString     ")"
+  showsPrec _p TokPipe			= showString     "|"
+  showsPrec _p TokPercent		= showString     "%"
+  showsPrec _p TokComma			= showString     ","
+  showsPrec _p TokQuote			= showString     "' or \""
+  showsPrec _p (TokName      s)		= showString     s
+  showsPrec _p (TokFreeText  s)		= showString     s
+  showsPrec _p TokNull			= showString     "(null)"
+  showsPrec _p (TokError     s)		= showString     s
 
 --trim, revtrim :: String -> String
 --trim    = f . f         where f = reverse . dropWhile isSpace
@@ -134,8 +134,8 @@ skip :: Int -> Posn -> String -> (Posn->String->[Token]) -> [Token]
 skip n p s k = k (addcol n p) (drop n s)
 
 blank :: ([Where]->Posn->String->[Token]) -> [Where]-> Posn-> String-> [Token]
-blank k  (InTag t:_) p [] = lexerror ("unexpected EOF within "++t) p
-blank k          _   p [] = []
+blank _  (InTag t:_) p [] = lexerror ("unexpected EOF within "++t) p
+blank _          _   _ [] = []
 blank k      w p (' ': s) = blank k w (addcol 1 p) s
 blank k      w p ('\t':s) = blank k w (tab p) s
 blank k      w p ('\n':s) = blank k w (newline p) s
@@ -144,24 +144,28 @@ blank k   w p ('\xa0': s) = blank k w (addcol 1 p) s
 blank k      w p    s     = k w p s
 
 prefixes :: String -> String -> Bool
-[]     `prefixes`   ys   = True
+[]     `prefixes`   _    = True
 (x:xs) `prefixes` (y:ys) = x==y && xs `prefixes` ys
-(x:xs) `prefixes`   []   = False --error "unexpected EOF in prefix"
+(_:_)  `prefixes`   []   = False --error "unexpected EOF in prefix"
 
-textUntil close tok acc pos p [] k =
+textUntil, textOrRefUntil
+    :: [Char] -> TokenT -> [Char] -> Posn -> Posn -> [Char]
+       -> (Posn->String->[Token]) -> [Token]
+
+textUntil close _tok _acc pos p [] _k =
     lexerror ("unexpected EOF while looking for closing token "++close
               ++"\n  to match the opening token in "++show pos) p
-textUntil close tok acc pos p (s:ss) k
+textUntil close  tok  acc pos p (s:ss) k
     | close `prefixes` (s:ss)  = emit (TokFreeText (reverse acc)) pos:
                                  emit tok p:
                                  skip (length close-1) (addcol 1 p) ss k
     | isSpace s  = textUntil close tok (s:acc) pos (white s p) ss k
     | otherwise  = textUntil close tok (s:acc) pos (addcol 1 p) ss k
 
-textOrRefUntil close tok acc pos p [] k =
+textOrRefUntil close _tok _acc pos p [] _k =
     lexerror ("unexpected EOF while looking for closing token "++close
               ++"\n  to match the opening token in "++show pos) p
-textOrRefUntil close tok acc pos p (s:ss) k
+textOrRefUntil close  tok  acc pos p (s:ss) k
     | close `prefixes` (s:ss)  = emit (TokFreeText (reverse acc)) pos:
                                  emit tok p:
                                  skip (length close-1) (addcol 1 p) ss k
@@ -202,11 +206,11 @@ reLexEntityValue lookup p s =
     textOrRefUntil "%" TokNull [] p p (expand s++"%") (xmlAny [])
   where
     expand []       = []
-    expand ('%':ss) = let (sym,rest) = break (==';') ss in
+    expand ('%':xs) = let (sym,rest) = break (==';') xs in
                       case lookup sym of
                         Just val -> expand val ++ expand (tail rest)
                         Nothing  -> "%"++sym++";"++ expand (tail rest) -- hmmm
-    expand (s:ss)   = s: expand ss
+    expand (x:xs)   = x: expand xs
 
 --xmltop :: Posn -> String -> [Token]
 --xmltop p [] = []
@@ -217,15 +221,17 @@ reLexEntityValue lookup p s =
 --    | otherwise           = lexerror "expected <?xml?> or <!DOCTYPE>" p
 --  where next n k = skip n p s k
 
+xmlPI, xmlPIEnd, xmlComment, xmlAny, xmlTag, xmlSection, xmlSpecial
+    :: [Where] -> Posn -> String -> [Token]
+
 xmlPI      w p s = xmlName p s "name of processor in <? ?>" (blank xmlPIEnd w)
 xmlPIEnd   w p s = textUntil "?>"  TokPIClose "" p p s (blank xmlAny (tail w))
 xmlComment w p s = textUntil "-->" TokCommentClose "" p p s (blank xmlAny w)
 
 -- Note: the order of the clauses in xmlAny is very important.
 -- Some matches must precede the NotInTag test, the rest must follow it.
-xmlAny :: [Where] -> Posn -> String -> [Token]
 xmlAny  (InTag t:_)  p [] = lexerror ("unexpected EOF within "++t) p
-xmlAny          _    p [] = []
+xmlAny          _    _ [] = []
 xmlAny w p s@('<':ss)
     | "?"   `prefixes` ss = emit TokPIOpen p:
                                          skip 2 p s (xmlPI (InTag "<?...?>":w))
@@ -302,6 +308,7 @@ xmlSpecial w p s
                     ++" but got "++take 7 s) p
   where k n = skip n p s (blank xmlAny w)
 
+xmlName :: Posn -> [Char] -> [Char] -> (Posn->[Char]->[Token]) -> [Token]
 xmlName p (s:ss) cxt k
     | isAlphaNum s || s==':' || s=='_'  = gatherName (s:[]) p (addcol 1 p) ss k
     | otherwise   = lexerror ("expected a "++cxt++", but got char "++show s) p
@@ -313,11 +320,12 @@ xmlName p (s:ss) cxt k
         | isAlphaNum s || s `elem` ".-_:"
                       = gatherName (s:acc) pos (addcol 1 p) ss k
         | otherwise   = emit (TokName (reverse acc)) pos: k p (s:ss)
-xmlName p [] cxt k = lexerror ("expected a "++cxt++", but got end of input") p
+xmlName p [] cxt _ = lexerror ("expected a "++cxt++", but got end of input") p
 
-xmlContent acc w pos p [] = if all isSpace acc then []
+xmlContent :: [Char] -> [Where] -> Posn -> Posn -> [Char] -> [Token]
+xmlContent acc _w _pos p [] = if all isSpace acc then []
                             else lexerror "unexpected EOF between tags" p
-xmlContent acc w pos p (s:ss)
+xmlContent acc  w  pos p (s:ss)
     | elem s "<&"    = {- if all isSpace acc then xmlAny w p (s:ss) else -}
                        emit (TokFreeText (reverse acc)) pos: xmlAny w p (s:ss)
     | isSpace s      = xmlContent (s:acc) w pos (white s p) ss
