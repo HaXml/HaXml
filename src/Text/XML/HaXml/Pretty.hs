@@ -93,10 +93,7 @@ markupdecl (MarkupMisc m)  = misc m
 element (Elem n as []) = text "<" <> text n <+>
                          fsep (map attribute as) <> text "/>"
 element e@(Elem n as cs)
---  | any isText cs    = text "<" <> text n <+> fsep (map attribute as) <>
---                       text ">" <> hcat (map content cs) <>
---                       text "</" <> text n <> text ">"
-    | isText (head cs) = text "<" <> text n <+> fsep (map attribute as) <>
+    | all isText cs    = text "<" <> text n <+> fsep (map attribute as) <>
                          text ">" <> hcat (map content cs) <>
                          text "</" <> text n <> text ">"
     | otherwise        = let (d,c) = carryelem e empty
@@ -107,50 +104,33 @@ isText (CString _ _ _) = True
 isText (CRef _ _)      = True
 isText _               = False
 
-carryelem :: Element t -> Doc -> (Doc, Doc)
-carrycontent ::  Content t -> Doc -> (Doc, Doc)
-carryelem (Elem n as []) c
-                       = ( c <>
-                           text "<" <> text n <+> fsep (map attribute as)
-                         , text "/>")
-carryelem (Elem n as cs) c
---  | any isText cs    =  ( c <> element e, empty)
-    | otherwise        =  let (cs0,d0) = carryscan carrycontent cs (text ">")
-                          in
-                          ( c <>
-                            text "<" <> text n <+> fsep (map attribute as) $$
-                            nest 2 (vcat cs0) <> --- $$
-                            d0 <> text "</" <> text n
-                          , text ">")
-carrycontent (CElem e _) c   = carryelem e c
+carryelem    ::  Element t  -> Doc -> (Doc, Doc)
+carrycontent ::  Content t  -> Doc -> (Doc, Doc)
+spancontent  :: [Content a] -> Doc -> ([Doc],Doc)
+
+carryelem (Elem n as []) c = ( c <>
+                               text "<" <> text n <+> fsep (map attribute as)
+                             , text "/>")
+carryelem (Elem n as cs) c =  let (cs0,d0) = spancontent cs (text ">") in
+                              ( c <>
+                                text "<"<>text n <+> fsep (map attribute as) $$
+                                nest 2 (vcat cs0) <>
+                                d0 <> text "</" <> text n
+                              , text ">")
+
+carrycontent (CElem e _) c         = carryelem e c
 carrycontent (CString False s _) c = (c <> chardata s, empty)
 carrycontent (CString True  s _) c = (c <> cdsect s, empty)
-carrycontent (CRef r _) c    = (c <> reference r, empty)
-carrycontent (CMisc m _) c   = (c <> misc m, empty)
+carrycontent (CRef r _) c          = (c <> reference r, empty)
+carrycontent (CMisc m _) c         = (c <> misc m, empty)
 
-carryscan :: (a->c->(b,c)) -> [a] -> c -> ([b],c)
-carryscan _ []     c = ([],c)
-carryscan f (a:as) c = let (b, c0) = f a c
-                           (bs,c1) = carryscan f as c0
-                       in (b:bs, c1)
-
---carryelem e@(Elem n as cs) c
---  | isText (head cs) =
---        ( start <>
---          text ">" <> hcat (map content cs) <> text "</" <> text n
---        , text ">")
---  | otherwise =
---        let (d,c0) = foldl carrycontent (start, text ">") cs in
---        ( d <> c0 <> text "</" <> text n
---        , text ">")
---  where start = c <> text "<" <> text n <+> fsep (map attribute as)
---
---carrycontent (d,c) (CElem e)   = let (d',c') = carryelem e c in
---                                 (d $$ nest 2 d',       c')
---carrycontent (d,c) (CString _ s) = (d <> c <> chardata s, empty)
---carrycontent (d,c) (CRef r)    = (d <> c <> reference r,empty)
---carrycontent (d,c) (CMisc m)   = (d $$ c <> misc m,     empty)
-
+spancontent []     c = ([],c)
+spancontent (a:as) c | isText a  = let (ts,rest) = span isText (a:as)
+                                       formatted = c <> hcat (map content ts)
+                                   in  spancontent rest formatted
+                     | otherwise = let (b, c0) = carrycontent a c
+                                       (bs,c1) = spancontent as c0
+                                   in  (b:bs, c1)
 
 attribute (n,v)             = text n <> text "=" <> attvalue v
 content (CElem e _)         = element e
