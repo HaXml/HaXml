@@ -12,6 +12,10 @@ your choice.
 
 For newer compilers, use Cabal to build and install:
 
+    cabal install
+
+or 
+
     runhaskell Setup.hs configure
     runhaskell Setup.hs build
     runhaskell Setup.hs install

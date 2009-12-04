@@ -1,10 +1,5 @@
 The HaXml library and tools were written by and are copyright to
-    (c) copyright 1998-2006    Malcolm Wallace and Colin Runciman
-
-The library incorporates the module Text.ParserCombinators.HuttonMeijerWallace
-    (c) copyright 1996         Graham Hutton and Erik Meijer
-with modifications
-    (c) copyright 1998-2000    Malcolm Wallace
+    (c) copyright 1998-2009    Malcolm Wallace and Colin Runciman
 
 The HaXml library is licensed under the terms of the GNU Lesser
 General Public Licence (LGPL), which can be found in the file called

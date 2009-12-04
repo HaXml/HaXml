@@ -1,8 +1,8 @@
-%define ghc_version 6.2
+%define ghc_version 6.10.4
 
 Summary: Haskell utilities for processing XML
 Name: HaXml
-Version: 1.19
+Version: 1.20
 Release: 1
 License: GPL/LGPL
 Group: Development/Languages/Haskell

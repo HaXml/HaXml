@@ -24,15 +24,16 @@
 
 <p>
 <font color="red">
-<b>Warning!</b> The development versions (1.14 upwards) significantly
-change the API of some modules!  They may be incomplete, inconsistent,
-and liable to change before the next release!  Do not expect code
-written against an earlier API to be compatible!  DtdToHaskell has only
-recently been fixed to work with the new APIs! <b>Warning!</b>
+<b>Warning!</b> The new stable version (1.20) significantly
+changes the API of some modules over the previous stable version (1.13).
+(If you have already been using the development versions (1.14-1.19.x),
+then you are probably OK.)
 </font>
+<p>
+<a href="migrate.html">Notes for migrating code from the old stable
+(1.13) version of HaXml to the new stable (1.20) version.</a>
 
-<a href="migrate.html">Notes for migrating code from the 1.13 version of
-HaXml to the development version.</a>
+
 
 <hr>
 <center><h3><a name="what">What is HaXml?</a></h3></center>
@@ -74,8 +75,6 @@ For processing XML documents, the following components are also provided:
 <p>
 <a href="HaXml/index.html">Detailed documentation of the HaXml APIs</a>
 is generated automatically by Haddock directly from the source code.
-<a href="http://haskell.org/HaXml/index.html">Documentation for the
-previous (stable) version, HaXml-1.13.2</a>.
 
 <p>
 An introduction to HaXml for people who know more about XML than
@@ -131,12 +130,12 @@ Some additional info about using the various facilities is here:
 <hr>
 <center><h3><a name="download">Downloads</a></h3></center>
 <p>
-<b>Development versions:</b><br>
-HaXml-1.19.7, release date 2009.03.05<br>
-From <a href="http://hackage.haskell.org/cgi-bin/hackage-scripts/package/HaXml">Hackage</a><br>
+<b>Latest version:</b><br>
+HaXml-1.20, release date 2009.12.04<br>
+From <a href="http://hackage.haskell.org/package/HaXml">Hackage</a><br>
 By HTTP:
-<a href="http://www.cs.york.ac.uk/fp/HaXml-devel/HaXml-1.19.7.tar.gz">.tar.gz</a>,
-<a href="http://www.cs.york.ac.uk/fp/HaXml-devel/HaXml-1.19.7.zip">.zip</a>.
+<a href="http://www.cs.york.ac.uk/fp/HaXml-devel/HaXml-1.20.tar.gz">.tar.gz</a>,
+<a href="http://www.cs.york.ac.uk/fp/HaXml-devel/HaXml-1.20.zip">.zip</a>.
 <br>
 By FTP: 
 <a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/">
@@ -147,20 +146,6 @@ ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/</a>
 The development version of HaXml is also available through
 <br><tt><a href="http://darcs.net/">darcs</a> get
     http://www.cs.york.ac.uk/fp/darcs/HaXml</tt>
-
-<p>
-<b>Older versions:</b><br>
-Stable version: for 1.13.3 see
-<a href="http://haskell.org/HaXml/">
-http://haskell.org/HaXml/</a>
-<br>
-By FTP: 
-<a href="ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/">
-ftp://ftp.cs.york.ac.uk/pub/haskell/HaXml/</a>
-<br>
-FreeBSD port:
-<a href="http://freshports.org/textproc/hs-haxml/">
-http://freshports.org/textproc/haxml/</a>
 
 <center><h3><a name="install">Installation</a></h3></center>
 <p>
@@ -201,6 +186,9 @@ of your compiler etc.
 
 <hr>
 <center><h3><a name="news">Recent news</a></h3></center>
+
+<p>
+Version 1.20 is the new stable version.<br>
 
 <p>
 Version 1.19.7 requires package polyparse-1.2 (previous versions require
