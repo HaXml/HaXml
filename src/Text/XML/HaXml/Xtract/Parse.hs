@@ -378,7 +378,7 @@ rrange, numberdollar :: Integer -> XParser ([a]->[a])
 rrange n1 = oneOf
     [ do symbol "-"
          numberdollar n1
-    , return (C.keep.(!!(fromInteger n1)))
+    , return (take 1 . drop (fromInteger n1))
     ]
 
 numberdollar n1 = oneOf
