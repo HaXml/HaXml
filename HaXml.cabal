@@ -52,9 +52,9 @@ library
         Text.XML.HaXml.Xtract.Lex,
         Text.XML.HaXml.Xtract.Parse
   hs-source-dirs: src
-  build-depends: base, haskell98, polyparse >= 1.2, filepath
+  build-depends: haskell98, polyparse >= 1.2, filepath
   if flag(splitBase)
-    build-depends: base >= 3, pretty, random, containers
+    build-depends: base >= 3 && < 6, pretty, random, containers
   else
     build-depends: base < 3
   if flag(bytestringInBase)
