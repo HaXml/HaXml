@@ -90,14 +90,14 @@ haddock:
 		do mkdir -p docs/HaXml/src/$$dir; \
 		done
 	for file in $(SRCS); \
-		do $(CPP) -D__NHC__ $$file >$$file.uncpp; \
+		do $(CPP) -D__NHC__=120 $$file >$$file.uncpp.hs; \
 		   HsColour -anchor -html $$file >docs/HaXml/`dirname $$file`/`basename $$file .hs`.html; \
 		done
 	haddock --html --title=HaXml --odir=docs/HaXml \
 		--source-module="src/%{MODULE/.//}.html" \
 		--source-entity="src/%{MODULE/.//}.html#%{NAME}" \
-		$(patsubst %, %.uncpp, $(SRCS))
-	rm -f $(patsubst %, %.uncpp, $(SRCS))
+		$(patsubst %, %.uncpp.hs, $(SRCS))
+	rm -f $(patsubst %, %.uncpp.hs, $(SRCS))
 
 # packaging a distribution
 
