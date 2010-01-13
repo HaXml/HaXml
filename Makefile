@@ -93,7 +93,7 @@ haddock:
 		do $(CPP) -D__NHC__ $$file >$$file.uncpp; \
 		   HsColour -anchor -html $$file >docs/HaXml/`dirname $$file`/`basename $$file .hs`.html; \
 		done
-	haddock --html --title=HaXml --odir=docs/HaXml --package=HaXml \
+	haddock --html --title=HaXml --odir=docs/HaXml \
 		--source-module="src/%{MODULE/.//}.html" \
 		--source-entity="src/%{MODULE/.//}.html#%{NAME}" \
 		$(patsubst %, %.uncpp, $(SRCS))
