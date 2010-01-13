@@ -1,5 +1,5 @@
 name:		HaXml
-version:	1.20
+version:	1.20.1
 license:	LGPL
 license-file:	COPYRIGHT
 author:		Malcolm Wallace <Malcolm.Wallace@cs.york.ac.uk>
@@ -62,7 +62,7 @@ library
   else
     build-depends: base < 2 || >= 3, bytestring
   extensions: CPP, ExistentialQuantification
-  cpp-options: -DVERSION=1.19.7
+  cpp-options: -DVERSION=1.20.1
   nhc98-options: -K10M
 
 Executable Canonicalise
