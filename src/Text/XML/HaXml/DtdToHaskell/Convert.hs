@@ -53,7 +53,8 @@ convert (n, R as cs) =
       ANY                     -> modifier None [[Any]]
                                  --error "NYI: contentspec of ANY"
       (Mixed PCDATA)          -> modifier None [[String]]
-      (Mixed (PCDATAplus ns)) -> modifier Star ([String]: map ((:[]) . Defined . name) ns)
+      (Mixed (PCDATAplus ns)) -> modifier Star ([StringMixed]
+                                                : map ((:[]) . Defined . name) ns)
       (ContentSpec cp)        ->
           case cp of
             (TagName n' m) -> modifier m [[Defined (name n')]]
@@ -93,6 +94,7 @@ mkData tss  fs aux n  = [DataDef aux n fs (map (mkConstr n) tss)]
     flatten (List1 st)   = {-"List1_" ++ -} flatten st
     flatten (Tuple sts)  = {-"Tuple" ++ show (length sts) ++ "_" ++ -}
                             concat (intersperse "_" (map flatten sts))
+    flatten StringMixed  = "Str"
     flatten String       = "Str"
     flatten (OneOf sts)  = {-"OneOf" ++ show (length sts) ++ "_" ++ -}
                             concat (intersperse "_" (map flatten sts))

@@ -45,7 +45,8 @@ data StructType =
     | Tuple [StructType]
     | OneOf [StructType]
     | Any                               -- ^ XML's contentspec allows ANY
-    | String
+    | StringMixed			-- ^ mixed (#PCDATA | ... )*
+    | String				-- ^ string only (#PCDATA)
     | Defined Name
     deriving Eq
 
@@ -64,6 +65,7 @@ instance Show StructType where
                                                               (map shows ss))
                                     . showChar ')'
     showsPrec _ (Any)             = showString "ANY"
+    showsPrec _ (StringMixed)     = showString "#PCDATA"
     showsPrec _ (String)          = showString "#PCDATA"
     showsPrec _ (Defined (Name n _)) = showString n
 
@@ -123,6 +125,7 @@ ppST (List1 st)  = parens (text "List1" <+> ppST st)
 ppST (Tuple sts) = parens (commaList (map ppST sts))
 ppST (OneOf sts) = parens (text "OneOf" <> text (show (length sts)) <+>
                            hsep (map ppST sts))
+ppST  StringMixed= text "String"
 ppST  String     = text "String"
 ppST  Any        = text "ANYContent"
 ppST (Defined n) = ppHName n

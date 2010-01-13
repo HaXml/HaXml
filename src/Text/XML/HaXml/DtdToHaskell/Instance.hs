@@ -232,17 +232,18 @@ mkParseContents :: StructType -> Doc
 mkParseContents st =
   let ap = text "`apply`" in
           case st of
-            (Maybe String)  -> ap <+> text "optional text"
-            (Maybe _)       -> ap <+> text "optional parseContents"
-            (List String)   -> ap <+> text "many text"
-            (List _)        -> ap <+> text "many parseContents"
-            (List1 _)       -> ap <+> text "parseContents"
-            (Tuple _)      -> ap <+> text "parseContents"
-            (OneOf _)      -> ap <+> text "parseContents"
-            (String)        -> ap <+> text "(text `onFail` return \"\")"
-            (Any)           -> ap <+> text "parseContents"
-            (Defined _)     -> ap <+> text "parseContents"
-            (Defaultable _ _)  -> ap <+> text "nyi_fromElem_Defaultable"
+            (Maybe String)    -> ap <+> text "optional text"
+            (Maybe _)         -> ap <+> text "optional parseContents"
+            (List String)     -> ap <+> text "many text"
+            (List _)          -> ap <+> text "many parseContents"
+            (List1 _)         -> ap <+> text "parseContents"
+            (Tuple _)         -> ap <+> text "parseContents"
+            (OneOf _)         -> ap <+> text "parseContents"
+            (StringMixed)     -> ap <+> text "text"
+            (String)          -> ap <+> text "(text `onFail` return \"\")"
+            (Any)             -> ap <+> text "parseContents"
+            (Defined _)       -> ap <+> text "parseContents"
+            (Defaultable _ _) -> ap <+> text "nyi_fromElem_Defaultable"
 
 --
 mkToElem :: [StructType] -> [Doc] -> Doc
@@ -252,17 +253,18 @@ mkToElem sts vs =
   where
     toElem st v =
       case st of
-        (Maybe String)  -> text "maybe [] toText" <+> v
-        (Maybe _)       -> text "maybe [] toContents" <+> v
-        (List String)   -> text "concatMap toText" <+> v
-        (List _)        -> text "concatMap toContents" <+> v
-        (List1 _)       -> text "toContents" <+> v
-        (Tuple _)      -> text "toContents" <+> v
-        (OneOf _)      -> text "toContents" <+> v
-        (String)        -> text "toText" <+> v
-        (Any)           -> text "toContents" <+> v
-        (Defined _)     -> text "toContents" <+> v
-        (Defaultable _ _)  -> text "nyi_toElem_Defaultable" <+> v
+        (Maybe String)    -> text "maybe [] toText" <+> v
+        (Maybe _)         -> text "maybe [] toContents" <+> v
+        (List String)     -> text "concatMap toText" <+> v
+        (List _)          -> text "concatMap toContents" <+> v
+        (List1 _)         -> text "toContents" <+> v
+        (Tuple _)         -> text "toContents" <+> v
+        (OneOf _)         -> text "toContents" <+> v
+        (StringMixed)     -> text "toText" <+> v
+        (String)          -> text "toText" <+> v
+        (Any)             -> text "toContents" <+> v
+        (Defined _)       -> text "toContents" <+> v
+        (Defaultable _ _) -> text "nyi_toElem_Defaultable" <+> v
 
 -- mkRpat :: [Doc] -> Doc
 -- mkRpat [v] = v
