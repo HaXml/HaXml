@@ -1,0 +1,3 @@
+<!ELEMENT dummy EMPTY>
+<!ELEMENT broken (#PCDATA | dummy)* >
+<!ELEMENT simple (#PCDATA) >
