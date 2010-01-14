@@ -6,7 +6,9 @@ import System (getArgs, exitWith, ExitCode(..))
 import IO
 import Char         (toLower)
 import List         (isSuffixOf)
+import Control.Monad(when)
 
+import Text.XML.HaXml               (version)
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Posn          (posInNewCxt)
 import Text.XML.HaXml.Parse         (xmlParse)
@@ -22,13 +24,18 @@ escape :: [Content i] -> [Content i]
 escape = xmlEscapeContent stdXmlEscaper
 
 main :: IO ()
-main =
-  getArgs >>= \args->
-  if length args < 1 then
-    putStrLn "Usage: Xtract [-n] <pattern> [xmlfile ...]" >>
-    exitWith (ExitFailure 1)
-  else
-    let (pattern,files,esc) =
+main = do
+  args <- getArgs
+  when ("--version" `elem` args) $ do
+      putStrLn $ "part of HaXml-"++version
+      exitWith ExitSuccess
+  when ("--help" `elem` args) $ do
+      putStrLn $ "See http://haskell.org/HaXml"
+      exitWith ExitSuccess
+  when (length args < 1) $ do
+      putStrLn "Usage: Xtract [-n] <pattern> [xmlfile ...]"
+      exitWith (ExitFailure 1)
+  let (pattern,files,esc) =
           case args of ("-n":pat:files) -> (pat,files, (:[]))
                        (pat:"-n":files) -> (pat,files, (:[]))
                        (pat:files)      -> (pat,files, escape.(:[]))
@@ -38,11 +45,10 @@ main =
 --                           return ((if isHTML x
 --                                    then htmlParse x else xmlParse x) c))
 --                  files
-    in
 --  findcontents >>= \cs->
 --  ( hPutStrLn stdout . render . vcat
 --  . map (vcat . map content . selection . docContent)) cs
-    mapM_ (\x-> do c <- (if x=="-" then getContents else readFile x)
+  mapM_ (\x->   do c <- (if x=="-" then getContents else readFile x)
                    ( if isHTML x then
                           hPutStrLn stdout . render . htmlprint
                           . xtract (map toLower) pattern

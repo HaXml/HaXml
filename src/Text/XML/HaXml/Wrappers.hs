@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+#define dummy		-- just to ensure that cpp gets called on this file
 module Text.XML.HaXml.Wrappers
   ( fix2Args
   , processXmlWith
@@ -9,6 +11,7 @@ import Prelude hiding (filter)
 import System
 import IO
 import List (isSuffixOf)
+import Control.Monad (when)
 
 import Text.XML.HaXml.Types       (Document(..),Content(..))
 import Text.XML.HaXml.Combinators (CFilter)
@@ -26,6 +29,12 @@ import Text.PrettyPrint.HughesPJ  (render)
 fix2Args :: IO (String,String)
 fix2Args = do
   args <- getArgs
+  when ("--version" `elem` args) $ do
+      putStrLn $ "part of HaXml-"++MYVERSION
+      exitWith ExitSuccess
+  when ("--help" `elem` args) $ do
+      putStrLn $ "See http://haskell.org/HaXml"
+      exitWith ExitSuccess
   case length args of
     0 -> return ("-",     "-")
     1 -> return (args!!0, "-")

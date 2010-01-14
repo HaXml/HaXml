@@ -1,13 +1,21 @@
 module Main where
 
 import Prelude hiding (max)
-import System (getArgs)
+import System (getArgs,exitWith,ExitCode(..))
 import Char   (isDigit)
 import IO     (hFlush,stdout)
+import Control.Monad  (when)
+import Text.XML.HaXml (version)
 
 main  :: IO ()
 main = do
     args <- getArgs
+    when ("--version" `elem` args) $ do
+        putStrLn $ "part of HaXml-"++version
+        exitWith ExitSuccess
+    when ("--help" `elem` args) $ do
+        putStrLn $ "See http://haskell.org/HaXml"
+        exitWith ExitSuccess
     case length args of
       1 -> do n <- saferead (head args)
               putStrLn ("module Text.XML.HaXml."++constructor 1 n++" where\n")

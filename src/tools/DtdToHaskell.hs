@@ -9,8 +9,10 @@ module Main where
 import System
 import IO
 import List (nub,takeWhile,dropWhile)
+import Control.Monad
 
 --import Text.XML.HaXml.Wrappers   (fix2Args)
+import Text.XML.HaXml            (version)
 import Text.XML.HaXml.Types      (DocTypeDecl(..))
 import Text.XML.HaXml.Parse      (dtdParse)
 import Text.XML.HaXml.DtdToHaskell.TypeDef  (TypeDef,ppTypeDef,mangle)
@@ -22,6 +24,12 @@ import Text.PrettyPrint.HughesPJ (render,vcat)
 fix2Args :: IO (String,String)
 fix2Args = do
   args <- getArgs
+  when ("--version" `elem` args) $ do
+      putStrLn $ "part of HaXml-"++version
+      exitWith ExitSuccess
+  when ("--help" `elem` args) $ do
+      putStrLn $ "See http://haskell.org/HaXml"
+      exitWith ExitSuccess
   case length args of
     0 -> return ("-",     "-")
     1 -> return (args!!0, "-")

@@ -1,5 +1,5 @@
 SOFTWARE = HaXml
-VERSION  = 1.20.1
+VERSION  = 1.20.2
 
 #CPP      = cpp -traditional
 CPP     = cpphs --text --noline	# useful e.g. on MacOS X
@@ -90,7 +90,7 @@ haddock:
 		do mkdir -p docs/HaXml/src/$$dir; \
 		done
 	for file in $(SRCS); \
-		do $(CPP) -D__NHC__=120 $$file >$$file.uncpp.hs; \
+		do $(CPP) -D__NHC__=120 -DMYVERSION="\"$(VERSION)\"" $$file >$$file.uncpp.hs; \
 		   HsColour -anchor -html $$file >docs/HaXml/`dirname $$file`/`basename $$file .hs`.html; \
 		done
 	haddock --html --title=HaXml --odir=docs/HaXml \

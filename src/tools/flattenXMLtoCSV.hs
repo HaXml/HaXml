@@ -20,6 +20,13 @@ import Text.XML.HaXml.Verbatim      (verbatim)
 main :: IO ()
 main =
   getArgs >>= \args->
+  when ("--version" `elem` args) $ do
+      putStrLn $ "part of HaXml-"++version
+      exitWith ExitSuccess
+  when ("--help" `elem` args) $ do
+      putStrLn $ "See http://haskell.org/HaXml"
+      exitWith ExitSuccess
+
   if length args < 4 then do
     putStrLn "Usage: flattenXMLtoCSV file.xml file.csv tag innertag [innertag ...]  "
     exitWith (ExitFailure 1)

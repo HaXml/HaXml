@@ -1,5 +1,5 @@
 name:		HaXml
-version:	1.20.1
+version:	1.20.2
 license:	LGPL
 license-file:	COPYRIGHT
 author:		Malcolm Wallace <Malcolm.Wallace@cs.york.ac.uk>
@@ -62,47 +62,54 @@ library
   else
     build-depends: base < 2 || >= 3, bytestring
   extensions: CPP, ExistentialQuantification
-  cpp-options: -DVERSION=1.20.1
+  cpp-options: -DMYVERSION="1.20.2"
   nhc98-options: -K10M
 
 Executable Canonicalise
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
+  cpp-options: -DMYVERSION="1.20.2"
   Main-Is: Canonicalise.hs
 
 Executable CanonicaliseLazy
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
+  cpp-options: -DMYVERSION="1.20.2"
   Main-Is: CanonicaliseLazy.hs
 
 Executable Xtract
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
+  cpp-options: -DMYVERSION="1.20.2"
   Main-Is: Xtract.hs
 
 Executable XtractLazy
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
+  cpp-options: -DMYVERSION="1.20.2"
   Main-Is: XtractLazy.hs
 
 Executable Validate
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
+  cpp-options: -DMYVERSION="1.20.2"
   Main-Is: Validate.hs
 
 Executable MkOneOf
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
+  cpp-options: -DMYVERSION="1.20.2"
   Main-Is: MkOneOf.hs
 
 Executable DtdToHaskell
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
+  cpp-options: -DMYVERSION="1.20.2"
   Main-Is: DtdToHaskell.hs
