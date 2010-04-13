@@ -205,8 +205,8 @@ toDTD ht =
     macrosFirst decls = concat [p, p'] where (p, p') = partition f decls
                                              f (Entity _) = True
                                              f _ = False
-    toplevel ht@(Defined _ _ _) = showHType ht "-XML"
-    toplevel ht@_               = showHType ht ""
+    toplevel ht@(Defined _ _ _) = N $ showHType ht "-XML"
+    toplevel ht@_               = N $ showHType ht ""
     c0 = False
     h2d :: Bool -> [HType] -> [Constr] -> [HType] -> [MarkupDecl]
     -- toplevel?   history    history   remainingwork     result
@@ -226,24 +226,24 @@ toDTD ht =
                (c ? (decltopelem ht:)) (declmacro ht chist)
                ++ h2d c0 (ht:history) (cs++chist) (hts0++hts)
     declelem ht =
-      Element (ElementDecl (showHType ht "")
+      Element (ElementDecl (N $ showHType ht "")
                            (ContentSpec (outerHtExpr ht)))
     decltopelem ht =    -- hack to avoid peref at toplevel
-      Element (ElementDecl (showHType ht "-XML")
+      Element (ElementDecl (N $ showHType ht "-XML")
                            (ContentSpec (innerHtExpr ht None)))
     declmacro ht@(Defined _ _ cs) chist =
       Entity (EntityPEDecl (PEDecl (showHType ht "") (PEDefEntityValue ev))):
       concatMap (declConstr chist) cs
       where ev = EntityValue [EVString (render (PP.cp (outerHtExpr ht)))]
     declConstr chist c@(Constr s fv hts)
-      | c `notElem` chist = [Element (ElementDecl (flatConstr c "")
+      | c `notElem` chist = [Element (ElementDecl (N $ flatConstr c "")
                                          (ContentSpec (constrHtExpr c)))]
       | otherwise = [] 
     declprim (Prim _ t) =
-      [ Element (ElementDecl t EMPTY)
-      , AttList (AttListDecl t [AttDef "value" StringType REQUIRED])]
+      [ Element (ElementDecl (N t) EMPTY)
+      , AttList (AttListDecl (N t) [AttDef (N "value") StringType REQUIRED])]
     declstring =
-      Element (ElementDecl "string" (Mixed PCDATA))
+      Element (ElementDecl (N "string") (Mixed PCDATA))
     grab (Constr _ _ hts) = hts
 
 (?) :: Bool -> (a->a) -> (a->a)
@@ -274,19 +274,19 @@ outerHtExpr :: HType -> CP
 outerHtExpr (Maybe ht)      = innerHtExpr ht Query
 outerHtExpr (List ht)       = innerHtExpr ht Star
 outerHtExpr (Defined _s _fv cs) =
-    Choice (map (\c->TagName (flatConstr c "") None) cs) None
+    Choice (map (\c->TagName (N $ flatConstr c "") None) cs) None
 outerHtExpr ht              = innerHtExpr ht None
 
 innerHtExpr :: HType -> Modifier -> CP
-innerHtExpr (Prim _ t)  m = TagName t m
+innerHtExpr (Prim _ t)  m = TagName (N t) m
 innerHtExpr (Tuple hts) m = Seq (map (\c-> innerHtExpr c None) hts) m
 innerHtExpr ht@(Defined _ _ _) m = -- CPPE (showHType ht "") (outerHtExpr ht)
-                                   TagName ('%': showHType ht ";") m
+                                   TagName (N ('%': showHType ht ";")) m
                                                         --  ***HACK!!!***
-innerHtExpr ht m = TagName (showHType ht "") m
+innerHtExpr ht m = TagName (N $ showHType ht "") m
 
 constrHtExpr :: Constr -> CP
-constrHtExpr (Constr _s _fv [])  = TagName "EMPTY" None   --  ***HACK!!!***
+constrHtExpr (Constr _s _fv [])  = TagName (N "EMPTY") None   --  ***HACK!!!***
 constrHtExpr (Constr _s _fv hts) = innerHtExpr (Tuple hts) None
 
 ------------------------------------------------------------------------

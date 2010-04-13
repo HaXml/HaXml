@@ -24,9 +24,10 @@ import Prelude hiding (maybe,either,elem,concat)
 import Maybe hiding (maybe)
 import Data.List (intersperse)
 --import Data.ByteString.Lazy hiding (pack,map,head,any,singleton,intersperse,join)
-import Data.ByteString.Lazy.Char8 (ByteString(), concat, pack, singleton, intercalate
-                                  , append, elem, empty)
+import Data.ByteString.Lazy.Char8 (ByteString(), concat, pack, singleton
+                                  , intercalate, append, elem, empty)
 import Text.XML.HaXml.Types
+import Text.XML.HaXml.Namespaces
 
 either :: (t -> t1) -> (t2 -> t1) -> Either t t2 -> t1
 either f _ (Left x)  = f x
@@ -43,15 +44,15 @@ infixl 6 <>
 infixl 6 <+>
 infixl 5 $$
 (<>)   :: ByteString   -> ByteString -> ByteString -- Beside
-hcat   :: [ByteString] -> ByteString                 -- List version of <>
+hcat   :: [ByteString] -> ByteString               -- List version of <>
 (<+>)  :: ByteString   -> ByteString -> ByteString -- Beside, separated by space
-hsep   :: [ByteString] -> ByteString                 -- List version of <+>
+hsep   :: [ByteString] -> ByteString               -- List version of <+>
 ($$)   :: ByteString   -> ByteString -> ByteString -- Above; if there is no
                                                    -- overlap, it "dovetails"
 vcat   :: [ByteString] -> ByteString       -- List version of $$
--- cat    :: [ByteString] -> ByteString       -- Either hcat or vcat
+-- cat    :: [ByteString] -> ByteString    -- Either hcat or vcat
 sep    :: [ByteString] -> ByteString       -- Either hsep or vcat
--- fcat   :: [ByteString] -> ByteString       -- ``Paragraph fill'' version of cat
+-- fcat   :: [ByteString] -> ByteString    -- ``Paragraph fill'' version of cat
 fsep   :: [ByteString] -> ByteString       -- ``Paragraph fill'' version of sep
 nest   :: Int -> ByteString -> ByteString  -- Nested
 
@@ -63,11 +64,11 @@ nest   :: Int -> ByteString -> ByteString  -- Nested
 hcat = Data.ByteString.Lazy.Char8.concat
 hsep = Data.ByteString.Lazy.Char8.intercalate (singleton ' ')
 vcat = Data.ByteString.Lazy.Char8.intercalate (singleton '\n')
-_  = hcat
+-- cat  = hcat
 sep  = hsep
 text :: [Char] -> ByteString
 text = pack
--- _ = cat
+-- fsep = cat
 fsep = sep
 nest _ b = pack " " <> b
 parens :: ByteString -> ByteString
@@ -113,7 +114,7 @@ doctypedecl (DTD n eid ds) = if Prelude.null ds then
                                   hd <> text ">"
                              else hd <+> text " [" $$
                                   vcat (Prelude.map markupdecl ds) $$ text "]>"
-                           where hd = text "<!DOCTYPE" <+> text n <+>
+                           where hd = text "<!DOCTYPE" <+> qname n <+>
                                       maybe externalid eid
 markupdecl (Element e)     = elementdecl e
 markupdecl (AttList a)     = attlistdecl a
@@ -127,15 +128,15 @@ markupdecl (MarkupMisc m)  = misc m
 -- extsubsetdecl (ExtConditionalSect c) = conditionalsect c
 --extsubsetdecl (ExtPEReference p e)   = peref p
 
-element (Elem n as []) = text "<" <> text n <+>
+element (Elem n as []) = text "<" <> qname n <+>
                          fsep (Prelude.map attribute as) <> text "/>"
 element e@(Elem n as cs)
 --  | any isText cs    = text "<" <> text n <+> fsep (map attribute as) <>
 --                       text ">" <> hcat (map content cs) <>
---                       text "</" <> text n <> text ">"
-    | isText (head cs) = text "<" <> text n <+> fsep (Prelude.map attribute as) <>
+--                       text "</" <> qname n <> text ">"
+    | isText (head cs) = text "<" <> qname n <+> fsep (Prelude.map attribute as) <>
                          text ">" <> hcat (Prelude.map content cs) <>
-                         text "</" <> text n <> text ">"
+                         text "</" <> qname n <> text ">"
     | otherwise        = let (d,c) = carryelem e empty
                          in d <> c
 
@@ -147,16 +148,16 @@ isText _               = False
 carryelem :: Element t -> ByteString -> (ByteString, ByteString)
 carryelem (Elem n as []) c
                        = ( c <>
-                           text "<" <> text n <+> fsep (Prelude.map attribute as)
+                           text "<" <> qname n <+> fsep (Prelude.map attribute as)
                          , text "/>")
 carryelem (Elem n as cs) c
 --  | any isText cs    =  ( c <> element e, empty)
     | otherwise        =  let (cs0,d0) = carryscan carrycontent cs (text ">")
                           in
                           ( c <>
-                            text "<" <> text n <+> fsep (Prelude.map attribute as) $$
+                            text "<" <> qname n <+> fsep (Prelude.map attribute as) $$
                             nest 2 (vcat cs0) <> --- $$
-                            d0 <> text "</" <> text n
+                            d0 <> text "</" <> qname n
                           , text ">")
 carrycontent :: Content t -> ByteString -> (ByteString, ByteString)
 carrycontent (CElem e _) c   = carryelem e c
@@ -189,7 +190,7 @@ carryscan f (a:as) c = let (b, c0) = f a c
 --carrycontent (d,c) (CMisc m)   = (d $$ c <> misc m,     empty)
 
 
-attribute (n,v)             = text n <> text "=" <> attvalue v
+attribute (n,v)             = text (printableName n) <> text "=" <> attvalue v
 content (CElem e _)         = element e
 content (CString False s _) = chardata s
 content (CString True s _)  = cdsect s
@@ -197,7 +198,7 @@ content (CRef r _)          = reference r
 content (CMisc m _)         = misc m
 
 elementdecl :: ElementDecl -> ByteString
-elementdecl (ElementDecl n cs) = text "<!ELEMENT" <+> text n <+>
+elementdecl (ElementDecl n cs) = text "<!ELEMENT" <+> qname n <+>
                                  contentspec cs <> text ">"
 contentspec :: ContentSpec -> ByteString
 contentspec EMPTY              = text "EMPTY"
@@ -205,7 +206,7 @@ contentspec ANY                = text "ANY"
 contentspec (Mixed m)          = mixed m
 contentspec (ContentSpec c)    = cp c
 --contentspec (ContentPE p cs)   = peref p
-cp (TagName n m)       = text n <> modifier m
+cp (TagName n m)       = qname n <> modifier m
 cp (Choice cs m)       = parens (hcat (intersperse (text "|") (Prelude.map cp cs))) <>
                            modifier m
 cp (Seq cs m)          = parens (hcat (intersperse (text ",") (Prelude.map cp cs))) <>
@@ -219,14 +220,14 @@ modifier Plus          = text "+"
 mixed :: Mixed -> ByteString
 mixed  PCDATA          = text "(#PCDATA)"
 mixed (PCDATAplus ns)  = text "(#PCDATA |" <+>
-                         hcat (intersperse (text "|") (Prelude.map text ns)) <>
+                         hcat (intersperse (text "|") (Prelude.map qname ns)) <>
                          text ")*"
 
 attlistdecl :: AttListDecl -> ByteString
-attlistdecl (AttListDecl n ds) = text "<!ATTLIST" <+> text n <+>
+attlistdecl (AttListDecl n ds) = text "<!ATTLIST" <+> qname n <+>
                                  fsep (Prelude.map attdef ds) <> text ">"
 attdef :: AttDef -> ByteString
-attdef (AttDef n t d)          = text n <+> atttype t <+> defaultdecl d
+attdef (AttDef n t d)          = qname n <+> atttype t <+> defaultdecl d
 atttype :: AttType -> ByteString
 atttype  StringType            = text "CDATA"
 atttype (TokenizedType t)      = tokenizedtype t
@@ -329,6 +330,8 @@ systemliteral (SystemLiteral s)
 chardata, cdsect :: [Char] -> ByteString
 chardata s                     = {-if all isSpace s then empty else-} text s
 cdsect c                       = text "<![CDATA[" <> chardata c <> text "]]>"
+
+qname n                        = text (printableName n)
 
 -- toWord8 :: Char -> Word8
 toWord8 :: (Enum a, Enum a1) => a1 -> a

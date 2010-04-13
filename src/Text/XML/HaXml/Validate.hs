@@ -7,6 +7,7 @@ module Text.XML.HaXml.Validate
 import Prelude hiding (elem,rem,mod,sequence)
 import qualified Prelude (elem)
 import Text.XML.HaXml.Types
+import Text.XML.HaXml.Namespaces
 import Text.XML.HaXml.Combinators (multi,tag,iffind,literal,none,o)
 import Text.XML.HaXml.XmlContent (attr2str)
 import Maybe (fromMaybe,isNothing,fromJust)
@@ -35,11 +36,11 @@ lookupFM fm k = lookup k fm
 
 -- gather appropriate information out of the DTD
 data SimpleDTD = SimpleDTD
-    { elements   :: FiniteMap Name ContentSpec	-- content model of elem
-    , attributes :: FiniteMap (Name,Name) AttType -- type of (elem,attr)
-    , required   :: FiniteMap Name [Name]	-- required attributes of elem
-    , ids        :: [(Name,Name)]	-- all (element,attr) with ID type
-    , idrefs     :: [(Name,Name)]	-- all (element,attr) with IDREF type
+    { elements   :: FiniteMap QName ContentSpec	-- content model of elem
+    , attributes :: FiniteMap (QName,QName) AttType -- type of (elem,attr)
+    , required   :: FiniteMap QName [QName]	-- required attributes of elem
+    , ids        :: [(QName,QName)]	-- all (element,attr) with ID type
+    , idrefs     :: [(QName,QName)]	-- all (element,attr) with IDREF type
     }
 
 simplifyDTD :: DocTypeDecl -> SimpleDTD
@@ -76,8 +77,8 @@ validate :: DocTypeDecl -> Element i -> [String]
 validate dtd' elem = root dtd' elem ++ partialValidate dtd' elem
   where
     root (DTD name _ _) (Elem name' _ _) =
-        (name/=name') `gives` ("Document type should be <"++name
-                               ++"> but appears to be <"++name'++">.")
+        (name/=name') `gives` ("Document type should be <"++qname name
+                               ++"> but appears to be <"++qname name'++">.")
 
 -- | 'partialValidate' is like validate, except that it does not check that
 --   the element type matches that of the DTD's root element.
@@ -89,11 +90,11 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
     valid (Elem name attrs contents) =
         -- is the element defined in the DTD?
         let spec = lookupFM (elements dtd) name in 
-        (isNothing spec) `gives` ("Element <"++name++"> not known.")
+        (isNothing spec) `gives` ("Element <"++qname name++"> not known.")
         -- is each attribute mentioned only once?
-        ++ (let dups = duplicates (map fst attrs) in
+        ++ (let dups = duplicates (map (qname . fst) attrs) in
             not (null dups) `gives`
-               ("Element <"++name++"> has duplicate attributes: "
+               ("Element <"++qname name++"> has duplicate attributes: "
                 ++concat (intersperse "," dups)++"."))
         -- does each attribute belong to this element?  value is in range?
         ++ concatMap (checkAttr name) attrs
@@ -108,8 +109,8 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
     checkAttr elem (attr, val) =
         let typ = lookupFM (attributes dtd) (elem,attr)
             attval = attr2str val in
-        if isNothing typ then ["Attribute \""++attr
-                               ++"\" not known for element <"++elem++">."]
+        if isNothing typ then ["Attribute \""++qname attr
+                               ++"\" not known for element <"++qname elem++">."]
         else
           case fromJust typ of
             EnumeratedType e ->
@@ -117,7 +118,7 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
                 Enumeration es ->
                     (not (attval `Prelude.elem` es)) `gives`
                           ("Value \""++attval++"\" of attribute \""
-                           ++attr++"\" in element <"++elem
+                           ++qname attr++"\" in element <"++qname elem
                            ++"> is not in the required enumeration range: "
                            ++unwords es)
                 _ -> []
@@ -125,25 +126,25 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
 
     checkRequired elem attrs req =
         (not (req `Prelude.elem` map fst attrs)) `gives`
-            ("Element <"++elem++"> requires the attribute \""++req
+            ("Element <"++qname elem++"> requires the attribute \""++qname req
              ++"\" but it is missing.")
 
     checkContentSpec _elem ANY _ = []
     checkContentSpec _elem EMPTY [] = []
     checkContentSpec  elem EMPTY (_:_) =
-        ["Element <"++elem++"> is not empty but should be."]
+        ["Element <"++qname elem++"> is not empty but should be."]
     checkContentSpec  elem (Mixed PCDATA) cs = concatMap (checkMixed elem []) cs
     checkContentSpec  elem (Mixed (PCDATAplus names)) cs =
         concatMap (checkMixed elem names) cs
     checkContentSpec  elem (ContentSpec cp) cs = excludeText elem cs ++
         (let (errs,rest) = checkCP elem cp (flatten cs) in
          case rest of [] -> errs
-                      _  -> errs++["Element <"++elem++"> contains extra "
+                      _  -> errs++["Element <"++qname elem++"> contains extra "
                                   ++"elements beyond its content spec."])
 
     checkMixed  elem  permitted (CElem (Elem name _ _) _)
         | not (name `Prelude.elem` permitted) =
-            ["Element <"++elem++"> contains an element <"++name
+            ["Element <"++qname elem++"> contains an element <"++qname name
              ++"> but should not."]
     checkMixed _elem _permitted _ = []
 
@@ -155,12 +156,12 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
     excludeText  elem (CMisc _ _: cs) = excludeText elem cs
     excludeText  elem (CString _ s _: cs) | all isSpace s = excludeText elem cs
     excludeText  elem (_:  cs) =
-        ["Element <"++elem++"> contains text/references but should not."]
+        ["Element <"++qname elem++"> contains text/references but should not."]
     excludeText _elem [] = []
 
     -- This is a little parser really.  Returns any errors, plus the remainder
     -- of the input string.
-    checkCP :: Name -> CP -> [Name] -> ([String],[Name])
+    checkCP :: QName -> CP -> [QName] -> ([String],[QName])
     checkCP  elem cp@(TagName n None) [] = (cpError elem cp, [])
     checkCP  elem cp@(TagName n None) (n':ns)
         | n==n'     = ([], ns)
@@ -240,11 +241,13 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
                              in (es++es', ns'))
               ([],ns) cps
 
-    checkIDs elem =
-        let celem = CElem elem undefined
-            showAttr a = iffind a literal none
-            idElems = concatMap (\(name,at)-> multi (showAttr at `o` tag name)
-                                                    celem)
+    checkIDs elm =
+        let celem = CElem elm undefined
+            showAttr a = iffind (printableName a) literal none
+            idElems = concatMap (\(name, at)->
+                                     multi (showAttr at `o`
+                                                tag (printableName name))
+                                           celem)
                                 (ids dtd)
             badIds  = duplicates (map (\(CString _ s _)->s) idElems)
         in not (null badIds) `gives`
@@ -252,13 +255,13 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
                 ++concat (intersperse "," badIds)++".")
 
 
-cpError :: Name -> CP -> [String]
+cpError :: QName -> CP -> [String]
 cpError elem cp =
-    ["Element <"++elem++"> should contain "++display cp++" but does not."]
+    ["Element <"++qname elem++"> should contain "++display cp++" but does not."]
 
 
 display :: CP -> String
-display (TagName name mod) = name ++ modifier mod
+display (TagName name mod) = qname name ++ modifier mod
 display (Choice cps mod)   = "(" ++ concat (intersperse "|" (map display cps))
                              ++ ")" ++ modifier mod
 display (Seq cps mod)      = "(" ++ concat (intersperse "," (map display cps))
@@ -272,3 +275,6 @@ modifier Plus  = "+"
 
 duplicates :: Eq a => [a] -> [a]
 duplicates xs = xs \\ (nub xs)
+
+qname :: QName -> String
+qname n = printableName n

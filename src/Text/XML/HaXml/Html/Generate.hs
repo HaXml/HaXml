@@ -31,6 +31,7 @@ module Text.XML.HaXml.Html.Generate
 import Char (isSpace)
 
 import Text.XML.HaXml.Types
+import Text.XML.HaXml.Namespaces
 import Text.XML.HaXml.Combinators
 import qualified Text.PrettyPrint.HughesPJ as Pretty
 
@@ -123,10 +124,10 @@ htmlprint = Pretty.cat . map cprint . foldrefs
   cprint (CRef r _)       = Pretty.text ("&"++ref r++";")
   cprint (CMisc _ _)      = Pretty.empty
 
-  element (Elem n as []) = Pretty.text "<"   Pretty.<>
-                        Pretty.text n     Pretty.<>
-                        attrs as          Pretty.<>
-                        Pretty.text " />"
+  element (Elem n as []) = Pretty.text "<"               Pretty.<>
+                           Pretty.text (printableName n) Pretty.<>
+                           attrs as                      Pretty.<>
+                           Pretty.text " />"
   element (Elem n as cs) =
                     --  ( Pretty.text "<"   Pretty.<>
                     --    Pretty.text n     Pretty.<>
@@ -136,22 +137,22 @@ htmlprint = Pretty.cat . map cprint . foldrefs
                     --  ( Pretty.text "</"  Pretty.<>
                     --    Pretty.text n     Pretty.<>
                     --    Pretty.text ">" )
-                        Pretty.fcat [ ( Pretty.text "<"   Pretty.<>
-                                        Pretty.text n     Pretty.<>
-                                        attrs as          Pretty.<>
+                        Pretty.fcat [ ( Pretty.text "<"               Pretty.<>
+                                        Pretty.text (printableName n) Pretty.<>
+                                        attrs as                      Pretty.<>
                                         Pretty.text ">")
                                     , Pretty.nest 4 (htmlprint cs)
-                                    , ( Pretty.text "</"  Pretty.<>
-                                        Pretty.text n     Pretty.<>
+                                    , ( Pretty.text "</"              Pretty.<>
+                                        Pretty.text (printableName n) Pretty.<>
                                         Pretty.text ">" )
                                     ]
 
   attrs = Pretty.cat . map attribute
   attribute (n,v@(AttValue _)) =
-               Pretty.text " "  Pretty.<>
-               Pretty.text n    Pretty.<>
-               Pretty.text "='" Pretty.<>
-               Pretty.text (show v) Pretty.<>
+               Pretty.text " "               Pretty.<>
+               Pretty.text (printableName n) Pretty.<>
+               Pretty.text "='"              Pretty.<>
+               Pretty.text (show v)          Pretty.<>
                Pretty.text "'"
 
   fmt _ [] = []

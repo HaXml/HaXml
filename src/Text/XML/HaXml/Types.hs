@@ -99,6 +99,10 @@ module Text.XML.HaXml.Types
   , PubidLiteral(..)
   , SystemLiteral(..)
 
+  -- ** Namespaces
+  , QName(..)
+  , Namespace(..)
+
   -- ** Basic value types
   , Name
   , Names
@@ -145,7 +149,7 @@ type VersionInfo = String
 type Comment     = String
 type PITarget    = String
 
-data DocTypeDecl = DTD Name (Maybe ExternalID) [MarkupDecl]  deriving Eq
+data DocTypeDecl = DTD QName (Maybe ExternalID) [MarkupDecl]  deriving Eq
 data MarkupDecl  = Element  ElementDecl
                  | AttList  AttListDecl
                  | Entity   EntityDecl
@@ -158,10 +162,10 @@ data ExtSubsetDecl = ExtMarkupDecl MarkupDecl
                    | ExtConditionalSect ConditionalSect
                    deriving Eq
 
-data Element i = Elem Name [Attribute] [Content i] deriving Eq
-                                        --  intermediate for parsing
-data ElemTag   = ElemTag Name [Attribute]
-type Attribute = (Name, AttValue)
+data Element i = Elem QName [Attribute] [Content i] deriving Eq
+--  ElemTag is an intermediate type for parsing only
+data ElemTag   = ElemTag QName [Attribute]
+type Attribute = (QName, AttValue)
 data Content i = CElem (Element i) i
                | CString Bool CharData i
                         -- ^ bool is whether whitespace is significant
@@ -185,14 +189,13 @@ instance Functor Content where
   fmap f (CRef r i)      = CRef r (f i)
   fmap f (CMisc m i)     = CMisc m (f i)
 
-data ElementDecl = ElementDecl Name ContentSpec deriving Eq
+data ElementDecl = ElementDecl QName ContentSpec deriving Eq
 data ContentSpec = EMPTY
                  | ANY
                  | Mixed Mixed
                  | ContentSpec CP
                  deriving Eq
--- FIXME: What is TagName here? Seems to be in disagreement with XML spec.
-data CP = TagName Name Modifier
+data CP = TagName QName Modifier
         | Choice [CP] Modifier
         | Seq [CP] Modifier
         deriving Eq
@@ -202,10 +205,10 @@ data Modifier = None  -- ^ Just One
               | Plus  -- ^ One Or More
               deriving Eq
 data Mixed = PCDATA
-           | PCDATAplus [Name]
+           | PCDATAplus [QName]
            deriving Eq
-data AttListDecl = AttListDecl Name [AttDef] deriving Eq
-data AttDef      = AttDef Name AttType DefaultDecl deriving Eq
+data AttListDecl = AttListDecl QName [AttDef] deriving Eq
+data AttDef      = AttDef QName AttType DefaultDecl deriving Eq
 data AttType     = StringType
                  | TokenizedType TokenizedType
                  | EnumeratedType EnumeratedType
@@ -265,6 +268,24 @@ data ExtPE          = ExtPE (Maybe TextDecl) [ExtSubsetDecl] deriving Eq
 data NotationDecl    = NOTATION Name (Either ExternalID PublicID) deriving Eq
 newtype PublicID     = PUBLICID PubidLiteral deriving Eq
 newtype EncodingDecl = EncodingDecl String deriving Eq
+
+-- | A QName is a (possibly) qualified name, in the sense of XML namespaces.
+data QName    = N  Name
+              | QN Namespace Name deriving Eq
+-- | Namespaces are not defined in the XML spec itself, but at
+--       http://www.w3.org/TR/xml-names
+data Namespace = Namespace { nsPrefix  :: String
+                           , nsURI     :: String
+                           }
+instance Eq Namespace where
+    p == q  =  nsURI p == nsURI q     -- this is the W3C spec's definition!
+instance Ord QName where
+    compare (N n)    (N m)    = compare n m
+    compare (QN p n) (N m)    = LT
+    compare (N n)    (QN q m) = GT
+    compare (QN p n) (QN q m) = case compare (nsPrefix p) (nsPrefix q) of
+                                  EQ -> compare n m
+                                  r  -> r
 
 type Name     = String           -- non-empty string
 type Names    = [Name]           -- non-empty list

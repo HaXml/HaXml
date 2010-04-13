@@ -38,6 +38,7 @@ import Text.PrettyPrint.HughesPJ (render)
 import Text.ParserCombinators.Poly
 
 import Text.XML.HaXml.Types
+import Text.XML.HaXml.Namespaces
 import Text.XML.HaXml.TypeMapping
 import Text.XML.HaXml.Posn     (Posn, posInNewCxt)
 import Text.XML.HaXml.Pretty   (document)
@@ -109,8 +110,8 @@ toXml dtd value =
                      [] (if dtd then Just (toDTD ht) else Nothing) [])
              emptyST
              ( case (ht, toContents value) of
-                 (Tuple _, cs)       -> Elem (showHType ht "") [] cs
-                 (Defined _ _ _, cs) -> Elem (showHType ht "-XML") [] cs
+                 (Tuple _, cs)       -> Elem (N $ showHType ht "") [] cs
+                 (Defined _ _ _, cs) -> Elem (N $ showHType ht "-XML") [] cs
                  (_, [CElem e ()])   -> e )
              []
 
@@ -118,8 +119,8 @@ toXml dtd value =
 --   using the Haskell result type to determine how to parse it.
 fromXml :: XmlContent a => Document Posn -> Either String a
 fromXml (Document _ _ e@(Elem n _ cs) _)
-  | "tuple" `isPrefixOf` n = fst (runParser parseContents cs)
-  | "-XML"  `isSuffixOf` n = fst (runParser parseContents cs)
+  | "tuple" `isPrefixOf` localName n = fst (runParser parseContents cs)
+  | "-XML"  `isSuffixOf` localName n = fst (runParser parseContents cs)
   | otherwise = fst (runParser parseContents
                                [CElem e (posInNewCxt "document" Nothing)])
 
@@ -152,29 +153,29 @@ fpsHPutXml h dtd x = do
 ------------------------------------------------------------------------
 
 instance XmlContent Bool where
-    toContents b   = [CElem (Elem "bool" [mkAttr "value" (show b)] []) ()]
+    toContents b   = [CElem (Elem (N "bool") [mkAttr "value" (show b)] []) ()]
     parseContents = do { e <- element ["bool"] ; return (attval e) }
 
 instance XmlContent Int where
-    toContents i   = [CElem (Elem "int" [mkAttr "value" (show i)] []) ()]
+    toContents i   = [CElem (Elem (N "int") [mkAttr "value" (show i)] []) ()]
     parseContents = do { e <- element ["int"] ; return (attval e) }
 
 instance XmlContent Integer where
-    toContents i   = [CElem (Elem "integer" [mkAttr "value" (show i)] []) ()]
+    toContents i   = [CElem (Elem (N "integer") [mkAttr "value" (show i)] []) ()]
     parseContents = do { e <- element ["integer"] ; return (attval e) }
 
 instance XmlContent Float where
-    toContents i   = [CElem (Elem "float" [mkAttr "value" (show i)] []) ()]
+    toContents i   = [CElem (Elem (N "float") [mkAttr "value" (show i)] []) ()]
     parseContents = do { e <- element ["float"] ; return (attval e) }
 
 instance XmlContent Double where
-    toContents i   = [CElem (Elem "double" [mkAttr "value" (show i)] []) ()]
+    toContents i   = [CElem (Elem (N "double") [mkAttr "value" (show i)] []) ()]
     parseContents = do { e <- element ["double"] ; return (attval e) }
 
 instance XmlContent Char where
     -- NOT in a string
-    toContents c   = [CElem (Elem "char" [mkAttr "value" [c]] []) ()]
-    parseContents = do { (Elem _ [("value",(AttValue [Left [c]]))] [])
+    toContents c   = [CElem (Elem (N "char") [mkAttr "value" [c]] []) ()]
+    parseContents = do { (Elem _ [(N "value",(AttValue [Left [c]]))] [])
                              <- element ["char"]
                        ; return c
                        }
@@ -192,11 +193,11 @@ instance XmlContent a => XmlContent [a] where
         case x of
             (CString _ s _:cs)
                    -> Success cs (map xFromChar s)
-            (CElem (Elem "string" [] [CString _ s _]) _:cs)
+            (CElem (Elem (N "string") [] [CString _ s _]) _:cs)
                    -> Success cs (map xFromChar s)
-            (CElem (Elem "string" [] []) _:cs)
+            (CElem (Elem (N "string") [] []) _:cs)
                    -> Success cs []
-            (CElem (Elem e [] xs) _:cs) | "list" `isPrefixOf` e
+            (CElem (Elem (N e) [] xs) _:cs) | "list" `isPrefixOf` e
                    -> scanElements xs
                    where
                   -- scanElements :: [Content] -> (Either String [a],[Content])
@@ -209,7 +210,8 @@ instance XmlContent a => XmlContent [a] where
                                     Failure ds msg -> Failure ds msg
                                     Success ds ys  -> Success ds (y:ys)
             (CElem (Elem e _ _) pos: cs)
-                   -> Failure cs ("Expected a <list-...>, but found a <"++e
+                   -> Failure cs ("Expected a <list-...>, but found a <"
+                                  ++printableName e
                                   ++"> at\n"++show pos)
             (CRef r pos: cs)
                    -> Failure cs ("Expected a <list-...>, but found a ref "
@@ -219,7 +221,7 @@ instance XmlContent a => XmlContent [a] where
         )
 
 instance XmlContent () where
-    toContents ()  = [CElem (Elem "unit" [] []) ()]
+    toContents ()  = [CElem (Elem (N "unit") [] []) ()]
     parseContents = do { element ["unit"]; return () }
 
 

@@ -1,5 +1,9 @@
 -- | This module performs the translation of a parsed XML DTD into the
 --   internal representation of corresponding Haskell data\/newtypes.
+--
+--   Note that dtdToTypeDef is partial - it will crash if you resolve
+--   qualified names (namespaces) to URIs beforehand.  It will only work
+--   on the original literal name forms "prefix:name".
 
 module Text.XML.HaXml.DtdToHaskell.Convert
   ( dtd2TypeDef
@@ -13,7 +17,7 @@ import Text.XML.HaXml.DtdToHaskell.TypeDef
 
 ---- Internal representation for database of DTD decls ----
 data Record = R [AttDef] ContentSpec
--- type Db = [(String,Record)]
+-- type Db = [(QName,Record)]
 
 
 ---- Build a database of DTD decls then convert them to typedefs ----
@@ -46,24 +50,26 @@ dtd2TypeDef mds =
 
 
 ---- Convert DTD record to typedef ----
-convert :: (String, Record) -> [TypeDef]
-convert (n, R as cs) =
+convert :: (QName, Record) -> [TypeDef]
+convert (N n, R as cs) =
     case cs of
       EMPTY                   -> modifier None []
       ANY                     -> modifier None [[Any]]
                                  --error "NYI: contentspec of ANY"
       (Mixed PCDATA)          -> modifier None [[String]]
       (Mixed (PCDATAplus ns)) -> modifier Star ([StringMixed]
-                                                : map ((:[]) . Defined . name) ns)
+                                                : map ((:[]) . Defined . name
+                                                       . \(N n)->n)
+                                                       ns)
       (ContentSpec cp)        ->
           case cp of
-            (TagName n' m) -> modifier m [[Defined (name n')]]
-            (Choice cps m) -> modifier m (map ((:[]).inner) cps)
-            (Seq cps m)    -> modifier m [map inner cps]
-    ++ concatMap (mkAttrDef n) as
+            (TagName (N n') m) -> modifier m [[Defined (name n')]]
+            (Choice cps m)     -> modifier m (map ((:[]).inner) cps)
+            (Seq cps m)        -> modifier m [map inner cps]
+    ++ concatMap (mkAttrDef (N n)) as
   where
     attrs    :: AttrFields
-    attrs     = map (mkAttrField n) as
+    attrs     = map (mkAttrField (N n)) as
 
     modifier None sts   = mkData sts            attrs False (name n)
     modifier m   [[st]] = mkData [[modf m st]]  attrs False (name n)
@@ -72,10 +78,10 @@ convert (n, R as cs) =
                           mkData sts            []    True  (name_ n)
 
     inner :: CP -> StructType
-    inner (TagName n' m) = modf m (Defined (name n'))
-    inner (Choice cps m) = modf m (OneOf (map inner cps))
-    inner (Seq cps None) = Tuple (map inner cps)
-    inner (Seq cps m)    = modf m (Tuple (map inner cps))
+    inner (TagName (N n') m) = modf m (Defined (name n'))
+    inner (Choice cps m)     = modf m (OneOf (map inner cps))
+    inner (Seq cps None)     = Tuple (map inner cps)
+    inner (Seq cps m)        = modf m (Tuple (map inner cps))
 
     modf None x  = x
     modf Query x = Maybe x
@@ -101,19 +107,19 @@ mkData tss  fs aux n  = [DataDef aux n fs (map (mkConstr n) tss)]
     flatten Any          = "Any"
     flatten (Defined (Name _ m))  = m
 
-mkAttrDef :: String -> AttDef -> [TypeDef]
+mkAttrDef :: QName -> AttDef -> [TypeDef]
 mkAttrDef _ (AttDef _ StringType _) =
     []
 mkAttrDef _ (AttDef _ (TokenizedType _) _) =
     [] -- mkData [[String]] [] False (name n)
-mkAttrDef e (AttDef n (EnumeratedType (NotationType nt)) _) =
+mkAttrDef (N e) (AttDef (N n) (EnumeratedType (NotationType nt)) _) =
     [EnumDef (name_a e n) (map (name_ac e n) nt)]
-mkAttrDef e (AttDef n (EnumeratedType (Enumeration es)) _) =
+mkAttrDef (N e) (AttDef (N n) (EnumeratedType (Enumeration es)) _) =
     [EnumDef (name_a e n) (map (name_ac e n) es)]
         -- Default attribute values not handled here
 
-mkAttrField :: String -> AttDef -> (Name,StructType)
-mkAttrField e (AttDef n typ req) = (name_f e n, mkType typ req)
+mkAttrField :: QName -> AttDef -> (Name,StructType)
+mkAttrField (N e) (AttDef (N n) typ req) = (name_f e n, mkType typ req)
   where
     mkType StringType REQUIRED = String
     mkType StringType IMPLIED  = Maybe String

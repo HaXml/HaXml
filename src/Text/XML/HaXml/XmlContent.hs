@@ -111,7 +111,7 @@ toXml dtd value =
                      [] (if dtd then Just (toDTD ht) else Nothing) [])
              emptyST
              ( case toContents value of
-                 []             -> Elem "empty" [] []
+                 []             -> Elem (N "empty") [] []
                  [CElem e ()]   -> e
                  (CElem e ():_) -> error "too many XML elements in document" )
              []

@@ -14,6 +14,7 @@ import Control.Monad
 --import Text.XML.HaXml.Wrappers   (fix2Args)
 import Text.XML.HaXml            (version)
 import Text.XML.HaXml.Types      (DocTypeDecl(..))
+import Text.XML.HaXml.Namespaces (localName)
 import Text.XML.HaXml.Parse      (dtdParse)
 import Text.XML.HaXml.DtdToHaskell.TypeDef  (TypeDef,ppTypeDef,mangle)
 import Text.XML.HaXml.DtdToHaskell.Convert  (dtd2TypeDef)
@@ -49,8 +50,8 @@ main =
   let (DTD name _ markup) = (getDtd . dtdParse inf) content
       decls = (nub . dtd2TypeDef) markup
       realname = if outf/="-" then mangle (trim outf)
-                 else if null name then mangle (trim inf)
-                 else mangle name
+                 else if null (localName name) then mangle (trim inf)
+                 else mangle (localName name)
   in
   do hPutStrLn o ("module "++realname
                   ++" where\n\nimport Text.XML.HaXml.XmlContent"

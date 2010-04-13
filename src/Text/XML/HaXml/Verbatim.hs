@@ -45,6 +45,10 @@
 module Text.XML.HaXml.Verbatim where
 
 import Text.XML.HaXml.Types
+import Text.XML.HaXml.Namespaces
+
+qname :: QName -> String
+qname n = printableName n
 
 -- |This class promises that the function 'verbatim' knows how to
 -- format this data type into a string without changing the
@@ -70,10 +74,13 @@ instance Verbatim (Content i) where
     verbatim (CMisc _ _)     = error "NYI: verbatim not defined for CMisc"
 
 instance Verbatim (Element i) where
-    verbatim (Elem nam att [])   = "<" ++ nam ++ (concat . (map verbAttr)) att
+    verbatim (Elem nam att [])   = "<" ++ qname nam
+                                   ++ (concat . (map verbAttr)) att
                                    ++ "/>"
-    verbatim (Elem nam att cont) = "<" ++ nam ++ (concat . (map verbAttr)) att
-                                   ++ ">" ++ verbatim cont ++ "</" ++ nam ++ ">"
+    verbatim (Elem nam att cont) = "<" ++ qname nam
+                                   ++ (concat . (map verbAttr)) att
+                                   ++ ">" ++ verbatim cont ++ "</"
+                                   ++ qname nam ++ ">"
 
 instance Verbatim Reference where
     verbatim (RefEntity r) = "&" ++ verbatim r ++ ";"
@@ -87,5 +94,5 @@ instance Verbatim Reference where
 -- implicitly by the definition for lists of 'Verbatim' data types.
 
 verbAttr :: Attribute -> String
-verbAttr (n, AttValue v) = " " ++ n ++ "=\"" ++ verbatim v ++ "\""
+verbAttr (n, AttValue v) = " " ++ qname n ++ "=\"" ++ verbatim v ++ "\""
 

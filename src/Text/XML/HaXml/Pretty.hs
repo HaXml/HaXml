@@ -27,6 +27,7 @@ import List (intersperse)
 --import Char (isSpace)
 import Text.PrettyPrint.HughesPJ
 import Text.XML.HaXml.Types
+import Text.XML.HaXml.Namespaces
 
 either :: (t -> t1) -> (t2 -> t1) -> Either t t2 -> t1
 either f _ (Left x)  = f x
@@ -75,7 +76,7 @@ doctypedecl (DTD n eid ds) = if null ds then
                                   hd <> text ">"
                              else hd <+> text " [" $$
                                   vcat (map markupdecl ds) $$ text "]>"
-                           where hd = text "<!DOCTYPE" <+> text n <+>
+                           where hd = text "<!DOCTYPE" <+> qname n <+>
                                       maybe externalid eid
 markupdecl (Element e)     = elementdecl e
 markupdecl (AttList a)     = attlistdecl a
@@ -90,12 +91,12 @@ markupdecl (MarkupMisc m)  = misc m
 --extsubsetdecl (ExtConditionalSect c) = conditionalsect c
 -- -- extsubsetdecl (ExtPEReference p e)   = peref p
 
-element (Elem n as []) = text "<" <> text n <+>
+element (Elem n as []) = text "<" <> qname n <+>
                          fsep (map attribute as) <> text "/>"
 element e@(Elem n as cs)
-    | all isText cs    = text "<" <> text n <+> fsep (map attribute as) <>
+    | all isText cs    = text "<" <> qname n <+> fsep (map attribute as) <>
                          text ">" <> hcat (map content cs) <>
-                         text "</" <> text n <> text ">"
+                         text "</" <> qname n <> text ">"
     | otherwise        = let (d,c) = carryelem e empty
                          in d <> c
 
@@ -109,13 +110,13 @@ carrycontent ::  Content t  -> Doc -> (Doc, Doc)
 spancontent  :: [Content a] -> Doc -> ([Doc],Doc)
 
 carryelem (Elem n as []) c = ( c <>
-                               text "<" <> text n <+> fsep (map attribute as)
+                               text "<" <> qname n <+> fsep (map attribute as)
                              , text "/>")
 carryelem (Elem n as cs) c =  let (cs0,d0) = spancontent cs (text ">") in
                               ( c <>
-                                text "<"<>text n <+> fsep (map attribute as) $$
+                                text "<"<>qname n <+> fsep (map attribute as) $$
                                 nest 2 (vcat cs0) <>
-                                d0 <> text "</" <> text n
+                                d0 <> text "</" <> qname n
                               , text ">")
 
 carrycontent (CElem e _) c         = carryelem e c
@@ -132,7 +133,7 @@ spancontent (a:as) c | isText a  = let (ts,rest) = span isText (a:as)
                                        (bs,c1) = spancontent as c0
                                    in  (b:bs, c1)
 
-attribute (n,v)             = text n <> text "=" <> attvalue v
+attribute (n,v)             = qname n <> text "=" <> attvalue v
 content (CElem e _)         = element e
 content (CString False s _) = chardata s
 content (CString True s _)  = cdsect s
@@ -140,7 +141,7 @@ content (CRef r _)          = reference r
 content (CMisc m _)         = misc m
 
 elementdecl :: ElementDecl -> Doc
-elementdecl (ElementDecl n cs) = text "<!ELEMENT" <+> text n <+>
+elementdecl (ElementDecl n cs) = text "<!ELEMENT" <+> qname n <+>
                                  contentspec cs <> text ">"
 contentspec :: ContentSpec -> Doc
 contentspec EMPTY              = text "EMPTY"
@@ -148,7 +149,7 @@ contentspec ANY                = text "ANY"
 contentspec (Mixed m)          = mixed m
 contentspec (ContentSpec c)    = cp c
 --contentspec (ContentPE p cs)   = peref p
-cp (TagName n m)       = parens (text n) <> modifier m
+cp (TagName n m)       = parens (qname n) <> modifier m
 cp (Choice cs m)       = parens (hcat (intersperse (text "|") (map cp cs))) <>
                            modifier m
 cp (Seq cs m)          = parens (hcat (intersperse (text ",") (map cp cs))) <>
@@ -162,14 +163,14 @@ modifier Plus          = text "+"
 mixed :: Mixed -> Doc
 mixed  PCDATA          = text "(#PCDATA)"
 mixed (PCDATAplus ns)  = text "(#PCDATA |" <+>
-                         hcat (intersperse (text "|") (map text ns)) <>
+                         hcat (intersperse (text "|") (map qname ns)) <>
                          text ")*"
 
 attlistdecl :: AttListDecl -> Doc
-attlistdecl (AttListDecl n ds) = text "<!ATTLIST" <+> text n <+>
+attlistdecl (AttListDecl n ds) = text "<!ATTLIST" <+> qname n <+>
                                  fsep (map attdef ds) <> text ">"
 attdef :: AttDef -> Doc
-attdef (AttDef n t d)          = text n <+> atttype t <+> defaultdecl d
+attdef (AttDef n t d)          = qname n <+> atttype t <+> defaultdecl d
 atttype :: AttType -> Doc
 atttype  StringType            = text "CDATA"
 atttype (TokenizedType t)      = tokenizedtype t
@@ -271,6 +272,8 @@ chardata :: String -> Doc
 chardata s                     = {-if all isSpace s then empty else-} text s
 cdsect :: String -> Doc
 cdsect c                       = text "<![CDATA[" <> chardata c <> text "]]>"
+
+qname n                        = text (printableName n)
 
 ----
 containsDoubleQuote :: [EV] -> Bool

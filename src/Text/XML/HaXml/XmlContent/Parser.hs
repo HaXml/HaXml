@@ -76,6 +76,7 @@ import Text.PrettyPrint.HughesPJ (render)
 import qualified Text.XML.HaXml.Pretty as PP
 
 import Text.XML.HaXml.Types
+import Text.XML.HaXml.Namespaces
 import Text.XML.HaXml.TypeMapping
 import Text.XML.HaXml.Posn     (Posn, posInNewCxt)
 import Text.XML.HaXml.Pretty   (document)
@@ -101,19 +102,19 @@ v `debug` _ = v
 ------------------------------------------------------------------------
 -- | Read a single attribute called "value".
 attval :: (Read a) => Element i -> a
-attval (Elem _ [("value",v@(AttValue _))] []) = read (show v)
+attval (Elem _ [(_{-N "value"-},v@(AttValue _))] []) = read (show v)
 
 -- | Generate a single attribute.
 mkAttr :: String -> String -> Attribute
-mkAttr n v = (n, AttValue [Left v])
+mkAttr n v = (N n, AttValue [Left v])
 
 -- | Generate an element with no attributes, named for its HType.
 mkElem :: XmlContent a => a -> [Content ()] -> Content ()
-mkElem x cs  = CElem (Elem (showHType (toHType x) "") [] cs) ()
+mkElem x cs  = CElem (Elem (N (showHType (toHType x) "")) [] cs) ()
 
 -- | Generate an element with no attributes, named directly.
 mkElemC :: String -> [Content ()] -> Content ()
-mkElemC x cs = CElem (Elem x [] cs) ()
+mkElemC x cs = CElem (Elem (N x) [] cs) ()
 
 -- | Turn a simple string into XML text.
 toText :: String -> [Content ()]
@@ -151,9 +152,10 @@ posnElementWith match tags = do
     { c <- content (formatted tags)
     ; case c of
           CElem e@(Elem t _ _) pos
-              | any (match t) tags -> return (pos, e)
-              | otherwise          -> fail ("Found a <"++t++">, but expected "
-                                           ++formatted tags++"\nat "++show pos)
+              | any (match (localName t)) tags -> return (pos, e)
+              | otherwise   -> fail ("Found a <"++printableName t
+                                     ++">, but expected "
+                                     ++formatted tags++"\nat "++show pos)
           CString b s pos
               | not b && all isSpace s -> posnElementWith match tags
                                                         -- ignore blank space
@@ -195,7 +197,8 @@ interior (Elem e _ cs) p =
         (Right x, []) -> return x
         (Right x, ds@(d:_))
             | all onlyMisc ds -> return x
-            | otherwise       -> fail ("Too many elements inside <"++e++"> at\n"
+            | otherwise       -> fail ("Too many elements inside <"
+                                      ++printableName e++"> at\n"
                                       ++show (info d)++"\n"
                                       ++"Found excess: "++verbatim d)
   where onlyMisc (CMisc _ _) = True
@@ -603,11 +606,11 @@ possibleA from at as = searchMaybe (from at) as
 
 fromAttrToStr :: String -> Attribute -> Maybe String
 fromAttrToStr n (n0,v)
-        | n == n0   = Just (attr2str v)
-        | otherwise = Nothing
+        | n == localName n0   = Just (attr2str v)
+        | otherwise           = Nothing
 
 toAttrFrStr   :: String -> String -> Maybe Attribute
-toAttrFrStr n v = Just (n, str2attr v)
+toAttrFrStr n v = Just (N n, str2attr v)
 
 str2attr :: String -> AttValue
 str2attr s =

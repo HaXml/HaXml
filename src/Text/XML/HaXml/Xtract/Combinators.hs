@@ -80,7 +80,7 @@ applypred f p = \xml-> (const f `with` p) xml xml
 
 iffind :: String -> (String -> DFilter i) -> DFilter i -> DFilter i
 iffind  key  yes no xml c@(CElem (Elem _ as _) _) =
-  case (lookup key as) of
+  case (lookup (N key) as) of
     Nothing -> no xml c
     (Just v@(AttValue _)) -> yes (show v) xml c
 iffind _key _yes no xml other = no xml other

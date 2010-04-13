@@ -19,6 +19,7 @@ import Numeric (readDec,readHex)
 import Monad
 
 import Text.XML.HaXml.Types
+import Text.XML.HaXml.Namespaces
 import Text.XML.HaXml.Lex
 import Text.XML.HaXml.Posn
 import Text.ParserCombinators.Poly.Plain
@@ -61,9 +62,10 @@ simplify :: Document i -> Document i
 simplify (Document p st (Elem n avs cs) ms) =
     Document p st (Elem n avs (deepfilter simp cs)) ms
   where
-    simp (CElem (Elem "null" [] []) _) = False
-    simp (CElem (Elem  t     _  []) _) | t `elem` ["font","p","i","b","em"
-                                                  ,"tt","big","small"] = False
+    simp (CElem (Elem (N "null") [] []) _) = False
+    simp (CElem (Elem t _ []) _)
+        | localName t `elem` ["font","p","i","b","em","tt","big","small"]
+                                           = False
  -- simp (CString False s _) | all isSpace s = False
     simp _ = True
     deepfilter f =
@@ -132,6 +134,9 @@ tok t = do (p,t') <- next
                       _ | t'==t     -> return t
                         | otherwise -> report fail (show t) p t'
 
+qname :: HParser QName
+qname = fmap N name
+
 name :: HParser Name
 --name = do {(p,TokName s) <- next; return s}
 name = do (p,tok) <- next
@@ -197,7 +202,7 @@ document = do
     ms    <- many misc
     return (Document p emptyST (case map snd ht of
                                   [e] -> e
-                                  es  -> Elem "html" [] (map mkCElem es))
+                                  es  -> Elem (N "html") [] (map mkCElem es))
                                ms)
   where mkCElem e = CElem e noPos
 
@@ -263,7 +268,7 @@ doctypedecl = do
     tok TokSpecialOpen
     tok (TokSpecial DOCTYPEx)
     commit $ do
-      n <- name
+      n <- qname
       eid <- maybe externalid
 --    es <- maybe (bracket (tok TokSqOpen) (tok TokSqClose)) (many markupdecl)
       tok TokAnyClose  `onFail` failP "missing > in DOCTYPE decl"
@@ -314,39 +319,39 @@ element :: Name -> HParser (Stack,Element Posn)
 element ctx =
   do
     tok TokAnyOpen
-    (ElemTag e avs) <- elemtag
+    (ElemTag (N e) avs) <- elemtag
     ( if e `closes` ctx then
          -- insert the missing close-tag, fail forward, and reparse.
          ( do debug ("/")
               unparse ([TokEndOpen, TokName ctx, TokAnyClose,
                         TokAnyOpen, TokName e] ++ reformatAttrs avs)
-              return ([], Elem "null" [] []))
+              return ([], Elem (N "null") [] []))
       else if e `elem` selfclosingtags then
          -- complete the parse straightaway.
          ( do tok TokEndClose	-- self-closing <tag /> 
               debug (e++"[+]")
-              return ([], Elem e avs [])) `onFail`
+              return ([], Elem (N e) avs [])) `onFail`
      --  ( do tok TokAnyClose	-- sequence <tag></tag>	(**not HTML?**)
      --       debug (e++"[+")
-     --       n <- bracket (tok TokEndOpen) (tok TokAnyClose) name
+     --       n <- bracket (tok TokEndOpen) (tok TokAnyClose) qname
      --       debug "]"
      --       if e == (map toLower n :: Name) 
      --         then return ([], Elem e avs [])      
      --         else return (error "no nesting in empty tag")) `onFail`
          ( do tok TokAnyClose	-- <tag> with no close (e.g. <IMG>)
               debug (e++"[+]")
-              return ([], Elem e avs []))
+              return ([], Elem (N e) avs []))
       else
         (( do tok TokEndClose
               debug (e++"[]")
-              return ([], Elem e avs [])) `onFail`
+              return ([], Elem (N e) avs [])) `onFail`
          ( do tok TokAnyClose `onFail` failP "missing > or /> in element tag"
               debug (e++"[")
            -- zz <- many (content e)
-           -- n <- bracket (tok TokEndOpen) (tok TokAnyClose) name
+           -- n <- bracket (tok TokEndOpen) (tok TokAnyClose) qname
               zz <- manyFinally (content e)
                                 (tok TokEndOpen)
-              n <- name
+              (N n) <- qname
               commit (tok TokAnyClose)
               debug "]"
               let (ss,cs) = unzip zz
@@ -354,11 +359,11 @@ element ctx =
               ( if e == (map toLower n :: Name) then
                   do unparse (reformatTags (closeInner e s))
                      debug "^"
-                     return ([], Elem e avs cs)
+                     return ([], Elem (N e) avs cs)
                 else
                   do unparse [TokEndOpen, TokName n, TokAnyClose]
                      debug "-"
-                     return (((e,avs):s), Elem e avs cs))
+                     return (((e,avs):s), Elem (N e) avs cs))
          ) `onFail` failP ("failed to repair non-matching tags in context: "++ctx)))
 
 closeInner :: Name -> [(Name,[Attribute])] -> [(Name,[Attribute])]
@@ -371,12 +376,12 @@ unparse :: [TokenT] -> Parser (Posn, TokenT) ()
 unparse ts = do p <- posn
                 reparse (zip (repeat p) ts)
 
-reformatAttrs :: [(String, AttValue)] -> [TokenT]
+reformatAttrs :: [(QName, AttValue)] -> [TokenT]
 reformatAttrs avs = concatMap f0 avs
-    where f0 (a, v@(AttValue _)) = [TokName a, TokEqual, TokQuote,
-                                       TokFreeText (show v), TokQuote]
+    where f0 (a, v@(AttValue _)) = [ TokName (printableName a), TokEqual
+                                   , TokQuote, TokFreeText (show v), TokQuote ]
 
-reformatTags :: [(String, [(String, AttValue)])] -> [TokenT]
+reformatTags :: [(String, [(QName, AttValue)])] -> [TokenT]
 reformatTags ts = concatMap f0 ts
     where f0 (t,avs) = [TokAnyOpen, TokName t]++reformatAttrs avs++[TokAnyClose]
 
@@ -393,23 +398,23 @@ content ctx = do { p <- posn ; content' p }
 ----
 elemtag :: HParser ElemTag
 elemtag = do
-    n <- name `adjustErrBad` ("malformed element tag\n"++)
+    (N n) <- qname `adjustErrBad` ("malformed element tag\n"++)
     as <- many attribute
-    return (ElemTag (map toLower n) as)
+    return (ElemTag (N  $ map toLower n) as)
 
 attribute :: HParser Attribute
 attribute = do
-    n <- name
+    (N n) <- qname
     v <- (do tok TokEqual
              attvalue) `onFail`
          (return (AttValue [Left "TRUE"]))
-    return (map toLower n,v)
+    return (N $ map toLower n, v)
 
 --elementdecl :: HParser ElementDecl
 --elementdecl = do
 --    tok TokSpecialOpen
 --    tok (TokSpecial ELEMENTx)
---    n <- name `onFail` failP "missing identifier in ELEMENT decl"
+--    n <- qname `onFail` failP "missing identifier in ELEMENT decl"
 --    c <- contentspec `onFail` failP "missing content spec in ELEMENT decl"
 --    tok TokAnyClose `onFail` failP "expected > terminating ELEMENT decl"
 --    return (ElementDecl n c)
@@ -434,7 +439,7 @@ attribute = do
 --
 --cp :: HParser CP
 --cp =
---    ( do n <- name
+--    ( do n <- qname
 --         m <- modifier
 --         return (TagName n m)) `onFail`
 --    ( do ss <- sequence
@@ -461,7 +466,7 @@ attribute = do
 --  where
 --    cont = ( tok TokBraClose >> return PCDATA) `onFail`
 --           ( do cs <- many ( do tok TokPipe
---                                n <- name
+--                                n <- qname
 --                                return n)
 --                tok TokBraClose
 --                tok TokStar
@@ -471,14 +476,14 @@ attribute = do
 --attlistdecl = do
 --    tok TokSpecialOpen
 --    tok (TokSpecial ATTLISTx)
---    n <- name `onFail` failP "missing identifier in ATTLIST"
+--    n <- qname `onFail` failP "missing identifier in ATTLIST"
 --    ds <- many attdef
 --    tok TokAnyClose `onFail` failP "missing > terminating ATTLIST"
 --    return (AttListDecl n ds)
 --
 --attdef :: HParser AttDef
 --attdef = do
---    n <- name
+--    n <- qname
 --    t <- atttype `onFail` failP "missing attribute type in attlist defn"
 --    d <- defaultdecl
 --    return (AttDef n t d)

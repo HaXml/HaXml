@@ -51,6 +51,7 @@ module Text.XML.HaXml.Combinators
 
 
 import Text.XML.HaXml.Types
+import Text.XML.HaXml.Namespaces
 import Maybe (fromMaybe)
 
 infixl 6 `with`, `without`
@@ -102,7 +103,7 @@ position n f = (\cs-> [cs!!n]) . f
 
 elm, txt   :: CFilter i
 tag        :: String -> CFilter i
-attr       :: Name -> CFilter i
+attr       :: String -> CFilter i
 attrval    :: Attribute -> CFilter i
 tagWith    :: (String->Bool) -> CFilter i
 
@@ -113,13 +114,13 @@ txt x@(CString _ _ _) = [x]
 txt x@(CRef _ _)      = [x]
 txt _                 = []
 
-tag t x@(CElem (Elem n _ _) _) | t==n  = [x]
+tag t x@(CElem (Elem n _ _) _) | t==printableName n  = [x]
 tag _ _  = []
 
-tagWith p x@(CElem (Elem n _ _) _) | p n  = [x]
+tagWith p x@(CElem (Elem n _ _) _) | p (printableName n)  = [x]
 tagWith _ _  = []
 
-attr n x@(CElem (Elem _ as _) _) | n `elem` (map fst as)  = [x]
+attr n x@(CElem (Elem _ as _) _) | n `elem` (map (printableName.fst) as)  = [x]
 attr _ _  = []
 
 attrval av x@(CElem (Elem _ as _) _) | av `elem` as  = [x]
@@ -133,8 +134,8 @@ attrval _  _  = []
 --   the attribute name @key@, and applies the continuation @cont@ to
 --   the value.
 find :: String -> (String->CFilter i) -> CFilter i
-find key cont c@(CElem (Elem _ as _) _) = cont (show (lookfor key as)) c
-  where lookfor x = fromMaybe (error ("missing attribute: "++show x)) . lookup x
+find key cont c@(CElem (Elem _ as _) _) = cont (show (lookfor (N key) as)) c
+  where lookfor x = fromMaybe (error ("missing attribute: "++key)) . lookup x
 -- 'lookfor' has the more general type :: (Eq a,Show a) => a -> [(a,b)] -> b
 
 -- | When an attribute field may be absent, use @iffind key yes no@ to lookup
@@ -142,7 +143,7 @@ find key cont c@(CElem (Elem _ as _) _) = cont (show (lookfor key as)) c
 --   otherwise it applies the @yes@ filter.
 iffind :: String -> (String->CFilter i) -> CFilter i -> CFilter i
 iffind  key  yes no c@(CElem (Elem _ as _) _) =
-  case (lookup key as) of
+  case (lookup (N key) as) of
     Nothing               -> no c
     (Just v@(AttValue _)) -> yes (show v) c
 iffind _key _yes no other = no other
@@ -291,15 +292,15 @@ foldXml f = f `o` chip (foldXml f)
 -- | Build an element with the given tag name - its content is the results
 --   of the given list of filters.
 mkElem :: String -> [CFilter i] -> CFilter i
-mkElem h cfs = \t-> [ CElem (Elem h [] (cat cfs t)) undefined ]
+mkElem h cfs = \t-> [ CElem (Elem (N h) [] (cat cfs t)) undefined ]
 
 -- | Build an element with the given name, attributes, and content.
 mkElemAttr :: String -> [(String,CFilter i)] -> [CFilter i] -> CFilter i
-mkElemAttr h as cfs = \t-> [ CElem (Elem h (map (attr t) as) (cat cfs t))
+mkElemAttr h as cfs = \t-> [ CElem (Elem (N h) (map (attr t) as) (cat cfs t))
                                    undefined ]
   where attr t (n,vf) =
             let v = concat [ s | (CString _ s _) <- (deep txt `o` vf) t ]
-            in  (n, AttValue [Left v])
+            in  (N n, AttValue [Left v])
 
 -- | Build some textual content.
 literal :: String -> CFilter i
@@ -311,13 +312,13 @@ cdata s = const [CString True s undefined]
 
 -- | Rename an element tag (leaving attributes in place).
 replaceTag :: String -> CFilter i
-replaceTag n (CElem (Elem _ as cs) i) = [CElem (Elem n as cs) i]
+replaceTag n (CElem (Elem _ as cs) i) = [CElem (Elem (N n) as cs) i]
 replaceTag _ _ = []
 
 -- | Replace the attributes of an element (leaving tag the same).
 replaceAttrs :: [(String,String)] -> CFilter i
 replaceAttrs as (CElem (Elem n _ cs) i) = [CElem (Elem n as' cs) i]
-    where as' = map (\(n,v)-> (n, AttValue [Left v])) as
+    where as' = map (\(n,v)-> (N n, AttValue [Left v])) as
 replaceAttrs _  _ = []
 
 
@@ -370,7 +371,7 @@ interspersed a f b =
 --   results get an empty string label.
 tagged :: CFilter i -> LabelFilter i String
 tagged f = extracted name f
-  where name (CElem (Elem n _ _) _) = n
+  where name (CElem (Elem n _ _) _) = printableName n
         name _                      = ""
 
 -- | Label each element in the result with the value of the named attribute.
@@ -379,7 +380,7 @@ tagged f = extracted name f
 attributed :: String -> CFilter i -> LabelFilter i String
 attributed key f = extracted att f
   where att (CElem (Elem _ as _) _) =
-            case (lookup key as) of
+            case (lookup (N key) as) of
               Nothing  -> ""
               (Just v@(AttValue _)) -> show v
         att _ = ""

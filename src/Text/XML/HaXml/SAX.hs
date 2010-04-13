@@ -60,7 +60,7 @@ sax = oneOf [ saxelementopen
 saxelementopen :: XParser SaxElement
 saxelementopen = do
 	tok TokAnyOpen
-	(ElemTag n as) <- elemtag
+	(ElemTag (N n) as) <- elemtag  -- no QN ever generated during parsing
 	(( do tok TokEndClose
 	      return (SaxElementTag n as)) `onFail`
 	 ( do tok TokAnyClose

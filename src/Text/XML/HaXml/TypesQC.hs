@@ -8,6 +8,7 @@ module Text.XML.HaXml.TypesQC
   ) where
 
 import Text.XML.HaXml.Types
+import Text.XML.HaXml.Namespaces
 import Text.XML.HaXml.Posn
 import System.Random
 import Test.QuickCheck
@@ -122,7 +123,7 @@ comment = sized $ \n ->
      -- TODO: disallow '--'
 
 instance Arbitrary DocTypeDecl where
-  arbitrary = liftM3 DTD name arbitrary arbitrary
+  arbitrary = liftM3 DTD qname arbitrary arbitrary
 
 instance Arbitrary MarkupDecl where
   arbitrary = oneof [ liftM Element arbitrary
@@ -140,14 +141,14 @@ instance Arbitrary ExtSubsetDecl where
                     , liftM ExtConditionalSect arbitrary
                     ]
 instance Arbitrary i => Arbitrary (Element i) where
-  arbitrary = sized $ \n -> liftM3 Elem name (vectorOf' n attribute) arbitrary
+  arbitrary = sized $ \n -> liftM3 Elem qname (vectorOf' n attribute) arbitrary
 
 instance Arbitrary ElemTag where
-  arbitrary = sized $ \n -> liftM2 ElemTag name (vectorOf' n attribute)
+  arbitrary = sized $ \n -> liftM2 ElemTag qname (vectorOf' n attribute)
 
 attribute :: Gen Attribute
 attribute = 
-  do n <- name
+  do n <- qname
      attv <- arbitrary
      return (n, attv)
 
@@ -158,7 +159,7 @@ instance Arbitrary i => Arbitrary (Content i) where
                     , liftM2 CMisc arbitrary arbitrary
                     ]
 instance Arbitrary ElementDecl where
-  arbitrary = liftM2 ElementDecl name arbitrary
+  arbitrary = liftM2 ElementDecl qname arbitrary
 
 instance Arbitrary ContentSpec where
   arbitrary = oneof [ return EMPTY
@@ -167,7 +168,7 @@ instance Arbitrary ContentSpec where
                     , liftM ContentSpec arbitrary
                     ]
 instance Arbitrary CP where
-  arbitrary = oneof [ liftM2 TagName name arbitrary 
+  arbitrary = oneof [ liftM2 TagName qname arbitrary 
                     , liftM2 Choice arbitrary arbitrary
                     , liftM2 Seq arbitrary arbitrary
                     ]
@@ -181,14 +182,14 @@ instance Arbitrary Modifier where
 instance Arbitrary Mixed where
   arbitrary = sized $ \n ->
               oneof [ return PCDATA
-                    , liftM PCDATAplus (vectorOf' n name)
+                    , liftM PCDATAplus (vectorOf' n qname)
                     ]
 
 instance Arbitrary AttListDecl where
-  arbitrary = liftM2 AttListDecl name arbitrary
+  arbitrary = liftM2 AttListDecl qname arbitrary
 
 instance Arbitrary AttDef where
-  arbitrary = liftM3 AttDef name arbitrary arbitrary
+  arbitrary = liftM3 AttDef qname arbitrary arbitrary
 
 instance Arbitrary AttType where
   arbitrary = oneof [ return StringType
@@ -288,6 +289,8 @@ instance Arbitrary PublicID where
 
 instance Arbitrary EncodingDecl where
   arbitrary = return $ EncodingDecl "UTF-8" -- TODO: extend with others
+
+qname = liftM N name
 
 name = sized $ \n ->
   do start <- frequency [ (10,letterr)

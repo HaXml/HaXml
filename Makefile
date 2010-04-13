@@ -1,5 +1,5 @@
 SOFTWARE = HaXml
-VERSION  = 1.20.2
+VERSION  = 1.21
 
 #CPP      = cpp -traditional
 CPP     = cpphs --text --noline	# useful e.g. on MacOS X
@@ -13,6 +13,7 @@ SRCS = \
 	src/Text/XML/HaXml/Posn.hs src/Text/XML/HaXml/Lex.hs \
 	src/Text/XML/HaXml/Parse.hs src/Text/XML/HaXml/Pretty.hs \
 	src/Text/XML/HaXml/Types.hs src/Text/XML/HaXml/Validate.hs \
+	src/Text/XML/HaXml/Namespaces.hs \
 	src/Text/XML/HaXml/Wrappers.hs \
 	src/Text/XML/HaXml/Verbatim.hs src/Text/XML/HaXml/Escape.hs \
 	src/Text/XML/HaXml/OneOfN.hs \

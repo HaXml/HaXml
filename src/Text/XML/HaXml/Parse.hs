@@ -14,7 +14,7 @@ module Text.XML.HaXml.Parse
   , comment, cdsect, chardata
   , reference, doctypedecl
   , processinginstruction
-  , elemtag, name, tok
+  , elemtag, qname, name, tok
   , elemOpenTag, elemCloseTag
   , emptySTs, XParser
   -- * These general utility functions don't belong here
@@ -38,6 +38,7 @@ import Monad hiding (sequence)
 import Numeric (readDec,readHex)
 
 import Text.XML.HaXml.Types
+import Text.XML.HaXml.Namespaces
 import Text.XML.HaXml.Posn
 import Text.XML.HaXml.Lex
 import Text.ParserCombinators.Poly.State
@@ -175,6 +176,11 @@ nottok ts = do (p,t) <- next
                if t`elem`ts then report fail ("no "++show t) p t
                             else return t
 
+-- | Return a qualified name (although the namespace qualification is not
+--   processed here; this is merely to get the correct type).
+qname :: XParser QName
+qname = fmap N name
+
 -- | Return just a name, e.g. element name, attribute name.
 name :: XParser Name
 name = do (p,tok) <- next
@@ -281,7 +287,7 @@ justDTD :: XParser (Maybe DocTypeDecl)
 justDTD =
   do (ExtSubset _ ds) <- extsubset `debug` "Trying external subset"
      if null ds then fail "empty"
-         else return (Just (DTD "extsubset" Nothing (concatMap extract ds)))
+         else return (Just (DTD (N "extsubset") Nothing (concatMap extract ds)))
   `onFail`
   do (Prolog _ _ dtd _) <- prolog
      return dtd
@@ -366,7 +372,7 @@ doctypedecl = do
     tok TokSpecialOpen
     tok (TokSpecial DOCTYPEx)
     commit $ do
-      n   <- name
+      n   <- qname
       eid <- maybe externalid
       es  <- maybe (bracket (tok TokSqOpen) (tok TokSqClose)
                             (many (peRef markupdecl)))
@@ -419,7 +425,7 @@ element = do
              ,  do tok TokAnyClose
                    cs <- many content
                    p  <- posn
-                   m  <- bracket (tok TokEndOpen) (tok TokAnyClose) name
+                   m  <- bracket (tok TokEndOpen) (tok TokAnyClose) qname
                    checkmatch p n m
                    return (Elem n as cs))
            ] `adjustErr` (("in element tag "++n++",\n")++)
@@ -439,19 +445,20 @@ element = do
                  manyFinally content
                              (do p <- posn
                                  m <- bracket (tok TokEndOpen)
-                                              (tok TokAnyClose) name
+                                              (tok TokAnyClose) qname
                                  checkmatch p n m)
-      ) `adjustErrBad` (("in element tag "++n++",\n")++)
+      ) `adjustErrBad` (("in element tag "++printableName n++",\n")++)
 
-checkmatch :: Posn -> Name -> Name -> XParser ()
+checkmatch :: Posn -> QName -> QName -> XParser ()
 checkmatch p n m =
   if n == m then return ()
-  else failBad ("tag <"++n++"> terminated by </"++m++">\n  at "++show p)
+  else failBad ("tag <"++printableName n++"> terminated by </"++printableName m
+                ++">\n  at "++show p)
 
 -- | Parse only the parts between angle brackets in an element tag.
 elemtag :: XParser ElemTag
 elemtag = do
-    n  <- name `adjustErrBad` ("malformed element tag\n"++)
+    n  <- qname `adjustErrBad` ("malformed element tag\n"++)
     as <- many attribute
     return (ElemTag n as)
 
@@ -465,17 +472,17 @@ elemOpenTag = do
 
 -- | For use with stream parsers - accepts a closing tag, provided it
 --   matches the given element name.
-elemCloseTag :: Name -> XParser ()
+elemCloseTag :: QName -> XParser ()
 elemCloseTag n = do
     tok TokEndOpen
     p <- posn
-    m <- name
+    m <- qname
     tok TokAnyClose
     checkmatch p n m
 
 attribute :: XParser Attribute
 attribute = do
-    n <- name `adjustErr` ("malformed attribute name\n"++)
+    n <- qname `adjustErr` ("malformed attribute name\n"++)
     tok TokEqual `onFail` failBadP "missing = in attribute"
     v <- attvalue `onFail` failBadP "missing attvalue"
     return (n,v)
@@ -501,12 +508,13 @@ elementdecl :: XParser ElementDecl
 elementdecl = do
     tok TokSpecialOpen
     tok (TokSpecial ELEMENTx)
-    n <- peRef name `adjustErrBad` ("expecting identifier in ELEMENT decl\n"++)
+    n <- peRef qname `adjustErrBad` ("expecting identifier in ELEMENT decl\n"++)
     c <- peRef contentspec
-             `adjustErrBad` (("in content spec of ELEMENT decl: "++n++"\n")++)
+             `adjustErrBad` (("in content spec of ELEMENT decl: "
+                              ++printableName n++"\n")++)
     blank (tok TokAnyClose) `onFail` failBadP
        ("expected > terminating ELEMENT decl"
-       ++"\n    element name was "++show n
+       ++"\n    element name was "++show (printableName n)
        ++"\n    contentspec was "++(\ (ContentSpec p)-> show p) c)
     return (ElementDecl n c)
 
@@ -533,7 +541,7 @@ sequence = do
            (peRef cp `sepBy1` blank (tok TokComma))
 
 cp :: XParser CP
-cp = oneOf [ ( do n <- name
+cp = oneOf [ ( do n <- qname
                   m <- modifier
                   let c = TagName n m
                   return c `debug` ("ContentSpec: name "++show c))
@@ -556,7 +564,7 @@ modifier = oneOf [ ( tok TokStar >> return Star )
 
 -- just for debugging
 instance Show CP where
-    show (TagName n m) = n++show m
+    show (TagName n m) = printableName n++show m
     show (Choice cps m) = '(': concat (intersperse "|" (map show cps))
                           ++")"++show m
     show (Seq cps m) = '(': concat (intersperse "," (map show cps))
@@ -575,7 +583,7 @@ mixed = do
               word "PCDATA")
     commit $
       oneOf [ ( do cs <- many (peRef (do tok TokPipe
-                                         peRef name))
+                                         peRef qname))
                    blank (tok TokBraClose >> tok TokStar)
                    return (PCDATAplus cs))
             , ( blank (tok TokBraClose >> tok TokStar) >> return PCDATA)
@@ -587,16 +595,18 @@ attlistdecl :: XParser AttListDecl
 attlistdecl = do
     tok TokSpecialOpen
     tok (TokSpecial ATTLISTx)
-    n <- peRef name `adjustErrBad` ("expecting identifier in ATTLIST\n"++)
+    n <- peRef qname `adjustErrBad` ("expecting identifier in ATTLIST\n"++)
     ds <- peRef (many1 (peRef attdef))
     blank (tok TokAnyClose) `onFail` failBadP "missing > terminating ATTLIST"
     return (AttListDecl n ds)
 
 attdef :: XParser AttDef
 attdef =
-  do n <- peRef name `adjustErr` ("expecting attribute name\n"++)
-     t <- peRef atttype `adjustErr` (("within attlist defn: "++n++",\n")++)
-     d <- peRef defaultdecl `adjustErr` (("in attlist defn: "++n++",\n")++)
+  do n <- peRef qname `adjustErr` ("expecting attribute name\n"++)
+     t <- peRef atttype `adjustErr` (("within attlist defn: "
+                                     ++printableName n++",\n")++)
+     d <- peRef defaultdecl `adjustErr` (("in attlist defn: "
+                                         ++printableName n++",\n")++)
      return (AttDef n t d)
 
 atttype :: XParser AttType

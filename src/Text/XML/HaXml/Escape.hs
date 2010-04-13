@@ -229,7 +229,7 @@ compressElement :: Element i -> Element i
 compressElement (Elem name attributes content) =
    Elem name (compressAttributes attributes) (compressContent content)
 
-compressAttributes :: [(Name,AttValue)] -> [(Name,AttValue)]
+compressAttributes :: [(QName,AttValue)] -> [(QName,AttValue)]
 compressAttributes atts =
    map
       (\ (name,av) -> (name,compressAttValue av))

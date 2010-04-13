@@ -1,5 +1,5 @@
 name:		HaXml
-version:	1.20.2
+version:	1.21
 license:	LGPL
 license-file:	COPYRIGHT
 author:		Malcolm Wallace <Malcolm.Wallace@cs.york.ac.uk>
@@ -32,6 +32,7 @@ library
         Text.XML.HaXml.Html.ParseLazy,
         Text.XML.HaXml.Html.Pretty,
         Text.XML.HaXml.Lex,
+        Text.XML.HaXml.Namespaces,
         Text.XML.HaXml.OneOfN,
         Text.XML.HaXml.Parse,
         Text.XML.HaXml.ParseLazy,
@@ -62,54 +63,54 @@ library
   else
     build-depends: base < 2 || >= 3, bytestring
   extensions: CPP, ExistentialQuantification
-  cpp-options: -DMYVERSION="1.20.2"
+  cpp-options: -DMYVERSION="1.21"
   nhc98-options: -K10M
 
 Executable Canonicalise
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMYVERSION="1.20.2"
+  cpp-options: -DMYVERSION="1.21"
   Main-Is: Canonicalise.hs
 
 Executable CanonicaliseLazy
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMYVERSION="1.20.2"
+  cpp-options: -DMYVERSION="1.21"
   Main-Is: CanonicaliseLazy.hs
 
 Executable Xtract
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMYVERSION="1.20.2"
+  cpp-options: -DMYVERSION="1.21"
   Main-Is: Xtract.hs
 
 Executable XtractLazy
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMYVERSION="1.20.2"
+  cpp-options: -DMYVERSION="1.21"
   Main-Is: XtractLazy.hs
 
 Executable Validate
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMYVERSION="1.20.2"
+  cpp-options: -DMYVERSION="1.21"
   Main-Is: Validate.hs
 
 Executable MkOneOf
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMYVERSION="1.20.2"
+  cpp-options: -DMYVERSION="1.21"
   Main-Is: MkOneOf.hs
 
 Executable DtdToHaskell
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMYVERSION="1.20.2"
+  cpp-options: -DMYVERSION="1.21"
   Main-Is: DtdToHaskell.hs

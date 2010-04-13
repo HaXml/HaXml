@@ -1,11 +1,12 @@
 SOFTWARE = HaXml
-VERSION = 1.20.2
+VERSION = 1.21
 
 LIBSRCS = \
 	Text/XML/HaXml.hs Text/XML/HaXml/Combinators.hs Text/XML/HaXml/Lex.hs \
 	Text/XML/HaXml/Posn.hs \
 	Text/XML/HaXml/Parse.hs Text/XML/HaXml/Pretty.hs \
 	Text/XML/HaXml/Types.hs Text/XML/HaXml/Validate.hs \
+	Text/XML/HaXml/Namespaces.hs \
 	Text/XML/HaXml/Wrappers.hs \
 	Text/XML/HaXml/OneOfN.hs \
 	Text/XML/HaXml/ParseLazy.hs \
