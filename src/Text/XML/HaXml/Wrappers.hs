@@ -68,8 +68,9 @@ processXmlWith f = do
     onContent file filter (Document p s e m) =
         case filter (CElem e (posInNewCxt file Nothing)) of
             [CElem e' _] -> Document p s e' m
-            []           -> error "produced no output"
-            _            -> error "produced more than one output"
+            []           -> error $ "filtering"++file++"produced no output"
+            _            -> error $ "filtering"++file++
+                                    "produced more than one output document"
 
 -- | The wrapper @onContent@ simply applies a given content filter to a
 --   document.  Ambiguous or empty results raise an error exception.
