@@ -36,7 +36,7 @@ import qualified Text.XML.HaXml.ByteStringPP as FPS (document)
 import qualified Data.ByteString.Lazy.Char8 as FPS
 
 import Text.PrettyPrint.HughesPJ (render)
-import Text.ParserCombinators.Poly
+--import Text.ParserCombinators.Poly
 
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.TypeMapping
@@ -113,13 +113,13 @@ toXml dtd value =
              ( case toContents value of
                  []             -> Elem (N "empty") [] []
                  [CElem e ()]   -> e
-                 (CElem e ():_) -> error "too many XML elements in document" )
+                 (CElem _ ():_) -> error "too many XML elements in document" )
              []
 
 -- | Read a Haskell value from an XML document, ignoring the DTD and
 --   using the Haskell result type to determine how to parse it.
 fromXml :: XmlContent a => Document Posn -> Either String a
-fromXml (Document _ _ e@(Elem n _ cs) _) =
+fromXml (Document _ _ e@(Elem _ _ _) _) =
   fst (runParser parseContents [CElem e (posInNewCxt "document" Nothing)])
 
 
@@ -151,8 +151,10 @@ fpsHPutXml h dtd x = do
 
 instance XmlContent Char where
     -- NOT in a string
-    toContents c  = error "Text.XML.HaXml.XmlContent.toContents used on a Haskell Char"
-    parseContents = fail "Text.XML.HaXml.XmlContent.parseContents used on a Haskell Char "
+    toContents _  = error $ "Text.XML.HaXml.XmlContent.toContents "++
+                            " used on a Haskell Char"
+    parseContents = fail  $ "Text.XML.HaXml.XmlContent.parseContents "++
+                            " used on a Haskell Char "
     -- Only defined for Char and no other types:
     xToChar   = id
     xFromChar = id

@@ -104,13 +104,13 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
         -- are its children in a permissible sequence?
         ++ checkContentSpec name (fromMaybe ANY spec) contents
         -- now recursively check the element children
-        ++ concatMap valid [ elem | CElem elem _ <- contents ]
+        ++ concatMap valid [ elm | CElem elm _ <- contents ]
 
-    checkAttr elem (attr, val) =
-        let typ = lookupFM (attributes dtd) (elem,attr)
+    checkAttr elm (attr, val) =
+        let typ = lookupFM (attributes dtd) (elm,attr)
             attval = attr2str val in
         if isNothing typ then ["Attribute \""++qname attr
-                               ++"\" not known for element <"++qname elem++">."]
+                               ++"\" not known for element <"++qname elm++">."]
         else
           case fromJust typ of
             EnumeratedType e ->
@@ -118,111 +118,111 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
                 Enumeration es ->
                     (not (attval `Prelude.elem` es)) `gives`
                           ("Value \""++attval++"\" of attribute \""
-                           ++qname attr++"\" in element <"++qname elem
+                           ++qname attr++"\" in element <"++qname elm
                            ++"> is not in the required enumeration range: "
                            ++unwords es)
                 _ -> []
             _ -> []
 
-    checkRequired elem attrs req =
+    checkRequired elm attrs req =
         (not (req `Prelude.elem` map fst attrs)) `gives`
-            ("Element <"++qname elem++"> requires the attribute \""++qname req
+            ("Element <"++qname elm++"> requires the attribute \""++qname req
              ++"\" but it is missing.")
 
-    checkContentSpec _elem ANY _ = []
-    checkContentSpec _elem EMPTY [] = []
-    checkContentSpec  elem EMPTY (_:_) =
-        ["Element <"++qname elem++"> is not empty but should be."]
-    checkContentSpec  elem (Mixed PCDATA) cs = concatMap (checkMixed elem []) cs
-    checkContentSpec  elem (Mixed (PCDATAplus names)) cs =
-        concatMap (checkMixed elem names) cs
-    checkContentSpec  elem (ContentSpec cp) cs = excludeText elem cs ++
-        (let (errs,rest) = checkCP elem cp (flatten cs) in
+    checkContentSpec _elm ANY   _     = []
+    checkContentSpec _elm EMPTY []    = []
+    checkContentSpec  elm EMPTY (_:_) =
+        ["Element <"++qname elm++"> is not empty but should be."]
+    checkContentSpec  elm (Mixed PCDATA) cs = concatMap (checkMixed elm []) cs
+    checkContentSpec  elm (Mixed (PCDATAplus names)) cs =
+        concatMap (checkMixed elm names) cs
+    checkContentSpec  elm (ContentSpec cp) cs = excludeText elm cs ++
+        (let (errs,rest) = checkCP elm cp (flatten cs) in
          case rest of [] -> errs
-                      _  -> errs++["Element <"++qname elem++"> contains extra "
+                      _  -> errs++["Element <"++qname elm++"> contains extra "
                                   ++"elements beyond its content spec."])
 
-    checkMixed  elem  permitted (CElem (Elem name _ _) _)
+    checkMixed  elm  permitted (CElem (Elem name _ _) _)
         | not (name `Prelude.elem` permitted) =
-            ["Element <"++qname elem++"> contains an element <"++qname name
+            ["Element <"++qname elm++"> contains an element <"++qname name
              ++"> but should not."]
-    checkMixed _elem _permitted _ = []
+    checkMixed _elm _permitted _ = []
 
     flatten (CElem (Elem name _ _) _: cs) = name: flatten cs
     flatten (_: cs)                       = flatten cs
     flatten []                            = []
 
-    excludeText  elem (CElem _ _: cs) = excludeText elem cs
-    excludeText  elem (CMisc _ _: cs) = excludeText elem cs
-    excludeText  elem (CString _ s _: cs) | all isSpace s = excludeText elem cs
-    excludeText  elem (_:  cs) =
-        ["Element <"++qname elem++"> contains text/references but should not."]
-    excludeText _elem [] = []
+    excludeText  elm (CElem _ _: cs) = excludeText elm cs
+    excludeText  elm (CMisc _ _: cs) = excludeText elm cs
+    excludeText  elm (CString _ s _: cs) | all isSpace s = excludeText elm cs
+    excludeText  elm (_:_) =
+        ["Element <"++qname elm++"> contains text/references but should not."]
+    excludeText _elm [] = []
 
     -- This is a little parser really.  Returns any errors, plus the remainder
     -- of the input string.
     checkCP :: QName -> CP -> [QName] -> ([String],[QName])
-    checkCP  elem cp@(TagName n None) [] = (cpError elem cp, [])
-    checkCP  elem cp@(TagName n None) (n':ns)
-        | n==n'     = ([], ns)
-        | otherwise = (cpError elem cp, n':ns)
-    checkCP _elem cp@(TagName n Query) [] = ([],[])
-    checkCP _elem cp@(TagName n Query) (n':ns)
-        | n==n'     = ([], ns)
-        | otherwise = ([], n':ns)
-    checkCP _elem cp@(TagName n Star) [] = ([],[])
-    checkCP  elem cp@(TagName n Star) (n':ns)
-        | n==n'     = checkCP elem (TagName n Star) ns
-        | otherwise = ([], n':ns)
-    checkCP  elem cp@(TagName n Plus) [] = (cpError elem cp, [])
-    checkCP  elem cp@(TagName n Plus) (n':ns)
-        | n==n'     = checkCP elem (TagName n Star) ns
-        | otherwise = (cpError elem cp, n':ns)
+    checkCP elm cp@(TagName _ None) []       = (cpError elm cp, [])
+    checkCP elm cp@(TagName n None) (n':ns)
+                                 | n==n'     = ([], ns)
+                                 | otherwise = (cpError elm cp, n':ns)
+    checkCP  _     (TagName _ Query) []      = ([],[])
+    checkCP  _     (TagName n Query) (n':ns)
+                                 | n==n'     = ([], ns)
+                                 | otherwise = ([], n':ns)
+    checkCP  _     (TagName _ Star) []       = ([],[])
+    checkCP elm    (TagName n Star) (n':ns)
+                                 | n==n'     = checkCP elm (TagName n Star) ns
+                                 | otherwise = ([], n':ns)
+    checkCP elm cp@(TagName _ Plus) []       = (cpError elm cp, [])
+    checkCP elm cp@(TagName n Plus) (n':ns)
+                                 | n==n'     = checkCP elm (TagName n Star) ns
+                                 | otherwise = (cpError elm cp, n':ns)
  -- omit this clause, to permit (a?|b?) as a valid but empty choice
  -- checkCP elem cp@(Choice cps None) [] = (cpError elem cp, [])
-    checkCP  elem cp@(Choice cps None) ns =
-        let next = choice elem ns cps in
-        if null next then (cpError elem cp, ns)
+    checkCP elm cp@(Choice cps None) ns =
+        let next = choice elm ns cps in
+        if null next then (cpError elm cp, ns)
         else ([], head next)	-- choose the first alternative with no errors
-    checkCP _elem cp@(Choice cps Query) [] = ([],[])
-    checkCP  elem cp@(Choice cps Query) ns =
-        let next = choice elem ns cps in
+    checkCP _      (Choice _   Query) [] = ([],[])
+    checkCP elm    (Choice cps Query) ns =
+        let next = choice elm ns cps in
         if null next then ([],ns)
         else ([], head next)
-    checkCP _elem cp@(Choice cps Star) [] = ([],[])
-    checkCP  elem cp@(Choice cps Star) ns =
-        let next = choice elem ns cps in
+    checkCP _      (Choice _   Star) [] = ([],[])
+    checkCP elm    (Choice cps Star) ns =
+        let next = choice elm ns cps in
         if null next then ([],ns)
-        else checkCP elem (Choice cps Star) (head next)
-    checkCP  elem cp@(Choice cps Plus) [] = (cpError elem cp, [])
-    checkCP  elem cp@(Choice cps Plus) ns =
-        let next = choice elem ns cps in
-        if null next then (cpError elem cp, ns)
-        else checkCP elem (Choice cps Star) (head next)
+        else checkCP elm (Choice cps Star) (head next)
+    checkCP elm cp@(Choice _   Plus) [] = (cpError elm cp, [])
+    checkCP elm cp@(Choice cps Plus) ns =
+        let next = choice elm ns cps in
+        if null next then (cpError elm cp, ns)
+        else checkCP elm (Choice cps Star) (head next)
  -- omit this clause, to permit (a?,b?) as a valid but empty sequence
  -- checkCP elem cp@(Seq cps None) [] = (cpError elem cp, [])
-    checkCP  elem cp@(Seq cps None) ns =
-        let (errs,next) = sequence elem ns cps in
+    checkCP elm cp@(Seq cps None) ns =
+        let (errs,next) = sequence elm ns cps in
         if null errs then ([],next)
-        else (cpError elem cp++errs, ns)
-    checkCP _elem cp@(Seq cps Query) [] = ([],[])
-    checkCP  elem cp@(Seq cps Query) ns =
-        let (errs,next) = sequence elem ns cps in
+        else (cpError elm cp++errs, ns)
+    checkCP _      (Seq _   Query) [] = ([],[])
+    checkCP elm    (Seq cps Query) ns =
+        let (errs,next) = sequence elm ns cps in
         if null errs then ([],next)
         else ([], ns)
-    checkCP _elem cp@(Seq cps Star) [] = ([],[])
-    checkCP  elem cp@(Seq cps Star) ns =
-        let (errs,next) = sequence elem ns cps in
-        if null errs then checkCP elem (Seq cps Star) next
+    checkCP _      (Seq _   Star) [] = ([],[])
+    checkCP elm    (Seq cps Star) ns =
+        let (errs,next) = sequence elm ns cps in
+        if null errs then checkCP elm (Seq cps Star) next
         else ([], ns)
-    checkCP  elem cp@(Seq cps Plus) [] = (cpError elem cp, [])
-    checkCP  elem cp@(Seq cps Plus) ns =
-        let (errs,next) = sequence elem ns cps in
-        if null errs then checkCP elem (Seq cps Star) next
-        else (cpError elem cp++errs, ns)
+    checkCP elm cp@(Seq _   Plus) [] = (cpError elm cp, [])
+    checkCP elm cp@(Seq cps Plus) ns =
+        let (errs,next) = sequence elm ns cps in
+        if null errs then checkCP elm (Seq cps Star) next
+        else (cpError elm cp++errs, ns)
 
-    choice elem ns cps =  -- return only those parses that don't give any errors
-        [ rem | ([],rem) <- map (\cp-> checkCP elem (definite cp) ns) cps ]
+    choice elm ns cps =  -- return only those parses that don't give any errors
+        [ rem | ([],rem) <- map (\cp-> checkCP elm (definite cp) ns) cps ]
         ++ [ ns | all possEmpty cps ]
         where definite (TagName n Query)  = TagName n None
               definite (Choice cps Query) = Choice cps None
@@ -236,8 +236,8 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
               possEmpty (Choice _ mod)    = mod `Prelude.elem` [Query,Star]
               possEmpty (Seq cps None)    = all possEmpty cps
               possEmpty (Seq _ mod)       = mod `Prelude.elem` [Query,Star]
-    sequence elem ns cps =  -- accumulate errors down the sequence
-        foldl (\(es,ns) cp-> let (es',ns') = checkCP elem cp ns
+    sequence elm ns cps =  -- accumulate errors down the sequence
+        foldl (\(es,ns) cp-> let (es',ns') = checkCP elm cp ns
                              in (es++es', ns'))
               ([],ns) cps
 
@@ -256,8 +256,8 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
 
 
 cpError :: QName -> CP -> [String]
-cpError elem cp =
-    ["Element <"++qname elem++"> should contain "++display cp++" but does not."]
+cpError elm cp =
+    ["Element <"++qname elm++"> should contain "++display cp++" but does not."]
 
 
 display :: CP -> String

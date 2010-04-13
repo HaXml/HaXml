@@ -70,20 +70,12 @@ module Text.XML.HaXml.XmlContent.Parser
 --import IO
 import Maybe (catMaybes)
 import Char  (chr, isSpace)
-import List  (isPrefixOf, isSuffixOf)
-
-import Text.PrettyPrint.HughesPJ (render)
-import qualified Text.XML.HaXml.Pretty as PP
 
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Namespaces
 import Text.XML.HaXml.TypeMapping
-import Text.XML.HaXml.Posn     (Posn, posInNewCxt)
-import Text.XML.HaXml.Pretty   (document)
-import Text.XML.HaXml.Parse    (xmlParse)
+import Text.XML.HaXml.Posn     (Posn)
 import Text.XML.HaXml.Verbatim (Verbatim(verbatim))
-import qualified Text.XML.HaXml.ByteStringPP as FPS (document)
-import qualified Data.ByteString.Lazy.Char8 as FPS
 
 import Text.ParserCombinators.Poly
 

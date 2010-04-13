@@ -9,12 +9,13 @@
 
 module Text.XML.HaXml.Html.Parse
   ( htmlParse
+  , htmlParse'
   ) where
 
 import Prelude hiding (either,maybe,sequence)
 import qualified Prelude (either)
 import Maybe hiding (maybe)
-import Char (toLower, isSpace, isDigit, isHexDigit)
+import Char (toLower, {-isSpace,-} isDigit, isHexDigit)
 import Numeric (readDec,readHex)
 import Monad
 
@@ -47,14 +48,14 @@ debug _ = return ()
 --   contents of the file.  The result is the generic representation of
 --   an XML document.  Any errors cause program failure with message to stderr.
 htmlParse :: String -> String -> Document Posn
-htmlParse name = Prelude.either error id . htmlParse' name
+htmlParse file = Prelude.either error id . htmlParse' file
 
 -- | The first argument is the name of the file, the second is the string
 --   contents of the file.  The result is the generic representation of
 --   an XML document.  Any parsing errors are returned in the @Either@ type.
 htmlParse' :: String -> String -> Either String (Document Posn)
-htmlParse' name = Prelude.either Left (Right . simplify) . fst
-                  . runParser document . xmlLex name
+htmlParse' file = Prelude.either Left (Right . simplify) . fst
+                  . runParser document . xmlLex file
 
 ---- Document simplification ----
 
@@ -79,7 +80,7 @@ selfclosingtags :: [String]
 selfclosingtags = ["img","hr","br","meta","col","link","base"
                   ,"param","area","frame","input"]
 
---closing this, implicitly closes any of those which are contained in it
+-- closing this, implicitly closes any of those which are contained in it
 closeInnerTags :: [(String,[String])]
 closeInnerTags =
   [ ("ul",      ["li"])
@@ -102,21 +103,21 @@ closeInnerTags =
   , ("body",    ["p"])
   ]
 
---opening this, implicitly closes that
+-- opening this, implicitly closes that
 closes :: Name -> Name -> Bool
-"a"  `closes` "a"   =  True
-"li" `closes` "li"  =  True
-"th" `closes`  t    | t `elem` ["th","td"]      =  True
-"td" `closes`  t    | t `elem` ["th","td"]      =  True
-"tr" `closes`  t    | t `elem` ["th","td","tr"] =  True
-"dt" `closes`  t    | t `elem` ["dt","dd"]      =  True
-"dd" `closes`  t    | t `elem` ["dt","dd"]      =  True
-"form"  `closes` "form"      = True
-"label" `closes` "label"     = True
-_       `closes` "option"    = True
-"thead" `closes` t  | t `elem` ["colgroup"]          = True
-"tfoot" `closes` t  | t `elem` ["thead","colgroup"]  = True
-"tbody" `closes` t  | t `elem` ["tbody","tfoot","thead","colgroup"] = True
+"a"     `closes` "a"      =  True
+"li"    `closes` "li"     =  True
+"th"    `closes`  t       | t `elem` ["th","td"]      =  True
+"td"    `closes`  t       | t `elem` ["th","td"]      =  True
+"tr"    `closes`  t       | t `elem` ["th","td","tr"] =  True
+"dt"    `closes`  t       | t `elem` ["dt","dd"]      =  True
+"dd"    `closes`  t       | t `elem` ["dt","dd"]      =  True
+"form"  `closes` "form"   = True
+"label" `closes` "label"  = True
+_       `closes` "option" = True
+"thead" `closes` t        | t `elem` ["colgroup"]          = True
+"tfoot" `closes` t        | t `elem` ["thead","colgroup"]  = True
+"tbody" `closes` t        | t `elem` ["tbody","tfoot","thead","colgroup"] = True
 "colgroup" `closes` "colgroup"  = True
 t `closes` "p"
     | t `elem` ["p","h1","h2","h3","h4","h5","h6"
@@ -564,7 +565,7 @@ reference = do
                     = return . RefChar . fst . head . readHex $ i
     val ('#':i)     | all isDigit i
                     = return . RefChar . fst . head . readDec $ i
-    val name        = return . RefEntity $ name
+    val ent         = return . RefEntity $ ent
 
 {-
 reference :: HParser Reference

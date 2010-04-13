@@ -12,9 +12,9 @@ module Text.XML.HaXml.Html.ParseLazy
   ) where
 
 import Prelude hiding (either,maybe,sequence)
-import qualified Prelude (either)
+--import qualified Prelude (either)
 import Maybe hiding (maybe)
-import Char (toLower, isSpace, isDigit, isHexDigit)
+import Char (toLower, {-isSpace,-} isDigit, isHexDigit)
 import Numeric (readDec,readHex)
 import Monad
 
@@ -46,15 +46,15 @@ debug _ = return ()
 --   contents of the file.  The result is the generic representation of
 --   an XML document.  Any errors cause program failure with message to stderr.
 htmlParse :: String -> String -> Document Posn
-htmlParse name = {-simplify .-} fst . runParser document . xmlLex name
+htmlParse file = {-simplify .-} fst . runParser document . xmlLex file
 
 {-
 -- | The first argument is the name of the file, the second is the string
 --   contents of the file.  The result is the generic representation of
 --   an XML document.  Any parsing errors are returned in the @Either@ type.
 htmlParse' :: String -> String -> Either String (Document Posn)
-htmlParse' name = Prelude.either Left (Right . simplify) . fst
-                  . runParser document . xmlLex name
+htmlParse' file = Prelude.either Left (Right . simplify) . fst
+                  . runParser document . xmlLex file
 -}
 
 ---- Document simplification ----
@@ -103,24 +103,23 @@ closeInnerTags =
   ]
 
 --opening this, implicitly closes that
-closes :: Name -> Name -> Bool
-"a"  `closes` "a"   =  True
-"li" `closes` "li"  =  True
-"th" `closes`  t    | t `elem` ["th","td"]      =  True
-"td" `closes`  t    | t `elem` ["th","td"]      =  True
-"tr" `closes`  t    | t `elem` ["th","td","tr"] =  True
-"dt" `closes`  t    | t `elem` ["dt","dd"]      =  True
-"dd" `closes`  t    | t `elem` ["dt","dd"]      =  True
+closes :: String -> String -> Bool
+"a"     `closes` "a"   =  True
+"li"    `closes` "li"  =  True
+"th"    `closes`  t    | t `elem` ["th","td"]      =  True
+"td"    `closes`  t    | t `elem` ["th","td"]      =  True
+"tr"    `closes`  t    | t `elem` ["th","td","tr"] =  True
+"dt"    `closes`  t    | t `elem` ["dt","dd"]      =  True
+"dd"    `closes`  t    | t `elem` ["dt","dd"]      =  True
 "form"  `closes` "form"      = True
 "label" `closes` "label"     = True
 _       `closes` "option"    = True
-"thead" `closes` t  | t `elem` ["colgroup"]          = True
-"tfoot" `closes` t  | t `elem` ["thead","colgroup"]  = True
-"tbody" `closes` t  | t `elem` ["tbody","tfoot","thead","colgroup"] = True
+"thead" `closes` t     | t `elem` ["colgroup"]          = True
+"tfoot" `closes` t     | t `elem` ["thead","colgroup"]  = True
+"tbody" `closes` t     | t `elem` ["tbody","tfoot","thead","colgroup"] = True
 "colgroup" `closes` "colgroup"  = True
-t `closes` "p"
-    | t `elem` ["p","h1","h2","h3","h4","h5","h6"
-               ,"hr","div","ul","dl","ol","table"]  =  True
+t       `closes` "p"   | t `elem` ["p","h1","h2","h3","h4","h5","h6"
+                                  ,"hr","div","ul","dl","ol","table"]  =  True
 _ `closes` _ = False
 
 
@@ -385,7 +384,8 @@ reformatAttrs avs = concatMap f0 avs
 
 reformatTags :: [(Name, [(QName, AttValue)])] -> [TokenT]
 reformatTags ts = concatMap f0 ts
-    where f0 (t,avs) = [TokAnyOpen, TokName t]++reformatAttrs avs++[TokAnyClose]
+    where f0 (t,avs) = [TokAnyOpen, TokName t]++reformatAttrs avs
+                         ++[TokAnyClose]
 
 content :: Name -> HParser (Stack,Content Posn)
 content ctx = do { p <- posn ; content' p }
@@ -566,7 +566,7 @@ reference = do
                     = return . RefChar . fst . head . readHex $ i
     val ('#':i)     | all isDigit i
                     = return . RefChar . fst . head . readDec $ i
-    val name        = return . RefEntity $ name
+    val ent         = return . RefEntity $ ent
 
 {-
 reference :: HParser Reference
