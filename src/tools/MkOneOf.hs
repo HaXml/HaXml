@@ -4,7 +4,7 @@ import Prelude hiding (max)
 import System (getArgs,exitWith,ExitCode(..))
 import Char   (isDigit)
 import IO     (hFlush,stdout)
-import Control.Monad  (when)
+import Monad  (when)
 import Text.XML.HaXml (version)
 
 main  :: IO ()

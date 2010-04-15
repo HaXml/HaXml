@@ -12,9 +12,9 @@ import Text.XML.HaXml.Namespaces
 import Text.XML.HaXml.Posn
 import System.Random
 import Test.QuickCheck
-import Control.Monad (liftM, liftM2, liftM3, liftM4)
-import Data.Char (chr,ord)
-import Data.List (unfoldr)
+import Monad (liftM, liftM2, liftM3, liftM4)
+import Char (chr,ord)
+import List (unfoldr)
 import Text.ParserCombinators.Parsec
 
 -- TESTING (QuickCheck) --

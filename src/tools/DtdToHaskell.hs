@@ -9,7 +9,7 @@ module Main where
 import System
 import IO
 import List (nub,takeWhile,dropWhile)
-import Control.Monad
+import Monad
 
 --import Text.XML.HaXml.Wrappers   (fix2Args)
 import Text.XML.HaXml            (version)

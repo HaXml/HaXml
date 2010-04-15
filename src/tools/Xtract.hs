@@ -4,9 +4,9 @@
 module Main where
 import System (getArgs, exitWith, ExitCode(..))
 import IO
-import Char         (toLower)
-import List         (isSuffixOf)
-import Control.Monad(when)
+import Char   (toLower)
+import List   (isSuffixOf)
+import Monad  (when)
 
 import Text.XML.HaXml               (version)
 import Text.XML.HaXml.Types

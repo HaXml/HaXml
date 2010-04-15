@@ -22,7 +22,7 @@ module Text.XML.HaXml.ByteStringPP
 
 import Prelude hiding (maybe,either,elem,concat)
 import Maybe hiding (maybe)
-import Data.List (intersperse)
+import List (intersperse)
 --import Data.ByteString.Lazy hiding (pack,map,head,any,singleton,intersperse,join)
 import Data.ByteString.Lazy.Char8 (ByteString(), concat, pack, singleton
                                   , intercalate, append, elem, empty)

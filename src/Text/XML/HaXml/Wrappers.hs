@@ -10,8 +10,8 @@ module Text.XML.HaXml.Wrappers
 import Prelude hiding (filter)
 import System
 import IO
-import List (isSuffixOf)
-import Control.Monad (when)
+import List  (isSuffixOf)
+import Monad (when)
 
 import Text.XML.HaXml.Types       (Document(..),Content(..))
 import Text.XML.HaXml.Combinators (CFilter)
