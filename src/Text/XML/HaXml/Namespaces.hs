@@ -6,6 +6,7 @@ module Text.XML.HaXml.Namespaces
   , localName
   , printableName
   , qualify
+  , deQualify
   , initNamespaceEnv
   , augmentNamespaceEnv
   , resolveAllNames
@@ -63,6 +64,13 @@ qualify _ env qn@(QN ns n)
         | null (nsURI ns) = QN (maybe ns id (Map.lookup (nsPrefix ns) env)) n
         | otherwise       = qn
 
+-- | 'deQualify' has the same signature as 'qualify', but ignores the
+--   arguments for default namespace and environment, and simply removes any
+--   pre-existing qualification.
+deQualify :: Maybe Namespace -> Map String Namespace -> QName -> QName
+deQualify _ _ (QN _ n) = N n
+deQualify _ _ (N n)    = N n
+
 -- | The initial Namespace environment.  It always has bindings for the
 --   prefixes 'xml' and 'xmlns'.
 initNamespaceEnv :: Map String Namespace
@@ -93,8 +101,9 @@ augmentNamespaceEnv ns env
 --   name that was originally unqualified.  This is likely only useful when
 --   dealing with parsed document, less useful when generating a document
 --   from scratch.
-resolveAllNames :: Document i -> Document i
-resolveAllNames (Document prolog entities elm misc) =
+resolveAllNames :: (Maybe Namespace -> Map String Namespace -> QName -> QName)
+                   -> Document i -> Document i
+resolveAllNames qualify (Document prolog entities elm misc) =
     Document (walkProlog prolog) entities
              (walkElem Nothing initNamespaceEnv elm) misc
   where
