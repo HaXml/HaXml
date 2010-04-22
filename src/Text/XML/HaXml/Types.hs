@@ -271,12 +271,13 @@ newtype EncodingDecl = EncodingDecl String deriving Eq
 
 -- | A QName is a (possibly) qualified name, in the sense of XML namespaces.
 data QName    = N  Name
-              | QN Namespace Name deriving Eq
+              | QN Namespace Name deriving (Eq,Show)
 -- | Namespaces are not defined in the XML spec itself, but at
 --       http://www.w3.org/TR/xml-names
 data Namespace = Namespace { nsPrefix  :: String
                            , nsURI     :: String
                            }
+                 deriving (Show)
 instance Eq Namespace where
     p == q  =  nsURI p == nsURI q     -- this is the W3C spec's definition!
 instance Ord QName where

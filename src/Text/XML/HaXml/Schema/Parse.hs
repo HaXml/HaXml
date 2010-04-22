@@ -7,11 +7,13 @@ import List (intersperse)
 import Text.ParserCombinators.Poly
 import Text.Parse    -- for String parsers
 
-import Text.XML.HaXml.Types
+import Text.XML.HaXml.Types      (Name,QName(..),Namespace(..)
+                                 ,Content(..),Element(..),info)
 import Text.XML.HaXml.Namespaces
-import Text.XML.HaXml.Verbatim
+import Text.XML.HaXml.Verbatim hiding (qname)
 import Text.XML.HaXml.Posn
 import Text.XML.HaXml.Schema.XSDTypeModel as XSD
+import Text.XML.HaXml.XmlContent.Parser (text)
 
 xsd :: Name -> QName
 xsd name = QN nullNamespace{nsURI="http://www.w3.org/2001/XMLSchema"}
@@ -64,6 +66,7 @@ element qn = fmap snd (posnElementWith (==qn) (printableName qn:[]))
 --   parser context.
 interior :: Element Posn -> XsdParser a -> XsdParser a
 interior = interiorWith (const True)
+
 {-
 interior (Elem e _ cs) p =
     case runParser p cs of
@@ -120,36 +123,193 @@ attribute qn p (Elem _ as _) =
 schema :: XsdParser Schema
 schema = do
     e <- element (xsd "schema") `adjustErr`  (++"Expected <xsd:schema>")
-    attrQualDef <- attribute (xsd "attributeFormDefault") qform e
-                   `onFail` return Unqualified
-    elemQualDef <- attribute (xsd "elementFormDefault") qform e
-                   `onFail` return Unqualified
-    target      <- optional (attribute (N "targetNamespace") word e)
-    annote      <- interiorWith annTag       e (optional annotation)
-    items       <- interiorWith (not.annTag) e (many schemaItem)
-    return $ Schema items (maybe NoAnnotation id annote)
-                    attrQualDef elemQualDef Nothing target Nothing
-    -- Note: does not yet deal with Final or Block attributes.
-  where
-    annTag (CElem (Elem qn _ _) _) = qn == xsd "annotation"
-    annTag _                       = False
+    attrQualD <- attribute (N "attributeFormDefault") qform e
+                 `onFail` return Unqualified
+    elemQualD <- attribute (N "elementFormDefault") qform e
+                 `onFail` return Unqualified
+    finalD    <- optional (attribute (xsd "finalDefault") final e)
+    blockD    <- optional (attribute (xsd "blockDefault") final e)
+    target    <- optional (attribute (N "targetNamespace") uri  e)
+    annote    <- interiorWith (xsdTag "annotation")     e annotation
+    items     <- interiorWith (not.xsdTag "annotation") e (many schemaItem)
+    return $ Schema annote attrQualD elemQualD finalD blockD target items
 
--- | Just a dummy for now.
-schemaItem :: XsdParser SchemaItem
-schemaItem = do
-    _ <- content "to make progress"
-    return $ Simple (Primitive String) NoAnnotation
+-- | Predicate for comparing against an XSD-qualified name
+xsdTag :: String -> Content Posn -> Bool
+xsdTag name (CElem (Elem qn _ _) _)  =  qn == xsd name
+xsdTag _    _                        =  False
 
--- | Just a dummy for now.
+-- | Parse an <xsd:annotation> element.
 annotation :: XsdParser Annotation
 annotation = do
-    return $ NoAnnotation
+    me <- optional (element (xsd "annotation"))
+    case me of
+      Nothing -> return NoAnnotation
+      Just e -> fmap Documentation
+                             (interiorWith (xsdTag "documentation") e text)
+                    `onFail`
+                fmap AppInfo (interiorWith (xsdTag "appinfo") e text)
+                    `onFail`
+                return NoAnnotation
 
+
+-- | Parse a FormDefault attribute.
 qform :: TextParser QForm
-qform = do w <- word
-           case w of
-             "qualified"   -> return Qualified
-             "unqualified" -> return Unqualified
-             _             -> failBad "Expected \"qualified\" or \"unqualified\""
+qform = do
+    w <- word
+    case w of
+        "qualified"   -> return Qualified
+        "unqualified" -> return Unqualified
+        _             -> failBad "Expected \"qualified\" or \"unqualified\""
 
+-- | Parse a Final or Block attribute.
+final :: TextParser Final
+final = do
+    w <- word
+    case w of
+        "restriction" -> return NoRestriction
+        "extension"   -> return NoExtension
+        "#all"        -> return AllFinal
+        _             -> failBad $ "Expected \"restriction\" or \"extension\""
+                                   ++" or \"#all\""
 
+-- | Parse a schema item (just under the toplevel <xsd:schema>)
+schemaItem :: XsdParser SchemaItem
+schemaItem = oneOf'
+       [ extractAnnotation (xsd "element")     Decl    elementDecl
+       , extractAnnotation (xsd "simpleType")  Simple  simpleType
+    -- , extractAnnotation (xsd "complexType") Complex complexType
+       , ("xsd:include", include)
+    -- , lots more required:
+    --    Redefine
+    --    Substitution
+    --    Abstract
+    --    Constraint
+    --    Import
+       ]
+
+-- | Auxiliary to help lift a parsed annotation out of a parsed element.
+extractAnnotation :: QName -> (a->Annotation->b) -> XsdParser a
+                     -> (String, XsdParser b)
+extractAnnotation qn build parse =
+    ( printableName qn
+    , do (p,e) <- posnElementWith (==qn) (printableName qn:[])
+         reparse [CElem e p]
+         v <- parse
+         annote <- interiorWith (xsdTag "annotation") e annotation
+         return $ build v annote
+    )
+
+-- | Parse an <xsd:include>.
+include :: XsdParser SchemaItem
+include = do e <- element (xsd "include")
+             v <- attribute (N "schemaLocation") uri e
+             return (Include v)
+
+-- | Parse an <xsd:element> decl.
+elementDecl :: XsdParser ElementDecl
+elementDecl =
+      ( do e    <- element (xsd "element")
+           n    <- attribute (N "name") name e
+           t    <- attribute (N "type") (fmap Left qname) e
+                   `onFail`
+                   interiorWith (\c-> xsdTag "simpleType" c ||
+                                      xsdTag "complexType" c)
+                                e
+                                (fmap (Right . Left) simpleType
+                                 `onFail`
+                                 fmap (Right . Right) complexType)
+           min  <- optional $ attribute (N "minOccurs") parseDec e
+           max  <- optional $ attribute (N "maxOccurs") parseDec e
+           defV <- attribute (N "default") string e `onFail` return ""
+           nil  <- attribute (N "nillable") bool e `onFail` return False
+           qf   <- attribute (N "form") qform e `onFail` return Unqualified
+           return (ElementDecl n t (Occurs min max) defV nil qf)
+      ) `onFail` (
+        do e    <- element (xsd "element")
+           ref  <- attribute (N "ref") qname e
+           min  <- optional $ attribute (N "minOccurs") parseDec e
+           max  <- optional $ attribute (N "maxOccurs") parseDec e
+           return (ElementRef ref (Occurs min max))
+      ) -- and two other cases, for GroupRef and Choice.
+
+-- | Parse an <xsd:attribute> decl.
+attributeDecl :: XsdParser AttributeDecl
+attributeDecl =
+      ( do e  <- element (xsd "attribute")
+           n  <- attribute (N "name") name e
+           t  <- attribute (N "type") (fmap Left qname) e
+                 `onFail`
+                 interiorWith (xsdTag "simpleType") e (fmap Right simpleType)
+           u  <- attribute (N "use") use e
+                 `onFail` return Optional
+           df <- optional (attribute (N "default") (fmap Left string) e
+                           `onFail`
+                           attribute (N "fixed") (fmap Right string) e)
+           a  <- interiorWith (xsdTag "annotation") e annotation
+           qf <- attribute (N "form") qform e `onFail` return Unqualified
+           return (AttributeDecl n t u df a qf)
+      ) `onFail` (
+        do e   <- element (xsd "attribute")
+           ref <- attribute (N "ref") qname e
+           return (AttributeGroupRef ref)
+      )
+
+-- | Parse a <xsd:simpleType> decl.
+simpleType :: XsdParser SimpleType
+simpleType = do e <- element (xsd "simpleType")
+                n <- optional (attribute (N "name") (fmap N name) e)
+                case n of
+                  Nothing -> return (Primitive String) -- dummy for now
+                  Just n' -> return (Primitive String) -- also a dummy
+
+-- | Parse a <xsd:complexType> decl.
+complexType :: XsdParser ComplexType
+complexType = do e <- element (xsd "complexType")
+                 n <- optional (attribute (N "name") name e)
+                 -- just a dummy for now
+                 return (ComplexType n [] (Sequence []) False Nothing)
+         --   interiorWith (xsd "simpleContent") e
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+-- | Text parser for a URI (very simple, non-validating, probably incorrect).
+uri :: TextParser String
+uri = string
+
+-- | Text parser for an arbitrary string consisting of possibly multiple tokens.
+string :: TextParser String
+string = fmap concat $ many word
+
+-- | Parse a textual boolean, i.e. "true", "false", "0", or "1"
+bool :: TextParser Bool
+bool = do w <- word
+          case w of
+            "true"  -> return True
+            "false" -> return False
+            "0"     -> return True
+            "1"     -> return False
+            _       -> fail "could not parse boolean value"
+
+-- | Parse a "use" attribute value, i.e. "required", "optional", or "prohibited"
+use :: TextParser Use
+use = do w <- word
+         case w of
+           "required"   -> return Required
+           "optional"   -> return Optional
+           "prohibited" -> return Prohibited
+           _            -> fail "could not parse \"use\" attribute value"
+
+-- | Parse an attribute value that should be a QName.
+qname :: TextParser QName
+qname = do a <- word
+           ( do ":" <- word
+                b   <- word
+                return (N (a++':':b))
+             `onFail`
+             do eof
+                return (N a) )
+
+-- | Parse an attribute value that should be a simple Name.
+name :: TextParser Name
+name = word
