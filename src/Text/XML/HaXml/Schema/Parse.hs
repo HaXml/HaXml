@@ -3,8 +3,7 @@ module Text.XML.HaXml.Schema.Parse
   ) where
 
 import Char (isSpace)
-import List (intersperse)
-import Text.ParserCombinators.Poly
+-- import Text.ParserCombinators.Poly
 import Text.Parse    -- for String parsers
 
 import Text.XML.HaXml.Types      (Name,QName(..),Namespace(..)
@@ -14,6 +13,7 @@ import Text.XML.HaXml.Verbatim hiding (qname)
 import Text.XML.HaXml.Posn
 import Text.XML.HaXml.Schema.XSDTypeModel as XSD
 import Text.XML.HaXml.XmlContent.Parser (text)
+
 
 xsd :: Name -> QName
 xsd name = QN nullNamespace{nsURI="http://www.w3.org/2001/XMLSchema"}
@@ -27,7 +27,7 @@ type XsdParser a = Parser (Content Posn) a
 
 -- | The most primitive combinator for XsdParser - get one content item.
 content :: String -> XsdParser (Content Posn)
-content word = next `adjustErr` (++" when expecting "++word)
+content msg = next `adjustErr` (++" when expecting "++msg)
 
 -- | Get the next content element, checking that it has one of the required
 --   tags, using the given matching function.
@@ -67,22 +67,6 @@ element qn = fmap snd (posnElementWith (==qn) (printableName qn:[]))
 interior :: Element Posn -> XsdParser a -> XsdParser a
 interior = interiorWith (const True)
 
-{-
-interior (Elem e _ cs) p =
-    case runParser p cs of
-        (Left msg, _) -> fail msg
-        (Right x, []) -> return x
-        (Right x, ds@(d:_))
-            | all onlyMisc ds -> return x
-            | otherwise       -> fail ("Too many elements inside <"
-                                      ++printableName e++"> at\n"
-                                      ++show (info d)++"\n"
-                                      ++"Found excess: "++verbatim d)
-  where onlyMisc (CMisc _ _) = True
-        onlyMisc (CString False s _) | all isSpace s = True
-        onlyMisc _ = False
--}
-
 -- | Like interior, only we filter the child content before using it.
 interiorWith :: (Content Posn->Bool) -> Element Posn
                 -> XsdParser a -> XsdParser a
@@ -95,7 +79,7 @@ interiorWith keep (Elem e _ cs) p =
             | otherwise       -> fail ("Too many elements inside <"
                                       ++printableName e++"> at\n"
                                       ++show (info d)++"\n"
-                                      ++"Found excess: "++verbatim d)
+                                      ++"Found excess: "++verbatim (take 5 ds))
   where onlyMisc (CMisc _ _) = True
         onlyMisc (CString False s _) | all isSpace s = True
         onlyMisc _ = False
@@ -111,7 +95,7 @@ attribute qn p (Elem _ as _) =
                                              ++printableName qn++"=\""
                                              ++show atv++"\": "++msg
                       (Right v,[]) -> return v
-                      (Right v,xs) -> fail $ "Attribute parsing excess text: "
+                      (Right _,xs) -> fail $ "Attribute parsing excess text: "
                                              ++printableName qn++"=\""
                                              ++show atv++"\":\n  Excess is: "
                                              ++xs
@@ -136,8 +120,8 @@ schema = do
 
 -- | Predicate for comparing against an XSD-qualified name
 xsdTag :: String -> Content Posn -> Bool
-xsdTag name (CElem (Elem qn _ _) _)  =  qn == xsd name
-xsdTag _    _                        =  False
+xsdTag tag (CElem (Elem qn _ _) _)  =  qn == xsd tag
+xsdTag _   _                        =  False
 
 -- | Parse an <xsd:annotation> element.
 annotation :: XsdParser Annotation
@@ -191,11 +175,11 @@ schemaItem = oneOf'
 -- | Auxiliary to help lift a parsed annotation out of a parsed element.
 extractAnnotation :: QName -> (a->Annotation->b) -> XsdParser a
                      -> (String, XsdParser b)
-extractAnnotation qn build parse =
+extractAnnotation qn build parser =
     ( printableName qn
     , do (p,e) <- posnElementWith (==qn) (printableName qn:[])
          reparse [CElem e p]
-         v <- parse
+         v <- parser
          annote <- interiorWith (xsdTag "annotation") e annotation
          return $ build v annote
     )
@@ -261,7 +245,7 @@ simpleType = do e <- element (xsd "simpleType")
                 n <- optional (attribute (N "name") (fmap N name) e)
                 case n of
                   Nothing -> return (Primitive String) -- dummy for now
-                  Just n' -> return (Primitive String) -- also a dummy
+                  Just _  -> return (Primitive String) -- also a dummy
 
 -- | Parse a <xsd:complexType> decl.
 complexType :: XsdParser ComplexType
