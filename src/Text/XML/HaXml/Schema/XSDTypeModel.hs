@@ -16,6 +16,7 @@ data SchemaItem    = Simple  SimpleType  Annotation
                    | Abstract     ElementDecl
                    | Constraint Name Constraint
                    | Import  Namespace
+                   | Group Name [ElementDecl] Annotation
                      deriving (Eq,Show)
 
 data SimpleType    = Primitive       PrimitiveType
@@ -28,8 +29,6 @@ data ComplexType   = ComplexType (Maybe Name) [AttributeDecl] ElementsDecl
                    | SimpleContent (Maybe Name) [AttributeDecl] SimpleType
                    | ComplexExtension (Maybe Name) Name ElementsDecl
                    | ComplexRestriction (Maybe Name) Name ElementsDecl
-                     deriving (Eq,Show)
-data Group         = Group Name ElementsDecl
                      deriving (Eq,Show)
 
 data ElementsDecl  = Sequence  [ElementDecl]
@@ -78,7 +77,7 @@ type Fixed         = Bool
 
 data Annotation    = Documentation String
                    | AppInfo String
-                   | NoAnnotation
+                   | NoAnnotation String
                      deriving (Eq,Show)
 
 data QForm         = Qualified | Unqualified -- only matters for locally decl'd

@@ -128,13 +128,16 @@ annotation :: XsdParser Annotation
 annotation = do
     me <- optional (element (xsd "annotation"))
     case me of
-      Nothing -> return NoAnnotation
+      Nothing -> return (NoAnnotation "missing")
       Just e -> fmap Documentation
-                             (interiorWith (xsdTag "documentation") e text)
+                             (interiorWith (xsdTag "documentation") e allText)
                     `onFail`
-                fmap AppInfo (interiorWith (xsdTag "appinfo") e text)
+                fmap AppInfo (interiorWith (xsdTag "appinfo") e allText)
                     `onFail`
-                return NoAnnotation
+                return (NoAnnotation "failed to parse")
+  where
+    allText = do (_,e) <- posnElementWith (const True) ["anything"]
+                 interiorWith (const True) e text
 
 
 -- | Parse a FormDefault attribute.
@@ -162,7 +165,8 @@ schemaItem :: XsdParser SchemaItem
 schemaItem = oneOf'
        [ extractAnnotation (xsd "element")     Decl    elementDecl
        , extractAnnotation (xsd "simpleType")  Simple  simpleType
-    -- , extractAnnotation (xsd "complexType") Complex complexType
+       , extractAnnotation (xsd "complexType") (\c a-> Complex c a Nothing)
+                                                       complexType
        , ("xsd:include", include)
     -- , lots more required:
     --    Redefine
@@ -170,6 +174,7 @@ schemaItem = oneOf'
     --    Abstract
     --    Constraint
     --    Import
+       , extractAnnotation (xsd "group") ($) groupDecl
        ]
 
 -- | Auxiliary to help lift a parsed annotation out of a parsed element.
@@ -238,6 +243,13 @@ attributeDecl =
            ref <- attribute (N "ref") qname e
            return (AttributeGroupRef ref)
       )
+
+-- | Parse a <xsd:group> decl.
+groupDecl :: XsdParser (Annotation->SchemaItem)
+groupDecl = do e <- element (xsd "group")
+               commit $ do n <- attribute (N "name") string e
+                           -- dummy elementdecl content
+                           return (Group n [])
 
 -- | Parse a <xsd:simpleType> decl.
 simpleType :: XsdParser SimpleType
