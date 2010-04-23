@@ -24,6 +24,8 @@ LIBSRCS = \
 	Text/XML/HaXml/Xtract/Combinators.hs \
 	Text/XML/HaXml/Xtract/Lex.hs \
 	Text/XML/HaXml/Xtract/Parse.hs \
+	Text/XML/HaXml/Schema/XSDTypeModel.hs \
+	Text/XML/HaXml/Schema/Parse.hs \
 
 LIBOBJS = $(patsubst %.hs, %.o, $(LIBSRCS))
 
@@ -33,12 +35,14 @@ TOOLSRCS = \
 	Text/XML/HaXml/DtdToHaskell/Instance.hs \
 	tools/DtdToHaskell.hs tools/Xtract.hs tools/Validate.hs \
  	tools/Canonicalise.hs tools/MkOneOf.hs \
- 	tools/CanonicaliseLazy.hs tools/XtractLazy.hs
+ 	tools/CanonicaliseLazy.hs tools/XtractLazy.hs \
+ 	tools/XsdToHaskell.hs \
 
 TOOLSET = \
 	../../DtdToHaskell$(EXE) ../../Xtract$(EXE) ../../Validate$(EXE) \
 	../../Canonicalise$(EXE) ../../MkOneOf$(EXE) \
-	../../CanonicaliseLazy$(EXE) ../../XtractLazy$(EXE)
+	../../CanonicaliseLazy$(EXE) ../../XtractLazy$(EXE) \
+	../../XsdToHaskell$(EXE)
 
 EXE = $(shell cat ../exe)
 INSTALLDIR = $(shell cat ../prefix)

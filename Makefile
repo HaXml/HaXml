@@ -6,7 +6,7 @@ CPP     = cpphs --text --noline	# useful e.g. on MacOS X
 
 DIRS = Text Text/XML Text/XML/HaXml Text/XML/HaXml/Html \
 	Text/XML/HaXml/Xtract Text/XML/HaXml/DtdToHaskell \
-	Text/XML/HaXml/XmlContent
+	Text/XML/HaXml/XmlContent Text/XML/HaXml/Schema
 
 SRCS = \
 	src/Text/XML/HaXml.hs src/Text/XML/HaXml/Combinators.hs \
@@ -35,11 +35,14 @@ SRCS = \
 	src/Text/XML/HaXml/DtdToHaskell/TypeDef.hs \
 	src/Text/XML/HaXml/DtdToHaskell/Convert.hs \
 	src/Text/XML/HaXml/DtdToHaskell/Instance.hs \
+	src/Text/XML/HaXml/Schema/XSDTypeModel.hs \
+	src/Text/XML/HaXml/Schema/Parse.hs \
 
 TOOLSRCS = \
 	src/tools/DtdToHaskell.hs src/tools/Xtract.hs src/tools/Validate.hs \
 	src/tools/Canonicalise.hs src/tools/MkOneOf.hs \
 	src/tools/CanonicaliseLazy.hs src/tools/XtractLazy.hs \
+	src/tools/XsdToHaskell.hs \
 
 AUX =	configure Makefile src/Makefile src/pkg.conf docs/* examples/* \
 	README LICENCE* COPYRIGHT script/echo.c rpm.spec Build.bat \

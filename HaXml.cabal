@@ -39,6 +39,8 @@ library
         Text.XML.HaXml.Posn,
         Text.XML.HaXml.Pretty,
         Text.XML.HaXml.SAX,
+        Text.XML.HaXml.Schema.XSDTypeModel,
+        Text.XML.HaXml.Schema.Parse,
         Text.XML.HaXml.ShowXmlLazy,
         Text.XML.HaXml.Types,
         Text.XML.HaXml.TypeMapping,
@@ -114,3 +116,10 @@ Executable DtdToHaskell
   Hs-Source-Dirs: src/tools, src
   cpp-options: -DMYVERSION="1.21"
   Main-Is: DtdToHaskell.hs
+
+Executable XsdToHaskell
+  GHC-Options: -Wall
+  Extensions:  CPP
+  Hs-Source-Dirs: src/tools, src
+  cpp-options: -DMYVERSION="1.21"
+  Main-Is: XsdToHaskell.hs

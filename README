@@ -72,6 +72,10 @@ What this package contains:
 	Pretty.hs	An HTML-specific pretty-printer.
 	Generate.hs	Some useful combinators for generating HTML content.
 
+  src/Text/XML/HaXml/Schema	Extra support modules for processing Schema.
+	XSDTypeModel.hs	A representation of the datatype model of Xml Schema.
+	Parse.hs	Parser from an XSD document to the type model above.
+
   src/tools/		Standalone tools based on the library above.
 	DtdToHaskell	Translates an XML doc containing a DTD into a Haskell
 			module containing data/newtype definitions.
