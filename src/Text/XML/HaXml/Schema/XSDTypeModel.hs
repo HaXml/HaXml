@@ -4,19 +4,29 @@ module Text.XML.HaXml.Schema.XSDTypeModel
 
 import Text.XML.HaXml.Types      (Name,Namespace,QName)
 
-data Schema        = Schema Annotation QForm QForm (Maybe Final) (Maybe Block)
-                            (Maybe TargetNamespace) [SchemaItem]
+data Schema        = Schema
+                       { schema_annotation           :: Annotation
+                       , schema_elementFormDefault   :: QForm
+                       , schema_attributeFormDefault :: QForm
+                       , schema_finalDefault         :: Maybe Final
+                       , schema_blockDefault         :: Maybe Block
+                       , schema_targetNamespace      :: Maybe TargetNamespace
+                       , schema_version              :: Maybe String
+                       , schema_items                :: [SchemaItem]
+                       }
                      deriving (Eq,Show)
-data SchemaItem    = Simple  SimpleType  Annotation
-                   | Complex ComplexType Annotation (Maybe Final)
-                   | Decl    ElementDecl Annotation
-                   | Include SchemaLocation
-                   | Redefine SchemaLocation ComplexType
-                   | Substitution ElementDecl Name
-                   | Abstract     ElementDecl
-                   | Constraint Name Constraint
-                   | Import  Namespace
-                   | Group Name [ElementDecl] Annotation
+data SchemaItem    = Include    SchemaLocation Annotation
+                   | Import URI SchemaLocation Annotation
+                   | Redefine   SchemaLocation [SchemaItem]
+                   | Annotation Annotation
+                   --
+                   | Simple          SimpleType
+                   | Complex         ComplexType
+                   | SchemaElement   ElementDecl
+                   | SchemaAttribute AttributeDecl
+                   | AttributeGroup  AttrGroup
+                   | SchemaGroup     Group
+               --  | Notation        Name
                      deriving (Eq,Show)
 
 data SimpleType    = Primitive       PrimitiveType
@@ -24,34 +34,141 @@ data SimpleType    = Primitive       PrimitiveType
                    | ListOf     Name SimpleType   Restriction Fixed
                    | UnionOf    Name [SimpleType] Restriction Fixed
                      deriving (Eq,Show)
-data ComplexType   = ComplexType (Maybe Name) [AttributeDecl] ElementsDecl
-                                 Mixed (Maybe Block)
-                   | SimpleContent (Maybe Name) [AttributeDecl] SimpleType
-                   | ComplexExtension (Maybe Name) Name ElementsDecl
-                   | ComplexRestriction (Maybe Name) Name ElementsDecl
+
+data ComplexType   = ComplexType
+                       { complex_annotation :: Annotation
+                       , complex_name       :: Maybe Name
+                       , complex_abstract   :: Bool
+                       , complex_final      :: Maybe Final
+                       , complex_block      :: Maybe Block
+                       , complex_mixed      :: Bool
+                       , complex_content    :: ComplexItem
+                       }
+                     deriving (Eq,Show)
+data ComplexItem   = SimpleContent
+                       { ci_annotation :: Annotation
+                       , ci_stuff      :: (Either Restriction1 Extension)
+                       }
+                   | ComplexContent
+                       { ci_annotation :: Annotation
+                       , ci_mixed      :: Bool
+                       , ci_stuff      :: (Either Restriction1 Extension)
+                       }
+                   | ThisType
+                       { ci_thistype   :: ParticleAttrs
+                       }
                      deriving (Eq,Show)
 
-data ElementsDecl  = Sequence  [ElementDecl]
-                   | Unordered [ElementDecl]
+data Restriction1  = Restriction1 Particle
                      deriving (Eq,Show)
-data AttributeGroup= AttributeGroup [AttributeDecl]
-                     deriving (Eq,Show)
-
-data ElementDecl   = ElementDecl Name (Either QName
-                                              (Either SimpleType ComplexType))
-                                      Occurs
-                                      DefaultValue Nillable
-                                      {-Annotation-} QForm
-                   | ElementRef  QName Occurs
-                   | GroupRef    QName
-                   | Choice      [ElementDecl]
-                     deriving (Eq,Show)
-data AttributeDecl = AttributeDecl Name (Either QName SimpleType) Use
-                                   (Maybe (Either DefaultValue FixedValue))
-                                   Annotation QForm
-                   | AttributeGroupRef QName
+data Extension     = Extension
+                       { extension_annotation :: Annotation
+                       , extension_base       :: QName
+                       , extension_newstuff   :: ParticleAttrs
+                       }
                      deriving (Eq,Show)
 
+type Particle      = Maybe (Either ChoiceOrSeq Group)
+data ParticleAttrs = PA Particle [AttributeDecl]
+                     deriving (Eq,Show)
+data Group         = Group
+                       { group_annotation :: Annotation
+                       , group_nameOrRef  :: Either Name QName
+                       , group_occurs     :: Occurs
+                       , group_stuff      :: Maybe ChoiceOrSeq
+                       }
+                     deriving (Eq,Show)
+
+data ChoiceOrSeq   = All      Annotation [ElementDecl]
+                   | Choice   Annotation Occurs [ElementEtc]
+                   | Sequence Annotation Occurs [ElementEtc]
+                     deriving (Eq,Show)
+data ElementEtc    = HasElement ElementDecl
+                   | HasGroup   Group
+                   | HasCS      ChoiceOrSeq
+                   | HasAny     Any
+                     deriving (Eq,Show)
+
+data Any           = Any Annotation -- some attributes omitted
+                     deriving (Eq,Show)
+
+data AttrGroup     = AttrGroup
+                       { attrgroup_annotation :: Annotation
+                       , attrgroup_nameOrRef  :: Either Name QName
+                       , attrgroup_stuff      :: [Either AttributeDecl
+                                                         AttrGroup]
+                       }
+                     deriving (Eq,Show)
+
+data ElementDecl   = ElementDecl
+                       { elem_annotation :: Annotation
+                       , elem_nameOrRef  :: Either NameAndType QName
+                       , elem_occurs     :: Occurs
+                       , elem_nillable   :: Nillable
+                       , elem_substGroup :: Maybe QName
+                       , elem_abstract   :: Bool
+                       , elem_final      :: Maybe Final
+                       , elem_block      :: Maybe Block
+                       , elem_form       :: QForm
+                       , elem_content    :: Maybe (Either SimpleType
+                                                          ComplexType)
+                       , elem_stuff      :: [ UniqueKeyOrKeyRef ]
+                       }
+                     deriving (Eq,Show)
+data NameAndType   = NT { theName :: Name, theType :: Maybe QName }
+                     deriving (Eq,Show)
+
+
+data AttributeDecl = AttributeDecl
+                       { attr_annotation :: Annotation
+                       , attr_nameOrRef  :: Either NameAndType QName
+                       , attr_use        :: Use
+                       , attr_defFixed   :: Maybe (Either DefaultValue
+                                                          FixedValue)
+                       , attr_form       :: QForm
+                       , attr_simpleType :: Maybe SimpleType
+                       }
+                     deriving (Eq,Show)
+
+
+data UniqueKeyOrKeyRef
+                   = U  Unique
+                   | K  Key
+                   | KR KeyRef
+                     deriving (Eq,Show)
+
+data Unique        = Unique
+                       { unique_annotation :: Annotation
+                       , unique_name       :: Name
+                       , unique_selector   :: Selector
+                       , unique_fields     :: [Field]
+                       }
+                     deriving (Eq,Show)
+data Key           = Key
+                       { key_annotation :: Annotation
+                       , key_name       :: Name
+                       , key_selector   :: Selector
+                       , key_fields     :: [Field]
+                       }
+                     deriving (Eq,Show)
+data KeyRef        = KeyRef
+                       { keyref_annotation :: Annotation
+                       , keyref_name       :: Name
+                       , keyref_refer      :: QName
+                       , keyref_selector   :: Selector
+                       , keyref_fields     :: [Field]
+                       }
+                     deriving (Eq,Show)
+data Selector        = Selector
+                       { selector_annotation :: Annotation
+                       , selector_xpath      :: String
+                       }
+                     deriving (Eq,Show)
+data Field           = Field
+                       { field_annotation :: Annotation
+                       , field_xpath      :: String
+                       }
+                     deriving (Eq,Show)
 
 data Occurs        = Occurs (Maybe Int) (Maybe Int)
                      deriving (Eq,Show)
@@ -88,12 +205,14 @@ data Final         = NoExtension | NoRestriction | AllFinal
                      deriving (Eq,Show)
 type Block         = Final
 
+{-
 data Constraint    = Unique Selector [Field]
                    | Key    Selector [Field]
                    | KeyRef Selector [Field]
                      deriving (Eq,Show)
 type Selector      = String	-- XPath query for scope of constraint
 type Field         = String	-- XPath query for entity being constrained
+-}
 
 -- check all of the following.
 type SchemaLocation= String
