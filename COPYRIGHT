@@ -15,9 +15,9 @@ mechanism to modify or replace the Library and relink (clauses 6a,
 complied with.
 ----
 
-The HaXml tools Xtract, Validate, DtdToHaskell, and MkOneOf, are
-licensed under the terms of the GNU General Public Licence (GPL),
-which can be found in the file called LICENCE-GPL.
+The HaXml tools Xtract, Validate, DtdToHaskell, XsdToHaskell, and
+MkOneOf, are licensed under the terms of the GNU General Public Licence
+(GPL), which can be found in the file called LICENCE-GPL.
 
 This library and toolset is distributed in the hope that it will be
 useful, but WITHOUT ANY WARRANTY; without even the implied warranty
