@@ -5,8 +5,8 @@ module Text.XML.HaXml.Schema.XSDTypeModel
 import Text.XML.HaXml.Types      (Name,Namespace,QName)
 
 data Schema        = Schema
-                       { schema_annotation           :: Annotation
-                       , schema_elementFormDefault   :: QForm
+                   --  { schema_annotation           :: Annotation
+                       { schema_elementFormDefault   :: QForm
                        , schema_attributeFormDefault :: QForm
                        , schema_finalDefault         :: Maybe Final
                        , schema_blockDefault         :: Maybe Block
@@ -69,7 +69,8 @@ data Extension     = Extension
                      deriving (Eq,Show)
 
 type Particle      = Maybe (Either ChoiceOrSeq Group)
-data ParticleAttrs = PA Particle [AttributeDecl]
+data ParticleAttrs = PA Particle [Either AttributeDecl AttrGroup]
+                        (Maybe AnyAttr)
                      deriving (Eq,Show)
 data Group         = Group
                        { group_annotation :: Annotation
@@ -90,6 +91,12 @@ data ElementEtc    = HasElement ElementDecl
                      deriving (Eq,Show)
 
 data Any           = Any Annotation -- some attributes omitted
+                     deriving (Eq,Show)
+data AnyAttr       = AnyAttr
+                       { anyattr_annotation      :: Annotation
+                       , anyattr_namespace       :: URI
+                       , anyattr_processContents :: ProcessContents
+                       }
                      deriving (Eq,Show)
 
 data AttrGroup     = AttrGroup
@@ -204,6 +211,9 @@ type TargetNamespace
 data Final         = NoExtension | NoRestriction | AllFinal
                      deriving (Eq,Show)
 type Block         = Final
+data ProcessContents
+                   = Skip | Lax | Strict
+                     deriving (Eq,Show)
 
 {-
 data Constraint    = Unique Selector [Field]

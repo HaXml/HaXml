@@ -140,7 +140,7 @@ tidy inp (Success _ v) = Success inp v
 schema = do
     e <- xsdElement "schema" `adjustErr` (++"Expected <xsd:schema>")
     commit $ return Schema
-         `apply` interiorWith (xsdTag "annotation")     annotation e
+    --   `apply` interiorWith (xsdTag "annotation")     annotation e
          `apply` (attribute (N "elementFormDefault")    qform e
                   `onFail` return Unqualified)
          `apply` (attribute (N "attributeFormDefault")  qform e
@@ -149,7 +149,8 @@ schema = do
          `apply` optional (attribute (xsd "blockDefault") block e)
          `apply` optional (attribute (N "targetNamespace") uri  e)
          `apply` optional (attribute (N "version")       string e)
-         `apply` interiorWith (not.xsdTag "annotation") (many schemaItem) e
+    --   `apply` interiorWith (not.xsdTag "annotation") (many schemaItem) e
+         `apply` interiorWith (const True) (many schemaItem) e
 
 -- | Parse a (possibly missing) <xsd:annotation> element.
 annotation :: XsdParser Annotation
@@ -299,7 +300,11 @@ particle = optional (fmap Left choiceOrSeq `onFail` fmap Right group_)
 
 -- | Parse a particle decl with optional attributes.
 particleAttrs :: XsdParser ParticleAttrs
-particleAttrs = return PA `apply` particle `apply` many attributeDecl
+particleAttrs = return PA `apply` particle
+                          `apply` many (fmap Left attributeDecl
+                                        `onFail`
+                                        fmap Right attributeGroup)
+                          `apply` optional anyAttr
 
 -- | Parse an <xsd:all>, <xsd:choice>, or <xsd:sequence> decl.
 choiceOrSeq :: XsdParser ChoiceOrSeq
@@ -348,6 +353,16 @@ elementEtc = fmap HasElement elementDecl
 any_ :: XsdParser Any
 any_ = do e <- xsdElement "any"
           return Any `apply` interiorWith (xsdTag "annotation") annotation e
+
+-- | Parse an <xsd:anyAttribute>.
+anyAttr :: XsdParser AnyAttr
+anyAttr = do e <- xsdElement "anyAttribute"
+             commit $ return AnyAttr
+                 `apply` interiorWith (xsdTag "annotation") annotation e
+                 `apply` (attribute (N "namespace") uri e
+                          `onFail` return "##any")
+                 `apply` (attribute (N "processContents") processContents e
+                          `onFail` return Strict)
 
 -- | Parse an <xsd:attributegroup>.
 attributeGroup :: XsdParser AttrGroup
@@ -493,6 +508,16 @@ use = do w <- word
            "optional"   -> return Optional
            "prohibited" -> return Prohibited
            _            -> fail "could not parse \"use\" attribute value"
+
+-- | Parse a "processContents" attribute, i.e. "skip", "lax", or "strict".
+processContents :: TextParser ProcessContents
+processContents =
+    do w <- word
+       case w of
+         "skip"   -> return Skip
+         "lax"    -> return Lax
+         "strict" -> return Strict
+         _        -> fail "could not parse \"processContents\" attribute value"
 
 -- | Parse an attribute value that should be a QName.
 qname :: TextParser QName
