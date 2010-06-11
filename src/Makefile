@@ -52,14 +52,16 @@ WHOLEARCHIVE = $(shell cat ../ldopt)
 COMPILER := $(findstring ghc, $(HC))
 ifeq "$(COMPILER)" "ghc"
 COMPILEXEC = $(HC) --make -cpp -i. $(shell cat ghcpkgs) \
-		-package polyparse -DVERSION=$(VERSION)
+		-package polyparse -package bytestring -package filepath \
+		-DMYVERSION='\"$(VERSION)\"'
 COMPILE  = $(COMPILEXEC) -package-name HaXml-$(VERSION)
 RENAME   = $(shell cat ../out)
 endif
 COMPILER := $(findstring nhc98, $(HC))
 ifeq "$(COMPILER)" "nhc98"
 COMPILEXEC = hmake -hc=$(HC) -I. -K4M +CTS -H8M -CTS -package base \
-		-package polyparse -package fps -DVERSION=$(VERSION)
+		-package polyparse -package bytestring -package filepath \
+		-DMYVERSION='\"$(VERSION)\"'
 COMPILE  = $(COMPILEXEC)
 RENAME   = echo Built
 endif

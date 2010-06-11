@@ -65,61 +65,61 @@ library
   else
     build-depends: base < 2 || >= 3, bytestring
   extensions: CPP, ExistentialQuantification
-  cpp-options: -DMYVERSION="1.21"
+  cpp-options: -DMYVERSION='\"1.21\"'
   nhc98-options: -K10M
 
 Executable Canonicalise
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMYVERSION="1.21"
+  cpp-options: -DMYVERSION='\"1.21\"'
   Main-Is: Canonicalise.hs
 
 Executable CanonicaliseLazy
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMYVERSION="1.21"
+  cpp-options: -DMYVERSION='\"1.21\"'
   Main-Is: CanonicaliseLazy.hs
 
 Executable Xtract
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMYVERSION="1.21"
+  cpp-options: -DMYVERSION='\"1.21\"'
   Main-Is: Xtract.hs
 
 Executable XtractLazy
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMYVERSION="1.21"
+  cpp-options: -DMYVERSION='\"1.21\"'
   Main-Is: XtractLazy.hs
 
 Executable Validate
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMYVERSION="1.21"
+  cpp-options: -DMYVERSION='\"1.21\"'
   Main-Is: Validate.hs
 
 Executable MkOneOf
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMYVERSION="1.21"
+  cpp-options: -DMYVERSION='\"1.21\"'
   Main-Is: MkOneOf.hs
 
 Executable DtdToHaskell
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMYVERSION="1.21"
+  cpp-options: -DMYVERSION='\"1.21\"'
   Main-Is: DtdToHaskell.hs
 
 Executable XsdToHaskell
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMYVERSION="1.21"
+  cpp-options: -DMYVERSION='\"1.21\"'
   Main-Is: XsdToHaskell.hs
