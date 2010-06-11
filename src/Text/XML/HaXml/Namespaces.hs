@@ -12,6 +12,7 @@ module Text.XML.HaXml.Namespaces
   , resolveAllNames
   ) where
 
+import Prelude hiding (lookup)
 import Text.XML.HaXml.Types
 import Data.Map as Map (Map, insert, lookup, empty)
 import List (isPrefixOf)
