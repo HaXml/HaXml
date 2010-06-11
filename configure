@@ -272,7 +272,7 @@ then
     else echo ${GHCLIBDIR} >obj/ghc/ghclibdirraw
          echo ${GHCINCDIR}/ >obj/ghc/ghcincdirraw
   fi
-  if ghc-pkg-$GHCVERSION -l >/dev/null
+  if ghc-pkg-$GHCVERSION list >/dev/null
     then echo ghc-pkg-$GHCVERSION >obj/ghc/ghcpkgcmd
     else echo ghc-pkg >obj/ghc/ghcpkgcmd
   fi
