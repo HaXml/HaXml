@@ -2,6 +2,7 @@ module Text.XML.HaXml.Schema.XSDTypeModel
   ( module Text.XML.HaXml.Schema.XSDTypeModel
   ) where
 
+import Data.Monoid hiding (Any)
 import Text.XML.HaXml.Types      (Name,Namespace,QName)
 
 data Schema        = Schema
@@ -231,3 +232,9 @@ type FixedValue    = String
 type Regexp        = String
 type URI           = String
 type TypeName      = String
+
+instance Monoid Annotation where
+  mempty = NoAnnotation "Monoid.mempty <Annotation>"
+  (Documentation d) `mappend` (Documentation e) = Documentation (d++"\n"++e)
+  _                 `mappend` (Documentation e) = Documentation e
+  ann               `mappend` _                 = ann          
