@@ -21,7 +21,7 @@ p ||| q = \v -> p v || q v
 
 -- | Qualify an ordinary name with the XSD namespace.
 xsd :: Name -> QName
-xsd name = QN nullNamespace{nsURI="http://www.w3.org/2001/XMLSchema"}
+xsd name = QN Namespace{nsPrefix="XSD",nsURI="http://www.w3.org/2001/XMLSchema"}
               name
 
 -- | Predicate for comparing against an XSD-qualified name
