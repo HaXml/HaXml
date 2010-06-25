@@ -331,10 +331,19 @@ your requirements.)
 <p>
 <center><h3><a name="related">Related work</a></h3></center>
 <ul>
-<li>Joe English has written a more space-efficient parser for XML
+<li>Some recent (2010) papers by Masato Takeichi show how HaXml can be
+    bi-directionalized, and how a bi-directionalized HaXml can be used
+    for web-page maintenance.
+    <a href="http://www.ipl.t.u-tokyo.ac.jp/~takeichi/pages/_68.html">
+    http://www.ipl.t.u-tokyo.ac.jp/~takeichi/pages/_68.html</a>
+    <a href="http://www.ipl.t.u-tokyo.ac.jp/~takeichi/pages/_69.html">
+    http://www.ipl.t.u-tokyo.ac.jp/~takeichi/pages/_69.html</a>
+<li>Joe English wrote a more space-efficient parser for XML
     in Haskell, called hxml.  What is more, it can be used as a simple
     drop-in replacement for the HaXml parser!
     <a href="http://www.flightlab.com/~joe/hxml/">Available here</a>.
+    This predates the introduction of lazy parsing in HaXml, which is
+    another way of improving the space efficiency.
 <li>Uwe Schmidt designed another
     <a href="http://www.fh-wedel.de/~si/HXmlToolbox/">Haskell XML Toolbox</a>
     based on the ideas of HaXml and hxml.  It is well-maintained, and
