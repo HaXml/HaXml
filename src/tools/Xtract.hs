@@ -4,9 +4,11 @@
 module Main where
 import System (getArgs, exitWith, ExitCode(..))
 import IO
-import Char   (toLower)
-import List   (isSuffixOf)
-import Monad  (when)
+import Char                   (toLower)
+import List                   (isSuffixOf)
+import Monad                  (when)
+import System.Environment     (getArgs)
+import System.Console.GetOpt
 
 import Text.XML.HaXml               (version)
 import Text.XML.HaXml.Types
@@ -23,22 +25,38 @@ import Text.XML.HaXml.Util          (docContent)
 escape :: [Content i] -> [Content i]
 escape = xmlEscapeContent stdXmlEscaper
 
+data Opts = Opts {doEscaping :: Bool, forceHtml :: Bool, printHelp :: Bool, printVersion :: Bool}
+
+defaultOptions = Opts {doEscaping = True, forceHtml = False, printHelp = False, printVersion = False}
+
+options :: [OptDescr (Opts -> Opts)]
+options = [
+    Option ['n'] []
+        (NoArg (\o -> o {doEscaping = False})) "Do not escape output",
+    Option [] ["html"]
+        (NoArg (\o -> o {forceHtml = True})) "Force HTML mode",
+    Option [] ["help"]
+        (NoArg (\o -> o {printHelp = True})) "Displays this help",
+    Option [] ["version"]
+        (NoArg (\o -> o {printVersion = True})) "Prints version"
+    ]
+
 main :: IO ()
 main = do
-  args <- getArgs
-  when ("--version" `elem` args) $ do
+  preArgs <- getArgs
+  let (preOpts, args, errs) = getOpt Permute options preArgs
+  let opts = foldl (flip ($)) defaultOptions preOpts
+  when (printVersion opts) $ do
       putStrLn $ "part of HaXml-"++version
       exitWith ExitSuccess
-  when ("--help" `elem` args) $ do
+  when (printHelp opts) $ do
       putStrLn $ "See http://haskell.org/HaXml"
       exitWith ExitSuccess
   when (length args < 1) $ do
-      putStrLn "Usage: Xtract [-n] <pattern> [xmlfile ...]"
+      putStrLn $ usageInfo "Usage: Xtract [options] <pattern> [xmlfile ...]" options
       exitWith (ExitFailure 1)
   let (pattern,files,esc) =
-          case args of ("-n":pat:files) -> (pat,files, (:[]))
-                       (pat:"-n":files) -> (pat,files, (:[]))
-                       (pat:files)      -> (pat,files, escape.(:[]))
+          (head args,tail args,if doEscaping opts then escape .(:[]) else (:[]))
 --      findcontents =
 --        if null files then (getContents >>= \x-> return [xmlParse "<stdin>"x])
 --        else mapM (\x-> do c <- (if x=="-" then getContents else readFile x)
@@ -49,7 +67,7 @@ main = do
 --  ( hPutStrLn stdout . render . vcat
 --  . map (vcat . map content . selection . docContent)) cs
   mapM_ (\x->   do c <- (if x=="-" then getContents else readFile x)
-                   ( if isHTML x then
+                   ( if isHTML x || forceHtml opts then
                           hPutStrLn stdout . render . htmlprint
                           . xtract (map toLower) pattern
                           . docContent (posInNewCxt x Nothing) . htmlParse x
