@@ -10,24 +10,26 @@ import Monad                  (when)
 import System.Environment     (getArgs)
 import System.Console.GetOpt
 
-import Text.XML.HaXml               (version)
+import Text.XML.HaXml                          (version)
 import Text.XML.HaXml.Types
-import Text.XML.HaXml.Posn          (posInNewCxt)
-import Text.XML.HaXml.Parse         (xmlParse)
-import Text.XML.HaXml.Html.Parse    (htmlParse)
-import Text.XML.HaXml.Xtract.Parse  (xtract)
-import Text.PrettyPrint.HughesPJ    (Doc,render, vcat, hcat, empty)
-import Text.XML.HaXml.Pretty        (content)
-import Text.XML.HaXml.Html.Generate (htmlprint)
-import Text.XML.HaXml.Escape        (xmlEscapeContent,stdXmlEscaper)
-import Text.XML.HaXml.Util          (docContent)
+import Text.XML.HaXml.Posn                     (posInNewCxt)
+import qualified Text.XML.HaXml.Parse          (xmlParse)
+import qualified Text.XML.HaXml.Html.Parse     (htmlParse)
+import Text.XML.HaXml.Xtract.Parse             (xtract)
+import qualified Text.XML.HaXml.ParseLazy      (xmlParse)
+import qualified Text.XML.HaXml.Html.ParseLazy (htmlParse)
+import Text.PrettyPrint.HughesPJ               (Doc,render, vcat, hcat, empty)
+import Text.XML.HaXml.Pretty                   (content)
+import Text.XML.HaXml.Html.Generate            (htmlprint)
+import Text.XML.HaXml.Escape                   (xmlEscapeContent,stdXmlEscaper)
+import Text.XML.HaXml.Util                     (docContent)
 
 escape :: [Content i] -> [Content i]
 escape = xmlEscapeContent stdXmlEscaper
 
-data Opts = Opts {doEscaping :: Bool, forceHtml :: Bool, printHelp :: Bool, printVersion :: Bool}
+data Opts = Opts {doEscaping :: Bool, forceHtml :: Bool, printHelp :: Bool, printVersion :: Bool, beLazy :: Bool}
 
-defaultOptions = Opts {doEscaping = True, forceHtml = False, printHelp = False, printVersion = False}
+defaultOptions = Opts {doEscaping = True, forceHtml = False, printHelp = False, printVersion = False, beLazy = False}
 
 options :: [OptDescr (Opts -> Opts)]
 options = [
@@ -38,7 +40,9 @@ options = [
     Option [] ["help"]
         (NoArg (\o -> o {printHelp = True})) "Displays this help",
     Option [] ["version"]
-        (NoArg (\o -> o {printVersion = True})) "Prints version"
+        (NoArg (\o -> o {printVersion = True})) "Prints version",
+    Option ['l'] ["lazy"]
+        (NoArg (\o -> o {beLazy = True})) "Parse lazily"
     ]
 
 main :: IO ()
@@ -55,6 +59,10 @@ main = do
   when (length args < 1) $ do
       putStrLn $ usageInfo "Usage: Xtract [options] <pattern> [xmlfile ...]" options
       exitWith (ExitFailure 1)
+  let (xmlParse, htmlParse) = if beLazy opts then 
+        (Text.XML.HaXml.ParseLazy.xmlParse, Text.XML.HaXml.Html.ParseLazy.htmlParse) 
+        else 
+        (Text.XML.HaXml.Parse.xmlParse, Text.XML.HaXml.Html.Parse.htmlParse)
   let (pattern,files,esc) =
           (head args,tail args,if doEscaping opts then escape .(:[]) else (:[]))
 --      findcontents =
