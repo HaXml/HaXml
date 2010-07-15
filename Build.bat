@@ -78,7 +78,7 @@ goto Exit
 rem -- Build tools that come with HaXml --
 :Tools
 cd %SRC%\tools
-for %%F in (Canonicalise  DtdToHaskell  MkOneOf  Validate  Xtract  CanonicaliseLazy  XtractLazy) DO %GHC% --make -cpp -i.. %%F -o %%F.exe
+for %%F in (Canonicalise  DtdToHaskell  MkOneOf  Validate  Xtract  CanonicaliseLazy) DO %GHC% --make -cpp -i.. %%F -o %%F.exe
 cd ..
 
 goto Exit

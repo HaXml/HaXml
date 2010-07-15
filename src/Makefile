@@ -35,13 +35,13 @@ TOOLSRCS = \
 	Text/XML/HaXml/DtdToHaskell/Instance.hs \
 	tools/DtdToHaskell.hs tools/Xtract.hs tools/Validate.hs \
  	tools/Canonicalise.hs tools/MkOneOf.hs \
- 	tools/CanonicaliseLazy.hs tools/XtractLazy.hs \
+ 	tools/CanonicaliseLazy.hs \
  	tools/XsdToHaskell.hs \
 
 TOOLSET = \
 	../../DtdToHaskell$(EXE) ../../Xtract$(EXE) ../../Validate$(EXE) \
 	../../Canonicalise$(EXE) ../../MkOneOf$(EXE) \
-	../../CanonicaliseLazy$(EXE) ../../XtractLazy$(EXE) \
+	../../CanonicaliseLazy$(EXE) \
 	../../XsdToHaskell$(EXE)
 
 EXE = $(shell cat ../exe)

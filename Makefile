@@ -41,7 +41,7 @@ SRCS = \
 TOOLSRCS = \
 	src/tools/DtdToHaskell.hs src/tools/Xtract.hs src/tools/Validate.hs \
 	src/tools/Canonicalise.hs src/tools/MkOneOf.hs \
-	src/tools/CanonicaliseLazy.hs src/tools/XtractLazy.hs \
+	src/tools/CanonicaliseLazy.hs \
 	src/tools/XsdToHaskell.hs \
 
 AUX =	configure Makefile src/Makefile src/pkg.conf docs/* examples/* \
@@ -125,5 +125,5 @@ clean:
 	cd examples;    rm -f *.hi *.o
 realclean: clean
 	rm -f DtdToHaskell Xtract Validate Canonicalise MkOneOf
-	rm -f XtractLazy CanonicaliseLazy
+	rm -f CanonicaliseLazy
 

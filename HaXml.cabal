@@ -89,13 +89,6 @@ Executable Xtract
   cpp-options: -DMYVERSION='\"1.21\"'
   Main-Is: Xtract.hs
 
-Executable XtractLazy
-  GHC-Options: -Wall
-  Extensions:  CPP
-  Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMYVERSION='\"1.21\"'
-  Main-Is: XtractLazy.hs
-
 Executable Validate
   GHC-Options: -Wall
   Extensions:  CPP
