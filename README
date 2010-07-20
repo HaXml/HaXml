@@ -31,7 +31,7 @@ Options to configure are:
     --prefix=...     e.g. /usr/local/bin, installation location for HaXml tools
 
 Complaints to:  :-)
-    Malcolm.Wallace@cs.york.ac.uk
+    Malcolm.Wallace@me.com
 
 P.S.
     For those building on Windows /without/ Cygwin, you can avoid the need
