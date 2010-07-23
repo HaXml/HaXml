@@ -68,9 +68,10 @@ tab     (Pn f r c i) = Pn f r (((c`div`8)+1)*8) i
 -- | Add the given whitespace char to the given position.
 --   Precondition: @white c | isSpace c = True@
 white :: Char -> Posn -> Posn
-white ' '  = addcol 1
-white '\n' = newline
-white '\r' = id
-white '\t' = tab
+white ' '    = addcol 1
+white '\n'   = newline
+white '\r'   = id
+white '\t'   = tab
 white '\xa0' = addcol 1
-white _    = error "precondition not satisfied: Posn.white c | isSpace c"
+white x | isSpace x = addcol 1 -- other Unicode whitespace
+white _      = error "precondition not satisfied: Posn.white c | isSpace c"
