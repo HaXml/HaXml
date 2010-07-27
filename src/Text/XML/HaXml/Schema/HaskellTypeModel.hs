@@ -34,8 +34,8 @@ data Decl      = TopLevelComment  Comment
 -- | An intermediate representation, somewhere between the XSD Type Model
 --   and the Haskell Type Model.
 --   There are essentially simple types, and complex types, each of which
---   can be either restricted or extended.  There are three kinds of complex
---   type: choices, groups, or a simple element with content.
+--   can be either restricted or extended.  There are four kinds of complex
+--   type: choices, sequences, named groups, or a simple element with content.
 data HighLevelDecl
                  -- becomes type T = S
                = NamedSimpleType     XName XName Comment
@@ -58,7 +58,8 @@ data HighLevelDecl
                  -- becomes function elementE = parseElement "E" :: Parser T
                | ElementOfType Element
 
-                 -- becomes data T = E0 e0 | E1 e1 | E2 e2 | E3 e3
+                 -- becomes (global) data T = E0 e0 | E1 e1 | E2 e2 | E3 e3
+                 -- becomes (local)  OneOfN e0 e1 e2 e3
                | Choice XName [Element] Comment
 
                  -- becomes data GroupT = GT e0 e1 e2 e3
@@ -87,6 +88,7 @@ data HighLevelDecl
 data Element   = Element { elem_name     :: XName
                          , elem_type     :: XName
                          , elem_modifier :: Modifier
+                         , elem_locals   :: [HighLevelDecl]
                          , elem_comment  :: Comment
                          }
                  deriving (Eq,Show)

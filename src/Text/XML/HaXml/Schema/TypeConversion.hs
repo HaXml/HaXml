@@ -171,6 +171,7 @@ convert env s = concatMap item (schema_items s)
                          ElementOfType Element{ elem_name = xname $ theName n
                                               , elem_type = XName t
                                               , elem_modifier = Single -- XXX
+                                              , elem_locals  = []
                                               , elem_comment =
                                                   (comment (elem_annotation ed))
                                               }
@@ -184,6 +185,7 @@ convert env s = concatMap item (schema_items s)
         Left  n   -> Element ({-name-}xname $ theName n)
                              ({-type-}XName $ fromJust $ theType n)
                              ({-modifier-}Haskell.Range $ elem_occurs ed)
+                             [] -- internal HighLevelDecl
                              (comment (elem_annotation ed))
         Right ref -> case Map.lookup ref (env_element env) of
                        Nothing -> error $ "bad element reference "
@@ -216,27 +218,34 @@ convert env s = concatMap item (schema_items s)
 
     group :: XSD.Group -> [Haskell.HighLevelDecl]
     group g = case group_nameOrRef g of
-        Left  n   -> singleton $ Haskell.Group (xname n)
-                                   ({-elems-}maybe (error "XSD.group->")
-                                                   choiceOrSeq
-                                                   (group_stuff g))
-                                   (comment (group_annotation g))
+        Left  n   -> let ({-highs,-}es) = choiceOrSeq (fromMaybe (error "XSD.group")
+                                                             (group_stuff g))
+                     in {-highs ++-} singleton $
+                           Haskell.Group (xname n) es
+                                         (comment (group_annotation g))
         Right ref -> case Map.lookup ref (env_group env) of
-                       Nothing -> error $ "bad group reference "
-                                          ++printableName ref
+                  --   Nothing -> error $ "bad group reference "
+                  --                      ++printableName ref
+                       Nothing -> singleton $
+                                  Haskell.Group (xname ("unknown-group-"++printableName ref)) []
+                                                (comment (group_annotation g))
                        Just g' -> group g'
 
     particleAttrs (PA part attrs _) = -- ignoring AnyAttr for now
         (particle part, concatMap (either attributeDecl attrgroup) attrs)
 
+    particle :: Particle -> [Haskell.Element] -- XXX fix to ret HighLevelDecls
     particle Nothing          = []
-    particle (Just (Left cs)) = choiceOrSeq cs
+    particle (Just (Left cs)) = {-snd $-} choiceOrSeq cs
     particle (Just (Right g)) = let [Haskell.Group _ es _] = group g in es
 
-    choiceOrSeq (XSD.All      ann eds)   = error "nyi All"
-    choiceOrSeq (XSD.Choice   ann _ ees) = error "nyi Choice"
+--  choiceOrSeq :: ChoiceOrSeq -> ([Haskell.HighLevelDecl],[Haskell.Element])
+    choiceOrSeq :: ChoiceOrSeq -> [Haskell.Element]
+    choiceOrSeq (XSD.All      ann eds)   = [] -- error "nyi All"
+    choiceOrSeq (XSD.Choice   ann _ ees) = [] -- error "nyi Choice"
     choiceOrSeq (XSD.Sequence ann _ ees) = concatMap elementEtc ees
 
+    elementEtc :: ElementEtc -> [Haskell.Element]
     elementEtc (HasElement ed) = [elementDecl ed]
     elementEtc (HasGroup g)    = let [Haskell.Group _ es _] = group g in es
     elementEtc (HasCS cs)      = choiceOrSeq cs

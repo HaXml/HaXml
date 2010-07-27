@@ -22,9 +22,10 @@ import Text.XML.HaXml.Util       (docContent)
 import Text.XML.HaXml.Posn       (posInNewCxt)
 
 import Text.XML.HaXml.Schema.Parse
+import Text.XML.HaXml.Schema.TypeConversion
+import Text.XML.HaXml.Schema.PrettyHaskell
 import Text.ParserCombinators.Poly
-
--- import Text.PrettyPrint.HughesPJ (render,vcat)
+import Text.PrettyPrint.HughesPJ (render,vcat)
 
 -- sucked in from Text.XML.HaXml.Wrappers to avoid dependency on T.X.H.Html
 fix2Args :: IO (String,String)
@@ -58,9 +59,14 @@ main =
                      $ thiscontent
   in do
     case runParser schema [docContent (posInNewCxt inf Nothing) d] of
-        (Left msg,_) -> hPutStrLn stderr msg
-        (Right v,[]) -> hPutStrLn stdout $ "Success!\n"++show v
-        (Right v,_)  -> hPutStrLn stdout $ "Partial success!\n"++show v
+        (Left msg,_) ->    hPutStrLn stderr msg
+        (Right v,[]) -> do hPutStrLn stdout $ "Success!\n"++show v
+                           hPutStrLn stdout $ "\n\n-----------------\n\n"
+                           let haskell = convert (mkEnvironment v) v
+                               doc = ppHighLevelDecls haskell
+                           hPutStrLn stdout $ render doc
+                           hPutStrLn stdout $ "\n\n-----------------\n\n"
+        (Right v,_)  ->    hPutStrLn stdout $ "Partial success!\n"++show v
     hFlush o
 
   
