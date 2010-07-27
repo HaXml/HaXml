@@ -61,7 +61,7 @@ main =
   in do
     case runParser schema [docContent (posInNewCxt inf Nothing) d] of
         (Left msg,_) ->    hPutStrLn stderr msg
-        (Right v,[]) -> do hPutStrLn stdout $ "Success!\n"++show v
+        (Right v,[]) -> do hPutStrLn stdout $ "Success!\n" -- ++show v
                            hPutStrLn stdout $ "\n\n-----------------\n\n"
                            let decls   = convert (mkEnvironment v) v
                                haskell = Haskell.mkModule inf decls
