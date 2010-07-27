@@ -7,6 +7,7 @@ module Text.XML.HaXml.Schema.PrettyHaskell
 
 import Text.XML.HaXml.Types (QName(..),Namespace(..))
 import Text.XML.HaXml.Schema.HaskellTypeModel
+import Text.XML.HaXml.Schema.XSDTypeModel (Occurs(..))
 import Text.XML.HaXml.Schema.NameConversion
 import Text.PrettyPrint.HughesPJ as PP
 
@@ -58,6 +59,15 @@ ppModule m =
     $$ text " "
     $$ ppHighLevelDecls (module_decls m)
 
+-- | Generate a fragmentary parser for an attribute.
+ppAttr a n = (text "a"<>text (show n)) <+> text "<- getAttribute \""
+                                       <> ppXName (attr_name a)
+                                       <> text "\" e"
+-- | Generate a fragmentary parser for an element.
+ppElem e = text "<*>" <+> ppElemModifier (elem_modifier e)
+                                         (text "parseSchemaType \""
+                                           <> ppXName (elem_name e)
+                                           <> text "\"")
 
 -- | Convert multiple HaskellTypeModel Decls to Haskell source text.
 ppHighLevelDecls :: [Decl] -> Doc
@@ -99,27 +109,16 @@ ppHighLevelDecl (ElementsAttrs t es as comm) =
         $$ nest 4 (text "parseSchemaType s = do" 
                   $$ nest 4 (text "e <- element [s]"
                             $$ text "commit $ do"
-                            $$ nest 2 (vcat (zipWith doAttr as [0..])
-                                      $$ text "interior e $ do"
-                                      $$ nest 2 (vcat (zipWith doElem es [0..])
-                                                $$ text "return $" <+>
-                                                   returnValue as es))))
+                            $$ nest 2
+                                  (vcat (zipWith ppAttr as [0..])
+                                  $$ text "interior e $ contentsOfSchemaType"))
+                  $$ text "contentsOfSchemaType = return" <+> returnValue as
+                                      $$ nest 4 (vcat (map ppElem es))
+                  )
   where
-    doAttr a n = (text "a"<>text (show n)) <+> text "<- getAttribute \""
-                                           <+> ppXName (attr_name a)
-                                           <+> text "\" e"
-    doElem e n = (text "e"<>text (show n)) <+> text "<-"
-                                           <+> ppModifier (elem_modifier e)
-                                           <+> text "parseSchemaType \""
-                                           <+> ppXName (elem_name e)
-                                           <+> text "\""
-    ppModifier Single    = empty
-    ppModifier Optional  = text "optional $"
-    ppModifier (Range o) = text "between" <+> text (show o) <+>  text "$"
-
-    returnValue as es = ppConId t <+>
-                        hsep ([text ("a"++show n) | n <- [0..length as]]
-                              ++ [text ("e"++show n) | n <- [0..length es]])
+    returnValue [] = ppConId t
+    returnValue as = parens (ppConId t <+>
+                             hsep [text ("a"++show n) | n <- [0..length as-1]])
 
 ppHighLevelDecl (ElementOfType e) =
     (text "element" <> ppVarId (elem_name e)) <+> text "::"
@@ -151,16 +150,37 @@ ppHighLevelDecl (RestrictComplexType t s comm) =
                    text ". parseSchemaType")
 		-- XXX should enforce the restriction.
 
-ppHighLevelDecl (ExtendComplexType t s es as comm) =
+{-
+ppHighLevelDecl (ExtendComplexType t s es as comm)
+    | length es + length as = 1 =
     ppComment Before comm
     $$ text "data" <+> ppConId t <+> text "=" <+> ppConId t <+> ppConId s
-                                               <+> ppAuxConId t
-    $$ text "data" <+> ppAuxConId t <+> text "=" <+> ppAuxConId t
                                                <+> ppFields es as
     $$ text "instance Extension" <+> ppConId t <+> ppConId s <+> ppAuxConId t
                                   <+> text "where"
         $$ nest 4 (text "supertype (" <> ppConId t <> text " s e) = s"
                    $$ text "extension (" <> ppConId t <> text " s e) = e")
+-}
+ppHighLevelDecl (ExtendComplexType t s es as comm) =
+    ppComment Before comm
+    $$ text "data" <+> ppConId t <+> text "=" <+> ppConId t <+> ppConId s
+                                              <+> ppAuxConId t
+    $$ text "data" <+> ppAuxConId t <+> text "=" <+> ppAuxConId t
+                                                 $$ nest 8 (ppFields es as)
+    $$ text "instance SchemaType" <+> ppConId t <+> text "where"
+        $$ nest 4 (text "parseSchemaType s = do" 
+                  $$ nest 4 (text "e <- element [s]"
+                            $$ text "commit $"
+                               <+> text "interior e $ contentsOfSchemaType")
+                  $$ text "contentsOfSchemaType = return" <+> ppConId t
+                            $$ nest 4 (text "<*> contentsOfSchemaType"
+                                      $$ text "<*> contentsOfExtension"))
+    $$ text "instance Extension" <+> ppConId t <+> ppConId s <+> ppAuxConId t
+                                  <+> text "where"
+        $$ nest 4 (text "supertype (" <> ppConId t <> text " s e) = s"
+                   $$ text "extension (" <> ppConId t <> text " s e) = e"
+                   $$ text "contentsOfExtension = return" <+> ppAuxConId t
+                   $$ nest 4 (vcat (map ppElem es)))
 
 ppHighLevelDecl (XSDInclude m comm) =
     ppComment After comm
@@ -187,21 +207,33 @@ ppFields es as =  vcat ( text "{" <+> head fields
 
 -- | Generate a single named field from an element.
 ppElement :: Element -> Doc
-ppElement e =  ppComment Before (elem_comment e)
-               $$ ppVarId (elem_name e) <+> text "::"
-                        <+> ppModifier (elem_modifier e) (ppConId (elem_type e))
+ppElement e = ppVarId (elem_name e) <+> text "::"
+                      <+> ppTypeModifier (elem_modifier e)
+                                         (ppConId (elem_type e))
+              $$ ppComment After (elem_comment e)
 
 -- | Generate a single named field from an attribute.
 ppAttribute :: Attribute -> Doc
-ppAttribute a = ppComment Before (attr_comment a)
-                $$ ppVarId (attr_name a) <+> text "::"
+ppAttribute a = ppVarId (attr_name a) <+> text "::"
                         <+> ppConId (attr_type a)
+                $$ ppComment After (attr_comment a)
 
 -- | Generate a list or maybe type name.
-ppModifier :: Modifier -> Doc -> Doc
-ppModifier Single d    = d
-ppModifier Optional  d = text "Maybe" <+> d
-ppModifier (Range o) d = text "[" <> d <> text "]"
+ppTypeModifier :: Modifier -> Doc -> Doc
+ppTypeModifier Single d    = d
+ppTypeModifier Optional  d = text "Maybe" <+> d
+ppTypeModifier (Range (Occurs Nothing Nothing))  d = d
+ppTypeModifier (Range (Occurs (Just 0) Nothing)) d = text "Maybe" <+> d
+ppTypeModifier (Range (Occurs _ _))              d = text "[" <> d <> text "]"
+
+-- | Generate a parser for a list or Maybe value.
+ppElemModifier Single    doc = doc
+ppElemModifier Optional  doc = text "optional" <+> parens doc
+ppElemModifier (Range (Occurs Nothing Nothing))  doc = doc
+ppElemModifier (Range (Occurs (Just 0) Nothing)) doc = text "optional"
+                                                       <+> parens doc
+ppElemModifier (Range o) doc = text "between" <+> parens (text (show o))
+                                              <+> parens doc
 
 -- | Split long lines of comment text into a paragraph with a maximum width.
 paragraph :: Int -> String -> String
