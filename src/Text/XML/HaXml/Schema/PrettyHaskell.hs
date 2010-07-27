@@ -1,5 +1,6 @@
 module Text.XML.HaXml.Schema.PrettyHaskell
   ( ppComment
+  , ppModule
   , ppHighLevelDecl
   , ppHighLevelDecls
   ) where
@@ -22,7 +23,7 @@ ppComment pos (Just s) =
     $$
     vcat (map (\x-> text "--  " <+> text x) cs)
   where
-    (c:cs) = lines s
+    (c:cs) = lines (paragraph 60 s)
 
 -- | Pretty-print a Haskell-style name.
 ppHName :: HName -> Doc
@@ -42,11 +43,28 @@ ppAuxConId = ppHName . auxconid simpleNameConverter
 ppAuxVarId = ppHName . auxvarid simpleNameConverter
 
 -- | Convert a whole document from HaskellTypeModel to Haskell source text.
-ppHighLevelDecls :: [HighLevelDecl] -> Doc
+ppModule :: Module -> Doc
+ppModule m =
+    text "module" <+> ppModId (module_name m)
+    $$ nest 2 (text "( module" <+> ppModId (module_name m)
+              $$ vcat (map (\(XSDInclude ex com)->
+                               ppComment Before com
+                               $$ text ", module" <+> ppModId ex)
+                           (module_re_exports m))
+              $$ text ") where")
+    $$ text " "
+    $$ text "import Text.XML.HaXml.Schema.Schema as Xsd"
+    $$ vcat (map ppHighLevelDecl (module_re_exports m ++ module_import_only m))
+    $$ text " "
+    $$ ppHighLevelDecls (module_decls m)
+
+
+-- | Convert multiple HaskellTypeModel Decls to Haskell source text.
+ppHighLevelDecls :: [Decl] -> Doc
 ppHighLevelDecls hs = vcat (intersperse (text " ") (map ppHighLevelDecl hs))
 
--- | Convert a single Haskell HighLevelDecl into Haskell source text.
-ppHighLevelDecl :: HighLevelDecl -> Doc
+-- | Convert a single Haskell Decl into Haskell source text.
+ppHighLevelDecl :: Decl -> Doc
 
 ppHighLevelDecl (NamedSimpleType t s comm) =
     ppComment Before comm
@@ -75,7 +93,8 @@ ppHighLevelDecl (ExtendSimpleType t s as comm) =
 
 ppHighLevelDecl (ElementsAttrs t es as comm) =
     ppComment Before comm
-    $$ text "data" <+> ppConId t <+> text "=" <+> ppConId t <+> ppFields es as
+    $$ text "data" <+> ppConId t <+> text "=" <+> ppConId t
+        $$ nest 8 (ppFields es as)
     $$ text "instance SchemaType" <+> ppConId t <+> text "where"
         $$ nest 4 (text "parseSchemaType s = do" 
                   $$ nest 4 (text "e <- element [s]"
@@ -144,10 +163,12 @@ ppHighLevelDecl (ExtendComplexType t s es as comm) =
                    $$ text "extension (" <> ppConId t <> text " s e) = e")
 
 ppHighLevelDecl (XSDInclude m comm) =
-    text "import" <+> ppModId m <+> ppComment After comm
+    ppComment After comm
+    $$ text "import" <+> ppModId m
 
 ppHighLevelDecl (XSDImport m comm) =
-    text "import" <+> ppModId m <+> ppComment After comm
+    ppComment After comm
+    $$ text "import" <+> ppModId m
 
 ppHighLevelDecl (XSDComment comm) =
     ppComment Before comm
@@ -166,19 +187,27 @@ ppFields es as =  vcat ( text "{" <+> head fields
 
 -- | Generate a single named field from an element.
 ppElement :: Element -> Doc
-ppElement e = ppVarId (elem_name e) <+> text "::"
-                      <+> ppModifier (elem_modifier e) (ppConId (elem_type e))
-                      <+> ppComment After (elem_comment e)
+ppElement e =  ppComment Before (elem_comment e)
+               $$ ppVarId (elem_name e) <+> text "::"
+                        <+> ppModifier (elem_modifier e) (ppConId (elem_type e))
 
 -- | Generate a single named field from an attribute.
 ppAttribute :: Attribute -> Doc
-ppAttribute a = ppVarId (attr_name a) <+> text "::"
+ppAttribute a = ppComment Before (attr_comment a)
+                $$ ppVarId (attr_name a) <+> text "::"
                         <+> ppConId (attr_type a)
-                        <+> ppComment After (attr_comment a)
 
 -- | Generate a list or maybe type name.
 ppModifier :: Modifier -> Doc -> Doc
 ppModifier Single d    = d
 ppModifier Optional  d = text "Maybe" <+> d
 ppModifier (Range o) d = text "[" <> d <> text "]"
+
+-- | Split long lines of comment text into a paragraph with a maximum width.
+paragraph :: Int -> String -> String
+paragraph n s = go n (words s)
+    where go i []     = []
+          go i (x:xs) | len<i     =       x++" "++go (i-len-1) xs
+                      | otherwise = "\n"++x++" "++go (n-len-1) xs
+              where len = length x
 

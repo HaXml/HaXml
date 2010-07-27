@@ -98,7 +98,7 @@ mkEnvironment s = foldl' item emptyEnv (schema_items s)
       | Left n  <- group_nameOrRef g = env{env_group=Map.insert (N n) g
                                                            (env_group env)}
 
-convert :: Environment -> Schema -> [HighLevelDecl]
+convert :: Environment -> Schema -> [Decl]
 convert env s = concatMap item (schema_items s)
   where
     item (Include loc ann)    = [XSDInclude (xname loc) (comment ann)]
@@ -156,7 +156,7 @@ convert env s = concatMap item (schema_items s)
             let (es,as) = particleAttrs (ci_thistype c) in
             ElementsAttrs n es as (comment (complex_annotation ct))
 
-    topElementDecl :: XSD.ElementDecl -> [Haskell.HighLevelDecl]
+    topElementDecl :: XSD.ElementDecl -> [Haskell.Decl]
     topElementDecl ed = case elem_nameOrRef ed of
         Left  n   -> singleton $
                      case theType n of
@@ -185,7 +185,7 @@ convert env s = concatMap item (schema_items s)
         Left  n   -> Element ({-name-}xname $ theName n)
                              ({-type-}XName $ fromJust $ theType n)
                              ({-modifier-}Haskell.Range $ elem_occurs ed)
-                             [] -- internal HighLevelDecl
+                             [] -- internal Decl
                              (comment (elem_annotation ed))
         Right ref -> case Map.lookup ref (env_element env) of
                        Nothing -> error $ "bad element reference "
@@ -216,7 +216,7 @@ convert env s = concatMap item (schema_items s)
                                           ++printableName ref
                        Just g' -> attrgroup g'
 
-    group :: XSD.Group -> [Haskell.HighLevelDecl]
+    group :: XSD.Group -> [Haskell.Decl]
     group g = case group_nameOrRef g of
         Left  n   -> let ({-highs,-}es) = choiceOrSeq (fromMaybe (error "XSD.group")
                                                              (group_stuff g))
@@ -234,12 +234,12 @@ convert env s = concatMap item (schema_items s)
     particleAttrs (PA part attrs _) = -- ignoring AnyAttr for now
         (particle part, concatMap (either attributeDecl attrgroup) attrs)
 
-    particle :: Particle -> [Haskell.Element] -- XXX fix to ret HighLevelDecls
+    particle :: Particle -> [Haskell.Element] -- XXX fix to ret Decls
     particle Nothing          = []
     particle (Just (Left cs)) = {-snd $-} choiceOrSeq cs
     particle (Just (Right g)) = let [Haskell.Group _ es _] = group g in es
 
---  choiceOrSeq :: ChoiceOrSeq -> ([Haskell.HighLevelDecl],[Haskell.Element])
+--  choiceOrSeq :: ChoiceOrSeq -> ([Haskell.Decl],[Haskell.Element])
     choiceOrSeq :: ChoiceOrSeq -> [Haskell.Element]
     choiceOrSeq (XSD.All      ann eds)   = [] -- error "nyi All"
     choiceOrSeq (XSD.Choice   ann _ ees) = [] -- error "nyi Choice"

@@ -24,6 +24,7 @@ import Text.XML.HaXml.Posn       (posInNewCxt)
 import Text.XML.HaXml.Schema.Parse
 import Text.XML.HaXml.Schema.TypeConversion
 import Text.XML.HaXml.Schema.PrettyHaskell
+import qualified Text.XML.HaXml.Schema.HaskellTypeModel as Haskell
 import Text.ParserCombinators.Poly
 import Text.PrettyPrint.HughesPJ (render,vcat)
 
@@ -62,8 +63,9 @@ main =
         (Left msg,_) ->    hPutStrLn stderr msg
         (Right v,[]) -> do hPutStrLn stdout $ "Success!\n"++show v
                            hPutStrLn stdout $ "\n\n-----------------\n\n"
-                           let haskell = convert (mkEnvironment v) v
-                               doc = ppHighLevelDecls haskell
+                           let decls   = convert (mkEnvironment v) v
+                               haskell = Haskell.mkModule inf decls
+                               doc     = ppModule haskell
                            hPutStrLn stdout $ render doc
                            hPutStrLn stdout $ "\n\n-----------------\n\n"
         (Right v,_)  ->    hPutStrLn stdout $ "Partial success!\n"++show v

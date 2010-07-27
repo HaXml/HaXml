@@ -38,7 +38,7 @@ data NameConverter = NameConverter
 -- | A simple default set of rules for resolving XNames into HNames.
 simpleNameConverter :: NameConverter
 simpleNameConverter = NameConverter
-    { modid    = \(XName qn)-> HName . mkConid . hierarchy $ qn
+    { modid    = \(XName qn)-> HName . mkConid . map fpml . hierarchy $ qn
     , conid    = \(XName qn)-> HName . mkConid . hierarchy $ qn
     , varid    = \(XName qn)-> HName . mkVarid . last avoidKeywords
                                                . hierarchy $ qn
