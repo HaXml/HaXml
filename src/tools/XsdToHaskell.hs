@@ -61,14 +61,14 @@ main =
   in do
     case runParser schema [docContent (posInNewCxt inf Nothing) d] of
         (Left msg,_) ->    hPutStrLn stderr msg
-        (Right v,[]) -> do hPutStrLn stdout $ "Success!\n" -- ++show v
-                           hPutStrLn stdout $ "\n\n-----------------\n\n"
-                           let decls   = convert (mkEnvironment v) v
+        (Right v,[]) -> do let decls   = convert (mkEnvironment v) v
                                haskell = Haskell.mkModule inf decls
                                doc     = ppModule haskell
                            hPutStrLn stdout $ render doc
+        (Right v,_)  -> do hPutStrLn stdout $ "Parse incomplete!\n"
                            hPutStrLn stdout $ "\n\n-----------------\n\n"
-        (Right v,_)  ->    hPutStrLn stdout $ "Partial success!\n"++show v
+                           hPutStrLn stdout $ show v
+                           hPutStrLn stdout $ "\n\n-----------------\n\n"
     hFlush o
 
   
