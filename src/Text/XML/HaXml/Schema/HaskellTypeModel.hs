@@ -16,10 +16,7 @@ type Comment = Maybe String
 data Module    = Module
                  { module_name        :: XName   -- the name of this module
                  , module_re_exports  :: [Decl]  -- modules imported + exported
-          --     , module_re_exports  :: [HName] -- modules imported + exported
                  , module_import_only :: [Decl]  -- module + alias
-          --     , module_import_only :: [(HName,HName)]
-          --                                     -- module + alias
                  , module_decls       :: [Decl]  -- the body of the module
                  }
 
@@ -36,21 +33,8 @@ mkModule name decls = Module { module_name        = XName $ N name
           xsdimport  (XSDImport _ _)  = True
           xsdimport  _                = False
 
-{-
--- | Incomplete.  A representation of the toplevel decls in Haskell.
---   The idea is that the XSDTypeModel gets converted first to a bunch of
---   HighLevelDecl, then to these Decl, i.e. multiple intermediates.
-data Decl      = TopLevelComment  Comment
-               | NewTypeRestricts HName HName
-               | Instance ExtensionRestriction HName HName
-               | DataTypeExtends HName HName [Field]
-               | DataTypeFields [Field]
-               | TypeSyn  
--}
 
--- | An intermediate representation, somewhere between the XSD Type Model
---   and the Haskell Type Model.
---   There are essentially simple types, and complex types, each of which
+-- | There are essentially simple types, and complex types, each of which
 --   can be either restricted or extended.  There are four kinds of complex
 --   type: choices, sequences, named groups, or a simple element with content.
 data Decl
