@@ -123,7 +123,10 @@ convert env s = concatMap item (schema_items s)
     simple (ListOf a n f t)     = error "Not yet implemented: ListOf simpleType"
                               --  [NamedSimpleType    (xname n) (nameOfSimple s)
                               --                      (comment a)]
-    simple (UnionOf a n f u m)  = error "Not yet implemented: unionOf"
+    simple (UnionOf a n f u m)  = [UnionSimpleTypes
+                                       (maybe (error "missing Name") xname n)
+                                       (map (xname . printableName) m) -- XXX ignores content 'u'
+                                       (comment a)]
 
     complex ct =
       let n = xname $ fromMaybe ("errorMissingName") (complex_name ct)

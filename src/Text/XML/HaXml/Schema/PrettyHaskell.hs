@@ -103,6 +103,11 @@ ppHighLevelDecl (ExtendSimpleType t s as comm) =
         $$ nest 4 (text "supertype (" <> ppConId t <> text " s e) = s"
                    $$ text "extension (" <> ppConId t <> text " s e) = e")
 
+ppHighLevelDecl (UnionSimpleTypes t sts comm) =
+    ppComment Before comm
+    $$ text "data" <+> ppConId t <+> text "=" <+> ppConId t
+    $$ text "-- Placeholder for a Union type, not yet implemented."
+
 ppHighLevelDecl (ElementsAttrs t es as comm) =
     ppComment Before comm
     $$ text "data" <+> ppConId t <+> text "=" <+> ppConId t
