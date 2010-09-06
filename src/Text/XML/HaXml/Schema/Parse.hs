@@ -3,6 +3,7 @@ module Text.XML.HaXml.Schema.Parse
   ) where
 
 import Char (isSpace)
+import Data.Monoid (mappend)
 -- import Text.ParserCombinators.Poly
 import Text.Parse    -- for String parsers
 
