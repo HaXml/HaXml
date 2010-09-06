@@ -91,6 +91,15 @@ ppHighLevelDecl (RestrictSimpleType t s r comm) =
         $$ nest 4 (text "parseSchemaType = fmap " <+> ppConId t <+>
                    text ". parseAccepting parseSchemaType")
 		-- XXX should enforce the restriction.  (?)
+    $$ text "-- The restrictions are:" <+> hsep (map ppRestrict r)
+  where
+    ppRestrict (RangeR occ comm)     = text "(RangeR"
+                                         <+> ppElemModifier (Range occ) empty
+                                         <>  text ")"
+    ppRestrict (Pattern regexp comm) = text "(Pattern)"
+    ppRestrict (Enumeration items)   = text "(Enumeration"
+                                         <+> hsep (map (text . fst) items)
+                                         <>  text ")"
 
 ppHighLevelDecl (ExtendSimpleType t s as comm) =
     ppComment Before comm
