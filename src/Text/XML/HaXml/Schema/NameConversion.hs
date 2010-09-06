@@ -89,7 +89,7 @@ fpml = concat
                  then head ws: ('V':concat (reverse last2))
                              : tail (reverse remain)
                  else ws
-    rearrange [a,v,"Posttrade",c] = [a,v,"Posttrade",c]
+    rearrange [a,v,"PostTrade",c] = [a,v,"PostTrade",c]
     rearrange [a,v,b,c]           = [a,v,c,b]
     rearrange [a,v,b,c,d]         = [a,v,d,b++c]
     rearrange [a,v,b,c,d,e]       = [a,v,e,b++c++d]
