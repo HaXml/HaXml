@@ -115,9 +115,11 @@ convert env s = concatMap item (schema_items s)
     item (SchemaGroup g)      = group g
 
     simple (Primitive prim)     = []
-    simple (Restricted a n f r) = [RestrictSimpleType (xname n) (nameOfSimple s)
-                                                      (mkRestrict r)
-                                                      (comment a)]
+    simple (Restricted a n f r) = [RestrictSimpleType
+                                       (maybe (error "missing Name") xname n)
+                                       (xname "unknownSimple" {-(nameOfSimple s) -})
+                                       (mkRestrict r)
+                                       (comment a)]
     simple (ListOf a n f t)     = error "Not yet implemented: ListOf simpleType"
                               --  [NamedSimpleType    (xname n) (nameOfSimple s)
                               --                      (comment a)]
@@ -296,7 +298,7 @@ nameOfSimple' (ListOf _ s _ _)     = xname ("["++show (nameOfSimple s)++"]")
 nameOfSimple' (UnionOf n ss _ _)   = xname n -- return to this
 -}
 
-mkRestrict :: XSD.Restriction -> Haskell.Restrict
+mkRestrict :: XSD.Restriction -> [Haskell.Restrict]
 mkRestrict (RestrictSim1 ann base r1) =
         error "Not yet implemented: Restriction1 on simpletype"
 mkRestrict (RestrictType _ _ _ facets) =
@@ -307,7 +309,7 @@ mkRestrict (RestrictType _ _ _ facets) =
         let enum = [ (v,comment ann)
                    | (Facet UnorderedEnumeration ann v _) <- facets ]
         in if null enum then error "Not yet implemented: non-enumeration"
-                        else Enumeration enum
+                        else [Haskell.Enumeration enum]
 
 singleton :: a -> [a]
 singleton = (:[])
