@@ -165,12 +165,12 @@ convert env s = concatMap item (schema_items s)
         Left  n   -> singleton $
                      case theType n of
                        Nothing ->
-                         error "Not implemented: contentInfo on topElementDecl"
-                       --let (es,as) = contentInfo (elem_content ed) in
-                       --ElementsAttrs ({-name-}xname $ theName n)
-                       --              ({-elems-}es)
-                       --              ({-attrs-}as)
-                       --              (comment (elem_annotation ed))
+                       --error "Not implemented: contentInfo on topElementDecl"
+                         let (es,as) = contentInfo (elem_content ed) in
+                         ElementsAttrs ({-name-}xname $ theName n)
+                                       ({-elems-}es)
+                                       ({-attrs-}as)
+                                       (comment (elem_annotation ed))
                        Just t ->
                          ElementOfType Element{ elem_name = xname $ theName n
                                               , elem_type = XName t
@@ -236,6 +236,7 @@ convert env s = concatMap item (schema_items s)
                                                 (comment (group_annotation g))
                        Just g' -> group g'
 
+    particleAttrs :: ParticleAttrs -> ([Haskell.Element],[Haskell.Attribute])
     particleAttrs (PA part attrs _) = -- ignoring AnyAttr for now
         (particle part, concatMap (either attributeDecl attrgroup) attrs)
 
@@ -254,7 +255,23 @@ convert env s = concatMap item (schema_items s)
     elementEtc (HasElement ed) = [elementDecl ed]
     elementEtc (HasGroup g)    = let [Haskell.Group _ es _] = group g in es
     elementEtc (HasCS cs)      = choiceOrSeq cs
+    elementEtc (HasAny a)      = [] -- XXX clearly wrong
  -- elementEtc (HasAny a)      = any a
+
+    contentInfo :: Maybe (Either SimpleType ComplexType)
+                   -> ([Haskell.Element],[Haskell.Attribute])
+    contentInfo Nothing  = ([],[])
+    contentInfo (Just e) = either simple complex e
+      where
+        simple  :: SimpleType  -> ([Element],[Attribute])
+        complex :: ComplexType -> ([Element],[Attribute])
+        simple _         = ([], [])  -- XXX clearly wrong
+     -- simple (Primitive p)        = ([], [])  -- XXX clearly wrong
+     -- simple (Restricted n _ _ _) =
+        complex ct = case complex_content ct of
+                       SimpleContent{}  -> ([],[]) -- XXX clearly wrong
+                       ComplexContent{} -> ([],[]) -- XXX clearly wrong
+                       ThisType pa      -> particleAttrs pa
 
 
 comment :: Annotation -> Comment
