@@ -180,9 +180,9 @@ convert env s = concatMap item (schema_items s)
                                                   (comment (elem_annotation ed))
                                               }
         Right ref -> case Map.lookup ref (env_element env) of
-                       Nothing -> error $ "bad element reference "
-                                          ++printableName ref
-                       Just e' -> topElementDecl e'
+		       Nothing -> error $ "<topElementDecl> unknown element reference "
+					  ++printableName ref
+		       Just e' -> topElementDecl e'
 
     elementDecl :: XSD.ElementDecl -> Haskell.Element
     elementDecl ed = case elem_nameOrRef ed of
@@ -208,7 +208,7 @@ convert env s = concatMap item (schema_items s)
                                       (theType n))
                                (comment  (attr_annotation ad))
         Right ref -> case Map.lookup ref (env_attribute env) of
-                       Nothing -> error $ "bad attribute reference "
+                       Nothing -> error $ "<attributeDecl> unknown attribute reference "
                                           ++printableName ref
                        Just a' -> attributeDecl a'
 
@@ -217,7 +217,7 @@ convert env s = concatMap item (schema_items s)
         Left  n   -> concatMap (either attributeDecl attrgroup)
                                (attrgroup_stuff g)
         Right ref -> case Map.lookup ref (env_attrgroup env) of
-                       Nothing -> error $ "bad attribute group reference "
+                       Nothing -> error $ "unknown attribute group reference "
                                           ++printableName ref
                        Just g' -> attrgroup g'
 
