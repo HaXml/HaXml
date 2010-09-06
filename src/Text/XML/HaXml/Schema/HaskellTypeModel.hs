@@ -43,7 +43,7 @@ data Decl
 
                  -- becomes newtype T = T S
                  --       + instance Restricts T S where restricts ...
-               | RestrictSimpleType  XName XName Comment
+               | RestrictSimpleType  XName XName Restrict Comment
 
                  -- becomes data T  = T  S Tf
                  --       + data Tf = Tf {fields}
@@ -102,5 +102,11 @@ data Attribute = Attribute { attr_name    :: XName
 data Modifier  = Single
                | Optional
                | Range Occurs
+                 deriving (Eq,Show)
+
+-- | Restrictions on simpleType
+data Restrict  = Range Occurs Comment
+               | Pattern Regexp Comment
+               | Enumeration [(String,Comment)]
                  deriving (Eq,Show)
 

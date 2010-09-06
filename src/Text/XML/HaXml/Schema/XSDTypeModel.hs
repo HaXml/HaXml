@@ -30,11 +30,63 @@ data SchemaItem    = Include    SchemaLocation Annotation
                --  | Notation        Name
                      deriving (Eq,Show)
 
-data SimpleType    = Primitive       PrimitiveType
-                   | Restricted Name SimpleType   Restriction Fixed
-                   | ListOf     Name SimpleType   Restriction Fixed
-                   | UnionOf    Name [SimpleType] Restriction Fixed
+-- The "simple type" model
+
+data SimpleType    = Primitive  { simple_primitive   :: PrimitiveType }
+                   | Restricted { simple_annotation  :: Annotation
+                                , simple_name        :: Maybe Name
+                                , simple_final       :: Maybe Final
+                                , simple_restriction :: Restriction
+                                }
+                   | ListOf     { simple_annotation  :: Annotation
+                                , simple_name        :: Maybe Name
+                                , simple_final       :: Maybe Final
+                                  -- simpletype = element, qname = attribute
+                                , simple_type        :: Either SimpleType QName
+                                }
+                   | UnionOf    { simple_annotation  :: Annotation
+                                , simple_name        :: Maybe Name
+                                , simple_final       :: Maybe Final
+                                  -- union = elements
+                                , simple_union       :: [SimpleType]
+                                  -- members = attribute
+                                , simple_members     :: [QName]
+                                }
                      deriving (Eq,Show)
+
+data Restriction   = RestrictSim1 { restrict_annotation :: Annotation
+                                  , restrict_base       :: Maybe QName 
+                                  , restrict_r1         :: Restriction1
+                                  }
+                   | RestrictType { restrict_annotation :: Annotation
+                                  , restrict_base       :: Maybe QName
+                                  , restrict_type       :: Maybe SimpleType
+                                  , restrict_facets     :: [Facet]
+                                  }
+                     deriving (Eq,Show)
+
+data Facet         = Facet { facet_facetType  :: FacetType
+                           , facet_annotation :: Annotation
+                           , facet_facetValue :: String
+                           , facet_fixed      :: Bool
+                           }
+                     deriving (Eq,Show)
+
+data FacetType     = OrderedBoundsMinIncl
+                   | OrderedBoundsMinExcl
+                   | OrderedBoundsMaxIncl
+                   | OrderedBoundsMaxExcl
+                   | OrderedNumericTotalDigits
+                   | OrderedNumericFractionDigits
+                   | UnorderedPattern
+                   | UnorderedEnumeration
+                   | UnorderedWhitespace
+                   | UnorderedLength
+                   | UnorderedMaxLength
+                   | UnorderedMinLength
+                     deriving (Eq,Show)
+
+-- The "complex type" model
 
 data ComplexType   = ComplexType
                        { complex_annotation :: Annotation
@@ -192,7 +244,7 @@ data PrimitiveType = String | Boolean | Decimal | Float | Double
                      deriving (Eq,Show)
                
 
-data Restriction   = Range Occurs
+data MyRestriction = Range Occurs
                    | Pattern Regexp
                    | Enumeration [String]
                      deriving (Eq,Show)

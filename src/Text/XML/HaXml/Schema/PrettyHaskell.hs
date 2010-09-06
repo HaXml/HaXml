@@ -80,15 +80,17 @@ ppHighLevelDecl (NamedSimpleType t s comm) =
     ppComment Before comm
     $$ text "type" <+> ppConId t <+> text "=" <+> ppConId s
 
-ppHighLevelDecl (RestrictSimpleType t s comm) =
+ppHighLevelDecl (RestrictSimpleType t s r comm) =
     ppComment Before comm
     $$ text "newtype" <+> ppConId t <+> text "=" <+> ppConId t <+> ppConId s
     $$ text "instance Restricts" <+> ppConId t <+> ppConId s <+> text "where"
         $$ nest 4 (text "restricts (" <> ppConId t <+> text "x) = x")
+    $$ text "instance SimpleType" <+> ppConId t <+> text "where"
+        $$ nest 4 (text "acceptingParser = undefined")
     $$ text "instance SchemaType" <+> ppConId t <+> text "where"
         $$ nest 4 (text "parseSchemaType = fmap " <+> ppConId t <+>
-                   text ". parseSchemaType")
-		-- XXX should enforce the restriction.
+                   text ". parseAccepting parseSchemaType")
+		-- XXX should enforce the restriction.  (?)
 
 ppHighLevelDecl (ExtendSimpleType t s as comm) =
     ppComment Before comm

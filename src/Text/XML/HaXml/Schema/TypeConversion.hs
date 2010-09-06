@@ -61,14 +61,16 @@ mkEnvironment s = foldl' item emptyEnv (schema_items s)
     item env (AttributeGroup g)  = attrGroup env g
     item env (SchemaGroup g)     = group env g
 
-    simple env   (Primitive _)     = env
-    simple env s@(Restricted n _ _ _)
-                                   = env{env_type=Map.insert (N n) (Left s)
-                                                             (env_type env)}
-    simple env s@(ListOf n _ _ _)  = env{env_type=Map.insert (N n) (Left s)
-                                                             (env_type env)}
-    simple env s@(UnionOf n _ _ _) = env{env_type=Map.insert (N n) (Left s)
-                                                             (env_type env)}
+    simple env s@(Restricted _ (Just n) _ _)
+                                 = env{env_type=Map.insert (N n) (Left s)
+                                                           (env_type env)}
+    simple env s@(ListOf _ (Just n) _ _)
+                                 = env{env_type=Map.insert (N n) (Left s)
+                                                           (env_type env)}
+    simple env s@(UnionOf _ (Just n) _ _ _)
+                                 = env{env_type=Map.insert (N n) (Left s)
+                                                           (env_type env)}
+    simple env   _               = env
 
     -- Only toplevel names have global scope.
     -- Should we lift local names to toplevel with prefixed names?
@@ -113,11 +115,13 @@ convert env s = concatMap item (schema_items s)
     item (SchemaGroup g)      = group g
 
     simple (Primitive prim)     = []
-    simple (Restricted n s r f) = [RestrictSimpleType (xname n) (nameOfSimple s)
-                                                      Nothing]
-    simple (ListOf n s r f)     = [NamedSimpleType    (xname n) (nameOfSimple s)
-                                                      Nothing]
-    simple (UnionOf n ss r f)   = error "Not yet implemented: unionOf"
+    simple (Restricted a n f r) = [RestrictSimpleType (xname n) (nameOfSimple s)
+                                                      (mkRestrict r)
+                                                      (comment a)]
+    simple (ListOf a n f t)     = error "Not yet implemented: ListOf simpleType"
+                              --  [NamedSimpleType    (xname n) (nameOfSimple s)
+                              --                      (comment a)]
+    simple (UnionOf a n f u m)  = error "Not yet implemented: unionOf"
 
     complex ct =
       let n = xname $ fromMaybe ("errorMissingName") (complex_name ct)
@@ -126,7 +130,7 @@ convert env s = concatMap item (schema_items s)
         c@SimpleContent{}  ->
             case ci_stuff c of
                 Left r  ->
-                    RestrictSimpleType n ({-simple-}xname $ "Unimplemented")
+                    RestrictSimpleType n ({-simple-}xname $ "Unimplemented") []
                                      (comment (complex_annotation ct
                                               `mappend` ci_annotation c))
                 Right e ->
@@ -183,13 +187,14 @@ convert env s = concatMap item (schema_items s)
     elementDecl :: XSD.ElementDecl -> Haskell.Element
     elementDecl ed = case elem_nameOrRef ed of
         Left  n   -> Element ({-name-}xname $ theName n)
-                             ({-type-}XName $ fromJust $ theType n)
+                             ({-type-}maybe (xname "unknown") XName $ theType n)
                              ({-modifier-}Haskell.Range $ elem_occurs ed)
                              [] -- internal Decl
                              (comment (elem_annotation ed))
         Right ref -> case Map.lookup ref (env_element env) of
-                       Nothing -> error $ "bad element reference "
-                                          ++printableName ref
+                       Nothing -> Element (XName ref)
+                                          (xname "unknown")
+                                          (Haskell.Single) [] Nothing
                        Just e' -> elementDecl e'
 
     attributeDecl :: XSD.AttributeDecl -> [Haskell.Attribute]
@@ -261,26 +266,33 @@ xname :: String -> XName
 xname = XName . N
 
 nameOfSimple :: SimpleType -> XName
-nameOfSimple (Primitive prim)     = XName . xsd. show $ prim
-nameOfSimple (Restricted n _ _ _) = xname n
-nameOfSimple (ListOf n _ _ _)     = xname n -- ("["++n++"]")
-nameOfSimple (UnionOf n _ _ _)    = xname n -- return to this
+nameOfSimple (Primitive prim)            = XName . xsd. show $ prim
+nameOfSimple (Restricted _ (Just n) _ _) = xname n
+nameOfSimple (ListOf _ (Just n) _ _)     = xname n -- ("["++n++"]")
+nameOfSimple (UnionOf _ (Just n) _ _ _)  = xname n -- return to this
 
+{-
 nameOfSimple' :: SimpleType -> XName
 nameOfSimple' (Primitive prim)     = XName . xsd. show $ prim
 nameOfSimple' (Restricted _ s _ _) = nameOfSimple s
 nameOfSimple' (ListOf _ s _ _)     = xname ("["++show (nameOfSimple s)++"]")
 nameOfSimple' (UnionOf n ss _ _)   = xname n -- return to this
+-}
+
+mkRestrict :: XSD.Restriction -> Haskell.Restrict
+mkRestrict (RestrictSim1 ann base r1) =
+        error "Not yet implemented: Restriction1 on simpletype"
+mkRestrict (RestrictType _ _ _ facets) =
+    --  [ Occurs ...  | f <- facets ]
+    --  ++
+    --  [ Pattern ...  | f <- facets ]
+    --  ++
+        let enum = [ (v,comment ann)
+                   | (Facet UnorderedEnumeration ann v _) <- facets ]
+        in if null enum then error "Not yet implemented: non-enumeration"
+                        else Enumeration enum
 
 singleton :: a -> [a]
 singleton = (:[])
 
-{-
-contentInfo :: Maybe (Either SimpleType ComplexType) -> ([Element],[Attribute])
-contentInfo Nothing  = ([],[])
-contentInfo (Just e) = either simple complex
-  where
-    simple  :: SimpleType  -> ([Element],[Attribute])
-    complex :: ComplexType -> ([Element],[Attribute])
-    simple st = ([], ?
--}
+

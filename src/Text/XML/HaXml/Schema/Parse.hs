@@ -247,10 +247,69 @@ redefine = do e <- xsdElement "redefine"
 -- | Parse a <xsd:simpleType> decl.
 simpleType :: XsdParser SimpleType
 simpleType = do e <- xsdElement "simpleType"
-                n <- optional (attribute (N "name") (fmap N name) e)
-                case n of
-                  Nothing -> return (Primitive String) -- dummy for now
-                  Just _  -> return (Primitive String) -- also a dummy
+                n <- optional (attribute (N "name") name e)
+                f <- optional (attribute (N "final") final e)
+                a <- interiorWith (xsdTag "annotation") annotation e
+                commit $
+                  interiorWith (not . xsdTag "annotation") (simpleItem n f a) e
+  where
+    simpleItem n f a =
+        do e  <- xsdElement "restriction"
+           commit $ do
+             a1 <- interiorWith (xsdTag "annotation") annotation e
+             b  <- optional (attribute (N "base") qname e)
+             r  <- interiorWith (not . xsdTag "annotation")
+                                (restrictType a1 b `onFail` restriction1 a1 b) e
+             return (Restricted a n f r)
+        `onFail`
+        do e  <- xsdElement "list"
+           commit $ do
+             a1 <- interiorWith (xsdTag "annotation") annotation e
+             t  <- attribute (N "itemType") (fmap Right qname) e
+                     `onFail`
+                   interiorWith (xsdTag "simpleType") (fmap Left simpleType) e
+                     `adjustErr`
+                   (("Expected attribute 'itemType' or element <simpleType>\n"
+                    ++"  inside <list> decl.\n")++)
+             return (ListOf (a`mappend`a1) n f t)
+        `onFail`
+        do e  <- xsdElement "union"
+           commit $ do
+             a1 <- interiorWith (xsdTag "annotation") annotation e
+             ts <- interiorWith (xsdTag "simpleType") (many simpleType) e
+             ms <- attribute (N "memberTypes") (many qname) e
+                   `onFail` return []
+             return (UnionOf (a`mappend`a1) n f ts ms)
+        `adjustErr`
+        ("xsd:simpleType does not contain a restriction, list, or union\n"++)
+
+    restriction1 a b = return (RestrictSim1 a b)
+                            `apply` (return Restriction1 `apply` particle)
+    restrictType a b = return (RestrictType a b)
+                            `apply` (optional simpleType)
+                            `apply` many aFacet
+
+aFacet :: XsdParser Facet
+aFacet = foldr onFail (fail "Could not recognise simpleType Facet")
+               (zipWith facet ["minInclusive","minExclusive","maxInclusive"
+                              ,"maxExclusive","totalDigits","fractionDigits"
+                              ,"length","minLength","maxLength"
+                              ,"enumeration","whiteSpace","pattern"]
+                              [OrderedBoundsMinIncl,OrderedBoundsMinExcl
+                              ,OrderedBoundsMaxIncl,OrderedBoundsMaxExcl
+                              ,OrderedNumericTotalDigits
+                              ,OrderedNumericFractionDigits
+                              ,UnorderedLength,UnorderedMinLength
+                              ,UnorderedMaxLength,UnorderedEnumeration
+                              ,UnorderedWhitespace,UnorderedPattern])
+
+facet :: String -> FacetType -> XsdParser Facet
+facet s t = do e <- xsdElement s
+               v <- attribute (N "value") string e
+               f <- attribute (N "fixed") bool e
+                    `onFail` return False -- XXX check this
+               a <- interiorWith (const True) annotation e
+               return (Facet t a v f)
 
 -- | Parse a <xsd:complexType> decl.
 complexType :: XsdParser ComplexType
