@@ -22,6 +22,7 @@ import Text.XML.HaXml.Util       (docContent)
 import Text.XML.HaXml.Posn       (posInNewCxt)
 
 import Text.XML.HaXml.Schema.Parse
+import Text.XML.HaXml.Schema.NameConversion
 import Text.XML.HaXml.Schema.TypeConversion
 import Text.XML.HaXml.Schema.PrettyHaskell
 import qualified Text.XML.HaXml.Schema.HaskellTypeModel as Haskell
@@ -63,7 +64,7 @@ main =
         (Left msg,_) ->    hPutStrLn stderr msg
         (Right v,[]) -> do let decls   = convert (mkEnvironment v) v
                                haskell = Haskell.mkModule inf decls
-                               doc     = ppModule haskell
+                               doc     = ppModule fpmlNameConverter haskell
                            hPutStrLn stdout $ render doc
         (Right v,_)  -> do hPutStrLn stdout $ "Parse incomplete!\n"
                            hPutStrLn stdout $ "\n\n-----------------\n\n"

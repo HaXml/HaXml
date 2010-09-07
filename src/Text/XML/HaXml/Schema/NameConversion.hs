@@ -122,3 +122,13 @@ basename ext = reverse . snip (reverse ext)
                        . takeWhile (not.(`elem`"\\/")) . reverse
     where snip p s = if p `isPrefixOf`s then drop (length p) s else s
 
+fpmlNameConverter :: NameConverter
+fpmlNameConverter = simpleNameConverter
+    { modid = (\(HName h)-> HName (fpml h))
+              . modid simpleNameConverter
+    , conid = (\(HName h)-> case take 4 (reverse h) of
+                              "munE" -> HName (reverse (drop 4 (reverse h)))
+                              _      -> HName h )
+              . conid simpleNameConverter
+    }
+
