@@ -117,6 +117,9 @@ ppHighLevelDecl nx (ExtendSimpleType t s as comm) =
                                   <+> text "where"
         $$ nest 4 (text "supertype (" <> ppConId nx t <> text " s e) = s"
                    $$ text "extension (" <> ppConId nx t <> text " s e) = e")
+    $$ text "instance SimpleType" <+> ppConId nx t <+> text "where"
+        $$ nest 4 (text "acceptingParser = fmap" <+> ppConId nx t
+                   <+> text "`apply` acceptingParser `apply` acceptingParser")
 
 ppHighLevelDecl nx (UnionSimpleTypes t sts comm) =
     ppComment Before comm
@@ -132,11 +135,15 @@ ppHighLevelDecl nx (EnumSimpleType t (i:is) comm) =
         $$ nest 4 ( vcat ( text "=" <+> item i
                          : map (\i-> text "|" <+> item i) is)
                   $$ text "deriving (Eq,Show,Enum)" )
-    $$ text "instance SchemaType" <+> ppConId nx t <+> text "where"
-        $$ nest 4 (text "parseSchemaType s = undefined")
+    $$ text "instance SimpleType" <+> ppConId nx t <+> text "where"
+        $$ nest 4 (text "acceptingParser ="
+                        <+> vcat (intersperse (text "`onFail`")
+                                              (map parseItem (i:is))))
   where
     item (i,c) = (ppConId nx t <> text "_" <> ppConId nx i)
                  <+> ppComment After c
+    parseItem (i,_) = text "do isWord \"" <> ppXName i <> text "\"; return"
+                           <+> (ppConId nx t <> text "_" <> ppConId nx i)
 
 ppHighLevelDecl nx (ElementsAttrs t es as comm) =
     ppComment Before comm

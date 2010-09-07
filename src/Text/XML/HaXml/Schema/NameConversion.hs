@@ -55,9 +55,12 @@ simpleNameConverter = NameConverter
     mkVarid  [v]        = first toLower v
     mkVarid [m,v]       = first toUpper m++"."++first toLower v
 
-    first f (x:xs)      = f x: xs
+    first f (x:xs)
+      | not (isAlpha x) = f 'v': x: xs
+      | otherwise       = f x: xs
     last  f [x]         = [ f x ]
     last  f (x:xs)      = x: last f xs
+
 
 -- | Ensure that a string does not match a Haskell keyword.
 avoidKeywords :: String -> String

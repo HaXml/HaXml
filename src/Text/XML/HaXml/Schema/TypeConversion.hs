@@ -122,7 +122,8 @@ convert env s = concatMap item (schema_items s)
                                        enums (comment a) ]
         | otherwise             = [RestrictSimpleType
                                        (maybe (error "missing Name") xname n)
-                                       (xname "unknownSimple" {-(nameOfSimple s) -})
+                                       (maybe (xname "unknownSimple") XName
+                                                             (restrict_base r))
                                        (mkRestrict r)
                                        (comment a)]
     simple (ListOf a n f t)     = error "Not yet implemented: ListOf simpleType"
@@ -317,18 +318,11 @@ xname :: String -> XName
 xname = XName . N
 
 nameOfSimple :: SimpleType -> XName
-nameOfSimple (Primitive prim)            = XName . xsd. show $ prim
+nameOfSimple (Primitive prim)            = XName . xsd . show $ prim
 nameOfSimple (Restricted _ (Just n) _ _) = xname n
 nameOfSimple (ListOf _ (Just n) _ _)     = xname n -- ("["++n++"]")
 nameOfSimple (UnionOf _ (Just n) _ _ _)  = xname n -- return to this
-
-{-
-nameOfSimple' :: SimpleType -> XName
-nameOfSimple' (Primitive prim)     = XName . xsd. show $ prim
-nameOfSimple' (Restricted _ s _ _) = nameOfSimple s
-nameOfSimple' (ListOf _ s _ _)     = xname ("["++show (nameOfSimple s)++"]")
-nameOfSimple' (UnionOf n ss _ _)   = xname n -- return to this
--}
+nameOfSimple s                           = xname "String" -- anonymous simple
 
 mkRestrict :: XSD.Restriction -> [Haskell.Restrict]
 mkRestrict (RestrictSim1 ann base r1) =

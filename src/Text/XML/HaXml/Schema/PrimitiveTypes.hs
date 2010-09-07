@@ -1,6 +1,7 @@
 module Text.XML.HaXml.Schema.PrimitiveTypes
   ( -- * Type class for parsing simpleTypes
     SimpleType(..)
+  , module Text.Parse
   , -- * Primitive XSD datatypes
     String
   , Bool
