@@ -50,9 +50,11 @@ data Decl
                  --       + instance Extension T S Tf where ...
                | ExtendSimpleType    XName XName [Attribute] Comment
 
-                 -- not certain about this one
                  -- becomes data T = Ta S0 | Tb S1 | Tc S2 | ...
                | UnionSimpleTypes    XName [XName] Comment
+
+                 -- becomes data T = T_C0 | T_C1 | T_C2 | ...
+               | EnumSimpleType      XName [(XName,Comment)] Comment
 
                  -- becomes data T  = T { singleattr, fields }
                  --   or    data T  = T { manyattr, singlefield }

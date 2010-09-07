@@ -117,6 +117,19 @@ ppHighLevelDecl (UnionSimpleTypes t sts comm) =
     $$ text "data" <+> ppConId t <+> text "=" <+> ppConId t
     $$ text "-- Placeholder for a Union type, not yet implemented."
 
+ppHighLevelDecl (EnumSimpleType t [] comm) =
+    ppComment Before comm
+    $$ text "data" <+> ppConId t
+ppHighLevelDecl (EnumSimpleType t (i:is) comm) =
+    ppComment Before comm
+    $$ text "data" <+> ppConId t
+        $$ nest 4 ( vcat ( text "=" <+> item i
+                         : map (\i-> text "|" <+> item i) is))
+    $$ text "instance SchemaType" <+> ppConId t <+> text "where"
+        $$ nest 4 (text "parseSchemaType s = undefined")
+  where
+    item (i,c) = (ppConId t <> text "_" <> ppConId i) <+> ppComment After c
+
 ppHighLevelDecl (ElementsAttrs t es as comm) =
     ppComment Before comm
     $$ text "data" <+> ppConId t <+> text "=" <+> ppConId t

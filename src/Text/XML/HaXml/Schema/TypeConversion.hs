@@ -115,7 +115,12 @@ convert env s = concatMap item (schema_items s)
     item (SchemaGroup g)      = group g
 
     simple (Primitive prim)     = []
-    simple (Restricted a n f r) = [RestrictSimpleType
+    simple s@(Restricted a n f r)
+        | (Just enums) <- isEnumeration s
+                                = [EnumSimpleType 
+                                       (maybe (error "missing Name") xname n)
+                                       enums (comment a) ]
+        | otherwise             = [RestrictSimpleType
                                        (maybe (error "missing Name") xname n)
                                        (xname "unknownSimple" {-(nameOfSimple s) -})
                                        (mkRestrict r)
@@ -123,10 +128,34 @@ convert env s = concatMap item (schema_items s)
     simple (ListOf a n f t)     = error "Not yet implemented: ListOf simpleType"
                               --  [NamedSimpleType    (xname n) (nameOfSimple s)
                               --                      (comment a)]
-    simple (UnionOf a n f u m)  = [UnionSimpleTypes
+    simple s@(UnionOf a n f u m)
+        | (Just enums) <- isEnumeration s
+                                = [EnumSimpleType 
+                                       (maybe (error "missing Name") xname n)
+                                       enums (comment a) ]
+        | otherwise             = [UnionSimpleTypes
                                        (maybe (error "missing Name") xname n)
                                        (map (xname . printableName) m) -- XXX ignores content 'u'
                                        (comment a)]
+
+    isEnumeration :: SimpleType -> Maybe [(XName,Comment)]
+    isEnumeration (Primitive _)        = Nothing
+    isEnumeration (ListOf _ _ _ _)     = Nothing
+    isEnumeration (Restricted _ _ _ r) =
+        case r of
+            RestrictSim1 ann base r1  -> Nothing
+            RestrictType _ _ _ facets ->
+                let enum = [ (xname v, comment ann)
+                           | (Facet UnorderedEnumeration ann v _) <- facets ]
+                in if null enum then Nothing else Just enum
+    isEnumeration (UnionOf _ _ _ u ms) =
+        squeeze [] ( flip map ms (\m-> case Map.lookup m (env_type env) of
+                                         Just (Left s)-> isEnumeration s
+                                         _            -> Nothing)
+                     ++ map isEnumeration u )
+        where squeeze _  (Nothing:_)    = Nothing
+              squeeze xs (Just ys:rest) = squeeze (xs++ys) rest
+              squeeze xs []             = Just xs
 
     complex ct =
       let n = xname $ fromMaybe ("errorMissingName") (complex_name ct)
