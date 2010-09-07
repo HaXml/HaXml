@@ -328,16 +328,51 @@ mkRestrict :: XSD.Restriction -> [Haskell.Restrict]
 mkRestrict (RestrictSim1 ann base r1) =
         error "Not yet implemented: Restriction1 on simpletype"
 mkRestrict (RestrictType _ _ _ facets) =
-    --  [ Occurs ...  | f <- facets ]
-    --  ++
-    --  [ Pattern ...  | f <- facets ]
-    --  ++
-        let enum = [ (v,comment ann)
-                   | (Facet UnorderedEnumeration ann v _) <- facets ]
-        in if null enum then error "Not yet implemented: non-enumeration"
-                        else [Haskell.Enumeration enum]
+    (let occurs = [ (f,ann,v)  | (Facet f ann v _) <- facets
+                               , f `elem` [OrderedBoundsMinIncl
+                                          ,OrderedBoundsMinExcl
+                                          ,OrderedBoundsMaxIncl
+                                          ,OrderedBoundsMaxExcl] ]
+     in if null occurs then []
+        else [Haskell.RangeR (foldl consolidate (Occurs Nothing Nothing) occurs)
+                             (comment $ foldr mappend mempty
+                                              [ ann | (_,ann,_) <- occurs])]
+    ) ++
+    [ Haskell.Pattern v (comment ann)
+              | (Facet UnorderedPattern ann v _) <- facets ]
+    ++
+    (let enum = [ (v,comment ann)
+                | (Facet UnorderedEnumeration ann v _) <- facets ]
+     in if null enum then []
+                     else [Haskell.Enumeration enum]
+    ) ++
+    (let occurs = [ (f,ann,v)  | (Facet f ann v _) <- facets
+                               , f `elem` [UnorderedLength
+                                          ,UnorderedMaxLength
+                                          ,UnorderedMinLength] ]
+     in if null occurs then []
+        else [Haskell.StrLength
+                 (foldl consolidate (Occurs Nothing Nothing) occurs)
+                 (comment $ foldr mappend mempty [ ann | (_,ann,_) <- occurs])]
+    )
 
 singleton :: a -> [a]
 singleton = (:[])
 
+-- | Consolidate a Facet occurrence into a single Occurs value.
+consolidate :: Occurs -> (FacetType,Annotation,String) -> Occurs
+consolidate (Occurs min max) (OrderedBoundsMinIncl,_,n) =
+             Occurs (Just (read n)) max
+consolidate (Occurs min max) (OrderedBoundsMinExcl,_,n) =
+             Occurs (Just ((read n)+1)) max
+consolidate (Occurs min max) (OrderedBoundsMaxIncl,_,n) =
+             Occurs min (Just (read n))
+consolidate (Occurs min max) (OrderedBoundsMaxExcl,_,n) =
+             Occurs min (Just ((read n)-1))
+consolidate (Occurs min max) (UnorderedLength,_,n) =
+             Occurs (Just (read n)) (Just (read n))
+consolidate (Occurs min max) (UnorderedMinLength,_,n) =
+             Occurs (Just (read n)) max
+consolidate (Occurs min max) (UnorderedMaxLength,_,n) =
+             Occurs min (Just (read n))
 

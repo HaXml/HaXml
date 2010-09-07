@@ -114,5 +114,6 @@ data Modifier  = Single
 data Restrict  = RangeR Occurs Comment
                | Pattern String{-really Regexp-} Comment
                | Enumeration [(String,Comment)]
+               | StrLength Occurs Comment
                  deriving (Eq,Show)
 

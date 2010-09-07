@@ -82,28 +82,33 @@ ppHighLevelDecl :: NameConverter -> Decl -> Doc
 ppHighLevelDecl nx (NamedSimpleType t s comm) =
     ppComment Before comm
     $$ text "type" <+> ppConId nx t <+> text "=" <+> ppConId nx s
+    $$ text "-- No instances required: synonym is isomorphic to the original."
 
 ppHighLevelDecl nx (RestrictSimpleType t s r comm) =
     ppComment Before comm
     $$ text "newtype" <+> ppConId nx t <+> text "="
                       <+> ppConId nx t <+> ppConId nx s
+                      <+> text "deriving (Eq,Show)"
     $$ text "instance Restricts" <+> ppConId nx t <+> ppConId nx s
                       <+> text "where"
         $$ nest 4 (text "restricts (" <> ppConId nx t <+> text "x) = x")
     $$ text "instance SimpleType" <+> ppConId nx t <+> text "where"
-        $$ nest 4 (text "acceptingParser = undefined")
-    $$ text "instance SchemaType" <+> ppConId nx t <+> text "where"
-        $$ nest 4 (text "parseSchemaType = fmap " <+> ppConId nx t <+>
-                   text ". parseAccepting parseSchemaType")
-		-- XXX should enforce the restriction.  (?)
-    $$ text "-- The restrictions are:" <+> hsep (map ppRestrict r)
+        $$ nest 4 (text "acceptingParser = fmap" <+> ppConId nx t
+                                                 <+> text "acceptingParser")
+    -- XXX should enforce the restrictions somehow.  (?)
+    $$ text "-- XXX should enforce the restrictions somehow?"
+    $$ text "-- The restrictions are:"
+    $$ vcat (map ((text "--     " <+>) . ppRestrict) r)
   where
     ppRestrict (RangeR occ comm)     = text "(RangeR"
                                          <+> ppElemModifier (Range occ) empty
                                          <>  text ")"
-    ppRestrict (Pattern regexp comm) = text "(Pattern)"
+    ppRestrict (Pattern regexp comm) = text ("(Pattern "++regexp++")")
     ppRestrict (Enumeration items)   = text "(Enumeration"
                                          <+> hsep (map (text . fst) items)
+                                         <>  text ")"
+    ppRestrict (StrLength occ comm)  = text "(StrLength"
+                                         <+> ppElemModifier (Range occ) empty
                                          <>  text ")"
 
 ppHighLevelDecl nx (ExtendSimpleType t s as comm) =
