@@ -43,6 +43,7 @@ ppConId nx = ppHName . conid nx
 ppVarId nx = ppHName . varid nx
 ppAuxConId nx = ppHName . auxconid nx
 ppAuxVarId nx = ppHName . auxvarid nx
+ppFieldId  nx = \t-> ppHName . fieldid nx t
 
 -- | Convert a whole document from HaskellTypeModel to Haskell source text.
 ppModule :: NameConverter -> Module -> Doc
@@ -153,7 +154,7 @@ ppHighLevelDecl nx (EnumSimpleType t (i:is) comm) =
 ppHighLevelDecl nx (ElementsAttrs t es as comm) =
     ppComment Before comm
     $$ text "data" <+> ppConId nx t <+> text "=" <+> ppConId nx t
-        $$ nest 8 (ppFields nx es as)
+        $$ nest 8 (ppFields nx t es as)
     $$ text "instance SchemaType" <+> ppConId nx t <+> text "where"
         $$ nest 4 (text "parseSchemaType s = do" 
                   $$ nest 4 (text "e <- element [s]"
@@ -207,7 +208,7 @@ ppHighLevelDecl nx (ExtendComplexType t s es as comm)
     ppComment Before comm
     $$ text "data" <+> ppConId nx t <+> text "="
                                     <+> ppConId nx t <+> ppConId nx s
-                                    <+> ppFields nx es as
+                                    <+> ppFields nx t es as
     $$ text "instance Extension" <+> ppConId nx t <+> ppConId nx s
                                  <+> ppAuxConId nx t <+> text "where"
         $$ nest 4 (text "supertype (" <> ppConId nx t <> text " s e) = s"
@@ -219,7 +220,7 @@ ppHighLevelDecl nx (ExtendComplexType t s es as comm) =
                                     <+> ppConId nx t <+> ppConId nx s
                                     <+> ppAuxConId nx t
     $$ text "data" <+> ppAuxConId nx t <+> text "=" <+> ppAuxConId nx t
-                                                 $$ nest 8 (ppFields nx es as)
+                                                 $$ nest 8 (ppFields nx t es as)
     $$ text "instance SchemaType" <+> ppConId nx t <+> text "where"
         $$ nest 4 (text "parseSchemaType s = do" 
                   $$ nest 4 (text "e <- element [s]"
@@ -249,27 +250,27 @@ ppHighLevelDecl nx (XSDComment comm) =
 
 --------------------------------------------------------------------------------
 
--- | Generate named fiedls from elements and attributes.
-ppFields :: NameConverter -> [Element] -> [Attribute] -> Doc
-ppFields nx es as | null es && null as = empty
-ppFields nx es as =  vcat ( text "{" <+> head fields
-                          : map (text "," <+>) (tail fields)
-                          ++ [text "}"] )
+-- | Generate named fields from elements and attributes.
+ppFields :: NameConverter -> XName -> [Element] -> [Attribute] -> Doc
+ppFields nx t es as | null es && null as = empty
+ppFields nx t es as =  vcat ( text "{" <+> head fields
+                            : map (text "," <+>) (tail fields)
+                            ++ [text "}"] )
   where
-    fields = map (ppAttribute nx) as ++  map (ppElement nx) es
+    fields = map (ppFieldAttribute nx t) as ++  map (ppFieldElement nx t) es
 
 -- | Generate a single named field from an element.
-ppElement :: NameConverter -> Element -> Doc
-ppElement nx e = ppVarId nx (elem_name e) <+> text "::"
-                      <+> ppTypeModifier (elem_modifier e)
-                                         (ppConId nx (elem_type e))
-                 $$ ppComment After (elem_comment e)
+ppFieldElement :: NameConverter -> XName -> Element -> Doc
+ppFieldElement nx t e = ppFieldId nx t (elem_name e) <+> text "::"
+                             <+> ppTypeModifier (elem_modifier e)
+                                                (ppConId nx (elem_type e))
+                        $$ ppComment After (elem_comment e)
 
 -- | Generate a single named field from an attribute.
-ppAttribute :: NameConverter -> Attribute -> Doc
-ppAttribute nx a = ppVarId nx (attr_name a) <+> text "::"
-                            <+> ppConId nx (attr_type a)
-                   $$ ppComment After (attr_comment a)
+ppFieldAttribute :: NameConverter -> XName -> Attribute -> Doc
+ppFieldAttribute nx t a = ppFieldId nx t (attr_name a) <+> text "::"
+                                   <+> ppConId nx (attr_type a)
+                          $$ ppComment After (attr_comment a)
 
 -- | Generate a list or maybe type name.
 ppTypeModifier :: Modifier -> Doc -> Doc

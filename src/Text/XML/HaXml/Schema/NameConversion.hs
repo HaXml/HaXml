@@ -33,6 +33,7 @@ data NameConverter = NameConverter
                        , varid    :: XName -> HName
                        , auxconid :: XName -> HName
                        , auxvarid :: XName -> HName
+                       , fieldid  :: XName -> XName -> HName
                        }
 
 -- | A simple default set of rules for resolving XNames into HNames.
@@ -45,6 +46,10 @@ simpleNameConverter = NameConverter
     , auxconid = \(XName qn)-> HName . (++"'") . mkConid . hierarchy $ qn
     , auxvarid = \(XName qn)-> HName . (++"'") . mkVarid . last avoidKeywords
                                                . hierarchy $ qn
+    , fieldid  = \(XName qnt) (XName qnf)->
+                               HName $ (mkVarid . last id . hierarchy $ qnt)
+                                       ++ "_" ++
+                                       (mkVarid . last id . hierarchy $ qnf)
     }
   where
     hierarchy (N n)     = wordsBy (==':') n
@@ -127,11 +132,56 @@ basename ext = reverse . snip (reverse ext)
 
 fpmlNameConverter :: NameConverter
 fpmlNameConverter = simpleNameConverter
-    { modid = (\(HName h)-> HName (fpml h))
-              . modid simpleNameConverter
-    , conid = (\(HName h)-> case take 4 (reverse h) of
-                              "munE" -> HName (reverse (drop 4 (reverse h)))
-                              _      -> HName h )
-              . conid simpleNameConverter
+    { modid   = (\(HName h)-> HName (fpml h))
+                . modid simpleNameConverter
+    , conid   = (\(HName h)-> case take 4 (reverse h) of
+                                "munE" -> HName (reverse (drop 4 (reverse h)))
+                                _      -> HName h )
+                . conid simpleNameConverter
+    , fieldid  = \(XName qnt) (XName qnf)->
+                  let t = mkVarId . last . hierarchy $ qnt
+                      f = mkVarId . last . hierarchy $ qnf
+                  in HName $ if t==f then f
+                             else if t `isPrefixOf` f
+                             then t ++"_"++ mkVarId (drop (length t) f)
+                             else mkVarId (shorten (mkConId t)) ++"_"++ f
     }
+  where
+    hierarchy (N n)     = wordsBy (==':') n
+    hierarchy (QN ns n) = [nsPrefix ns, n]
+
+    mkVarId   (v:vs)    = toLower v: vs
+    mkConId   (v:vs)    = toUpper v: vs
+
+    shorten t | length t <= 12 = t
+              | length t <  35 = concatMap shortenWord (splitWords t)
+              | otherwise      = map toLower (head t: filter isUpper (tail t))
+    splitWords "" = []
+    splitWords (u:s)  = let (w,rest) = span (not . isUpper) s
+                        in (u:w) : splitWords rest
+
+    shortenWord "Request"     = "Req" -- some special cases
+    shortenWord "Reference"   = "Ref"
+    shortenWord "Valuation"   = "Val"
+    shortenWord "Calendar"    = "Cal"
+    shortenWord "Absolute"    = "Abs"
+    shortenWord "Additional"  = "Add"
+    shortenWord "Business"    = "Bus"
+    shortenWord "Standard"    = "Std"
+    shortenWord "Calculation" = "Calc"
+    shortenWord "Quotation"   = "Quot"
+    shortenWord "Information" = "Info"
+    shortenWord "Exchange"    = "Exch"
+    shortenWord "Characteristics" = "Char"
+    shortenWord "Multiple"    = "Multi"
+    shortenWord "Constituent" = "Constit"
+    shortenWord "Convertible" = "Convert"
+    shortenWord "Underlyer"   = "Underly"
+    shortenWord "Underlying"  = "Underly"
+    shortenWord w | length w < 8 = w   -- then the general rule
+                  | otherwise    = case splitAt 5 w of
+                                     (pref,c:suf) | isVowel c -> pref
+                                                  | otherwise -> pref++[c]
+
+    isVowel = (`elem` "aeiouy")
 
