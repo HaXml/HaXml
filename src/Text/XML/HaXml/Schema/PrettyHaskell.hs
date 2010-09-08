@@ -93,13 +93,20 @@ ppHighLevelDecl nx (RestrictSimpleType t s r comm) =
     $$ text "instance Restricts" <+> ppConId nx t <+> ppConId nx s
                       <+> text "where"
         $$ nest 4 (text "restricts (" <> ppConId nx t <+> text "x) = x")
+    $$ text "instance SchemaType" <+> ppConId nx t <+> text "where"
+        $$ nest 4 (text "parseSchemaType s = do" 
+                  $$ nest 4 (text "e <- element [s]"
+                           $$ text "commit $ interior e $ contentsOfSchemaType")
+                  $$ text "contentsOfSchemaType = "
+                           <+> text "parseSimpleType acceptingParser"
+                  )
     $$ text "instance SimpleType" <+> ppConId nx t <+> text "where"
         $$ nest 4 (text "acceptingParser = fmap" <+> ppConId nx t
-                                                 <+> text "acceptingParser")
-    -- XXX should enforce the restrictions somehow.  (?)
-    $$ text "-- XXX should enforce the restrictions somehow?"
-    $$ text "-- The restrictions are:"
-    $$ vcat (map ((text "--     " <+>) . ppRestrict) r)
+                                                 <+> text "acceptingParser"
+                   -- XXX should enforce the restrictions somehow.  (?)
+                   $$ text "-- XXX should enforce the restrictions somehow?"
+                   $$ text "-- The restrictions are:"
+                   $$ vcat (map ((text "--     " <+>) . ppRestrict) r))
   where
     ppRestrict (RangeR occ comm)     = text "(RangeR"
                                          <+> ppElemModifier (Range occ) empty
@@ -116,16 +123,19 @@ ppHighLevelDecl nx (ExtendSimpleType t s as comm) =
     ppComment Before comm
     $$ text "data" <+> ppConId nx t <+> text "="
                                     <+> ppConId nx t <+> ppConId nx s
-                                    <+> (ppConId nx t<>text "Fields")
-    $$ text "data" <+> (ppConId nx t<>text "Fields") <+> text "=" <+> text "..."
+                                    <+> ppConId nx t_attrs
+    $$ text "data" <+> ppConId nx t_attrs <+> text "=" <+> ppConId nx t_attrs
+        $$ nest 4 (ppFields nx t_attrs [] as)
     $$ text "instance Extension" <+> ppConId nx t <+> ppConId nx s
-                                  <+> (ppConId nx t<>text "Fields")
+                                  <+> (ppConId nx t_attrs)
                                   <+> text "where"
         $$ nest 4 (text "supertype (" <> ppConId nx t <> text " s e) = s"
                    $$ text "extension (" <> ppConId nx t <> text " s e) = e")
-    $$ text "instance SimpleType" <+> ppConId nx t <+> text "where"
+    $$ text "instance SchemaType" <+> ppConId nx t <+> text "where"
         $$ nest 4 (text "acceptingParser = fmap" <+> ppConId nx t
                    <+> text "`apply` acceptingParser `apply` acceptingParser")
+  where
+    t_attrs = let (XName (N t_base)) = t in XName (N (t_base++"Attributes"))
 
 ppHighLevelDecl nx (UnionSimpleTypes t sts comm) =
     ppComment Before comm
