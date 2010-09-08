@@ -39,7 +39,7 @@ data NameConverter = NameConverter
 -- | A simple default set of rules for resolving XNames into HNames.
 simpleNameConverter :: NameConverter
 simpleNameConverter = NameConverter
-    { modid    = \(XName qn)-> HName . mkConid . map fpml . hierarchy $ qn
+    { modid    = \(XName qn)-> HName . mkConid . hierarchy $ qn
     , conid    = \(XName qn)-> HName . mkConid . hierarchy $ qn
     , varid    = \(XName qn)-> HName . mkVarid . last avoidKeywords
                                                . hierarchy $ qn
@@ -66,6 +66,7 @@ simpleNameConverter = NameConverter
     last  f [x]         = [ f x ]
     last  f (x:xs)      = x: last f xs
 
+ -- cleanUp = map (\c-> if not (isAlphaNum c) then '_' else c)
 
 -- | Ensure that a string does not match a Haskell keyword.
 avoidKeywords :: String -> String
@@ -79,13 +80,14 @@ avoidKeywords s
                , "module", "newtype", "qualified", "type", "where" ]
 
 
--- | A specialised name converter for FpML module names with multiple dashes,
---   including version numbers,
+-- | A specialised module-name converter for FpML module names with
+--   multiple dashes, including version numbers,
 --   e.g. fpml-dividend-swaps-4-7.xsd      becomes FpML.V47.Swaps.Dividend
 --   but  fpml-posttrade-execution-4-7.xsd becomes FpML.V47.PostTrade.Execution
 fpml :: String -> String
 fpml = concat
          . intersperse "."    -- put the dots in
+         . ("Data":)          -- root of the Haskell module namespace
          . rearrange          -- hierarchy shuffling, dependent on names
          . map cap            -- make into nice module names
          . version            -- move version number to front
@@ -104,6 +106,7 @@ fpml = concat
     rearrange v                   = v
 
     cap :: String -> String
+    cap "Fpml"      = "FpML"
     cap "fpml"      = "FpML"
     cap "cd"        = "CD"
     cap "eq"        = "EQ"
