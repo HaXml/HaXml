@@ -218,10 +218,13 @@ ppHighLevelDecl nx (Choice t es comm) =
     choices c e n = text c <+> (ppConId nx t <> text (show n))
                            <+> ppConId nx (elem_type e)
 
-ppHighLevelDecl nx (Group t es comm) =
-    ppComment Before comm
-    $$ text "data" <+> ppConId nx t <+> text "="
-                   <+> ppConId nx t <+> hsep (map (ppConId nx . elem_type) es)
+-- Comment out the Group for now.  Groups get inlined into the ComplexType
+-- where they are used, so it may not be sensible to declare them separately
+-- as well.
+ppHighLevelDecl nx (Group t es comm) = PP.empty
+--  ppComment Before comm
+--  $$ text "data" <+> ppConId nx t <+> text "="
+--                 <+> ppConId nx t <+> hsep (map (ppConId nx . elem_type) es)
 
 -- Possibly we want to declare a really more restrictive type, e.g. 
 --    to remove optionality, (Maybe Foo) -> (Foo), [Foo] -> Foo
