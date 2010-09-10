@@ -82,7 +82,9 @@ data Decl
                  -- becomes data T  = T  S Tf
                  --       + data Tf = Tf {fields}
                  --       + instance Extension T S Tf where ...
-               | ExtendComplexType XName XName [Element] [Attribute] Comment
+      --       | ExtendComplexType XName XName [Element] [Attribute] Comment
+               | ExtendComplexType XName XName [Element] [Attribute]
+                                               [Element] [Attribute] Comment
 
                  -- becomes an import and re-export
                | XSDInclude XName Comment

@@ -24,8 +24,8 @@ import Text.XML.HaXml.Schema.PrimitiveTypes
 -- | A SchemaType is for element types, and has a parser from generic XML
 --   content tree to a Haskell value.
 class SchemaType a where
-  parseSchemaType      :: String -> XMLParser a
-  contentsOfSchemaType :: XMLParser a
+    parseSchemaType      :: String -> XMLParser a
+    contentsOfSchemaType :: XMLParser a -- XXX ditch it
 
 -- | A SchemaAttribute has a parser from String (the text of the attribute)
 --   to a Haskell value.
@@ -37,7 +37,11 @@ class Show a => SchemaAttribute a where
 class Extension t s e | t -> s e where
     supertype :: t -> s
     extension :: t -> e
-    contentsOfExtension :: XMLParser e
+    contentsOfExtension :: XMLParser e -- XXX ditch it
+
+-- possibly, extension should be more simple, allowing only downcasting
+class Extension t s | t -> s where
+    supertype :: t -> s
 
 -- | A type t can restrict another type s, that is, t admits fewer values
 --   than s, but all the values t does admit also belong to the type s.
@@ -46,12 +50,12 @@ class Restricts t s   | t -> s where
 
 -- | Given a TextParser for a SimpleType, make it into an XMLParser, i.e.
 --   consuming textual XML content as input rather than a String.
-parseSimpleType :: TextParser t -> XMLParser t
-parseSimpleType p = do s <- text
-                       case runParser p s of
-                         (Left err, _) -> fail err
-                         (Right v, "") -> return v
-                         (Right v, _)  -> return v -- ignore trailing text
+parseSimpleType :: SimpleType t => XMLParser t
+parseSimpleType = do s <- text
+                     case runParser acceptingParser s of
+                       (Left err, _) -> fail err
+                       (Right v, "") -> return v
+                       (Right v, _)  -> return v -- ignore trailing text
 
 -- | Between is a list parser that tries to ensure that any range
 --   specification (min and max elements) is obeyed when parsing.

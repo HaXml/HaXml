@@ -96,9 +96,7 @@ ppHighLevelDecl nx (RestrictSimpleType t s r comm) =
     $$ text "instance SchemaType" <+> ppConId nx t <+> text "where"
         $$ nest 4 (text "parseSchemaType s = do" 
                   $$ nest 4 (text "e <- element [s]"
-                           $$ text "commit $ interior e $ contentsOfSchemaType")
-                  $$ text "contentsOfSchemaType = "
-                           <+> text "parseSimpleType acceptingParser"
+                           $$ text "commit $ interior e $ parseSimpleType")
                   )
     $$ text "instance SimpleType" <+> ppConId nx t <+> text "where"
         $$ nest 4 (text "acceptingParser = fmap" <+> ppConId nx t
@@ -126,16 +124,33 @@ ppHighLevelDecl nx (ExtendSimpleType t s as comm) =
                                     <+> ppConId nx t_attrs
     $$ text "data" <+> ppConId nx t_attrs <+> text "=" <+> ppConId nx t_attrs
         $$ nest 4 (ppFields nx t_attrs [] as)
-    $$ text "instance Extension" <+> ppConId nx t <+> ppConId nx s
-                                  <+> (ppConId nx t_attrs)
-                                  <+> text "where"
-        $$ nest 4 (text "supertype (" <> ppConId nx t <> text " s e) = s"
-                   $$ text "extension (" <> ppConId nx t <> text " s e) = e")
     $$ text "instance SchemaType" <+> ppConId nx t <+> text "where"
-        $$ nest 4 (text "acceptingParser = fmap" <+> ppConId nx t
-                   <+> text "`apply` acceptingParser `apply` acceptingParser")
+        $$ nest 4 (text "parseSchemaType s = do" 
+                  $$ nest 4 (text "e <- element [s]"
+                            $$ text "commit $ do"
+                            $$ nest 2
+                                  (vcat (zipWith ppAttr as [0..])
+                                  $$ text "v <- interior e $ parseSimpleType"
+                                  $$ text "return $" <+> ppConId nx t
+                                                     <+> text "v"
+                                                     <+> attrsValue as)
+                            )
+                  )
+    $$ text "instance Extension" <+> ppConId nx t <+> ppConId nx s
+                                 <+> text "where"
+        $$ nest 4 (text "supertype (" <> ppConId nx t <> text " s e) = s")
   where
     t_attrs = let (XName (N t_base)) = t in XName (N (t_base++"Attributes"))
+
+    attrsValue [] = ppConId nx t_attrs
+    attrsValue as = parens (ppConId nx t_attrs <+>
+                            hsep [text ("a"++show n) | n <- [0..length as-1]])
+
+    -- do element [s]
+    --    blah <- attribute foo
+    --    interior e $ do
+    --        simple <- parseText acceptingParser
+    --        return (T simple blah)
 
 ppHighLevelDecl nx (UnionSimpleTypes t sts comm) =
     ppComment Before comm
@@ -151,6 +166,11 @@ ppHighLevelDecl nx (EnumSimpleType t (i:is) comm) =
         $$ nest 4 ( vcat ( text "=" <+> item i
                          : map (\i-> text "|" <+> item i) is)
                   $$ text "deriving (Eq,Show,Enum)" )
+    $$ text "instance SchemaType" <+> ppConId nx t <+> text "where"
+        $$ nest 4 (text "parseSchemaType s = do" 
+                  $$ nest 4 (text "e <- element [s]"
+                           $$ text "commit $ interior e $ parseSimpleType")
+                  )
     $$ text "instance SimpleType" <+> ppConId nx t <+> text "where"
         $$ nest 4 (text "acceptingParser ="
                         <+> vcat (intersperse (text "`onFail`")
@@ -171,9 +191,11 @@ ppHighLevelDecl nx (ElementsAttrs t es as comm) =
                             $$ text "commit $ do"
                             $$ nest 2
                                   (vcat (zipWith ppAttr as [0..])
-                                  $$ text "interior e $ contentsOfSchemaType"))
-                  $$ text "contentsOfSchemaType = return" <+> returnValue as
+                                  $$ text "interior e $ return"
+                                      <+> returnValue as
                                       $$ nest 4 (vcat (map ppElem es))
+                                  )
+                            )
                   )
   where
     returnValue [] = ppConId nx t
@@ -199,6 +221,10 @@ ppHighLevelDecl nx (Group t es comm) =
     $$ text "data" <+> ppConId nx t <+> text "="
                    <+> ppConId nx t <+> hcat (map (ppConId nx . elem_type) es)
 
+-- Possibly we want to declare a really more restrictive type, e.g. 
+--    to remove optionality, (Maybe Foo) -> (Foo), [Foo] -> Foo
+--    consequently the "restricts" method should do a proper translation,
+--    not merely an unwrapping.
 ppHighLevelDecl nx (RestrictComplexType t s comm) =
     ppComment Before comm
     $$ text "newtype" <+> ppConId nx t <+> text "="
@@ -224,27 +250,17 @@ ppHighLevelDecl nx (ExtendComplexType t s es as comm)
         $$ nest 4 (text "supertype (" <> ppConId nx t <> text " s e) = s"
                    $$ text "extension (" <> ppConId nx t <> text " s e) = e")
 -}
-ppHighLevelDecl nx (ExtendComplexType t s es as comm) =
-    ppComment Before comm
-    $$ text "data" <+> ppConId nx t <+> text "="
-                                    <+> ppConId nx t <+> ppConId nx s
-                                    <+> ppAuxConId nx t
-    $$ text "data" <+> ppAuxConId nx t <+> text "=" <+> ppAuxConId nx t
-                                                 $$ nest 8 (ppFields nx t es as)
-    $$ text "instance SchemaType" <+> ppConId nx t <+> text "where"
-        $$ nest 4 (text "parseSchemaType s = do" 
-                  $$ nest 4 (text "e <- element [s]"
-                            $$ text "commit $"
-                               <+> text "interior e $ contentsOfSchemaType")
-                  $$ text "contentsOfSchemaType = return" <+> ppConId nx t
-                            $$ nest 4 (text "<*> contentsOfSchemaType"
-                                      $$ text "<*> contentsOfExtension"))
+ppHighLevelDecl nx (ExtendComplexType t s oes oas es as comm) =
+    ppHighLevelDecl nx (ElementsAttrs t (oes++es) (oas++as) comm)
     $$ text "instance Extension" <+> ppConId nx t <+> ppConId nx s
-                                 <+> ppAuxConId nx t <+> text "where"
-        $$ nest 4 (text "supertype (" <> ppConId nx t <> text " s e) = s"
-                   $$ text "extension (" <> ppConId nx t <> text " s e) = e"
-                   $$ text "contentsOfExtension = return" <+> ppAuxConId nx t
-                   $$ nest 4 (vcat (map ppElem es)))
+                                 <+> text "where"
+        $$ nest 4 (text "supertype (" <> ppType t (oes++es) (oas++as)
+                                      <> text ") ="
+                                      <+> ppType s oes oas )
+  where
+    ppType t es as = ppConId nx t
+                     <+> hsep (take (length as) [text ('a':show n) | n<-[0..]])
+                     <+> hsep (take (length es) [text ('e':show n) | n<-[0..]])
 
 ppHighLevelDecl nx (XSDInclude m comm) =
     ppComment After comm

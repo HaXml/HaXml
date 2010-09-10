@@ -183,9 +183,15 @@ convert env s = concatMap item (schema_items s)
                                      (comment (complex_annotation ct
                                               `mappend` ci_annotation c))
                 Right e ->
-                    let (es,as) = particleAttrs (extension_newstuff e) in
+                    let (es,as) = particleAttrs (extension_newstuff e)
+                        (oldEs,oldAs) = contentInfo $
+                                            Map.lookup (extension_base e)
+                                                       (env_type env)
+                    in
                     ExtendComplexType n
                                      ({-supertype-}XName $ extension_base e)
+                                     ({-supertype elems-}oldEs)
+                                     ({-supertype attrs-}oldAs)
                                      ({-elems-}es)
                                      ({-attrs-}as)
                                      (comment (complex_annotation ct
@@ -304,9 +310,16 @@ convert env s = concatMap item (schema_items s)
      -- simple (Primitive p)        = ([], [])  -- XXX clearly wrong
      -- simple (Restricted n _ _ _) =
         complex ct = case complex_content ct of
-                       SimpleContent{}  -> ([],[]) -- XXX clearly wrong
-                       ComplexContent{} -> ([],[]) -- XXX clearly wrong
-                       ThisType pa      -> particleAttrs pa
+                       SimpleContent{}     -> ([],[]) -- XXX clearly wrong
+                       ci@ComplexContent{} -> either restr exten (ci_stuff ci)
+                       ThisType pa         -> particleAttrs pa
+        restr :: Restriction1 -> ([Element],[Attribute])
+        exten :: Extension    -> ([Element],[Attribute])
+        restr (Restriction1 p)  = (particle p,[])
+        exten e = let (oes,oas) = contentInfo (Map.lookup (extension_base e)
+                                                          (env_type env))
+                      (nes,nas) = particleAttrs (extension_newstuff e)
+                  in (oes++nes, oas++nas)
 
 
 comment :: Annotation -> Comment
