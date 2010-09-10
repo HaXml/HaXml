@@ -177,7 +177,7 @@ ppHighLevelDecl nx (EnumSimpleType t (i:is) comm) =
                                               (map parseItem (i:is))))
   where
     item (i,c) = (ppConId nx t <> text "_" <> ppConId nx i)
-                 <+> ppComment After c
+                 $$ ppComment After c
     parseItem (i,_) = text "do isWord \"" <> ppXName i <> text "\"; return"
                            <+> (ppConId nx t <> text "_" <> ppConId nx i)
 
@@ -212,14 +212,16 @@ ppHighLevelDecl nx (ElementOfType e) =
 ppHighLevelDecl nx (Choice t es comm) =
     ppComment Before comm
     $$ text "data" <+> ppConId nx t <+> text "=" <+>
-        nest 4 (vcat (zipWith choices es [0..]))
+        nest 4 ( choices "=" (head es) 0
+               $$ vcat (zipWith (choices "|") (tail es) [1..]) )
   where
-    choices e n = (ppConId nx t <> text (show n)) <+> ppConId nx (elem_type e)
+    choices c e n = text c <+> (ppConId nx t <> text (show n))
+                           <+> ppConId nx (elem_type e)
 
 ppHighLevelDecl nx (Group t es comm) =
     ppComment Before comm
     $$ text "data" <+> ppConId nx t <+> text "="
-                   <+> ppConId nx t <+> hcat (map (ppConId nx . elem_type) es)
+                   <+> ppConId nx t <+> hsep (map (ppConId nx . elem_type) es)
 
 -- Possibly we want to declare a really more restrictive type, e.g. 
 --    to remove optionality, (Maybe Foo) -> (Foo), [Foo] -> Foo
@@ -256,7 +258,7 @@ ppHighLevelDecl nx (ExtendComplexType t s oes oas es as comm) =
                                  <+> text "where"
         $$ nest 4 (text "supertype (" <> ppType t (oes++es) (oas++as)
                                       <> text ") ="
-                                      <+> ppType s oes oas )
+                                      $$ nest 11 (ppType s oes oas) )
   where
     ppType t es as = ppConId nx t
                      <+> hsep (take (length as) [text ('a':show n) | n<-[0..]])
