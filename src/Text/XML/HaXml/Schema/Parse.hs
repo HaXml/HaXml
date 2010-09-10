@@ -487,7 +487,11 @@ attributeDecl =
 occurs :: Element Posn -> XsdParser Occurs
 occurs e = return Occurs
                `apply` (optional $ attribute (N "minOccurs") parseDec e)
-               `apply` (optional $ attribute (N "maxOccurs") parseDec e)
+               `apply` (optional $ attribute (N "maxOccurs") maxDec e)
+  where
+    maxDec = parseDec
+             `onFail`
+             do isWord "unbounded"; return maxBound
 
 -- | Parse a <xsd:unique>, <xsd:key>, or <xsd:keyref>.
 uniqueKeyOrKeyRef :: XsdParser UniqueKeyOrKeyRef
