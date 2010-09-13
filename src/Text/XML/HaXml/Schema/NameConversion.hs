@@ -153,6 +153,7 @@ fpmlNameConverter = simpleNameConverter
     hierarchy (N n)     = wordsBy (==':') n
     hierarchy (QN ns n) = [nsPrefix ns, n]
 
+    mkVarId   ("id")    = "ID"
     mkVarId   (v:vs)    = toLower v: vs
     mkConId   (v:vs)    = toUpper v: vs
 
