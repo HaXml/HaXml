@@ -1,4 +1,4 @@
--- XsdToHaskell
+-- FpMLToHaskell
 module Main where
 
 -- This program is designed to convert an XML file containing an XSD
@@ -10,6 +10,8 @@ module Main where
 import System
 import IO
 import Monad
+import System.Directory
+import List
 --import Either
 
 --import Text.XML.HaXml.Wrappers   (fix2Args)
@@ -37,16 +39,22 @@ fix2Args = do
       putStrLn $ "part of HaXml-"++version
       exitWith ExitSuccess
   when ("--help" `elem` args) $ do
+      putStrLn $ "Usage: FpMLToHaskell file.xsd dir"
+      putStrLn $ "    -- The result goes into dir/Data/FpML/file.hs"
       putStrLn $ "See http://haskell.org/HaXml"
       exitWith ExitSuccess
-  case length args of
-    0 -> return ("-",     "-")
-    1 -> return (args!!0, "-")
-    2 -> return (args!!0, args!!1)
+  case args of
+    [file,dir] -> let newdir = dir++"/"++dirOf (fpml file)
+                  in do createDirectoryIfMissing True newdir
+                        return (file, dir++"/"++(reslash (fpml file))++".hs")
     _ -> do prog <- getProgName
-            putStrLn ("Usage: "++prog++" [xmlfile] [outfile]")
+            putStrLn ("Usage: "++prog++" [xsdfile] [dir]")
             exitFailure
-
+ where
+  reslash = map (\c-> case c of '.'->'/'; _->c)
+  dirOf   = concat . intersperse "/" . init . wordsBy '.'
+  wordsBy c s = let (a,b) = span (/=c) s in
+                if null b then [a] else a: wordsBy c (tail b)
 
 main ::IO ()
 main =
@@ -64,8 +72,8 @@ main =
         (Left msg,_) ->    hPutStrLn stderr msg
         (Right v,[]) -> do let decls   = convert (mkEnvironment v) v
                                haskell = Haskell.mkModule inf decls
-                               doc     = ppModule simpleNameConverter haskell
-                           hPutStrLn stdout $ render doc
+                               doc     = ppModule fpmlNameConverter haskell
+                           hPutStrLn o      $ render doc
         (Right v,_)  -> do hPutStrLn stdout $ "Parse incomplete!\n"
                            hPutStrLn stdout $ "\n\n-----------------\n\n"
                            hPutStrLn stdout $ show v
