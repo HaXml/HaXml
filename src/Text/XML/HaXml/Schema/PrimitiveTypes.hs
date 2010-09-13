@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeSynonymInstances #-}
 module Text.XML.HaXml.Schema.PrimitiveTypes
   ( -- * Type class for parsing simpleTypes
     SimpleType(..)
@@ -54,6 +55,8 @@ import Text.Parse
 import Data.Char as Char
 --import Data.Time.LocalTime -- for dates and times?
 import Text.XML.HaXml.Types (QName(..))
+import Data.Int
+import Data.Word
 
 -- | Ultimately, an XML parser will find some plain text as the content
 --   of a simpleType, which will need to be parsed.  We use a TextParser,
@@ -92,8 +95,10 @@ isNext c = do d <- next
 
 instance SimpleType Bool where
     acceptingParser = do w <- word
-                         case w of "true"  -> True;  "false" -> False
-                                   "0"     -> False; "1"     -> True
+                         case w of "true"  -> return True;
+                                   "false" -> return False
+                                   "0"     -> return False;
+                                   "1"     -> return True
                                    _       -> fail ("Not a bool: "++w)
 instance SimpleType String where
     acceptingParser = word
@@ -117,19 +122,19 @@ instance SimpleType Duration where
     acceptingParser = return Duration `apply` (do isNext '-'; return False
                                                `onFail` return True)
                                       `discard` isNext 'P'
-                                      `apply` (parseDec `discard` isNext 'Y'
+                                      `apply` ((parseDec `discard` isNext 'Y')
                                                `onFail` return 0)
-                                      `apply` (parseDec `discard` isNext 'M'
+                                      `apply` ((parseDec `discard` isNext 'M')
                                                `onFail` return 0)
-                                      `apply` (parseDec `discard` isNext 'D'
+                                      `apply` ((parseDec `discard` isNext 'D')
                                                `onFail` return 0)
                                       `discard` (isNext 'T'`onFail`return 'T')
                                       -- fix: T absent iff H:M:S absent also
-                                      `apply` (parseDec `discard` isNext 'H'
+                                      `apply` ((parseDec `discard` isNext 'H')
                                                `onFail` return 0)
-                                      `apply` (parseDec `discard` isNext 'M'
+                                      `apply` ((parseDec `discard` isNext 'M')
                                                `onFail` return 0)
-                                      `apply` (parseFloat `discard` isNext 'S'
+                                      `apply` ((parseFloat `discard` isNext 'S')
                                                `onFail` return 0)
 
 -- * Derived builtin types
