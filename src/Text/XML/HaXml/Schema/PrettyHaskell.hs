@@ -48,7 +48,8 @@ ppFieldId  nx = \t-> ppHName . fieldid nx t
 -- | Convert a whole document from HaskellTypeModel to Haskell source text.
 ppModule :: NameConverter -> Module -> Doc
 ppModule nx m =
-    text "module" <+> ppModId nx (module_name m)
+    text "{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies #-}"
+    $$ text "module" <+> ppModId nx (module_name m)
     $$ nest 2 (text "( module" <+> ppModId nx (module_name m)
               $$ vcat (map (\(XSDInclude ex com)->
                                ppComment Before com
@@ -56,7 +57,7 @@ ppModule nx m =
                            (module_re_exports m))
               $$ text ") where")
     $$ text " "
-    $$ text "import Text.XML.HaXml.Schema.Schema as Xsd"
+    $$ text "import Text.XML.HaXml.Schema.Schema as Xsd hiding (Reference)"
     $$ vcat (map (ppHighLevelDecl nx)
                  (module_re_exports m ++ module_import_only m))
     $$ text " "
@@ -65,9 +66,9 @@ ppModule nx m =
 -- | Generate a fragmentary parser for an attribute.
 ppAttr a n = (text "a"<>text (show n)) <+> text "<- getAttribute \""
                                        <> ppXName (attr_name a)
-                                       <> text "\" e"
+                                       <> text "\" e pos"
 -- | Generate a fragmentary parser for an element.
-ppElem e = text "<*>" <+> ppElemModifier (elem_modifier e)
+ppElem e = text "`apply`" <+> ppElemModifier (elem_modifier e)
                                          (text "parseSchemaType \""
                                            <> ppXName (elem_name e)
                                            <> text "\"")
@@ -126,11 +127,12 @@ ppHighLevelDecl nx (ExtendSimpleType t s as comm) =
         $$ nest 4 (ppFields nx t_attrs [] as)
     $$ text "instance SchemaType" <+> ppConId nx t <+> text "where"
         $$ nest 4 (text "parseSchemaType s = do" 
-                  $$ nest 4 (text "e <- element [s]"
+                  $$ nest 4 (text "(pos,e) <- posnElement [s]"
                             $$ text "commit $ do"
                             $$ nest 2
                                   (vcat (zipWith ppAttr as [0..])
-                                  $$ text "v <- interior e $ parseSimpleType"
+                                  $$ text "reparse [CElem e pos]"
+                                  $$ text "v <- parseSchemaType s"
                                   $$ text "return $" <+> ppConId nx t
                                                      <+> text "v"
                                                      <+> attrsValue as)
@@ -138,7 +140,7 @@ ppHighLevelDecl nx (ExtendSimpleType t s as comm) =
                   )
     $$ text "instance Extension" <+> ppConId nx t <+> ppConId nx s
                                  <+> text "where"
-        $$ nest 4 (text "supertype (" <> ppConId nx t <> text " s e) = s")
+        $$ nest 4 (text "supertype (" <> ppConId nx t <> text " s _) = s")
   where
     t_attrs = let (XName (N t_base)) = t in XName (N (t_base++"Attributes"))
 
@@ -187,7 +189,7 @@ ppHighLevelDecl nx (ElementsAttrs t es as comm) =
         $$ nest 8 (ppFields nx t es as)
     $$ text "instance SchemaType" <+> ppConId nx t <+> text "where"
         $$ nest 4 (text "parseSchemaType s = do" 
-                  $$ nest 4 (text "e <- element [s]"
+                  $$ nest 4 (text "(pos,e) <- posnElement [s]"
                             $$ text "commit $ do"
                             $$ nest 2
                                   (vcat (zipWith ppAttr as [0..])
@@ -204,7 +206,7 @@ ppHighLevelDecl nx (ElementsAttrs t es as comm) =
 
 ppHighLevelDecl nx (ElementOfType e) =
     (text "element" <> ppVarId nx (elem_name e)) <+> text "::"
-        <+> text "SchemaParser" <+> ppConId nx (elem_type e)
+        <+> text "XMLParser" <+> ppConId nx (elem_type e)
     $$
     (text "element" <> ppVarId nx (elem_name e)) <+> text "="
         <+> (text "parseSchemaType \"" <> ppXName (elem_name e)  <> text "\"")

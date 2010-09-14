@@ -5,7 +5,7 @@ module Text.XML.HaXml.Schema.PrimitiveTypes
   , module Text.Parse
   , -- * Primitive XSD datatypes
     String
-  , Bool
+  , Boolean
   , Base64Binary
   , HexBinary
   , Float
@@ -69,25 +69,26 @@ class SimpleType a where
 
 -- * Primitive types
 
---data Bool
+type Boolean      = Bool
 --data String
-data Base64Binary = Base64Binary String
-data HexBinary    = HexBinary    String
-data AnyURI       = AnyURI       String
+data Base64Binary = Base64Binary String    deriving (Eq,Show)
+data HexBinary    = HexBinary    String    deriving (Eq,Show)
+data AnyURI       = AnyURI       String    deriving (Eq,Show)
 --data QName
 data NOTATION     = NOTATION String -- or re-use NOTATION from HaXml.Types?
-data Decimal      = Decimal Double
+                                           deriving (Eq,Show)
+data Decimal      = Decimal Double         deriving (Eq,Show)
 --data Float
 --data Double
-data Duration     = Duration Bool Int Int Int Int Int Float
-data DateTime     = DateTime -- LocalTime ?
-data Time         = Time     -- TimeOfDay ?
-data Date         = Date     -- Day ?
-data GYearMonth   = GYearMonth
-data GYear        = GYear
-data GMonthDay    = GMonthDay
-data GDay         = GDay
-data GMonth       = GMonth
+data Duration     = Duration Bool Int Int Int Int Int Float  deriving (Eq,Show)
+data DateTime     = DateTime               deriving (Eq,Show) -- LocalTime ?
+data Time         = Time                   deriving (Eq,Show) -- TimeOfDay ?
+data Date         = Date                   deriving (Eq,Show) -- Day ?
+data GYearMonth   = GYearMonth             deriving (Eq,Show)
+data GYear        = GYear                  deriving (Eq,Show)
+data GMonthDay    = GMonthDay              deriving (Eq,Show)
+data GDay         = GDay                   deriving (Eq,Show)
+data GMonth       = GMonth                 deriving (Eq,Show)
 
 isNext :: Char -> TextParser Char
 isNext c = do d <- next
@@ -110,6 +111,8 @@ instance SimpleType HexBinary where
     acceptingParser = fmap HexBinary (many (satisfy Char.isHexDigit))
 instance SimpleType AnyURI where
     acceptingParser = fmap AnyURI (many next) -- not very satisfactory
+instance SimpleType NOTATION where
+    acceptingParser = fmap NOTATION (many next) -- not very satisfactory
 
 instance SimpleType Decimal where
     acceptingParser = fmap Decimal parse
@@ -136,34 +139,76 @@ instance SimpleType Duration where
                                                `onFail` return 0)
                                       `apply` ((parseFloat `discard` isNext 'S')
                                                `onFail` return 0)
+instance SimpleType DateTime where
+    acceptingParser = fail "not implemented: simpletype parser for DateTime"
+instance SimpleType Time where
+    acceptingParser = fail "not implemented: simpletype parser for Time"
+instance SimpleType Date where
+    acceptingParser = fail "not implemented: simpletype parser for Date"
+instance SimpleType GYearMonth where
+    acceptingParser = fail "not implemented: simpletype parser for GYearMonth"
+instance SimpleType GYear where
+    acceptingParser = fail "not implemented: simpletype parser for GYear"
+instance SimpleType GMonthDay where
+    acceptingParser = fail "not implemented: simpletype parser for GMonthDay"
+instance SimpleType GDay where
+    acceptingParser = fail "not implemented: simpletype parser for GDay"
+instance SimpleType GMonth where
+    acceptingParser = fail "not implemented: simpletype parser for GMonth"
 
 -- * Derived builtin types
 
-newtype NormalizedString = Normalized String
-newtype Token    = Token    String
-newtype Language = Language String
-newtype Name     = Name     String
-newtype NCName   = NCName   String
-newtype ID       = ID       String
-newtype IDREF    = IDREF    String
-newtype IDREFS   = IDREFS   String
-newtype ENTITY   = ENTITY   String
-newtype ENTITIES = ENTITIES String
-newtype NMTOKEN  = NMTOKEN  String
-newtype NMTOKENS = NMTOKENS String
+newtype NormalizedString = Normalized String	deriving (Eq,Show)
+newtype Token    = Token    String              deriving (Eq,Show)
+newtype Language = Language String              deriving (Eq,Show)
+newtype Name     = Name     String              deriving (Eq,Show)
+newtype NCName   = NCName   String              deriving (Eq,Show)
+newtype ID       = ID       String              deriving (Eq,Show)
+newtype IDREF    = IDREF    String              deriving (Eq,Show)
+newtype IDREFS   = IDREFS   String              deriving (Eq,Show)
+newtype ENTITY   = ENTITY   String              deriving (Eq,Show)
+newtype ENTITIES = ENTITIES String              deriving (Eq,Show)
+newtype NMTOKEN  = NMTOKEN  String              deriving (Eq,Show)
+newtype NMTOKENS = NMTOKENS String              deriving (Eq,Show)
+
+instance SimpleType NormalizedString where
+    acceptingParser = fmap Normalized (many next)
+instance SimpleType Token where
+    acceptingParser = fmap Token (many next)
+instance SimpleType Language where
+    acceptingParser = fmap Language (many next)
+instance SimpleType Name where
+    acceptingParser = fmap Name (many next)
+instance SimpleType NCName where
+    acceptingParser = fmap NCName (many next)
+instance SimpleType ID where
+    acceptingParser = fmap ID (many next)
+instance SimpleType IDREF where
+    acceptingParser = fmap IDREF (many next)
+instance SimpleType IDREFS where
+    acceptingParser = fmap IDREFS (many next)
+instance SimpleType ENTITY where
+    acceptingParser = fmap ENTITY (many next)
+instance SimpleType ENTITIES where
+    acceptingParser = fmap ENTITIES (many next)
+instance SimpleType NMTOKEN where
+    acceptingParser = fmap NMTOKEN (many next)
+instance SimpleType NMTOKENS where
+    acceptingParser = fmap NMTOKENS (many next)
+
 --data Integer
-newtype NonPositiveInteger = NonPos   Integer
-newtype NegativeInteger    = Negative Integer
-newtype Long               = Long     Int64
+newtype NonPositiveInteger = NonPos   Integer   deriving (Eq,Show)
+newtype NegativeInteger    = Negative Integer   deriving (Eq,Show)
+newtype Long               = Long     Int64     deriving (Eq,Show)
 --data Int
-newtype Short              = Short    Int16
-newtype Byte               = Byte     Int8
-newtype NonNegativeInteger = NonNeg   Integer
-newtype UnsignedLong       = ULong    Word64
-newtype UnsignedInt        = UInt     Word32
-newtype UnsignedShort      = UShort   Word16
-newtype UnsignedByte       = UByte    Word8
-newtype PositiveInteger    = Positive Integer
+newtype Short              = Short    Int16     deriving (Eq,Show)
+newtype Byte               = Byte     Int8      deriving (Eq,Show)
+newtype NonNegativeInteger = NonNeg   Integer   deriving (Eq,Show)
+newtype UnsignedLong       = ULong    Word64    deriving (Eq,Show)
+newtype UnsignedInt        = UInt     Word32    deriving (Eq,Show)
+newtype UnsignedShort      = UShort   Word16    deriving (Eq,Show)
+newtype UnsignedByte       = UByte    Word8     deriving (Eq,Show)
+newtype PositiveInteger    = Positive Integer   deriving (Eq,Show)
 
 instance SimpleType Integer where
     acceptingParser = parse

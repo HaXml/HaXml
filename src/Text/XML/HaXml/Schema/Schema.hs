@@ -1,11 +1,13 @@
-{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies #-}
+{-# LANGUAGE CPP, MultiParamTypeClasses, FunctionalDependencies,
+             TypeSynonymInstances #-}
 module Text.XML.HaXml.Schema.Schema
   ( SchemaType(..)
-  , SchemaAttribute(..)
+-- , SimpleType(..) -- already exported by PrimitiveTypes
   , Extension(..)
   , Restricts(..)
   , getAttribute
   , between
+  , Occurs(..)
   , parseSimpleType
   , module Text.XML.HaXml.XmlContent.Parser
   , module Text.ParserCombinators.Poly
@@ -21,28 +23,15 @@ import Text.XML.HaXml.Namespaces (printableName)
 import Text.XML.HaXml.XmlContent.Parser
 import Text.XML.HaXml.Schema.XSDTypeModel (Occurs(..))
 import Text.XML.HaXml.Schema.PrimitiveTypes
+import Text.XML.HaXml.Schema.PrimitiveTypes as Prim
 
 -- | A SchemaType is for element types, and has a parser from generic XML
 --   content tree to a Haskell value.
 class SchemaType a where
-    parseSchemaType      :: String -> XMLParser a
---  contentsOfSchemaType :: XMLParser a -- XXX ditch it
+    parseSchemaType :: String -> XMLParser a
 
--- | A SchemaAttribute has a parser from String (the text of the attribute)
---   to a Haskell value.
-class Show a => SchemaAttribute a where
-    attributeValue :: TextParser a
-
-{-
--- | A type t can extend another type s by the addition of extra fields e.
---   s is therefore the supertype of t, and e is s's extension of t.
-class Extension t s e | t -> s e where
-    supertype :: t -> s
-    extension :: t -> e
-    contentsOfExtension :: XMLParser e -- XXX ditch it
--}
-
--- possibly, extension should be more simple, allowing only downcasting
+-- | A type t can extend another type s by the addition of extra elements
+--   and/or attributes.  s is therefore the supertype of t.
 class Extension t s | t -> s where
     supertype :: t -> s
 
@@ -72,14 +61,14 @@ between (Occurs (Just i) (Just j)) p = return (++) `apply` exactly i p
 
 -- | Generated parsers will use 'getAttribute' as a convenient wrapper
 --   to lift a SchemaAttribute parser into an XMLParser.
-getAttribute :: (SchemaAttribute a) =>
+getAttribute :: (SimpleType a, Show a) =>
                 String -> Element Posn -> Posn -> XMLParser a
 getAttribute aname (Elem t as _) pos =
     case qnLookup aname as of
         Nothing  -> fail $ "attribute missing: " ++ aname
                            ++ " in element <" ++ printableName t
                            ++ "> at " ++ show pos
-        Just atv -> case runParser attributeValue (attr2str atv) of
+        Just atv -> case runParser acceptingParser (attr2str atv) of
                         (Right val, "")   -> return val
                         (Right val, rest) -> failBad $
                                                "Bad attribute value for "
@@ -114,7 +103,53 @@ instance SchemaType FpMLSomething where
                                             $ parseSchemaType "rinta"
                              return $ FpMLSomething a0 a1 c0 c1 c2 c3
 
-instance SchemaAttribute FpMLNumber where
-    attributeValue = ...
+instance SimpleType FpMLNumber where
+    acceptingParser = ...
 -}
+
+#define SchemaInstance(TYPE)  instance SchemaType TYPE where parseSchemaType s = do { e <- element [s]; interior e $ parseSimpleType; }
+
+SchemaInstance(String)
+SchemaInstance(Prim.Boolean)
+SchemaInstance(Prim.Base64Binary)
+SchemaInstance(Prim.HexBinary)
+SchemaInstance(Float)
+SchemaInstance(Decimal)
+SchemaInstance(Double)
+SchemaInstance(Prim.AnyURI)
+SchemaInstance(Prim.NOTATION)
+SchemaInstance(Prim.Duration)
+SchemaInstance(Prim.DateTime)
+SchemaInstance(Prim.Time)
+SchemaInstance(Prim.Date)
+SchemaInstance(Prim.GYearMonth)
+SchemaInstance(Prim.GYear)
+SchemaInstance(Prim.GMonthDay)
+SchemaInstance(Prim.GDay)
+SchemaInstance(Prim.GMonth)
+SchemaInstance(Prim.NormalizedString)
+SchemaInstance(Prim.Token)
+SchemaInstance(Prim.Language)
+SchemaInstance(Prim.Name)
+SchemaInstance(Prim.NCName)
+SchemaInstance(Prim.ID)
+SchemaInstance(Prim.IDREF)
+SchemaInstance(Prim.IDREFS)
+SchemaInstance(Prim.ENTITY)
+SchemaInstance(Prim.ENTITIES)
+SchemaInstance(Prim.NMTOKEN)
+SchemaInstance(Prim.NMTOKENS)
+SchemaInstance(Integer)
+SchemaInstance(Prim.NonPositiveInteger)
+SchemaInstance(Prim.NegativeInteger)
+SchemaInstance(Prim.Long)
+SchemaInstance(Int)
+SchemaInstance(Prim.Short)
+SchemaInstance(Prim.Byte)
+SchemaInstance(Prim.NonNegativeInteger)
+SchemaInstance(Prim.UnsignedLong)
+SchemaInstance(Prim.UnsignedInt)
+SchemaInstance(Prim.UnsignedShort)
+SchemaInstance(Prim.UnsignedByte)
+SchemaInstance(Prim.PositiveInteger)
 
