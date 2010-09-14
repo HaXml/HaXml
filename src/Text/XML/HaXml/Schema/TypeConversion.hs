@@ -216,6 +216,7 @@ convert env s = concatMap item (schema_items s)
                          ElementOfType Element{ elem_name = xname $ theName n
                                               , elem_type = XName t
                                               , elem_modifier = Single -- XXX
+                                              , elem_byRef   = False
                                               , elem_locals  = []
                                               , elem_comment =
                                                   (comment (elem_annotation ed))
@@ -230,12 +231,13 @@ convert env s = concatMap item (schema_items s)
         Left  n   -> Element ({-name-}xname $ theName n)
                              ({-type-}maybe (xname "unknown") XName $ theType n)
                              ({-modifier-}Haskell.Range $ elem_occurs ed)
+                             False -- by reference
                              [] -- internal Decl
                              (comment (elem_annotation ed))
         Right ref -> case Map.lookup ref (env_element env) of
-                       Nothing -> Element (XName ref)
-                                          (xname "unknown")
-                                          (Haskell.Single) [] Nothing
+                       Nothing -> Element ({-name-}XName ref)
+                                          ({-type-}XName ref) -- best guess
+                                          Haskell.Single True [] Nothing
                        Just e' -> elementDecl e'
 
     attributeDecl :: XSD.AttributeDecl -> [Haskell.Attribute]

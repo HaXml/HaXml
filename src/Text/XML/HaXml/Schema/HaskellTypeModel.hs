@@ -97,6 +97,7 @@ data Decl
 data Element   = Element { elem_name     :: XName
                          , elem_type     :: XName
                          , elem_modifier :: Modifier
+                         , elem_byRef    :: Bool
                          , elem_locals   :: [Decl]
                          , elem_comment  :: Comment
                          }

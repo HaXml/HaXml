@@ -64,14 +64,17 @@ ppModule nx m =
     $$ ppHighLevelDecls nx (module_decls m)
 
 -- | Generate a fragmentary parser for an attribute.
+ppAttr :: Attribute -> Int -> Doc
 ppAttr a n = (text "a"<>text (show n)) <+> text "<- getAttribute \""
                                        <> ppXName (attr_name a)
                                        <> text "\" e pos"
 -- | Generate a fragmentary parser for an element.
-ppElem e = text "`apply`" <+> ppElemModifier (elem_modifier e)
-                                         (text "parseSchemaType \""
-                                           <> ppXName (elem_name e)
-                                           <> text "\"")
+ppElem :: Element -> Doc
+ppElem e | elem_byRef e = text "`apply` element" <> ppXName (elem_name e)
+         | otherwise    = text "`apply`" <+> ppElemModifier (elem_modifier e)
+                                                   (text "parseSchemaType \""
+                                                   <> ppXName (elem_name e)
+                                                   <> text "\"")
 
 -- | Convert multiple HaskellTypeModel Decls to Haskell source text.
 ppHighLevelDecls :: NameConverter -> [Decl] -> Doc
