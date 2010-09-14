@@ -4,7 +4,7 @@ module Text.XML.HaXml.Schema.PrimitiveTypes
     SimpleType(..)
   , module Text.Parse
   , -- * Primitive XSD datatypes
-    String
+    XsdString
   , Boolean
   , Base64Binary
   , HexBinary
@@ -70,7 +70,7 @@ class SimpleType a where
 -- * Primitive types
 
 type Boolean      = Bool
---data String
+newtype XsdString = XsdString    String    deriving (Eq,Show)
 data Base64Binary = Base64Binary String    deriving (Eq,Show)
 data HexBinary    = HexBinary    String    deriving (Eq,Show)
 data AnyURI       = AnyURI       String    deriving (Eq,Show)
@@ -101,8 +101,8 @@ instance SimpleType Bool where
                                    "0"     -> return False;
                                    "1"     -> return True
                                    _       -> fail ("Not a bool: "++w)
-instance SimpleType String where
-    acceptingParser = word
+instance SimpleType XsdString where
+    acceptingParser = fmap XsdString word
 instance SimpleType Base64Binary where
     acceptingParser = fmap Base64Binary (many (satisfy isAlphaNum `onFail`
                                                satisfy isSpace `onFail`

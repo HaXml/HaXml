@@ -55,8 +55,10 @@ simpleNameConverter = NameConverter
     hierarchy (N n)     = wordsBy (==':') n
     hierarchy (QN ns n) = [nsPrefix ns, n]
 
-    mkConid  [c]        = first toUpper c
-    mkConid [m,c]       = first toUpper m++"."++first toUpper c
+    mkConid  [c]        | map toLower c == "string"     = "XsdString"
+                        | otherwise = first toUpper c
+    mkConid [m,c]       | map toLower c == "string"     = "Xsd.XsdString"
+                        | otherwise = first toUpper m++"."++first toUpper c
     mkVarid  [v]        = first toLower v
     mkVarid [m,v]       = first toUpper m++"."++first toLower v
 

@@ -109,7 +109,7 @@ instance SimpleType FpMLNumber where
 
 #define SchemaInstance(TYPE)  instance SchemaType TYPE where parseSchemaType s = do { e <- element [s]; interior e $ parseSimpleType; }
 
-SchemaInstance(String)
+SchemaInstance(XsdString)
 SchemaInstance(Prim.Boolean)
 SchemaInstance(Prim.Base64Binary)
 SchemaInstance(Prim.HexBinary)
