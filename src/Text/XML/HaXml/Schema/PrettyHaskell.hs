@@ -188,12 +188,10 @@ ppHighLevelDecl nx (UnionSimpleTypes t sts comm) =
 ppHighLevelDecl nx (EnumSimpleType t [] comm) =
     ppComment Before comm
     $$ text "data" <+> ppConId nx t
-ppHighLevelDecl nx (EnumSimpleType t (i:is) comm) =
+ppHighLevelDecl nx (EnumSimpleType t is comm) =
     ppComment Before comm
     $$ text "data" <+> ppConId nx t
-        $$ nest 4 ( vcat ( text "=" <+> item i
-                         : map (\i-> text "|" <+> item i) is)
-                  $$ text "deriving (Eq,Show,Enum)" )
+        $$ nest 4 ( ppvList "=" "|" "deriving (Eq,Show,Enum)" item is )
     $$ text "instance SchemaType" <+> ppConId nx t <+> text "where"
         $$ nest 4 (text "parseSchemaType s = do" 
                   $$ nest 4 (text "e <- element [s]"
@@ -201,8 +199,7 @@ ppHighLevelDecl nx (EnumSimpleType t (i:is) comm) =
                   )
     $$ text "instance SimpleType" <+> ppConId nx t <+> text "where"
         $$ nest 4 (text "acceptingParser ="
-                        <+> vcat (intersperse (text "`onFail`")
-                                              (map parseItem (i:is))))
+                        <+> ppvList "" "`onFail`" "" parseItem is)
   where
     item (i,c) = (ppConId nx t <> text "_" <> ppConId nx i)
                  $$ ppComment After c
@@ -221,7 +218,7 @@ ppHighLevelDecl nx (ElementsAttrs t es as comm) =
                                   (vcat (zipWith ppAttr as [0..])
                                   $$ text "interior e $ return"
                                       <+> returnValue as
-                                      $$ nest 4 (vcat (map ppElem es))
+                                      $$ nest 4 (vcat (map ppApplyElem es))
                                   )
                             )
                   )
@@ -229,6 +226,7 @@ ppHighLevelDecl nx (ElementsAttrs t es as comm) =
     returnValue [] = ppConId nx t
     returnValue as = parens (ppConId nx t <+>
                              hsep [text ("a"++show n) | n <- [0..length as-1]])
+    ppApplyElem e = text "`apply`" <+> ppElem e
 
 ppHighLevelDecl nx (ElementOfType e@Element{}) =
     (text "element" <> ppVarId nx (elem_name e)) <+> text "::"
@@ -239,12 +237,10 @@ ppHighLevelDecl nx (ElementOfType e@Element{}) =
 
 ppHighLevelDecl nx (Choice t es comm) =
     ppComment Before comm
-    $$ text "data" <+> ppConId nx t <+> text "=" <+>
-        nest 4 ( choices "=" (head es) 0
-               $$ vcat (zipWith (choices "|") (tail es) [1..]) )
+    $$ text "data" <+> ppConId nx t
+        <+> nest 4 ( ppvList "=" "|" "" choices (zip es [1..]) )
   where
-    choices c e n = text c <+> (ppConId nx t <> text (show n))
-                           <+> ppConId nx (elem_type e)
+    choices (e,n) = (ppConId nx t <> text (show n)) <+> ppConId nx (elem_type e)
 
 -- Comment out the Group for now.  Groups get inlined into the ComplexType
 -- where they are used, so it may not be sensible to declare them separately
@@ -312,11 +308,10 @@ ppHighLevelDecl nx (XSDComment comm) =
 -- | Generate named fields from elements and attributes.
 ppFields :: NameConverter -> XName -> [Element] -> [Attribute] -> Doc
 ppFields nx t es as | null es && null as = empty
-ppFields nx t es as =  vcat ( text "{" <+> head fields
-                            : map (text "," <+>) (tail fields)
-                            ++ [text "}"] )
+ppFields nx t es as =  ppvList "{" "," "}" id fields
   where
-    fields = map (ppFieldAttribute nx t) as ++  map (ppFieldElement nx t) es
+    fields = map (ppFieldAttribute nx t) as ++
+             zipWith (ppFieldElement nx t) es [0..]
 
 -- | Generate a single named field from an element.
 ppFieldElement :: NameConverter -> XName -> Element -> Int -> Doc
@@ -342,13 +337,13 @@ ppFieldAttribute nx t a = ppFieldId nx t (attr_name a) <+> text "::"
                                    <+> ppConId nx (attr_type a)
                           $$ ppComment After (attr_comment a)
 
--- | Generate a list or maybe type name.
-ppTypeModifier :: Modifier -> Doc -> Doc
-ppTypeModifier Single d    = d
-ppTypeModifier Optional  d = text "Maybe" <+> d
-ppTypeModifier (Range (Occurs Nothing Nothing))  d = d
-ppTypeModifier (Range (Occurs (Just 0) Nothing)) d = text "Maybe" <+> d
-ppTypeModifier (Range (Occurs _ _))              d = text "[" <> d <> text "]"
+-- | Generate a list or maybe type name (possibly parenthesised).
+ppTypeModifier :: Modifier -> (Doc->Doc) -> Doc -> Doc
+ppTypeModifier Single   _ d  = d
+ppTypeModifier Optional k d  = k $ text "Maybe" <+> k d
+ppTypeModifier (Range (Occurs Nothing Nothing))  _ d = d
+ppTypeModifier (Range (Occurs (Just 0) Nothing)) k d = k $ text "Maybe" <+> k d
+ppTypeModifier (Range (Occurs _ _))              _ d = text "[" <> d <> text "]"
 
 -- | Generate a parser for a list or Maybe value.
 ppElemModifier Single    doc = doc
