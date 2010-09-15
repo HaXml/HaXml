@@ -290,8 +290,10 @@ convert env s = concatMap item (schema_items s)
 
 --  choiceOrSeq :: ChoiceOrSeq -> ([Haskell.Decl],[Haskell.Element])
     choiceOrSeq :: ChoiceOrSeq -> [Haskell.Element]
-    choiceOrSeq (XSD.All      ann eds)   = [] -- error "nyi All"
-    choiceOrSeq (XSD.Choice   ann _ ees) = [] -- error "nyi Choice"
+    choiceOrSeq (XSD.All      ann eds)   = error "not yet implemented: XSD.All"
+    choiceOrSeq (XSD.Choice   ann o ees) = [ OneOf (concatMap elementEtc ees)
+                                                   (Haskell.Range o)
+                                                   (comment ann) ]
     choiceOrSeq (XSD.Sequence ann _ ees) = concatMap elementEtc ees
 
     elementEtc :: ElementEtc -> [Haskell.Element]

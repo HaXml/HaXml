@@ -12,6 +12,7 @@ module Text.XML.HaXml.Schema.Schema
   , module Text.XML.HaXml.XmlContent.Parser
   , module Text.ParserCombinators.Poly
   , module Text.XML.HaXml.Schema.PrimitiveTypes
+  , module Text.XML.HaXml.OneOfN
   ) where
 
 import Text.ParserCombinators.Poly
@@ -24,6 +25,7 @@ import Text.XML.HaXml.XmlContent.Parser
 import Text.XML.HaXml.Schema.XSDTypeModel (Occurs(..))
 import Text.XML.HaXml.Schema.PrimitiveTypes
 import Text.XML.HaXml.Schema.PrimitiveTypes as Prim
+import Text.XML.HaXml.OneOfN
 
 -- | A SchemaType is for element types, and has a parser from generic XML
 --   content tree to a Haskell value.

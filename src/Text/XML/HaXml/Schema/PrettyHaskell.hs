@@ -3,6 +3,7 @@ module Text.XML.HaXml.Schema.PrettyHaskell
   , ppModule
   , ppHighLevelDecl
   , ppHighLevelDecls
+  , ppvList
   ) where
 
 import Text.XML.HaXml.Types (QName(..),Namespace(..))
@@ -12,6 +13,14 @@ import Text.XML.HaXml.Schema.NameConversion
 import Text.PrettyPrint.HughesPJ as PP
 
 import List (intersperse)
+
+-- | Vertically pretty-print a list of things, with open and close brackets,
+--   and separators.
+ppvList :: String -> String -> String -> (a->Doc) -> [a] -> Doc
+ppvList open sep close pp []     = text open <> text close
+ppvList open sep close pp (x:xs) = text open <+> pp x
+                                   $$ vcat (map (\y-> text sep <+> pp y) xs)
+                                   $$ text close
 
 data CommentPosition = Before | After
 
@@ -70,11 +79,25 @@ ppAttr a n = (text "a"<>text (show n)) <+> text "<- getAttribute \""
                                        <> text "\" e pos"
 -- | Generate a fragmentary parser for an element.
 ppElem :: Element -> Doc
-ppElem e | elem_byRef e = text "`apply` element" <> ppXName (elem_name e)
-         | otherwise    = text "`apply`" <+> ppElemModifier (elem_modifier e)
-                                                   (text "parseSchemaType \""
-                                                   <> ppXName (elem_name e)
-                                                   <> text "\"")
+ppElem e@Element{}
+    | elem_byRef e = text "element" <> ppXName (elem_name e)
+    | otherwise    = ppElemModifier (elem_modifier e)
+                                    (text "parseSchemaType \""
+                                     <> ppXName (elem_name e)
+                                     <> text "\"")
+ppElem e@OneOf{}   = ppElemModifier (elem_modifier e)
+                         (text "oneOf" <+> ppvList "[" "," "]"
+                                                   (ppOneOf n)
+                                                   (zip (elem_oneOf e) [1..n]))
+  where
+    n = length (elem_oneOf e)
+    ppOneOf n (e,i) = text "fmap" <+> text (ordinal i ++"Of"++show n)
+                      <+> parens (ppElem e)
+    ordinal i | i <= 20   = ordinals!!i
+              | otherwise = "Choice" ++ show i
+    ordinals = ["Zero","One","Two","Three","Four","Five","Six","Seven","Eight"
+               ,"Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen"
+               ,"Sixteen","Seventeen","Eighteen","Nineteen","Twenty"]
 
 -- | Convert multiple HaskellTypeModel Decls to Haskell source text.
 ppHighLevelDecls :: NameConverter -> [Decl] -> Doc
@@ -207,7 +230,7 @@ ppHighLevelDecl nx (ElementsAttrs t es as comm) =
     returnValue as = parens (ppConId nx t <+>
                              hsep [text ("a"++show n) | n <- [0..length as-1]])
 
-ppHighLevelDecl nx (ElementOfType e) =
+ppHighLevelDecl nx (ElementOfType e@Element{}) =
     (text "element" <> ppVarId nx (elem_name e)) <+> text "::"
         <+> text "XMLParser" <+> ppConId nx (elem_type e)
     $$
@@ -296,11 +319,22 @@ ppFields nx t es as =  vcat ( text "{" <+> head fields
     fields = map (ppFieldAttribute nx t) as ++  map (ppFieldElement nx t) es
 
 -- | Generate a single named field from an element.
-ppFieldElement :: NameConverter -> XName -> Element -> Doc
-ppFieldElement nx t e = ppFieldId nx t (elem_name e) <+> text "::"
-                             <+> ppTypeModifier (elem_modifier e)
-                                                (ppConId nx (elem_type e))
-                        $$ ppComment After (elem_comment e)
+ppFieldElement :: NameConverter -> XName -> Element -> Int -> Doc
+ppFieldElement nx t e@Element{} _ = ppFieldId nx t (elem_name e)
+                                        <+> text "::" <+> ppElemTypeName nx id e
+                                    $$ ppComment After (elem_comment e)
+ppFieldElement nx t e@OneOf{}   i = ppFieldId nx t (XName $ N $"choice"++show i)
+                                        <+> text "::" <+> ppElemTypeName nx id e
+                                    $$ ppComment After (elem_comment e)
+
+-- | What is the name of the type for an Element (or choice of Elements)?
+ppElemTypeName :: NameConverter -> (Doc->Doc) -> Element -> Doc
+ppElemTypeName nx brack e@Element{} =
+    ppTypeModifier (elem_modifier e) brack $ ppConId nx (elem_type e)
+ppElemTypeName nx brack  e@OneOf{}   = 
+    brack $ ppTypeModifier (elem_modifier e) parens $
+    text "OneOf" <> text (show (length (elem_oneOf e)))
+     <+> hsep (map (ppElemTypeName nx parens) (elem_oneOf e))
 
 -- | Generate a single named field from an attribute.
 ppFieldAttribute :: NameConverter -> XName -> Attribute -> Doc
