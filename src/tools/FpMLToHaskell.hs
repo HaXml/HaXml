@@ -1,20 +1,21 @@
 -- FpMLToHaskell
 module Main where
 
--- This program is designed to convert an XML file containing an XSD
--- decl into a Haskell module containing data/newtype definitions which
--- mirror the XSD.  Once you have used this program to generate your type
--- definitions, you should import Xsd2Haskell wherever you intend
--- to read and write XML files with your Haskell programs.
+-- This program is designed to convert a bunch of XML files containing XSD
+-- module decls into a bunch of Haskell modules containing data/newtype
+-- definitions which mirror the XSD.  Once you have used this program
+-- to generate your type definitions, you should import Text.XML.HaXml.Schema
+-- (as well as the generated modules) wherever you intend to read and write
+-- XML files with your Haskell programs.
 
 import System
 import IO
 import Monad
 import System.Directory
 import List
+import Maybe (fromMaybe)
 --import Either
 
---import Text.XML.HaXml.Wrappers   (fix2Args)
 import Text.XML.HaXml            (version)
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Namespaces (resolveAllNames,qualify
@@ -25,30 +26,38 @@ import Text.XML.HaXml.Posn       (posInNewCxt)
 
 import Text.XML.HaXml.Schema.Parse
 import Text.XML.HaXml.Schema.NameConversion
-import Text.XML.HaXml.Schema.TypeConversion
+import Text.XML.HaXml.Schema.TypeConversion as XsdToH
 import Text.XML.HaXml.Schema.PrettyHaskell
+import Text.XML.HaXml.Schema.XSDTypeModel (Schema)
 import qualified Text.XML.HaXml.Schema.HaskellTypeModel as Haskell
 import Text.ParserCombinators.Poly
 import Text.PrettyPrint.HughesPJ (render,vcat)
 
+fst3 :: (a,b,c) -> a
+fst3 (a,_,_) = a
+
 -- sucked in from Text.XML.HaXml.Wrappers to avoid dependency on T.X.H.Html
-fix2Args :: IO (String,String)
-fix2Args = do
+argDirsToFiles :: IO (FilePath,[(FilePath,FilePath)])
+argDirsToFiles = do
   args <- getArgs
   when ("--version" `elem` args) $ do
       putStrLn $ "part of HaXml-"++version
       exitWith ExitSuccess
   when ("--help" `elem` args) $ do
-      putStrLn $ "Usage: FpMLToHaskell file.xsd dir"
-      putStrLn $ "    -- The result goes into dir/Data/FpML/file.hs"
+      putStrLn $ "Usage: FpMLToHaskell xsdDir haskellDir"
+      putStrLn $ "    -- The results go into haskelldir/Data/FpML/file0.hs etc"
       putStrLn $ "See http://haskell.org/HaXml"
       exitWith ExitSuccess
   case args of
-    [file,dir] -> let newdir = dir++"/"++dirOf (fpml file)
-                  in do createDirectoryIfMissing True newdir
-                        return (file, dir++"/"++(reslash (fpml file))++".hs")
+    [xsddir,hdir]-> do
+            files <- fmap (filter (".xsd" `isSuffixOf`))
+                          (getDirectoryContents xsddir)
+            let newdirs = map (\file->hdir++"/"++dirOf (fpml file)) files
+            mapM_ (\newdir -> do createDirectoryIfMissing True newdir) newdirs
+            return (xsddir
+                   ,map (\f-> (f, hdir++"/"++(reslash (fpml f))++".hs")) files)
     _ -> do prog <- getProgName
-            putStrLn ("Usage: "++prog++" [xsdfile] [dir]")
+            putStrLn ("Usage: "++prog++" xsdDir haskellDir")
             exitFailure
  where
   reslash = map (\c-> case c of '.'->'/'; _->c)
@@ -57,63 +66,67 @@ fix2Args = do
                 if null b then [a] else a: wordsBy c (tail b)
 
 main ::IO ()
-main =
-  fix2Args >>= \(inf,outf)->
-  ( if inf=="-" then getContents
-    else readFile inf )           >>= \thiscontent->
-  ( if outf=="-" then return stdout
-    else openFile outf WriteMode ) >>= \o->
-  let d@Document{} = resolveAllNames qualify
-                     . either (error . ("not XML:\n"++)) id
-                     . xmlParse' inf
-                     $ thiscontent
-  in do
-    case runParser schema [docContent (posInNewCxt inf Nothing) d] of
-        (Left msg,_) ->    hPutStrLn stderr msg
-        (Right v,[]) -> do let decls   = convert (mkEnvironment v) v
-                               haskell = Haskell.mkModule inf decls
-                               doc     = ppModule fpmlNameConverter haskell
-                           hPutStrLn o      $ render doc
-        (Right v,_)  -> do hPutStrLn stdout $ "Parse incomplete!\n"
-                           hPutStrLn stdout $ "\n\n-----------------\n\n"
-                           hPutStrLn stdout $ show v
-                           hPutStrLn stdout $ "\n\n-----------------\n\n"
-    hFlush o
+main = do
+    (dir,files) <- argDirsToFiles
+    deps <- flip mapM files (\ (inf,outf)-> do
+        hPutStrLn stdout $ "Reading "++inf
+        thiscontent <- readFile (dir++"/"++inf)
+        let d@Document{} = resolveAllNames qualify
+                           . either (error . ("not XML:\n"++)) id
+                           . xmlParse' inf
+                           $ thiscontent
+        case runParser schema [docContent (posInNewCxt inf Nothing) d] of
+            (Left msg,_) -> do hPutStrLn stderr msg
+                               return ([], undefined)
+            (Right v,[]) ->    return (gatherImports v, v)
+            (Right v,_)  -> do hPutStrLn stdout $ "Parse incomplete!"
+                               hPutStrLn stdout $ inf
+                               hPutStrLn stdout $ "\n-----------------\n"
+                               hPutStrLn stdout $ show v
+                               hPutStrLn stdout $ "\n-----------------\n"
+                               return ([],v)
+        )
+    let filedeps :: [((FilePath,FilePath),([FilePath],Schema))]
+        filedeps  = ordered (\((inf,_),_)->inf)
+                            (\(_,(ds,_))->ds)
+                            (zip files deps)
+        environs :: [(FilePath,(Environment,FilePath,Schema))]
+        environs  = flip map filedeps (\((inf,outf),(ds,v))->
+                        ( inf, ( mkEnvironment v
+                                     (foldr combineEnv emptyEnv
+                                            (flip map ds
+                                                  (\d-> fst3 $
+                                                        fromMaybe (error "FME")$
+                                                        lookup d environs)
+                                            )
+                                     )
+                               , outf
+                               , v
+                               )
+                        )
+                    )
+    flip mapM_ environs (\ (inf,(env,outf,v))-> do
+        o <- openFile outf WriteMode
+        let decls   = XsdToH.convert env v
+            haskell = Haskell.mkModule inf decls
+            doc     = ppModule fpmlNameConverter haskell
+        hPutStrLn stdout $ "Writing "++outf
+        hPutStrLn o $ render doc
+        hFlush o
+        )
 
-  
---do hPutStrLn o $ "Document contains XSD for target namespace "++
---                 targetNamespace e
-  {-
-  let (DTD name _ markup) = (getDtd . dtdParse inf) content
-      decls = (nub . dtd2TypeDef) markup
-      realname = if outf/="-" then mangle (trim outf)
-                 else if null (localName name) then mangle (trim inf)
-                 else mangle (localName name)
-  in
-  do hPutStrLn o ("module "++realname
-                  ++" where\n\nimport Text.XML.HaXml.XmlContent"
-                  ++"\nimport Text.XML.HaXml.OneOfN")
-    --            ++"\nimport Char (isSpace)"
-    --            ++"\nimport List (isPrefixOf)"
-     hPutStrLn o "\n\n{-Type decls-}\n"
-     (hPutStrLn o . render . vcat . map ppTypeDef) decls
-     hPutStrLn o "\n\n{-Instance decls-}\n"
-     mapM_ (hPutStrLn o . (++"\n") . render . mkInstance) decls
-     hPutStrLn o "\n\n{-Done-}"
-     hFlush o
-  -}
 
-{-
-getDtd :: Maybe t -> t
-getDtd (Just dtd) = dtd
-getDtd (Nothing)  = error "No DTD in this document"
+-- | Calculate dependency ordering of modules, least dependent first.
+ordered :: Eq a => (b->a) -> (b->[a]) -> [b] -> [b]
+ordered name deps = foldr insert []
+  where
+    insert x q = peelOff (deps x) x q
+    peelOff [] x q     = x:q
+    peelOff ds x []    = x:[]
+    peelOff ds x (a:q) | any (== name a) ds = a: peelOff (ds\\[name a]) x q
+                       | otherwise          = a: peelOff ds             x q
 
-trim :: [Char] -> [Char]
-trim name | '/' `elem` name  = (trim . tail . dropWhile (/='/')) name
-          | '.' `elem` name  = takeWhile (/='.') name
-          | otherwise        = name
--}
-
+-- | What is the targetNamespace of the unique top-level element?
 targetNamespace :: Element i -> String
 targetNamespace (Elem qn attrs _) =
     if qn /= xsdSchema then "ERROR! top element not an xsd:schema tag"
@@ -121,10 +134,8 @@ targetNamespace (Elem qn attrs _) =
            Nothing -> "ERROR! no targetNamespace specified"
            Just atv -> show atv
 
+-- | The XSD Namespace.
 xsdSchema :: QName
 xsdSchema = QN (nullNamespace{nsURI="http://www.w3.org/2001/XMLSchema"})
                "schema"
 
---  <xsd:schema xmlns:xsd="" xmlns:fpml="" targetNamespace="" version=""
---              attributeFormDefault="unqualified"
---              elementFormDefault="qualified">

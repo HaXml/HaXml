@@ -42,11 +42,23 @@ data Environment =  Environment
     , env_attrgroup :: Map QName AttrGroup
     }
 
+-- | An empty environment of XSD type mappings.
 emptyEnv :: Environment
 emptyEnv = Environment Map.empty Map.empty Map.empty Map.empty Map.empty
 
-mkEnvironment :: Schema -> Environment
-mkEnvironment s = foldl' item emptyEnv (schema_items s)
+-- | Combine two environments (e.g. read from different interface files)
+combineEnv :: Environment -> Environment -> Environment
+combineEnv e1 e0 = Environment
+    { env_type      = Map.union (env_type e1)      (env_type e0)
+    , env_element   = Map.union (env_element e1)   (env_element e0)
+    , env_attribute = Map.union (env_attribute e1) (env_attribute e0)
+    , env_group     = Map.union (env_group e1)     (env_group e0)
+    , env_attrgroup = Map.union (env_attrgroup e1) (env_attrgroup e0)
+    }
+
+-- | Build an environment of XSD type mappings from a schema module.
+mkEnvironment :: Schema -> Environment -> Environment
+mkEnvironment s init = foldl' item init (schema_items s)
   where
     -- think about qualification, w.r.t targetNamespace, elementFormDefault, etc
 
@@ -100,7 +112,15 @@ mkEnvironment s = foldl' item emptyEnv (schema_items s)
       | Left n  <- group_nameOrRef g = env{env_group=Map.insert (N n) g
                                                            (env_group env)}
 
-convert :: Environment -> Schema -> [Decl]
+-- | Find all direct module dependencies.
+gatherImports :: Schema -> [FilePath]
+gatherImports s = [ f | (Include f _)  <- schema_items s ] ++
+                  [ f | (Import _ f _) <- schema_items s ]
+
+-- | Given an environment of schema type mappings, and a schema module,
+--   create a bunch of Decls that describe the types in a more
+--   Haskell-friendly way.
+convert :: Environment -> Schema -> [Haskell.Decl]
 convert env s = concatMap item (schema_items s)
   where
     item (Include loc ann)    = [XSDInclude (xname loc) (comment ann)]
