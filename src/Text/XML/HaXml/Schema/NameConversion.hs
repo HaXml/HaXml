@@ -184,6 +184,8 @@ fpmlNameConverter = simpleNameConverter
     shortenWord "Convertible" = "Convert"
     shortenWord "Underlyer"   = "Underly"
     shortenWord "Underlying"  = "Underly"
+    shortenWord "Properties"  = "Props"
+    shortenWord "Property"    = "Prop"
     shortenWord w | length w < 8 = w   -- then the general rule
                   | otherwise    = case splitAt 5 w of
                                      (pref,c:suf) | isVowel c -> pref
