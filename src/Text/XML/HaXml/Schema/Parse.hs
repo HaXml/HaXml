@@ -7,7 +7,7 @@ import Data.Monoid (mappend)
 -- import Text.ParserCombinators.Poly
 import Text.Parse    -- for String parsers
 
-import Text.XML.HaXml.Types      (Name,QName(..),Namespace(..)
+import Text.XML.HaXml.Types      (Name,QName(..),Namespace(..),Attribute(..)
                                  ,Content(..),Element(..),info)
 import Text.XML.HaXml.Namespaces
 import Text.XML.HaXml.Verbatim hiding (qname)
@@ -127,6 +127,22 @@ attribute qn (P p) (Elem n as _) = P $ \inp->
                                              ++show atv++"\":\n  Excess is: "
                                              ++xs
 
+-- | Grab any attributes that declare a locally-used prefix for a
+--   specific namespace.
+namespaceAttrs :: Element Posn -> XsdParser [Namespace]
+namespaceAttrs (Elem _ as _) =
+    return . map mkNamespace . filter (matchNamespace "xmlns") $ as
+  where
+    deQN (QN _ n) = n
+    mkNamespace (attname,attval) = Namespace { nsPrefix = deQN attname
+                                             , nsURI    = verbatim attval
+                                             }
+
+-- | Predicate for whether an attribute belongs to a given namespace.
+matchNamespace :: String -> Attribute -> Bool
+matchNamespace n (N _,     _) =   False
+matchNamespace n (QN ns _, _) =   n == nsPrefix ns
+
 -- | Tidy up the parsing context.
 tidy :: t -> Result x a -> Result t a
 tidy inp (Committed r) = tidy inp r
@@ -150,6 +166,7 @@ schema = do
          `apply` optional (attribute (xsd "blockDefault") block e)
          `apply` optional (attribute (N "targetNamespace") uri  e)
          `apply` optional (attribute (N "version")       string e)
+         `apply` namespaceAttrs e
     --   `apply` interiorWith (not.xsdTag "annotation") (many schemaItem) e
          `apply` interiorWith (const True) (many schemaItem) e
 

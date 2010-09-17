@@ -13,6 +13,7 @@ data Schema        = Schema
                        , schema_blockDefault         :: Maybe Block
                        , schema_targetNamespace      :: Maybe TargetNamespace
                        , schema_version              :: Maybe String
+                       , schema_namespaces           :: [Namespace]
                        , schema_items                :: [SchemaItem]
                        }
                      deriving (Eq,Show)

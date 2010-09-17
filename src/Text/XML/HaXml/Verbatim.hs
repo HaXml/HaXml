@@ -22,7 +22,7 @@
    which will format XML 'Content' as a 'String' while retaining the
    formatting of the input document unchanged.
 
-   /Know problems/:
+   /Known problems/:
 
     * HaXml's parser eats line feeds between two tags.
 
@@ -86,6 +86,8 @@ instance Verbatim Reference where
     verbatim (RefEntity r) = "&" ++ verbatim r ++ ";"
     verbatim (RefChar c)   = "&#" ++ show c ++ ";"
 
+instance Verbatim AttValue where
+    verbatim (AttValue v) = verbatim v
 
 -- |This is a helper function is required because Haskell does not
 -- allow to make an ordinary tuple (like 'Attribute') an instance of a
