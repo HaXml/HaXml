@@ -296,9 +296,10 @@ ppHighLevelDecl nx (XSDInclude m comm) =
     ppComment After comm
     $$ text "import" <+> ppModId nx m
 
-ppHighLevelDecl nx (XSDImport m comm) =
+ppHighLevelDecl nx (XSDImport m ma comm) =
     ppComment After comm
     $$ text "import" <+> ppModId nx m
+                     <+> maybe empty (\a->text "as"<+>ppConId nx a) ma
 
 ppHighLevelDecl nx (XSDComment comm) =
     ppComment Before comm

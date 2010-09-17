@@ -3,7 +3,7 @@ module Text.XML.HaXml.Schema.TypeConversion
   ( module Text.XML.HaXml.Schema.TypeConversion
   ) where
 
-import Text.XML.HaXml.Types (QName(..),Name(..))
+import Text.XML.HaXml.Types (QName(..),Name(..),Namespace(..))
 import Text.XML.HaXml.Namespaces (printableName)
 import Text.XML.HaXml.Schema.XSDTypeModel     as XSD
 import Text.XML.HaXml.Schema.HaskellTypeModel as Haskell
@@ -40,11 +40,13 @@ data Environment =  Environment
     , env_attribute :: Map QName AttributeDecl
     , env_group     :: Map QName Group
     , env_attrgroup :: Map QName AttrGroup
+    , env_namespace :: Map String{-URI-} String{-Prefix-}
     }
 
 -- | An empty environment of XSD type mappings.
 emptyEnv :: Environment
-emptyEnv = Environment Map.empty Map.empty Map.empty Map.empty Map.empty
+emptyEnv = Environment Map.empty Map.empty Map.empty
+                       Map.empty Map.empty Map.empty
 
 -- | Combine two environments (e.g. read from different interface files)
 combineEnv :: Environment -> Environment -> Environment
@@ -54,14 +56,15 @@ combineEnv e1 e0 = Environment
     , env_attribute = Map.union (env_attribute e1) (env_attribute e0)
     , env_group     = Map.union (env_group e1)     (env_group e0)
     , env_attrgroup = Map.union (env_attrgroup e1) (env_attrgroup e0)
+    , env_namespace = Map.union (env_namespace e1) (env_namespace e0)
     }
 
 -- | Build an environment of XSD type mappings from a schema module.
 mkEnvironment :: Schema -> Environment -> Environment
-mkEnvironment s init = foldl' item init (schema_items s)
+mkEnvironment s init = foldl' item (addNS init (schema_namespaces s))
+                                   (schema_items s)
   where
     -- think about qualification, w.r.t targetNamespace, elementFormDefault, etc
-
     item env (Include _ _)       = env
     item env (Import _ _ _)      = env
     item env (Redefine _ _)      = env	-- revisit this
@@ -113,6 +116,9 @@ mkEnvironment s init = foldl' item init (schema_items s)
                                                            (env_group env)}
     mkN = N . last . wordsBy (==':')
 
+    addNS env nss = env{env_namespace = foldr newNS (env_namespace env) nss}
+              where newNS ns env = Map.insert (nsURI ns) (nsPrefix ns) env
+
 -- | Find all direct module dependencies.
 gatherImports :: Schema -> [FilePath]
 gatherImports s = [ f | (Include f _)  <- schema_items s ] ++
@@ -125,7 +131,10 @@ convert :: Environment -> Schema -> [Haskell.Decl]
 convert env s = concatMap item (schema_items s)
   where
     item (Include loc ann)    = [XSDInclude (xname loc) (comment ann)]
-    item (Import uri loc ann) = [XSDImport  (xname loc) (comment ann)]
+    item (Import uri loc ann) = [XSDImport  (xname loc)
+                                            (fmap xname $
+                                             Map.lookup uri (env_namespace env))
+                                            (comment ann)]
     item (Redefine _ _)       = [] -- ignoring redefinitions for now
     item (Annotation ann)     = [XSDComment (comment ann)]
     item (Simple st)          = simple st

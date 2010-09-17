@@ -28,10 +28,10 @@ mkModule name decls = Module { module_name        = XName $ N name
                              }
     where (reexports,other)   = partition xsdinclude decls
           (imports,  theRest) = partition xsdimport  other
-          xsdinclude (XSDInclude _ _) = True
-          xsdinclude _                = False
-          xsdimport  (XSDImport _ _)  = True
-          xsdimport  _                = False
+          xsdinclude (XSDInclude _ _)  = True
+          xsdinclude _                 = False
+          xsdimport  (XSDImport _ _ _) = True
+          xsdimport  _                 = False
 
 
 -- | There are essentially simple types, and complex types, each of which
@@ -89,7 +89,7 @@ data Decl
                  -- becomes an import and re-export
                | XSDInclude XName Comment
                  -- becomes an import only
-               | XSDImport  XName Comment
+               | XSDImport  XName (Maybe XName) Comment
                  -- a top-level annotation
                | XSDComment Comment
                  deriving (Eq,Show)
