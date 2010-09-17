@@ -27,7 +27,7 @@ xsd name = QN Namespace{nsPrefix="XSD",nsURI="http://www.w3.org/2001/XMLSchema"}
 
 -- | Predicate for comparing against an XSD-qualified name
 xsdTag :: String -> Content Posn -> Bool
-xsdTag tag (CElem (Elem qn _ _) _)  =  qn == xsd tag
+xsdTag tag (CElem (Elem qn _ _) _)  =  qn == xsd tag || qn == (N tag)
 xsdTag _   _                        =  False
 
 -- | We need a Parser monad for reading from a sequence of generic XML
@@ -70,7 +70,7 @@ posnElementWith match tags = do
 -- | Get the next content element, checking that it has the required tag
 --   belonging to the XSD namespace.
 xsdElement :: Name -> XsdParser (Element Posn)
-xsdElement n = fmap snd (posnElementWith (xsdTag n) [n])
+xsdElement n = fmap snd (posnElementWith (xsdTag n) ["xsd:"++n])
 
 -- | Get the next content element, whatever it is.
 anyElement :: XsdParser (Element Posn)
@@ -155,7 +155,7 @@ tidy inp (Success _ v) = Success inp v
 
 -- | Parse a Schema declaration
 schema = do
-    e <- xsdElement "schema" `adjustErr` (++"Expected <xsd:schema>")
+    e <- xsdElement "schema"
     commit $ return Schema
     --   `apply` interiorWith (xsdTag "annotation")     annotation e
          `apply` (attribute (N "elementFormDefault")    qform e

@@ -74,13 +74,13 @@ mkEnvironment s init = foldl' item init (schema_items s)
     item env (SchemaGroup g)     = group env g
 
     simple env s@(Restricted _ (Just n) _ _)
-                                 = env{env_type=Map.insert (N n) (Left s)
+                                 = env{env_type=Map.insert (mkN n) (Left s)
                                                            (env_type env)}
     simple env s@(ListOf _ (Just n) _ _)
-                                 = env{env_type=Map.insert (N n) (Left s)
+                                 = env{env_type=Map.insert (mkN n) (Left s)
                                                            (env_type env)}
     simple env s@(UnionOf _ (Just n) _ _ _)
-                                 = env{env_type=Map.insert (N n) (Left s)
+                                 = env{env_type=Map.insert (mkN n) (Left s)
                                                            (env_type env)}
     simple env   _               = env
 
@@ -91,26 +91,27 @@ mkEnvironment s init = foldl' item init (schema_items s)
     -- (Latter not good, because it potentially duplicates exprs?)
     complex env c
       | Nothing <- complex_name c = env
-      | Just n  <- complex_name c = env{env_type=Map.insert (N n) (Right c)
+      | Just n  <- complex_name c = env{env_type=Map.insert (mkN n) (Right c)
                                                             (env_type env)}
     elementDecl env e
       | Right r <- elem_nameOrRef e = env
       | Left nt <- elem_nameOrRef e = env{env_element=Map.insert
-                                                            (N $ theName nt) e
+                                                            (mkN $ theName nt) e
                                                             (env_element env)}
     attributeDecl env a
       | Right r <- attr_nameOrRef a = env
       | Left nt <- attr_nameOrRef a = env{env_attribute=
-                                            Map.insert (N $ theName nt) a
+                                            Map.insert (mkN $ theName nt) a
                                                        (env_attribute env)}
     attrGroup env g
       | Right r <- attrgroup_nameOrRef g = env
-      | Left n  <- attrgroup_nameOrRef g = env{env_attrgroup=Map.insert (N n) g
+      | Left n  <- attrgroup_nameOrRef g = env{env_attrgroup=Map.insert (mkN n) g
                                                            (env_attrgroup env)}
     group env g
       | Right r <- group_nameOrRef g = env
-      | Left n  <- group_nameOrRef g = env{env_group=Map.insert (N n) g
+      | Left n  <- group_nameOrRef g = env{env_group=Map.insert (mkN n) g
                                                            (env_group env)}
+    mkN = N . last . wordsBy (==':')
 
 -- | Find all direct module dependencies.
 gatherImports :: Schema -> [FilePath]
