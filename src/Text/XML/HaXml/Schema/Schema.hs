@@ -21,7 +21,7 @@ import Text.Parse
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Posn
 import Text.XML.HaXml.Namespaces (printableName)
-import Text.XML.HaXml.XmlContent.Parser
+import Text.XML.HaXml.XmlContent.Parser hiding (Document,Reference)
 import Text.XML.HaXml.Schema.XSDTypeModel (Occurs(..))
 import Text.XML.HaXml.Schema.PrimitiveTypes
 import Text.XML.HaXml.Schema.PrimitiveTypes as Prim

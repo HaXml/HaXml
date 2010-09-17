@@ -66,7 +66,7 @@ ppModule nx m =
                            (module_re_exports m))
               $$ text ") where")
     $$ text " "
-    $$ text "import Text.XML.HaXml.Schema.Schema as Xsd hiding (Reference)"
+    $$ text "import Text.XML.HaXml.Schema.Schema as Xsd"
     $$ vcat (map (ppHighLevelDecl nx)
                  (module_re_exports m ++ module_import_only m))
     $$ text " "
