@@ -45,13 +45,13 @@ ppXName (XName (N x))     = text x
 ppXName (XName (QN ns x)) = text (nsPrefix ns) <> text ":" <> text x
 
 -- | Some different ways of using a Haskell identifier.
-ppModId, ppConId, ppVarId, ppAuxConId, ppAuxVarId
+ppModId, ppConId, ppVarId, ppUnqConId, ppUnqVarId
     :: NameConverter -> XName -> Doc
 ppModId nx = ppHName . modid nx
 ppConId nx = ppHName . conid nx
 ppVarId nx = ppHName . varid nx
-ppAuxConId nx = ppHName . auxconid nx
-ppAuxVarId nx = ppHName . auxvarid nx
+ppUnqConId nx = ppHName . unqconid nx
+ppUnqVarId nx = ppHName . unqvarid nx
 ppFieldId  nx = \t-> ppHName . fieldid nx t
 
 -- | Convert a whole document from HaskellTypeModel to Haskell source text.
@@ -78,21 +78,21 @@ ppAttr a n = (text "a"<>text (show n)) <+> text "<- getAttribute \""
                                        <> ppXName (attr_name a)
                                        <> text "\" e pos"
 -- | Generate a fragmentary parser for an element.
-ppElem :: Element -> Doc
-ppElem e@Element{}
-    | elem_byRef e = text "element" <> ppXName (elem_name e)
-    | otherwise    = ppElemModifier (elem_modifier e)
-                                    (text "parseSchemaType \""
-                                     <> ppXName (elem_name e)
-                                     <> text "\"")
-ppElem e@OneOf{}   = ppElemModifier (elem_modifier e)
-                         (text "oneOf" <+> ppvList "[" "," "]"
-                                                   (ppOneOf n)
-                                                   (zip (elem_oneOf e) [1..n]))
+ppElem :: NameConverter -> Element -> Doc
+ppElem nx e@Element{}
+    | elem_byRef e  = text "element" <> ppUnqConId nx (elem_name e)
+    | otherwise     = ppElemModifier (elem_modifier e)
+                                     (text "parseSchemaType \""
+                                      <> ppXName (elem_name e)
+                                      <> text "\"")
+ppElem nx e@OneOf{} = ppElemModifier (elem_modifier e)
+                          (text "oneOf" <+> ppvList "[" "," "]"
+                                                    (ppOneOf n)
+                                                    (zip (elem_oneOf e) [1..n]))
   where
     n = length (elem_oneOf e)
     ppOneOf n (e,i) = text "fmap" <+> text (ordinal i ++"Of"++show n)
-                      <+> parens (ppElem e)
+                      <+> parens (ppElem nx e)
     ordinal i | i <= 20   = ordinals!!i
               | otherwise = "Choice" ++ show i
     ordinals = ["Zero","One","Two","Three","Four","Five","Six","Seven","Eight"
@@ -109,24 +109,24 @@ ppHighLevelDecl :: NameConverter -> Decl -> Doc
 
 ppHighLevelDecl nx (NamedSimpleType t s comm) =
     ppComment Before comm
-    $$ text "type" <+> ppConId nx t <+> text "=" <+> ppConId nx s
+    $$ text "type" <+> ppUnqConId nx t <+> text "=" <+> ppConId nx s
     $$ text "-- No instances required: synonym is isomorphic to the original."
 
 ppHighLevelDecl nx (RestrictSimpleType t s r comm) =
     ppComment Before comm
-    $$ text "newtype" <+> ppConId nx t <+> text "="
-                      <+> ppConId nx t <+> ppConId nx s
+    $$ text "newtype" <+> ppUnqConId nx t <+> text "="
+                      <+> ppUnqConId nx t <+> ppConId nx s
                       <+> text "deriving (Eq,Show)"
-    $$ text "instance Restricts" <+> ppConId nx t <+> ppConId nx s
+    $$ text "instance Restricts" <+> ppUnqConId nx t <+> ppConId nx s
                       <+> text "where"
-        $$ nest 4 (text "restricts (" <> ppConId nx t <+> text "x) = x")
-    $$ text "instance SchemaType" <+> ppConId nx t <+> text "where"
+        $$ nest 4 (text "restricts (" <> ppUnqConId nx t <+> text "x) = x")
+    $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
         $$ nest 4 (text "parseSchemaType s = do" 
                   $$ nest 4 (text "e <- element [s]"
                            $$ text "commit $ interior e $ parseSimpleType")
                   )
-    $$ text "instance SimpleType" <+> ppConId nx t <+> text "where"
-        $$ nest 4 (text "acceptingParser = fmap" <+> ppConId nx t
+    $$ text "instance SimpleType" <+> ppUnqConId nx t <+> text "where"
+        $$ nest 4 (text "acceptingParser = fmap" <+> ppUnqConId nx t
                                                  <+> text "acceptingParser"
                    -- XXX should enforce the restrictions somehow.  (?)
                    $$ text "-- XXX should enforce the restrictions somehow?"
@@ -146,12 +146,12 @@ ppHighLevelDecl nx (RestrictSimpleType t s r comm) =
 
 ppHighLevelDecl nx (ExtendSimpleType t s as comm) =
     ppComment Before comm
-    $$ text "data" <+> ppConId nx t <+> text "="
-                                    <+> ppConId nx t <+> ppConId nx s
+    $$ text "data" <+> ppUnqConId nx t <+> text "="
+                                    <+> ppUnqConId nx t <+> ppConId nx s
                                     <+> ppConId nx t_attrs
     $$ text "data" <+> ppConId nx t_attrs <+> text "=" <+> ppConId nx t_attrs
         $$ nest 4 (ppFields nx t_attrs [] as)
-    $$ text "instance SchemaType" <+> ppConId nx t <+> text "where"
+    $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
         $$ nest 4 (text "parseSchemaType s = do" 
                   $$ nest 4 (text "(pos,e) <- posnElement [s]"
                             $$ text "commit $ do"
@@ -159,14 +159,14 @@ ppHighLevelDecl nx (ExtendSimpleType t s as comm) =
                                   (vcat (zipWith ppAttr as [0..])
                                   $$ text "reparse [CElem e pos]"
                                   $$ text "v <- parseSchemaType s"
-                                  $$ text "return $" <+> ppConId nx t
+                                  $$ text "return $" <+> ppUnqConId nx t
                                                      <+> text "v"
                                                      <+> attrsValue as)
                             )
                   )
-    $$ text "instance Extension" <+> ppConId nx t <+> ppConId nx s
+    $$ text "instance Extension" <+> ppUnqConId nx t <+> ppConId nx s
                                  <+> text "where"
-        $$ nest 4 (text "supertype (" <> ppConId nx t <> text " s _) = s")
+        $$ nest 4 (text "supertype (" <> ppUnqConId nx t <> text " s _) = s")
   where
     t_attrs = let (XName (N t_base)) = t in XName (N (t_base++"Attributes"))
 
@@ -182,35 +182,35 @@ ppHighLevelDecl nx (ExtendSimpleType t s as comm) =
 
 ppHighLevelDecl nx (UnionSimpleTypes t sts comm) =
     ppComment Before comm
-    $$ text "data" <+> ppConId nx t <+> text "=" <+> ppConId nx t
+    $$ text "data" <+> ppUnqConId nx t <+> text "=" <+> ppUnqConId nx t
     $$ text "-- Placeholder for a Union type, not yet implemented."
 
 ppHighLevelDecl nx (EnumSimpleType t [] comm) =
     ppComment Before comm
-    $$ text "data" <+> ppConId nx t
+    $$ text "data" <+> ppUnqConId nx t
 ppHighLevelDecl nx (EnumSimpleType t is comm) =
     ppComment Before comm
-    $$ text "data" <+> ppConId nx t
+    $$ text "data" <+> ppUnqConId nx t
         $$ nest 4 ( ppvList "=" "|" "deriving (Eq,Show,Enum)" item is )
-    $$ text "instance SchemaType" <+> ppConId nx t <+> text "where"
+    $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
         $$ nest 4 (text "parseSchemaType s = do" 
                   $$ nest 4 (text "e <- element [s]"
                            $$ text "commit $ interior e $ parseSimpleType")
                   )
-    $$ text "instance SimpleType" <+> ppConId nx t <+> text "where"
+    $$ text "instance SimpleType" <+> ppUnqConId nx t <+> text "where"
         $$ nest 4 (text "acceptingParser ="
                         <+> ppvList "" "`onFail`" "" parseItem is)
   where
-    item (i,c) = (ppConId nx t <> text "_" <> ppConId nx i)
+    item (i,c) = (ppUnqConId nx t <> text "_" <> ppConId nx i)
                  $$ ppComment After c
     parseItem (i,_) = text "do isWord \"" <> ppXName i <> text "\"; return"
-                           <+> (ppConId nx t <> text "_" <> ppConId nx i)
+                           <+> (ppUnqConId nx t <> text "_" <> ppConId nx i)
 
 ppHighLevelDecl nx (ElementsAttrs t es as comm) =
     ppComment Before comm
-    $$ text "data" <+> ppConId nx t <+> text "=" <+> ppConId nx t
+    $$ text "data" <+> ppUnqConId nx t <+> text "=" <+> ppUnqConId nx t
         $$ nest 8 (ppFields nx t es as)
-    $$ text "instance SchemaType" <+> ppConId nx t <+> text "where"
+    $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
         $$ nest 4 (text "parseSchemaType s = do" 
                   $$ nest 4 (text "(pos,e) <- posnElement [s]"
                             $$ text "commit $ do"
@@ -223,24 +223,25 @@ ppHighLevelDecl nx (ElementsAttrs t es as comm) =
                             )
                   )
   where
-    returnValue [] = ppConId nx t
-    returnValue as = parens (ppConId nx t <+>
+    returnValue [] = ppUnqConId nx t
+    returnValue as = parens (ppUnqConId nx t <+>
                              hsep [text ("a"++show n) | n <- [0..length as-1]])
-    ppApplyElem e = text "`apply`" <+> ppElem e
+    ppApplyElem e = text "`apply`" <+> ppElem nx e
 
 ppHighLevelDecl nx (ElementOfType e@Element{}) =
-    (text "element" <> ppVarId nx (elem_name e)) <+> text "::"
-        <+> text "XMLParser" <+> ppConId nx (elem_type e)
+    (text "element" <> ppUnqConId nx (elem_name e)) <+> text "::"
+        <+> text "XMLParser" <+> ppUnqConId nx (elem_type e)
     $$
-    (text "element" <> ppVarId nx (elem_name e)) <+> text "="
+    (text "element" <> ppUnqConId nx (elem_name e)) <+> text "="
         <+> (text "parseSchemaType \"" <> ppXName (elem_name e)  <> text "\"")
 
 ppHighLevelDecl nx (Choice t es comm) =
     ppComment Before comm
-    $$ text "data" <+> ppConId nx t
+    $$ text "data" <+> ppUnqConId nx t
         <+> nest 4 ( ppvList "=" "|" "" choices (zip es [1..]) )
   where
-    choices (e,n) = (ppConId nx t <> text (show n)) <+> ppConId nx (elem_type e)
+    choices (e,n) = (ppUnqConId nx t <> text (show n))
+                    <+> ppUnqConId nx (elem_type e)
 
 -- Comment out the Group for now.  Groups get inlined into the ComplexType
 -- where they are used, so it may not be sensible to declare them separately
@@ -256,14 +257,14 @@ ppHighLevelDecl nx (Group t es comm) = PP.empty
 --    not merely an unwrapping.
 ppHighLevelDecl nx (RestrictComplexType t s comm) =
     ppComment Before comm
-    $$ text "newtype" <+> ppConId nx t <+> text "="
-                                       <+> ppConId nx t <+> ppConId nx s
+    $$ text "newtype" <+> ppUnqConId nx t <+> text "="
+                                       <+> ppUnqConId nx t <+> ppConId nx s
     $$ text "-- plus different (more restrictive) parser"
-    $$ text "instance Restricts" <+> ppConId nx t <+> ppConId nx s
+    $$ text "instance Restricts" <+> ppUnqConId nx t <+> ppConId nx s
                                  <+> text "where"
-        $$ nest 4 (text "restricts (" <> ppConId nx t <+> text "x) = x")
-    $$ text "instance SchemaType" <+> ppConId nx t <+> text "where"
-        $$ nest 4 (text "parseSchemaType = fmap " <+> ppConId nx t <+>
+        $$ nest 4 (text "restricts (" <> ppUnqConId nx t <+> text "x) = x")
+    $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
+        $$ nest 4 (text "parseSchemaType = fmap " <+> ppUnqConId nx t <+>
                    text ". parseSchemaType")
 		-- XXX should enforce the restriction.
 
@@ -281,13 +282,13 @@ ppHighLevelDecl nx (ExtendComplexType t s es as comm)
 -}
 ppHighLevelDecl nx (ExtendComplexType t s oes oas es as comm) =
     ppHighLevelDecl nx (ElementsAttrs t (oes++es) (oas++as) comm)
-    $$ text "instance Extension" <+> ppConId nx t <+> ppConId nx s
+    $$ text "instance Extension" <+> ppUnqConId nx t <+> ppUnqConId nx s
                                  <+> text "where"
         $$ nest 4 (text "supertype (" <> ppType t (oes++es) (oas++as)
                                       <> text ") ="
                                       $$ nest 11 (ppType s oes oas) )
   where
-    ppType t es as = ppConId nx t
+    ppType t es as = ppUnqConId nx t
                      <+> hsep (take (length as) [text ('a':show n) | n<-[0..]])
                      <+> hsep (take (length es) [text ('e':show n) | n<-[0..]])
 
@@ -325,7 +326,7 @@ ppFieldElement nx t e@OneOf{}   i = ppFieldId nx t (XName $ N $"choice"++show i)
 -- | What is the name of the type for an Element (or choice of Elements)?
 ppElemTypeName :: NameConverter -> (Doc->Doc) -> Element -> Doc
 ppElemTypeName nx brack e@Element{} =
-    ppTypeModifier (elem_modifier e) brack $ ppConId nx (elem_type e)
+    ppTypeModifier (elem_modifier e) brack $ ppUnqConId nx (elem_type e)
 ppElemTypeName nx brack  e@OneOf{}   = 
     brack $ ppTypeModifier (elem_modifier e) parens $
     text "OneOf" <> text (show (length (elem_oneOf e)))
@@ -334,7 +335,7 @@ ppElemTypeName nx brack  e@OneOf{}   =
 -- | Generate a single named field from an attribute.
 ppFieldAttribute :: NameConverter -> XName -> Attribute -> Doc
 ppFieldAttribute nx t a = ppFieldId nx t (attr_name a) <+> text "::"
-                                   <+> ppConId nx (attr_type a)
+                                   <+> ppUnqConId nx (attr_type a)
                           $$ ppComment After (attr_comment a)
 
 -- | Generate a list or maybe type name (possibly parenthesised).

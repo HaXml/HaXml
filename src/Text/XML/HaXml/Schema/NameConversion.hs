@@ -31,8 +31,8 @@ data NameConverter = NameConverter
                        { modid    :: XName -> HName
                        , conid    :: XName -> HName
                        , varid    :: XName -> HName
-                       , auxconid :: XName -> HName
-                       , auxvarid :: XName -> HName
+                       , unqconid :: XName -> HName
+                       , unqvarid :: XName -> HName
                        , fieldid  :: XName -> XName -> HName
                        }
 
@@ -43,9 +43,9 @@ simpleNameConverter = NameConverter
     , conid    = \(XName qn)-> HName . mkConid . hierarchy $ qn
     , varid    = \(XName qn)-> HName . mkVarid . last avoidKeywords
                                                . hierarchy $ qn
-    , auxconid = \(XName qn)-> HName . (++"'") . mkConid . hierarchy $ qn
-    , auxvarid = \(XName qn)-> HName . (++"'") . mkVarid . last avoidKeywords
-                                               . hierarchy $ qn
+    , unqconid = \(XName qn)-> HName . mkConid . local $ qn
+    , unqvarid = \(XName qn)-> HName . mkVarid . last avoidKeywords
+                                               . local $ qn
     , fieldid  = \(XName qnt) (XName qnf)->
                                HName $ (mkVarid . last id . hierarchy $ qnt)
                                        ++ "_" ++
@@ -54,6 +54,8 @@ simpleNameConverter = NameConverter
   where
     hierarchy (N n)     = wordsBy (==':') n
     hierarchy (QN ns n) = [nsPrefix ns, n]
+
+    local               = (:[]) . Prelude.last . hierarchy
 
     mkConid  [c]        | map toLower c == "string"     = "XsdString"
                         | otherwise = first toUpper c
