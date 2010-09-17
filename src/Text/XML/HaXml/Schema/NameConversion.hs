@@ -139,10 +139,10 @@ fpmlNameConverter :: NameConverter
 fpmlNameConverter = simpleNameConverter
     { modid   = (\(HName h)-> HName (fpml h))
                 . modid simpleNameConverter
-    , conid   = (\(HName h)-> case take 4 (reverse h) of
-                                "munE" -> HName (reverse (drop 4 (reverse h)))
-                                _      -> HName h )
-                . conid simpleNameConverter
+ -- , conid   = (\(HName h)-> case take 4 (reverse h) of
+ --                             "munE" -> HName (reverse (drop 4 (reverse h)))
+ --                             _      -> HName h )
+ --             . conid simpleNameConverter
     , fieldid  = \(XName qnt) (XName qnf)->
                   let t = mkVarId . last . hierarchy $ qnt
                       f = mkVarId . last . hierarchy $ qnf
