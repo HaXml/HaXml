@@ -157,7 +157,6 @@ tidy inp (Success _ v) = Success inp v
 schema = do
     e <- xsdElement "schema"
     commit $ return Schema
-    --   `apply` interiorWith (xsdTag "annotation")     annotation e
          `apply` (attribute (N "elementFormDefault")    qform e
                   `onFail` return Unqualified)
          `apply` (attribute (N "attributeFormDefault")  qform e
@@ -167,26 +166,12 @@ schema = do
          `apply` optional (attribute (N "targetNamespace") uri  e)
          `apply` optional (attribute (N "version")       string e)
          `apply` namespaceAttrs e
-    --   `apply` interiorWith (not.xsdTag "annotation") (many schemaItem) e
          `apply` interiorWith (const True) (many schemaItem) e
 
 -- | Parse a (possibly missing) <xsd:annotation> element.
 annotation :: XsdParser Annotation
 annotation = do
     definiteAnnotation `onFail` return (NoAnnotation "missing")
-{-
-annotation = do
-    me <- optional (xsdElement "annotation")
-    case me of
-      Nothing -> return (NoAnnotation "missing")
-      Just e -> (fmap Documentation $ interiorWith (xsdTag "documentation")
-                                                   (allChildren text)  e)
-                    `onFail`
-                (fmap AppInfo $ interiorWith (xsdTag "appinfo")
-                                             (allChildren text) e)
-                    `onFail`
-                return (NoAnnotation "failed to parse")
--}
 
 -- | Parse a definitely-occurring <xsd:annotation> element.
 definiteAnnotation :: XsdParser Annotation
