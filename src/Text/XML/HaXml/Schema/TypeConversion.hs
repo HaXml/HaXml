@@ -244,7 +244,7 @@ convert env s = concatMap item (schema_items s)
                                        (comment (elem_annotation ed))
                        Just t ->
                          ElementOfType Element{ elem_name = xname $ theName n
-                                              , elem_type = XName t
+                                              , elem_type = checkXName s t
                                               , elem_modifier = Single -- XXX
                                               , elem_byRef   = False
                                               , elem_locals  = []
@@ -363,6 +363,12 @@ comment (NoAnnotation _)  = Nothing
 
 xname :: String -> XName
 xname = XName . N
+
+checkXName :: Schema -> QName -> XName
+checkXName s n@(N _)     = XName n
+checkXName s n@(QN ns m) | (Just uri) <- schema_targetNamespace s
+                         , nsURI ns == uri = XName $ N m
+                         | otherwise       = XName n
 
 nameOfSimple :: SimpleType -> XName
 nameOfSimple (Primitive prim)            = XName . xsd . show $ prim

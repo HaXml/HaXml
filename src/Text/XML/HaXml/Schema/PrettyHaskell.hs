@@ -230,7 +230,7 @@ ppHighLevelDecl nx (ElementsAttrs t es as comm) =
 
 ppHighLevelDecl nx (ElementOfType e@Element{}) =
     (text "element" <> ppUnqConId nx (elem_name e)) <+> text "::"
-        <+> text "XMLParser" <+> ppUnqConId nx (elem_type e)
+        <+> text "XMLParser" <+> ppConId nx (elem_type e)
     $$
     (text "element" <> ppUnqConId nx (elem_name e)) <+> text "="
         <+> (text "parseSchemaType \"" <> ppXName (elem_name e)  <> text "\"")
@@ -241,7 +241,7 @@ ppHighLevelDecl nx (Choice t es comm) =
         <+> nest 4 ( ppvList "=" "|" "" choices (zip es [1..]) )
   where
     choices (e,n) = (ppUnqConId nx t <> text (show n))
-                    <+> ppUnqConId nx (elem_type e)
+                    <+> ppConId nx (elem_type e)
 
 -- Comment out the Group for now.  Groups get inlined into the ComplexType
 -- where they are used, so it may not be sensible to declare them separately
@@ -327,7 +327,7 @@ ppFieldElement nx t e@OneOf{}   i = ppFieldId nx t (XName $ N $"choice"++show i)
 -- | What is the name of the type for an Element (or choice of Elements)?
 ppElemTypeName :: NameConverter -> (Doc->Doc) -> Element -> Doc
 ppElemTypeName nx brack e@Element{} =
-    ppTypeModifier (elem_modifier e) brack $ ppUnqConId nx (elem_type e)
+    ppTypeModifier (elem_modifier e) brack $ ppConId nx (elem_type e)
 ppElemTypeName nx brack  e@OneOf{}   = 
     brack $ ppTypeModifier (elem_modifier e) parens $
     text "OneOf" <> text (show (length (elem_oneOf e)))
@@ -336,7 +336,7 @@ ppElemTypeName nx brack  e@OneOf{}   =
 -- | Generate a single named field from an attribute.
 ppFieldAttribute :: NameConverter -> XName -> Attribute -> Doc
 ppFieldAttribute nx t a = ppFieldId nx t (attr_name a) <+> text "::"
-                                   <+> ppUnqConId nx (attr_type a)
+                                   <+> ppConId nx (attr_type a)
                           $$ ppComment After (attr_comment a)
 
 -- | Generate a list or maybe type name (possibly parenthesised).
