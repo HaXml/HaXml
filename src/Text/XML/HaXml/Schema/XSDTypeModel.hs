@@ -144,7 +144,12 @@ data ElementEtc    = HasElement ElementDecl
                    | HasAny     Any
                      deriving (Eq,Show)
 
-data Any           = Any Annotation -- some attributes omitted
+data Any           = Any
+                       { any_annotation      :: Annotation
+                       , any_namespace       :: URI
+                       , any_processContents :: ProcessContents
+                       , any_occurs          :: Occurs
+                       }
                      deriving (Eq,Show)
 data AnyAttr       = AnyAttr
                        { anyattr_annotation      :: Annotation

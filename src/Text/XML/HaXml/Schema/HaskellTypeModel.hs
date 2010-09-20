@@ -105,6 +105,10 @@ data Element   = Element { elem_name     :: XName
                          , elem_modifier :: Modifier
                          , elem_comment  :: Comment
                          }
+               | AnyElem { elem_modifier :: Modifier
+                         , elem_comment  :: Comment
+                         }
+               | Text -- for mixed content
                  deriving (Eq,Show)
 data Attribute = Attribute { attr_name    :: XName
                            , attr_type    :: XName

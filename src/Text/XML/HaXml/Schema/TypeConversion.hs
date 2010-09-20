@@ -189,7 +189,7 @@ convert env s = concatMap item (schema_items s)
               squeeze xs []             = Just xs
 
     complex ct =
-      let n = xname $ fromMaybe ("errorMissingName") (complex_name ct)
+      let n   = xname $ fromMaybe ("errorMissingName") (complex_name ct)
       in singleton $
       case complex_content ct of
         c@SimpleContent{}  ->
@@ -214,6 +214,8 @@ convert env s = concatMap item (schema_items s)
                                               `mappend` ci_annotation c))
                 Right e ->
                     let (es,as) = particleAttrs (extension_newstuff e)
+                        es'     | ci_mixed c = mkMixedContent es
+                                | otherwise  = es
                         (oldEs,oldAs) = contentInfo $
                                             Map.lookup (extension_base e)
                                                        (env_type env)
@@ -228,8 +230,14 @@ convert env s = concatMap item (schema_items s)
                                               `mappend` ci_annotation c
                                               `mappend` extension_annotation e))
         c@ThisType{}       ->
-            let (es,as) = particleAttrs (ci_thistype c) in
-            ElementsAttrs n es as (comment (complex_annotation ct))
+            let (es,as) = particleAttrs (ci_thistype c)
+                es'     | complex_mixed ct = mkMixedContent es
+                        | otherwise        = es
+            in
+            ElementsAttrs n es' as (comment (complex_annotation ct))
+
+    mkMixedContent [e@OneOf{}] = [e{ elem_oneOf = Text: elem_oneOf e }]
+    mkMixedContent es          = Text: concatMap (\e->[e,Text]) es
 
     topElementDecl :: XSD.ElementDecl -> [Haskell.Decl]
     topElementDecl ed = case elem_nameOrRef ed of
@@ -321,7 +329,8 @@ convert env s = concatMap item (schema_items s)
 --  choiceOrSeq :: ChoiceOrSeq -> ([Haskell.Decl],[Haskell.Element])
     choiceOrSeq :: ChoiceOrSeq -> [Haskell.Element]
     choiceOrSeq (XSD.All      ann eds)   = error "not yet implemented: XSD.All"
-    choiceOrSeq (XSD.Choice   ann o ees) = [ OneOf (concatMap elementEtc ees)
+    choiceOrSeq (XSD.Choice   ann o ees) = [ OneOf (anyToEnd
+                                                     (concatMap elementEtc ees))
                                                    (Haskell.Range o)
                                                    (comment ann) ]
     choiceOrSeq (XSD.Sequence ann _ ees) = concatMap elementEtc ees
@@ -330,8 +339,21 @@ convert env s = concatMap item (schema_items s)
     elementEtc (HasElement ed) = [elementDecl ed]
     elementEtc (HasGroup g)    = let [Haskell.Group _ es _] = group g in es
     elementEtc (HasCS cs)      = choiceOrSeq cs
-    elementEtc (HasAny a)      = [] -- XXX clearly wrong
- -- elementEtc (HasAny a)      = any a
+    elementEtc (HasAny a)      = any a
+
+    any :: XSD.Any -> [Haskell.Element]
+    any a@XSD.Any{}  = [Haskell.AnyElem
+                           { elem_modifier = Haskell.Range (any_occurs a)
+                           , elem_comment  = comment (any_annotation a) }]
+
+    -- If an ANY element is part of a choice, ensure it is the last part.
+    anyToEnd :: [Haskell.Element] -> [Haskell.Element]
+    anyToEnd = go Nothing
+      where go _ (e@AnyElem{}:[]) = e:[]
+            go _ (e@AnyElem{}:es) = go (Just e) es
+            go Nothing  []        = []
+            go (Just e) []        = e:[]
+            go m (e:es)           = e:go m es
 
     contentInfo :: Maybe (Either SimpleType ComplexType)
                    -> ([Haskell.Element],[Haskell.Attribute])

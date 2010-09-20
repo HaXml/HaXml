@@ -449,7 +449,13 @@ elementEtc q = fmap HasElement (elementDecl q)
 -- | Parse an <xsd:any>.
 any_ :: XsdParser Any
 any_ = do e <- xsdElement "any"
-          return Any `apply` interiorWith (xsdTag "annotation") annotation e
+          commit $ return Any
+              `apply` interiorWith (xsdTag "annotation") annotation e
+              `apply` (attribute (N "namespace") uri e
+                       `onFail` return "##any")
+              `apply` (attribute (N "processContents") processContents e
+                       `onFail` return Strict)
+              `apply` occurs e
 
 -- | Parse an <xsd:anyAttribute>.
 anyAttr :: XsdParser AnyAttr

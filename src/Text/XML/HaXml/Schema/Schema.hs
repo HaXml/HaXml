@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP, MultiParamTypeClasses, FunctionalDependencies,
-             TypeSynonymInstances #-}
+             TypeSynonymInstances, ExistentialQuantification #-}
 module Text.XML.HaXml.Schema.Schema
   ( SchemaType(..)
 -- , SimpleType(..) -- already exported by PrimitiveTypes
@@ -9,6 +9,9 @@ module Text.XML.HaXml.Schema.Schema
   , between
   , Occurs(..)
   , parseSimpleType
+  , parseText
+  , AnyElement(..)
+  , parseAnyElement
   , module Text.XML.HaXml.XmlContent.Parser
   , module Text.ParserCombinators.Poly
   , module Text.XML.HaXml.Schema.PrimitiveTypes
@@ -26,6 +29,7 @@ import Text.XML.HaXml.Schema.XSDTypeModel (Occurs(..))
 import Text.XML.HaXml.Schema.PrimitiveTypes
 import Text.XML.HaXml.Schema.PrimitiveTypes as Prim
 import Text.XML.HaXml.OneOfN
+import Text.XML.HaXml.Verbatim
 
 -- | A SchemaType is for element types, and has a parser from generic XML
 --   content tree to a Haskell value.
@@ -87,6 +91,26 @@ getAttribute aname (Elem t as _) pos =
     qnLookup :: String -> [(QName,a)] -> Maybe a
     qnLookup s = Prelude.lookup s . map (\(qn,v)-> (printableName qn, v))
 
+
+-- | The <xsd:any> type.  Parsing will always produce an "UnconvertedANY".
+data AnyElement = forall a . (SchemaType a, Show a) => ANYSchemaType a
+                | UnconvertedANY (Content Posn)
+
+instance Show AnyElement where
+    show (UnconvertedANY c) = "Unconverted "++ show (verbatim c)
+    show (ANYSchemaType a)  = "ANYSchemaType "++show a
+instance Eq AnyElement where
+    a == b  =  show a == show b
+instance SchemaType AnyElement where
+    parseSchemaType _ = parseAnyElement
+
+parseAnyElement :: XMLParser AnyElement
+parseAnyElement = fmap UnconvertedANY next
+
+-- | Parse the textual part of mixed content
+parseText :: XMLParser String
+parseText = text  -- from XmlContent.Parser
+            `onFail` return ""
 
 
 {- examples

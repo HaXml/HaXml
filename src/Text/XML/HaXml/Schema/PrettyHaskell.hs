@@ -80,12 +80,15 @@ ppAttr a n = (text "a"<>text (show n)) <+> text "<- getAttribute \""
 -- | Generate a fragmentary parser for an element.
 ppElem :: NameConverter -> Element -> Doc
 ppElem nx e@Element{}
-    | elem_byRef e  = text "element" <> ppUnqConId nx (elem_name e)
-    | otherwise     = ppElemModifier (elem_modifier e)
-                                     (text "parseSchemaType \""
-                                      <> ppXName (elem_name e)
-                                      <> text "\"")
-ppElem nx e@OneOf{} = ppElemModifier (elem_modifier e)
+    | elem_byRef e    = text "element" <> ppUnqConId nx (elem_name e)
+    | otherwise       = ppElemModifier (elem_modifier e)
+                                       (text "parseSchemaType \""
+                                        <> ppXName (elem_name e)
+                                        <> text "\"")
+ppElem nx e@AnyElem{} = ppElemModifier (elem_modifier e)
+                          (text "parseAnyElement")
+ppElem nx e@Text{}    = text "parseText"
+ppElem nx e@OneOf{}   = ppElemModifier (elem_modifier e)
                           (text "oneOf" <+> ppvList "[" "," "]"
                                                     (ppOneOf n)
                                                     (zip (elem_oneOf e) [1..n]))
@@ -134,15 +137,14 @@ ppHighLevelDecl nx (RestrictSimpleType t s r comm) =
                    $$ vcat (map ((text "--     " <+>) . ppRestrict) r))
   where
     ppRestrict (RangeR occ comm)     = text "(RangeR"
-                                         <+> ppElemModifier (Range occ) empty
-                                         <>  text ")"
+                                         <+> ppOccurs occ <>  text ")"
     ppRestrict (Pattern regexp comm) = text ("(Pattern "++regexp++")")
     ppRestrict (Enumeration items)   = text "(Enumeration"
                                          <+> hsep (map (text . fst) items)
                                          <>  text ")"
     ppRestrict (StrLength occ comm)  = text "(StrLength"
-                                         <+> ppElemModifier (Range occ) empty
-                                         <>  text ")"
+                                         <+> ppOccurs occ <>  text ")"
+    ppOccurs = parens . text . show
 
 ppHighLevelDecl nx (ExtendSimpleType t s as comm) =
     ppComment Before comm
@@ -323,15 +325,25 @@ ppFieldElement nx t e@Element{} _ = ppFieldId nx t (elem_name e)
 ppFieldElement nx t e@OneOf{}   i = ppFieldId nx t (XName $ N $"choice"++show i)
                                         <+> text "::" <+> ppElemTypeName nx id e
                                     $$ ppComment After (elem_comment e)
+ppFieldElement nx t e@AnyElem{} i = ppFieldId nx t (XName $ N $"any"++show i)
+                                        <+> text "::" <+> ppElemTypeName nx id e
+                                    $$ ppComment After (elem_comment e)
+ppFieldElement nx t e@Text{}    i = ppFieldId nx t (XName $ N $"text"++show i)
+                                        <+> text "::" <+> ppElemTypeName nx id e
 
 -- | What is the name of the type for an Element (or choice of Elements)?
 ppElemTypeName :: NameConverter -> (Doc->Doc) -> Element -> Doc
 ppElemTypeName nx brack e@Element{} =
     ppTypeModifier (elem_modifier e) brack $ ppConId nx (elem_type e)
-ppElemTypeName nx brack  e@OneOf{}   = 
+ppElemTypeName nx brack e@OneOf{}   = 
     brack $ ppTypeModifier (elem_modifier e) parens $
     text "OneOf" <> text (show (length (elem_oneOf e)))
      <+> hsep (map (ppElemTypeName nx parens) (elem_oneOf e))
+ppElemTypeName nx brack e@AnyElem{} =
+    brack $ ppTypeModifier (elem_modifier e) id $
+    text "AnyElement"
+ppElemTypeName nx brack e@Text{} =
+    text "String"
 
 -- | Generate a single named field from an attribute.
 ppFieldAttribute :: NameConverter -> XName -> Attribute -> Doc
@@ -353,8 +365,8 @@ ppElemModifier Optional  doc = text "optional" <+> parens doc
 ppElemModifier (Range (Occurs Nothing Nothing))  doc = doc
 ppElemModifier (Range (Occurs (Just 0) Nothing)) doc = text "optional"
                                                        <+> parens doc
-ppElemModifier (Range o) doc = text "between" <+> parens (text (show o))
-                                              <+> parens doc
+ppElemModifier (Range o) doc = text "between" <+> (parens (text (show o))
+                                                  $$ parens doc)
 
 -- | Split long lines of comment text into a paragraph with a maximum width.
 paragraph :: Int -> String -> String
