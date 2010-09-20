@@ -4,51 +4,51 @@ module Text.XML.HaXml.Schema.PrimitiveTypes
     SimpleType(..)
   , module Text.Parse
   , -- * Primitive XSD datatypes
-    XsdString
-  , Boolean
-  , Base64Binary
-  , HexBinary
-  , Float
-  , Decimal
-  , Double
-  , AnyURI
-  , QName
-  , NOTATION
-  , Duration
-  , DateTime
-  , Time
-  , Date
-  , GYearMonth
-  , GYear
-  , GMonthDay
-  , GDay
-  , GMonth
+    XsdString(..)
+  , Boolean(..)
+  , Base64Binary(..)
+  , HexBinary(..)
+  , Float(..)
+  , Decimal(..)
+  , Double(..)
+  , AnyURI(..)
+  , QName(..)
+  , NOTATION(..)
+  , Duration(..)
+  , DateTime(..)
+  , Time(..)
+  , Date(..)
+  , GYearMonth(..)
+  , GYear(..)
+  , GMonthDay(..)
+  , GDay(..)
+  , GMonth(..)
   , -- * Derived, yet builtin, datatypes
-    NormalizedString
-  , Token
-  , Language
-  , Name
-  , NCName
-  , ID
-  , IDREF
-  , IDREFS
-  , ENTITY
-  , ENTITIES
-  , NMTOKEN
-  , NMTOKENS
-  , Integer
-  , NonPositiveInteger
-  , NegativeInteger
-  , Long
-  , Int
-  , Short
-  , Byte
-  , NonNegativeInteger
-  , UnsignedLong
-  , UnsignedInt
-  , UnsignedShort
-  , UnsignedByte
-  , PositiveInteger
+    NormalizedString(..)
+  , Token(..)
+  , Language(..)
+  , Name(..)
+  , NCName(..)
+  , ID(..)
+  , IDREF(..)
+  , IDREFS(..)
+  , ENTITY(..)
+  , ENTITIES(..)
+  , NMTOKEN(..)
+  , NMTOKENS(..)
+  , Integer(..)
+  , NonPositiveInteger(..)
+  , NegativeInteger(..)
+  , Long(..)
+  , Int(..)
+  , Short(..)
+  , Byte(..)
+  , NonNegativeInteger(..)
+  , UnsignedLong(..)
+  , UnsignedInt(..)
+  , UnsignedShort(..)
+  , UnsignedByte(..)
+  , PositiveInteger(..)
   ) where
 
 import Text.Parse
