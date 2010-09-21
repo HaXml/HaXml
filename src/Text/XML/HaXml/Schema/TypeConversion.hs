@@ -4,7 +4,7 @@ module Text.XML.HaXml.Schema.TypeConversion
   ) where
 
 import Text.XML.HaXml.Types (QName(..),Name(..),Namespace(..))
-import Text.XML.HaXml.Namespaces (printableName)
+import Text.XML.HaXml.Namespaces (printableName,localName)
 import Text.XML.HaXml.Schema.XSDTypeModel     as XSD
 import Text.XML.HaXml.Schema.HaskellTypeModel as Haskell
 import Text.XML.HaXml.Schema.NameConversion
@@ -253,7 +253,8 @@ convert env s = concatMap item (schema_items s)
                        Just t ->
                          ElementOfType Element{ elem_name = xname $ theName n
                                               , elem_type = checkXName s t
-                                              , elem_modifier = Single -- XXX
+                                              , elem_modifier =
+                                                  Haskell.Range (elem_occurs ed)
                                               , elem_byRef   = False
                                               , elem_locals  = []
                                               , elem_comment =
@@ -273,10 +274,20 @@ convert env s = concatMap item (schema_items s)
                              [] -- internal Decl
                              (comment (elem_annotation ed))
         Right ref -> case Map.lookup ref (env_element env) of
-                       Nothing -> Element ({-name-}XName ref)
-                                          ({-type-}XName ref) -- best guess
-                                          Haskell.Single True [] Nothing
-                       Just e' -> elementDecl e'
+                       Just e' -> (elementDecl e')
+                                      { elem_modifier =
+                                            Haskell.Range (elem_occurs ed) }
+                       Nothing -> -- possible ref is imported qualified?
+                           case Map.lookup (N $ localName ref)
+                                           (env_element env) of
+                               Just e' -> (elementDecl e')
+                                            { elem_modifier =
+                                               Haskell.Range (elem_occurs ed) }
+                               Nothing -> Element ({-name-}XName ref)
+                                              -- best guess at type
+                                              ({-type-}XName ref)
+                                              (Haskell.Range (elem_occurs ed))
+                                              True [] Nothing
 
     attributeDecl :: XSD.AttributeDecl -> [Haskell.Attribute]
     attributeDecl ad = case attr_nameOrRef ad of
