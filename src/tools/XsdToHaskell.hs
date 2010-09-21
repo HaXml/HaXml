@@ -22,6 +22,7 @@ import Text.XML.HaXml.Util       (docContent)
 import Text.XML.HaXml.Posn       (posInNewCxt)
 
 import Text.XML.HaXml.Schema.Parse
+import Text.XML.HaXml.Schema.Environment
 import Text.XML.HaXml.Schema.NameConversion
 import Text.XML.HaXml.Schema.TypeConversion
 import Text.XML.HaXml.Schema.PrettyHaskell

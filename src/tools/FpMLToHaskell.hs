@@ -26,6 +26,7 @@ import Text.XML.HaXml.Posn       (posInNewCxt)
 
 import Text.XML.HaXml.Schema.Parse
 import Text.XML.HaXml.Schema.NameConversion
+import Text.XML.HaXml.Schema.Environment    as Env
 import Text.XML.HaXml.Schema.TypeConversion as XsdToH
 import Text.XML.HaXml.Schema.PrettyHaskell
 import Text.XML.HaXml.Schema.XSDTypeModel (Schema)
@@ -78,7 +79,7 @@ main = do
         case runParser schema [docContent (posInNewCxt inf Nothing) d] of
             (Left msg,_) -> do hPutStrLn stderr msg
                                return ([], undefined)
-            (Right v,[]) ->    return (gatherImports v, v)
+            (Right v,[]) ->    return (Env.gatherImports v, v)
             (Right v,_)  -> do hPutStrLn stdout $ "Parse incomplete!"
                                hPutStrLn stdout $ inf
                                hPutStrLn stdout $ "\n-----------------\n"
