@@ -169,13 +169,15 @@ convert env s = concatMap item (schema_items s)
         Right ref -> case Map.lookup ref (env_element env) of
                        Just e' -> (elementDecl e')
                                       { elem_modifier =
-                                            Haskell.Range (elem_occurs ed) }
+                                            Haskell.Range (elem_occurs ed)
+                                      , elem_byRef = True }
                        Nothing -> -- possible ref is imported qualified?
                            case Map.lookup (N $ localName ref)
                                            (env_element env) of
                                Just e' -> (elementDecl e')
                                             { elem_modifier =
-                                               Haskell.Range (elem_occurs ed) }
+                                               Haskell.Range (elem_occurs ed)
+                                            , elem_byRef = True }
                                Nothing -> Element ({-name-}XName ref)
                                               -- best guess at type
                                               ({-type-}XName ref)
