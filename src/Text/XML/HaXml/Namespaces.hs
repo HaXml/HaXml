@@ -7,6 +7,7 @@ module Text.XML.HaXml.Namespaces
   , printableName
   , qualify
   , deQualify
+  , qualifyExceptLocal
   , initNamespaceEnv
   , augmentNamespaceEnv
   , resolveAllNames
@@ -71,6 +72,25 @@ qualify _ env qn@(QN ns n)
 deQualify :: Maybe Namespace -> Map String Namespace -> QName -> QName
 deQualify _ _ (QN _ n) = N n
 deQualify _ _ (N n)    = N n
+
+-- | 'qualifyExceptLocal' converts names to qualified names, except where
+--   an existing qualification matches the default namespace, in which case
+--   the qualification is removed.  (This is useful when translating QNames
+--   to Haskell, because Haskell qualified names cannot use the current
+--   module name.)
+qualifyExceptLocal :: Maybe Namespace -> Map String Namespace -> QName -> QName
+qualifyExceptLocal Nothing    env  qn   = qualify Nothing env qn
+qualifyExceptLocal (Just def) env (N n)
+        | ':'`elem`n      = let (pre,':':nm) = span (/=':') n in
+                            if nsPrefix def == pre then N nm
+                            else QN (maybe nullNamespace{nsPrefix=pre} id
+                                          (Map.lookup pre env))
+                                    nm
+        | otherwise       = N n
+qualifyExceptLocal (Just def) env qn@(QN ns n)
+        | def==ns         = N n
+        | null (nsURI ns) = QN (maybe ns id (Map.lookup (nsPrefix ns) env)) n
+        | otherwise       = qn
 
 -- | The initial Namespace environment.  It always has bindings for the
 --   prefixes 'xml' and 'xmlns'.
