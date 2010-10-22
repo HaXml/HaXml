@@ -87,9 +87,9 @@ main = do
                                hPutStrLn stdout $ "\n-----------------\n"
                                return ([],v)
         )
-    let filedeps :: [((FilePath,FilePath),([FilePath],Schema))]
-        filedeps  = ordered (\((inf,_),_)->inf)
-                            (\(_,(ds,_))->ds)
+    let filedeps :: [((FilePath,FilePath),([(FilePath,Maybe String)],Schema))]
+        filedeps  = ordered (\ ((inf,_),_)-> inf)
+                            (\ (_,(ds,_))-> map fst ds)
                             (zip files deps)
         environs :: [(FilePath,(Environment,FilePath,Schema))]
         environs  = flip map filedeps (\((inf,outf),(ds,v))->
@@ -98,7 +98,7 @@ main = do
                                             (flip map ds
                                                   (\d-> fst3 $
                                                         fromMaybe (error "FME")$
-                                                        lookup d environs)
+                                                        lookup (fst d) environs)
                                             )
                                      )
                                , outf

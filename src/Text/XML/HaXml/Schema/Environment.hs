@@ -6,6 +6,7 @@ module Text.XML.HaXml.Schema.Environment
 import Text.XML.HaXml.Types (QName(..),Name(..),Namespace(..))
 import Text.XML.HaXml.Schema.XSDTypeModel
 import Text.XML.HaXml.Schema.NameConversion (wordsBy)
+import Text.XML.HaXml.Schema.Parse (targetPrefix)
 
 import qualified Data.Map as Map
 import Data.Map (Map)
@@ -115,7 +116,9 @@ mkEnvironment s init = foldl' item (addNS init (schema_namespaces s))
               where newNS ns env = Map.insert (nsURI ns) (nsPrefix ns) env
 
 -- | Find all direct module dependencies.
-gatherImports :: Schema -> [FilePath]
-gatherImports s = [ f | (Include f _)  <- schema_items s ] ++
-                  [ f | (Import _ f _) <- schema_items s ]
+gatherImports :: Schema -> [(FilePath, Maybe String)]
+gatherImports s =
+    [ (f,Nothing)  | (Include f _)    <- schema_items s ] ++
+    [ (f,ns)       | (Import uri f _) <- schema_items s
+                   , let ns = targetPrefix (Just uri) (schema_namespaces s) ]
 
