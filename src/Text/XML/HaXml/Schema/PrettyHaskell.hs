@@ -80,7 +80,9 @@ ppAttr a n = (text "a"<>text (show n)) <+> text "<- getAttribute \""
 -- | Generate a fragmentary parser for an element.
 ppElem :: NameConverter -> Element -> Doc
 ppElem nx e@Element{}
-    | elem_byRef e    = text "element" <> ppUnqConId nx (elem_name e)
+    | elem_byRef e    = ppElemModifier (elem_modifier e)
+                                       (text "element"
+                                        <> ppUnqConId nx (elem_name e))
     | otherwise       = ppElemModifier (elem_modifier e)
                                        (text "parseSchemaType \""
                                         <> ppXName (elem_name e)
@@ -95,12 +97,16 @@ ppElem nx e@OneOf{}   = ppElemModifier (elem_modifier e)
   where
     n = length (elem_oneOf e)
     ppOneOf n (e,i) = text "fmap" <+> text (ordinal i ++"Of"++show n)
-                      <+> parens (ppElem nx e)
+                      <+> parens (ppSeqElem e)
     ordinal i | i <= 20   = ordinals!!i
               | otherwise = "Choice" ++ show i
     ordinals = ["Zero","One","Two","Three","Four","Five","Six","Seven","Eight"
                ,"Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen"
                ,"Sixteen","Seventeen","Eighteen","Nineteen","Twenty"]
+    ppSeqElem []  = PP.empty
+    ppSeqElem [e] = ppElem nx e
+    ppSeqElem es  = text ("return ("++replicate (length es-1) ','++")")
+                    <+> vcat (map (\e-> text "`apply`" <+> ppElem nx e) es)
 
 -- | Convert multiple HaskellTypeModel Decls to Haskell source text.
 ppHighLevelDecls :: NameConverter -> [Decl] -> Doc
@@ -338,7 +344,13 @@ ppElemTypeName nx brack e@Element{} =
 ppElemTypeName nx brack e@OneOf{}   = 
     brack $ ppTypeModifier (elem_modifier e) parens $
     text "OneOf" <> text (show (length (elem_oneOf e)))
-     <+> hsep (map (ppElemTypeName nx parens) (elem_oneOf e))
+     <+> hsep (map ppSeq (elem_oneOf e))
+  where
+    ppSeq []  = text "()"
+    ppSeq [e] = ppElemTypeName nx parens e
+    ppSeq es  = text "(" <> hcat (intersperse (text ",")
+                                     (map (ppElemTypeName nx parens) es))
+                         <> text ")"
 ppElemTypeName nx brack e@AnyElem{} =
     brack $ ppTypeModifier (elem_modifier e) id $
     text "AnyElement"

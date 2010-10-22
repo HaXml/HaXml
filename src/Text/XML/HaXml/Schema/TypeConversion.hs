@@ -129,7 +129,7 @@ convert env s = concatMap item (schema_items s)
             in
             ElementsAttrs n es' as (comment (complex_annotation ct))
 
-    mkMixedContent [e@OneOf{}] = [e{ elem_oneOf = Text: elem_oneOf e }]
+    mkMixedContent [e@OneOf{}] = [e{ elem_oneOf = [Text]: elem_oneOf e }]
     mkMixedContent es          = Text: concatMap (\e->[e,Text]) es
 
     topElementDecl :: XSD.ElementDecl -> [Haskell.Decl]
@@ -236,7 +236,7 @@ convert env s = concatMap item (schema_items s)
     choiceOrSeq :: ChoiceOrSeq -> [Haskell.Element]
     choiceOrSeq (XSD.All      ann eds)   = error "not yet implemented: XSD.All"
     choiceOrSeq (XSD.Choice   ann o ees) = [ OneOf (anyToEnd
-                                                     (concatMap elementEtc ees))
+                                                     (map elementEtc ees))
                                                    (Haskell.Range o)
                                                    (comment ann) ]
     choiceOrSeq (XSD.Sequence ann _ ees) = concatMap elementEtc ees
@@ -253,10 +253,10 @@ convert env s = concatMap item (schema_items s)
                            , elem_comment  = comment (any_annotation a) }]
 
     -- If an ANY element is part of a choice, ensure it is the last part.
-    anyToEnd :: [Haskell.Element] -> [Haskell.Element]
+    anyToEnd :: [[Haskell.Element]] -> [[Haskell.Element]]
     anyToEnd = go Nothing
-      where go _ (e@AnyElem{}:[]) = e:[]
-            go _ (e@AnyElem{}:es) = go (Just e) es
+      where go _ (e@[AnyElem{}]:[]) = e:[]
+            go _ (e@[AnyElem{}]:es) = go (Just e) es
             go Nothing  []        = []
             go (Just e) []        = e:[]
             go m (e:es)           = e:go m es
