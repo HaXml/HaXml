@@ -188,6 +188,8 @@ fpmlNameConverter = simpleNameConverter
     shortenWord "Underlying"  = "Underly"
     shortenWord "Properties"  = "Props"
     shortenWord "Property"    = "Prop"
+    shortenWord "Affirmation" = "Affirmation"
+    shortenWord "Affirmed"    = "Affirmed"
     shortenWord w | length w < 8 = w   -- then the general rule
                   | otherwise    = case splitAt 5 w of
                                      (pref,c:suf) | isVowel c -> pref
