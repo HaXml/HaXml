@@ -58,6 +58,7 @@ ppFieldId  nx = \t-> ppHName . fieldid nx t
 ppModule :: NameConverter -> Module -> Doc
 ppModule nx m =
     text "{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies #-}"
+    $$ text "{-# OPTIONS_GHC -fno-warn-duplicate-exports #-}"
     $$ text "module" <+> ppModId nx (module_name m)
     $$ nest 2 (text "( module" <+> ppModId nx (module_name m)
               $$ vcat (map (\(XSDInclude ex com)->
