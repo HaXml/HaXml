@@ -14,7 +14,7 @@ import Text.XML.HaXml.Schema.Parse (xsd)
 import qualified Data.Map as Map
 import Data.Map (Map)
 import Data.List (foldl')
-import Data.Maybe (fromMaybe,fromJust)
+import Data.Maybe (fromMaybe,fromJust,isNothing)
 import Data.Monoid
 
 -- | Given an environment of schema type mappings, and a schema module,
@@ -134,16 +134,27 @@ convert env s = concatMap item (schema_items s)
 
     topElementDecl :: XSD.ElementDecl -> [Haskell.Decl]
     topElementDecl ed = case elem_nameOrRef ed of
-        Left  n   -> singleton $
-                     case theType n of
+        Left  n   -> case theType n of
                        Nothing ->
                        --error "Not implemented: contentInfo on topElementDecl"
                          let (es,as) = contentInfo (elem_content ed) in
-                         ElementsAttrs ({-name-}xname $ theName n)
-                                       ({-elems-}es)
-                                       ({-attrs-}as)
-                                       (comment (elem_annotation ed))
+                         [ ElementsAttrs ({-name-}xname $ theName n)
+                                         ({-elems-}es)
+                                         ({-attrs-}as)
+                                         (comment (elem_annotation ed))
+                         , ElementOfType
+                               Element{ elem_name = xname (theName n)
+                                      , elem_type = checkXName s (N $ theName n)
+                                      , elem_modifier =
+                                                  Haskell.Range (elem_occurs ed)
+                                      , elem_byRef   = False
+                                      , elem_locals  = []
+                                      , elem_comment =
+                                                  (comment (elem_annotation ed))
+                                      }
+                         ]
                        Just t ->
+                         singleton $
                          ElementOfType Element{ elem_name = xname $ theName n
                                               , elem_type = checkXName s t
                                               , elem_modifier =
@@ -161,9 +172,9 @@ convert env s = concatMap item (schema_items s)
     elementDecl :: XSD.ElementDecl -> Haskell.Element
     elementDecl ed = case elem_nameOrRef ed of
         Left  n   -> Element ({-name-}xname $ theName n)
-                             ({-type-}maybe (xname "unknown") XName $ theType n)
+                             ({-type-}maybe (xname $ theName n{-"unknownElement"-}) XName $ theType n)
                              ({-modifier-}Haskell.Range $ elem_occurs ed)
-                             False -- by reference
+                             (isNothing $ theType n) -- False -- by reference
                              [] -- internal Decl
                              (comment (elem_annotation ed))
         Right ref -> case Map.lookup ref (env_element env) of
