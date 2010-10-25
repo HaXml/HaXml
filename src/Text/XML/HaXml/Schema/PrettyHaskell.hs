@@ -12,7 +12,7 @@ import Text.XML.HaXml.Schema.XSDTypeModel (Occurs(..))
 import Text.XML.HaXml.Schema.NameConversion
 import Text.PrettyPrint.HughesPJ as PP
 
-import List (intersperse)
+import List (intersperse,notElem)
 
 -- | Vertically pretty-print a list of things, with open and close brackets,
 --   and separators.
@@ -221,7 +221,7 @@ ppHighLevelDecl nx (EnumSimpleType t is comm) =
 ppHighLevelDecl nx (ElementsAttrs t es as comm) =
     ppComment Before comm
     $$ text "data" <+> ppUnqConId nx t <+> text "=" <+> ppUnqConId nx t
-        $$ nest 8 (ppFields nx t es as)
+        $$ nest 8 (ppFields nx t (uniqueify es) as)
     $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
         $$ nest 4 (text "parseSchemaType s = do" 
                   $$ nest 4 (text "(pos,e) <- posnElement [s]"
@@ -391,4 +391,19 @@ paragraph n s = go n (words s)
           go i (x:xs) | len<i     =       x++" "++go (i-len-1) xs
                       | otherwise = "\n"++x++" "++go (n-len-1) xs
               where len = length x
+
+uniqueify :: [Element] -> [Element]
+uniqueify = go []
+  where
+    go seen [] = []
+    go seen (e@Element{}:es)
+        | show (elem_name e) `elem` seen
+                    = let fresh = new (`elem`seen) (elem_name e) in
+                      e{elem_name=fresh} : go (show fresh:seen) es
+        | otherwise = e: go (show (elem_name e): seen) es
+    go seen (e:es)  = e : go seen es
+    new pred (XName (N n))     = XName $ N $ head $
+                                 dropWhile pred [(n++show i) | i <- [2..]]
+    new pred (XName (QN ns n)) = XName $ QN ns $ head $
+                                 dropWhile pred [(n++show i) | i <- [2..]]
 
