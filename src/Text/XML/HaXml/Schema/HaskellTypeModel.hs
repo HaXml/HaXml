@@ -5,8 +5,9 @@ module Text.XML.HaXml.Schema.HaskellTypeModel
   ) where
 
 import Text.XML.HaXml.Schema.NameConversion
-import Text.XML.HaXml.Schema.XSDTypeModel (Occurs)
-import Text.XML.HaXml.Types (QName(..))
+import Text.XML.HaXml.Schema.XSDTypeModel (Schema(..),Occurs)
+import Text.XML.HaXml.Schema.Parse (lookupBy)
+import Text.XML.HaXml.Types (QName(..),Namespace(..))
 import Data.List (partition)
 
 -- | Comments can be attached to most things, but not all of them will exist.
@@ -15,13 +16,17 @@ type Comment = Maybe String
 -- | The whole Haskell module.
 data Module    = Module
                  { module_name        :: XName   -- the name of this module
+                 , module_xsd_ns      :: Maybe XName -- xmlns:prefix for XSD
                  , module_re_exports  :: [Decl]  -- modules imported + exported
                  , module_import_only :: [Decl]  -- module + alias
                  , module_decls       :: [Decl]  -- the body of the module
                  }
 
-mkModule :: String -> [Decl] -> Module
-mkModule name decls = Module { module_name        = XName $ N name
+mkModule :: String -> Schema -> [Decl] -> Module
+mkModule name schema decls =
+                      Module { module_name        = XName $ N name
+                             , module_xsd_ns      = xsdQualification
+                                                      (schema_namespaces schema)
                              , module_re_exports  = reexports
                              , module_import_only = imports
                              , module_decls       = theRest
@@ -32,6 +37,9 @@ mkModule name decls = Module { module_name        = XName $ N name
           xsdinclude _                 = False
           xsdimport  (XSDImport _ _ _) = True
           xsdimport  _                 = False
+          xsdQualification nss = fmap (XName . N . nsPrefix) $
+                                      lookupBy ((==xsd).nsURI) nss
+              where xsd = "http://www.w3.org/2001/XMLSchema"
 
 
 -- | There are essentially simple types, and complex types, each of which

@@ -57,7 +57,7 @@ simpleNameConverter = NameConverter
 
     local               = (:[]) . Prelude.last . hierarchy
 
-    mkConid  [c]        | map toLower c == "string"     = "XsdString"
+    mkConid  [c]        | map toLower c == "string"     = "Xsd.XsdString"
                         | otherwise = first toUpper c
     mkConid [m,c]       | map toLower c == "string"     = "Xsd.XsdString"
                         | otherwise = first toUpper m++"."++first toUpper c

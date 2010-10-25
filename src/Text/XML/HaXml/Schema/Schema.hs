@@ -2,7 +2,7 @@
              TypeSynonymInstances, ExistentialQuantification #-}
 module Text.XML.HaXml.Schema.Schema
   ( SchemaType(..)
--- , SimpleType(..) -- already exported by PrimitiveTypes
+  , SimpleType(..) -- already exported by PrimitiveTypes
   , Extension(..)
   , Restricts(..)
   , getAttribute
@@ -14,7 +14,8 @@ module Text.XML.HaXml.Schema.Schema
   , parseAnyElement
   , module Text.XML.HaXml.XmlContent.Parser
   , module Text.ParserCombinators.Poly
-  , module Text.XML.HaXml.Schema.PrimitiveTypes
+  , module Text.Parse
+--  , module Text.XML.HaXml.Schema.PrimitiveTypes
   , module Text.XML.HaXml.OneOfN
   ) where
 

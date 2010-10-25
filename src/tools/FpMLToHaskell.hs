@@ -109,7 +109,7 @@ main = do
     flip mapM_ environs (\ (inf,(env,outf,v))-> do
         o <- openFile outf WriteMode
         let decls   = XsdToH.convert env v
-            haskell = Haskell.mkModule inf decls
+            haskell = Haskell.mkModule inf v decls
             doc     = ppModule fpmlNameConverter haskell
         hPutStrLn stdout $ "Writing "++outf
         hPutStrLn o $ render doc

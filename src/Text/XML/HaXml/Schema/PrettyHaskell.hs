@@ -67,7 +67,10 @@ ppModule nx m =
                            (module_re_exports m))
               $$ text ") where")
     $$ text " "
-    $$ text "import Text.XML.HaXml.Schema.Schema as Xsd"
+    $$ text "import Text.XML.HaXml.Schema.Schema as Schema"
+    $$ (case module_xsd_ns m of
+         Nothing -> text "import Text.XML.HaXml.Schema.PrimitiveTypes as Xsd"
+         Just ns -> text "import qualified Text.XML.HaXml.Schema.PrimitiveTypes as"<+>ppConId nx ns)
     $$ vcat (map (ppHighLevelDecl nx)
                  (module_re_exports m ++ module_import_only m))
     $$ text " "
