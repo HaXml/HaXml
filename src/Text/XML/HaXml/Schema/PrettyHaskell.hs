@@ -57,8 +57,7 @@ ppFieldId  nx = \t-> ppHName . fieldid nx t
 -- | Convert a whole document from HaskellTypeModel to Haskell source text.
 ppModule :: NameConverter -> Module -> Doc
 ppModule nx m =
-    text "{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies,"
-    $$ text "             ExistentialQuantification #-}"
+    text "{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies #-}"
     $$ text "{-# OPTIONS_GHC -fno-warn-duplicate-exports #-}"
     $$ text "module" <+> ppModId nx (module_name m)
     $$ nest 2 (text "( module" <+> ppModId nx (module_name m)
@@ -68,6 +67,7 @@ ppModule nx m =
                            (module_re_exports m))
               $$ text ") where")
     $$ text " "
+    $$ text "import Text.XML.HaXml.Schema.Schema (SchemaType(..),SimpleType(..),Extension(..),Restricts(..))"
     $$ text "import Text.XML.HaXml.Schema.Schema as Schema"
     $$ (case module_xsd_ns m of
          Nothing -> text "import Text.XML.HaXml.Schema.PrimitiveTypes as Xsd"
