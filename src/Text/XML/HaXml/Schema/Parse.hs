@@ -4,7 +4,7 @@ module Text.XML.HaXml.Schema.Parse
 
 import Char (isSpace)
 import List (isPrefixOf)
-import Data.Monoid (mappend)
+import Data.Monoid (Monoid(mappend))
 -- import Text.ParserCombinators.Poly
 import Text.Parse    -- for String parsers
 

@@ -40,7 +40,6 @@ library
         Text.XML.HaXml.Pretty,
         Text.XML.HaXml.SAX,
         Text.XML.HaXml.Schema.Parse,
-        Text.XML.HaXml.Schema.Schema,
         Text.XML.HaXml.Schema.XSDTypeModel,
         Text.XML.HaXml.Schema.HaskellTypeModel,
         Text.XML.HaXml.Schema.NameConversion,
@@ -60,6 +59,9 @@ library
         Text.XML.HaXml.Xtract.Combinators,
         Text.XML.HaXml.Xtract.Lex,
         Text.XML.HaXml.Xtract.Parse
+  if impl(ghc)
+    exposed-modules:
+        Text.XML.HaXml.Schema.Schema
   hs-source-dirs: src
   build-depends: haskell98, polyparse >= 1.2, filepath
   if flag(splitBase)
