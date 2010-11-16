@@ -218,7 +218,7 @@ ppHighLevelDecl nx (EnumSimpleType t is comm) =
     parseItem (i,_) = text "do isWord \"" <> ppXName i <> text "\"; return"
                            <+> (ppUnqConId nx t <> text "_" <> ppConId nx i)
 
-ppHighLevelDecl nx (ElementsAttrs t es as comm) =
+ppHighLevelDecl nx (ElementsAttrs t es as abstr comm) =
     ppComment Before comm
     $$ text "data" <+> ppUnqConId nx t <+> text "=" <+> ppUnqConId nx t
         $$ nest 8 (ppFields nx t (uniqueify es) as)
@@ -281,7 +281,7 @@ ppHighLevelDecl nx (RestrictComplexType t s comm) =
 		-- XXX should enforce the restriction.
 
 {-
-ppHighLevelDecl nx (ExtendComplexType t s es as comm)
+ppHighLevelDecl nx (ExtendComplexType t s es as _ comm)
     | length es + length as = 1 =
     ppComment Before comm
     $$ text "data" <+> ppConId nx t <+> text "="
@@ -292,8 +292,8 @@ ppHighLevelDecl nx (ExtendComplexType t s es as comm)
         $$ nest 4 (text "supertype (" <> ppConId nx t <> text " s e) = s"
                    $$ text "extension (" <> ppConId nx t <> text " s e) = e")
 -}
-ppHighLevelDecl nx (ExtendComplexType t s oes oas es as comm) =
-    ppHighLevelDecl nx (ElementsAttrs t (oes++es) (oas++as) comm)
+ppHighLevelDecl nx (ExtendComplexType t s oes oas es as abstr comm) =
+    ppHighLevelDecl nx (ElementsAttrs t (oes++es) (oas++as) abstr comm)
     $$ text "instance Extension" <+> ppUnqConId nx t <+> ppUnqConId nx s
                                  <+> text "where"
         $$ nest 4 (text "supertype (" <> ppType t (oes++es) (oas++as)

@@ -119,6 +119,7 @@ convert env s = concatMap item (schema_items s)
                                      ({-supertype attrs-}oldAs)
                                      ({-elems-}es)
                                      ({-attrs-}as)
+                                     (complex_abstract ct)
                                      (comment (complex_annotation ct
                                               `mappend` ci_annotation c
                                               `mappend` extension_annotation e))
@@ -127,7 +128,8 @@ convert env s = concatMap item (schema_items s)
                 es'     | complex_mixed ct = mkMixedContent es
                         | otherwise        = es
             in
-            ElementsAttrs n es' as (comment (complex_annotation ct))
+            ElementsAttrs n es' as (complex_abstract ct)
+                                   (comment (complex_annotation ct))
 
     mkMixedContent [e@OneOf{}] = [e{ elem_oneOf = [Text]: elem_oneOf e }]
     mkMixedContent es          = Text: concatMap (\e->[e,Text]) es
@@ -141,6 +143,7 @@ convert env s = concatMap item (schema_items s)
                          [ ElementsAttrs ({-name-}xname $ theName n)
                                          ({-elems-}es)
                                          ({-attrs-}as)
+                                         (elem_abstract ed)
                                          (comment (elem_annotation ed))
                          , ElementOfType
                                Element{ elem_name = xname (theName n)
