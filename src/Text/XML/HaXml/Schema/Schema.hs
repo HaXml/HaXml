@@ -12,7 +12,14 @@ module Text.XML.HaXml.Schema.Schema
   , parseText
   , AnyElement(..)
   , parseAnyElement
-  , module Text.XML.HaXml.XmlContent.Parser
+--  , module Text.XML.HaXml.XmlContent.Parser -- no, just the things below
+  , Content(..)
+  , XMLParser(..)
+  , posnElement
+  , posnElementWith
+  , element
+  , interior
+  , text
   , module Text.ParserCombinators.Poly
   , module Text.Parse
 --  , module Text.XML.HaXml.Schema.PrimitiveTypes
