@@ -19,6 +19,7 @@ import Data.List (foldl')
 --       attribute name  to definition
 --       (element) group to definition
 --       attribute group to definition
+--       substitution group to its substitutable elements
 -- * XSD types become top-level types in Haskell.
 -- * XSD element decls also become top-level types in Haskell.
 -- * Element groups get their own Haskell types too.
@@ -37,12 +38,13 @@ data Environment =  Environment
     , env_group     :: Map QName Group
     , env_attrgroup :: Map QName AttrGroup
     , env_namespace :: Map String{-URI-} String{-Prefix-}
+    , env_substGrp  :: Map QName [QName]  -- ^ substitution groups
     }
 
 -- | An empty environment of XSD type mappings.
 emptyEnv :: Environment
 emptyEnv = Environment Map.empty Map.empty Map.empty
-                       Map.empty Map.empty Map.empty
+                       Map.empty Map.empty Map.empty Map.empty
 
 -- | Combine two environments (e.g. read from different interface files)
 combineEnv :: Environment -> Environment -> Environment
@@ -53,6 +55,7 @@ combineEnv e1 e0 = Environment
     , env_group     = Map.union (env_group e1)     (env_group e0)
     , env_attrgroup = Map.union (env_attrgroup e1) (env_attrgroup e0)
     , env_namespace = Map.union (env_namespace e1) (env_namespace e0)
+    , env_substGrp  = Map.unionWith (++) (env_substGrp e1) (env_substGrp e0)
     }
 
 -- | Build an environment of XSD type mappings from a schema module.
@@ -94,9 +97,16 @@ mkEnvironment s init = foldl' item (addNS init (schema_namespaces s))
                                                             (env_type env)}
     elementDecl env e
       | Right r <- elem_nameOrRef e = env
+      | Just sg <- elem_substGroup e, 
+        Left nt <- elem_nameOrRef e = env{env_substGrp=Map.insertWith (++) sg
+                                                          [mkN $ theName nt]
+                                                          (env_substGrp env)
+                                         ,env_element=Map.insert
+                                                          (mkN $ theName nt) e
+                                                          (env_element env)}
       | Left nt <- elem_nameOrRef e = env{env_element=Map.insert
-                                                            (mkN $ theName nt) e
-                                                            (env_element env)}
+                                                          (mkN $ theName nt) e
+                                                          (env_element env)}
     attributeDecl env a
       | Right r <- attr_nameOrRef a = env
       | Left nt <- attr_nameOrRef a = env{env_attribute=
@@ -104,7 +114,8 @@ mkEnvironment s init = foldl' item (addNS init (schema_namespaces s))
                                                        (env_attribute env)}
     attrGroup env g
       | Right r <- attrgroup_nameOrRef g = env
-      | Left n  <- attrgroup_nameOrRef g = env{env_attrgroup=Map.insert (mkN n) g
+      | Left n  <- attrgroup_nameOrRef g = env{env_attrgroup=Map.insert
+                                                           (mkN n) g
                                                            (env_attrgroup env)}
     group env g
       | Right r <- group_nameOrRef g = env
