@@ -68,16 +68,33 @@ data Decl
                  --   or    data T  = T { manyattr, singlefield }
                  --   or    data T  = T { t_attrs :: Ta, fields }
                  --       + data Ta = Ta { attributes }
-                 -- or if T is abstract, it becomes
-                 --         class T a where parseT :: String -> XMLParser a
-               | ElementsAttrs XName [Element] [Attribute] Bool Comment
+               | ElementsAttrs XName [Element] [Attribute] Comment
 
-                 -- becomes function elementE = parseElement "E" :: Parser T
-                 -- or, if E is abstract
-                 --    elementE :: T a => Parser a
-                 --    elementE = fmap E_Foo parseElement "Foo" `onFail`
-                 --               fmap E_Bar parseELement "Bar" `onFail` ...
+                 -- or if T is abstract, it becomes
+                 --         data T = T_A  A
+                 --                | T_B  B
+                 --                | FwdDecl fc c => T_C (fc->c) fc
+                 --                | ...
+                 --         data FwdC = FwdC -- because C is not yet in scope
+                 --         instance FwdDecl FwdC C  -- later, at defn of C
+                 --
+                 -- An earlier solution was
+                 --         class T a where parseT :: String -> XMLParser a
+                 --         instance T A
+                 --         instance T B
+                 --         instance T C
+                 -- but this is incorrect because the choice between A|B|C
+                 -- rests with the input doc, not with the caller of the parser.
+               | ElementsAttrsAbstract XName [XName] Comment
+
+                 -- becomes function
+                 --    elementE :: Parser T
+                 --    elementE = parseElement "E"
                | ElementOfType Element
+                 -- or, if E is abstract, with substitutionGroup {aFoo,aBar},
+                 --    elementE = fmap T_Foo $ elementFoo "aFoo" `onFail`
+                 --               fmap T_Bar $ elementBar "aBar" `onFail` ...
+               | ElementAbstractOfType XName [(XName,XName)] Comment
 
                  -- becomes (global) data T = E0 e0 | E1 e1 | E2 e2 | E3 e3
                  -- becomes (local)  OneOfN e0 e1 e2 e3
@@ -96,15 +113,18 @@ data Decl
                  -- becomes data T  = T  S Tf
                  --       + data Tf = Tf {fields}
                  --       + instance Extension T S Tf where ...
-                 -- or when T extends an _abstract_ XSDtype S, it becomes
-                 --        instance S T where parseS = parseSchemaType
-                 -- or when T is itself abstract, extending an abstract type S
-                 --        class T a where parseT :: String -> XMLParser a
-                 --        instance (T a) => S a where parseS = parseT
+                 -- or when T extends an _abstract_ XSDtype S, defined in an
+                 -- earlier module, it additionally has
+                 --        instance FwdDecl FwdT T
       --       | ExtendComplexType XName XName [Element] [Attribute] Comment
                | ExtendComplexType XName XName [Element] [Attribute]
                                                [Element] [Attribute]
-                                               Bool Comment
+                                               {-FwdDecl req'd-}Bool Comment
+                 -- or when T is itself abstract, extending an abstract type S
+                 --        class T a where parseT :: String -> XMLParser a
+                 --        instance (T a) => S a where parseS = parseT
+               | ExtendComplexTypeAbstract XName XName [XName]
+                                               {-FwdDecl req'd-}Bool Comment
 
                  -- becomes an import and re-export
                | XSDInclude XName Comment
@@ -119,7 +139,7 @@ data Element   = Element { elem_name     :: XName
                          , elem_modifier :: Modifier
                          , elem_byRef    :: Bool
                          , elem_locals   :: [Decl]
-                         , elem_abstract :: Bool
+                      -- , elem_abstract :: Bool
                          , elem_comment  :: Comment
                          }
                | OneOf   { elem_oneOf    :: [[Element]]

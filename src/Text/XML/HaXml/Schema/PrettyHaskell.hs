@@ -57,7 +57,8 @@ ppFieldId  nx = \t-> ppHName . fieldid nx t
 -- | Convert a whole document from HaskellTypeModel to Haskell source text.
 ppModule :: NameConverter -> Module -> Doc
 ppModule nx m =
-    text "{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies #-}"
+    text "{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies,"
+    $$ text "             ExistentialQuantification #-}"
     $$ text "{-# OPTIONS_GHC -fno-warn-duplicate-exports #-}"
     $$ text "module" <+> ppModId nx (module_name m)
     $$ nest 2 (text "( module" <+> ppModId nx (module_name m)
@@ -241,10 +242,10 @@ ppHighLevelDecl nx (ElementsAttrs t es as abstr comm) =
     ppApplyElem e = text "`apply`" <+> ppElem nx e
 
 ppHighLevelDecl nx (ElementOfType e@Element{}) =
-    (text "element" <> ppUnqConId nx (elem_name e)) <+> text "::"
+    ppComment Before (elem_comment e)
+    $$ (text "element" <> ppUnqConId nx (elem_name e)) <+> text "::"
         <+> text "XMLParser" <+> ppConId nx (elem_type e)
-    $$
-    (text "element" <> ppUnqConId nx (elem_name e)) <+> text "="
+    $$ (text "element" <> ppUnqConId nx (elem_name e)) <+> text "="
         <+> (text "parseSchemaType \"" <> ppXName (elem_name e)  <> text "\"")
 
 ppHighLevelDecl nx (Choice t es comm) =
@@ -293,7 +294,7 @@ ppHighLevelDecl nx (ExtendComplexType t s es as _ comm)
                    $$ text "extension (" <> ppConId nx t <> text " s e) = e")
 -}
 ppHighLevelDecl nx (ExtendComplexType t s oes oas es as abstr comm) =
-    ppHighLevelDecl nx (ElementsAttrs t (oes++es) (oas++as) abstr comm)
+    ppHighLevelDecl nx (ElementsAttrs t (oes++es) (oas++as) comm)
     $$ text "instance Extension" <+> ppUnqConId nx t <+> ppUnqConId nx s
                                  <+> text "where"
         $$ nest 4 (text "supertype (" <> ppType t (oes++es) (oas++as)
