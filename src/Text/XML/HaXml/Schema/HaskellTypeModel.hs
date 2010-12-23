@@ -85,16 +85,16 @@ data Decl
                  --         instance T C
                  -- but this is incorrect because the choice between A|B|C
                  -- rests with the input doc, not with the caller of the parser.
-               | ElementsAttrsAbstract XName [XName] Comment
+               | ElementsAttrsAbstract XName [(XName,Bool)] Comment
 
                  -- becomes function
                  --    elementE :: Parser T
-                 --    elementE = parseElement "E"
+                 --    elementE = parseSchemaType "E"
                | ElementOfType Element
-                 -- or, if E is abstract, with substitutionGroup {aFoo,aBar},
-                 --    elementE = fmap T_Foo $ elementFoo "aFoo" `onFail`
-                 --               fmap T_Bar $ elementBar "aBar" `onFail` ...
-               | ElementAbstractOfType XName [(XName,XName)] Comment
+                 -- or, if E is abstract, with substitutionGroup {Foo,Bar},
+                 --    elementE = fmap T_Foo elementFoo `onFail`
+                 --               fmap T_Bar elementBar `onFail` ...
+               | ElementAbstractOfType XName XName [(XName,XName)] Comment
 
                  -- becomes (global) data T = E0 e0 | E1 e1 | E2 e2 | E3 e3
                  -- becomes (local)  OneOfN e0 e1 e2 e3
@@ -123,7 +123,7 @@ data Decl
                  -- or when T is itself abstract, extending an abstract type S
                  --        class T a where parseT :: String -> XMLParser a
                  --        instance (T a) => S a where parseS = parseT
-               | ExtendComplexTypeAbstract XName XName [XName]
+               | ExtendComplexTypeAbstract XName XName [(XName,Bool)]
                                                {-FwdDecl req'd-}Bool Comment
 
                  -- becomes an import and re-export

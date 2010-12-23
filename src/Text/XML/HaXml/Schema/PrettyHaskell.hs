@@ -54,6 +54,9 @@ ppUnqConId nx = ppHName . unqconid nx
 ppUnqVarId nx = ppHName . unqvarid nx
 ppFieldId  nx = \t-> ppHName . fieldid nx t
 
+ppJoinConId :: NameConverter -> XName -> XName -> Doc
+ppJoinConId nx p q = ppHName (conid nx p) <> text "_" <> ppHName (conid nx q)
+
 -- | Convert a whole document from HaskellTypeModel to Haskell source text.
 ppModule :: NameConverter -> Module -> Doc
 ppModule nx m =
@@ -220,7 +223,7 @@ ppHighLevelDecl nx (EnumSimpleType t is comm) =
     parseItem (i,_) = text "do isWord \"" <> ppXName i <> text "\"; return"
                            <+> (ppUnqConId nx t <> text "_" <> ppConId nx i)
 
-ppHighLevelDecl nx (ElementsAttrs t es as abstr comm) =
+ppHighLevelDecl nx (ElementsAttrs t es as comm) =
     ppComment Before comm
     $$ text "data" <+> ppUnqConId nx t <+> text "=" <+> ppUnqConId nx t
         $$ nest 8 (ppFields nx t (uniqueify es) as)
@@ -242,12 +245,61 @@ ppHighLevelDecl nx (ElementsAttrs t es as abstr comm) =
                              hsep [text ("a"++show n) | n <- [0..length as-1]])
     ppApplyElem e = text "`apply`" <+> ppElem nx e
 
+ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
+    ppComment Before comm
+    $$ text "data" <+> ppUnqConId nx t
+        $$ nest 8 (ppvList "=" "|" "" ppAbstrCons insts)
+    $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
+        $$ nest 4 (text "parseSchemaType s = do" 
+                  $$ nest 4 (vcat (intersperse (text "`onFail`")
+                                               (map ppParse insts)
+                                   ++ [text "`onFail` fail" <+> errmsg]))
+    $$ vcat (map (ppFwdDecl . fst) $ filter snd insts)
+  where
+    ppAbstrCons (name,False) = con name <+> ppConId nx name
+    ppAbstrCons (name,True)  = text "forall q . (FwdDecl" <+>
+                               fwd name <+> text "q," <+>
+                               text "SchemaType q) =>" <+>
+                               con name <+>
+                               text "("<>fwd name<>text"->q)" <+> fwd name
+    ppParse (name,False) = text "(fmap" <+> con name <+>
+                           text "$ parseSchemaType s)"
+    ppParse (name,True)  = text "(return" <+> con name <+>
+                           text "`apply` (fmap const $ parseSchemaType s)" <+>
+                           text "`apply` return" <+> fwd name <> text ")"
+    ppFwdDecl name = text "data" <+> fwd name <+> text "=" <+> fwd name
+    errmsg = text "\"Parse failed when expecting an extension type of"
+             <+> ppXName t <> text ",\n  namely one of:\n"
+             <> hcat (intersperse (text ",")
+                                  (map (ppXName . fst) insts))
+             <> text "\""
+    fwd name = text "Fwd" <> ppConId nx name
+    con name = ppJoinConId nx t name
+
+--------------------------------------------------------------
+
 ppHighLevelDecl nx (ElementOfType e@Element{}) =
     ppComment Before (elem_comment e)
     $$ (text "element" <> ppUnqConId nx (elem_name e)) <+> text "::"
         <+> text "XMLParser" <+> ppConId nx (elem_type e)
     $$ (text "element" <> ppUnqConId nx (elem_name e)) <+> text "="
         <+> (text "parseSchemaType \"" <> ppXName (elem_name e)  <> text "\"")
+
+ppHighLevelDecl nx (ElementAbstractOfType n t substgrp comm) =
+    ppComment Before comm
+    $$ (text "element" <> ppUnqConId nx n) <+> text "::"
+        <+> text "XMLParser" <+> ppConId nx t
+    $$ (text "element" <> ppUnqConId nx n) <+> text "="
+       vcat (intersperse (text "`onFail`") (map ppOne substgrp)
+             ++ [text "`onFail` fail" <+> errmsg])
+  where
+    ppOne (c,e) = text "fmap" <+> ppJoinConId nx t c
+                  <+> (text "element" <> ppConId e)
+    errmsg = text "\"Parse failed when expecting an element in the substitution group for\n  <"
+             <> ppXName n <> text ">,\nnamely one of:\n<"
+             <> hcat (intersperse (text ">, <")
+                                  (map (ppXName . snd) substgrp))
+             <> text ">\""
 
 ppHighLevelDecl nx (Choice t es comm) =
     ppComment Before comm
@@ -305,6 +357,19 @@ ppHighLevelDecl nx (ExtendComplexType t s oes oas es as abstr comm) =
     ppType t es as = ppUnqConId nx t
                      <+> hsep (take (length as) [text ('a':show n) | n<-[0..]])
                      <+> hsep (take (length es) [text ('e':show n) | n<-[0..]])
+
+ppHighLevelDecl nx (ExtendComplexTypeAbstract t s insts fwdReqd comm) =
+    text "ExtendComplexTypeAbstract not implemented"
+--  ppHighLevelDecl nx (ElementsAttrs t (oes++es) (oas++as) comm)
+--  $$ text "instance Extension" <+> ppUnqConId nx t <+> ppUnqConId nx s
+--                               <+> text "where"
+--      $$ nest 4 (text "supertype (" <> ppType t (oes++es) (oas++as)
+--                                    <> text ") ="
+--                                    $$ nest 11 (ppType s oes oas) )
+--where
+--  ppType t es as = ppUnqConId nx t
+--                   <+> hsep (take (length as) [text ('a':show n) | n<-[0..]])
+--                   <+> hsep (take (length es) [text ('e':show n) | n<-[0..]])
 
 ppHighLevelDecl nx (XSDInclude m comm) =
     ppComment After comm
