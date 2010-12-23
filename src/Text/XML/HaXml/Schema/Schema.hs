@@ -5,6 +5,7 @@ module Text.XML.HaXml.Schema.Schema
   , SimpleType(..) -- already exported by PrimitiveTypes
   , Extension(..)
   , Restricts(..)
+  , FwdDecl(..)
   , getAttribute
   , between
   , Occurs(..)
@@ -53,6 +54,12 @@ class Extension t s | t -> s where
 --   than s, but all the values t does admit also belong to the type s.
 class Restricts t s | t -> s where
     restricts :: t -> s
+
+-- | A trick to enable forward-declaration of a type that will be defined
+--   properly in another module, higher in the dependency graph. 'fd' is
+--   a dummy type e.g. the empty @data FwdA@, where 'a' is the proper
+--   @data A@, not yet available.
+class FwdDecl fd a | fd -> a
 
 -- | Given a TextParser for a SimpleType, make it into an XMLParser, i.e.
 --   consuming textual XML content as input rather than a String.
