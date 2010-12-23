@@ -38,12 +38,13 @@ data Environment =  Environment
     , env_group     :: Map QName Group
     , env_attrgroup :: Map QName AttrGroup
     , env_namespace :: Map String{-URI-} String{-Prefix-}
+    , env_extendty  :: Map QName [QName]  -- ^ extension types
     , env_substGrp  :: Map QName [QName]  -- ^ substitution groups
     }
 
 -- | An empty environment of XSD type mappings.
 emptyEnv :: Environment
-emptyEnv = Environment Map.empty Map.empty Map.empty
+emptyEnv = Environment Map.empty Map.empty Map.empty Map.empty
                        Map.empty Map.empty Map.empty Map.empty
 
 -- | Combine two environments (e.g. read from different interface files)
@@ -55,6 +56,7 @@ combineEnv e1 e0 = Environment
     , env_group     = Map.union (env_group e1)     (env_group e0)
     , env_attrgroup = Map.union (env_attrgroup e1) (env_attrgroup e0)
     , env_namespace = Map.union (env_namespace e1) (env_namespace e0)
+    , env_extendty  = Map.unionWith (++) (env_extendty e1) (env_extendty e0)
     , env_substGrp  = Map.unionWith (++) (env_substGrp e1) (env_substGrp e0)
     }
 
@@ -93,12 +95,22 @@ mkEnvironment s init = foldl' item (addNS init (schema_namespaces s))
     -- (Latter not good, because it potentially duplicates exprs?)
     complex env c
       | Nothing <- complex_name c = env
+      | Right extn <- isExtn $ complex_content c
+      , Just n  <- complex_name c = env{env_extendty =
+                                            Map.insertWith (++)
+                                                (extension_base extn)
+                                                [mkN n] (env_extendty env)
+                                       ,env_type=Map.insert (mkN n) (Right c)
+                                                            (env_type env)}
       | Just n  <- complex_name c = env{env_type=Map.insert (mkN n) (Right c)
                                                             (env_type env)}
+          where isExtn x@SimpleContent{}  = ci_stuff x
+                isExtn x@ComplexContent{} = ci_stuff x
+                isExtn x@ThisType{}       = Left undefined
     elementDecl env e
       | Right r <- elem_nameOrRef e = env
-      | Just sg <- elem_substGroup e, 
-        Left nt <- elem_nameOrRef e = env{env_substGrp=Map.insertWith (++) sg
+      | Just sg <- elem_substGroup e
+      , Left nt <- elem_nameOrRef e = env{env_substGrp=Map.insertWith (++) sg
                                                           [mkN $ theName nt]
                                                           (env_substGrp env)
                                          ,env_element=Map.insert
