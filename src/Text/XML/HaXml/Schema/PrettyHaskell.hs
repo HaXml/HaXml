@@ -253,7 +253,7 @@ ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
         $$ nest 4 (text "parseSchemaType s = do" 
                   $$ nest 4 (vcat (intersperse (text "`onFail`")
                                                (map ppParse insts)
-                                   ++ [text "`onFail` fail" <+> errmsg]))
+                                   ++ [text "`onFail` fail" <+> errmsg])))
     $$ vcat (map (ppFwdDecl . fst) $ filter snd insts)
   where
     ppAbstrCons (name,False) = con name <+> ppConId nx name
@@ -290,11 +290,11 @@ ppHighLevelDecl nx (ElementAbstractOfType n t substgrp comm) =
     $$ (text "element" <> ppUnqConId nx n) <+> text "::"
         <+> text "XMLParser" <+> ppConId nx t
     $$ (text "element" <> ppUnqConId nx n) <+> text "="
-       vcat (intersperse (text "`onFail`") (map ppOne substgrp)
-             ++ [text "`onFail` fail" <+> errmsg])
+       <+> vcat (intersperse (text "`onFail`") (map ppOne substgrp)
+                 ++ [text "`onFail` fail" <+> errmsg])
   where
     ppOne (c,e) = text "fmap" <+> ppJoinConId nx t c
-                  <+> (text "element" <> ppConId e)
+                  <+> (text "element" <> ppConId nx e)
     errmsg = text "\"Parse failed when expecting an element in the substitution group for\n  <"
              <> ppXName n <> text ">,\nnamely one of:\n<"
              <> hcat (intersperse (text ">, <")
