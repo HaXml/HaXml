@@ -139,7 +139,8 @@ data Element   = Element { elem_name     :: XName
                          , elem_modifier :: Modifier
                          , elem_byRef    :: Bool
                          , elem_locals   :: [Decl]
-                         , elem_abstract :: Bool
+                      -- , elem_abstract :: Bool
+                         , elem_substs   :: Maybe [XName] -- substitutable elems
                          , elem_comment  :: Comment
                          }
                | OneOf   { elem_oneOf    :: [[Element]]
