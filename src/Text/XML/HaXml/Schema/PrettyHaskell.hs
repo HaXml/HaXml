@@ -293,12 +293,15 @@ ppHighLevelDecl nx (ElementAbstractOfType n t substgrp comm) =
        <+> vcat (intersperse (text "`onFail`") (map ppOne substgrp)
                  ++ [text "`onFail` fail" <+> errmsg])
   where
-    ppOne (c,e) = text "fmap" <+> ppJoinConId nx t c
-                  <+> (text "element" <> ppConId nx e)
+    ppOne (c,False) = text "fmap" <+> ppJoinConId nx t c
+                      <+> (text "element" <> ppConId nx c)
+    ppOne (c,True)  = text "fmap" <+> ppJoinConId nx t c
+                      <+> (text "element" <> ppConId nx c)
+                      <+> text "-- FIXME: element is forward-declared"
     errmsg = text "\"Parse failed when expecting an element in the substitution group for\n  <"
              <> ppXName n <> text ">,\nnamely one of:\n<"
              <> hcat (intersperse (text ">, <")
-                                  (map (ppXName . snd) substgrp))
+                                  (map (ppXName . fst) substgrp))
              <> text ">\""
 
 ppHighLevelDecl nx (Choice t es comm) =

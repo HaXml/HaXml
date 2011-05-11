@@ -94,7 +94,7 @@ data Decl
                  -- or, if E is abstract, with substitutionGroup {Foo,Bar},
                  --    elementE = fmap T_Foo elementFoo `onFail`
                  --               fmap T_Bar elementBar `onFail` ...
-               | ElementAbstractOfType XName XName [(XName,XName)] Comment
+               | ElementAbstractOfType XName XName [(XName,Bool)] Comment
 
                  -- becomes (global) data T = E0 e0 | E1 e1 | E2 e2 | E3 e3
                  -- becomes (local)  OneOfN e0 e1 e2 e3

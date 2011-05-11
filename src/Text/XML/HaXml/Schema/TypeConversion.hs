@@ -82,7 +82,8 @@ convert env s = concatMap item (schema_items s)
               squeeze xs []             = Just xs
 
     complex ct =
-      let n   = xname $ fromMaybe ("errorMissingName") (complex_name ct)
+      let nx  = N $ fromMaybe ("errorMissingName") (complex_name ct)
+          n   = XName nx
       in singleton $
       case complex_content ct of
         c@SimpleContent{}  ->
@@ -105,13 +106,35 @@ convert env s = concatMap item (schema_items s)
                     RestrictComplexType n ({-complex-}xname $ "Can'tBeRight")
                                      (comment (complex_annotation ct
                                               `mappend` ci_annotation c))
-                Right e ->
+                Right e | complex_abstract ct ->
+                    let myLoc  = fromMaybe "NUL"
+                                           (Map.lookup nx (env_superloc env))
+                        supLoc = fromMaybe "NUL"
+                                           (Map.lookup (extension_base e)
+                                                       (env_superloc env))
+                    in
+                    ExtendComplexTypeAbstract n
+                                     ({-supertype-}XName $ extension_base e)
+                                     ({-subtypes-}
+                                      maybe (error "ECTA")
+                                            (map (\(t,l)->(XName t,l/=myLoc)))
+                                            (Map.lookup nx (env_extendty env)))
+                                     ({-fwddecl-}myLoc/=supLoc)
+                                     (comment (complex_annotation ct
+                                              `mappend` ci_annotation c
+                                              `mappend` extension_annotation e))
+                Right e | otherwise ->
                     let (es,as) = particleAttrs (extension_newstuff e)
                         es'     | ci_mixed c = mkMixedContent es
                                 | otherwise  = es
                         (oldEs,oldAs) = contentInfo $
                                             Map.lookup (extension_base e)
                                                        (env_type env)
+                        myLoc  = fromMaybe "NUL"
+                                           (Map.lookup nx (env_superloc env))
+                        supLoc = fromMaybe "NUL"
+                                           (Map.lookup (extension_base e)
+                                                       (env_superloc env))
                     in
                     ExtendComplexType n
                                      ({-supertype-}XName $ extension_base e)
@@ -119,20 +142,25 @@ convert env s = concatMap item (schema_items s)
                                      ({-supertype attrs-}oldAs)
                                      ({-elems-}es)
                                      ({-attrs-}as)
-                                     (complex_abstract ct)
+                                     ({-fwddecl-}myLoc/=supLoc)
                                      (comment (complex_annotation ct
                                               `mappend` ci_annotation c
                                               `mappend` extension_annotation e))
         c@ThisType{} | complex_abstract ct ->
-            ElementsAttrsAbstract n {-all instance types-}[]
-                                   (comment (complex_annotation ct))
+            let myLoc  = fromMaybe "NUL"
+                                   (Map.lookup nx (env_superloc env)) in
+            ElementsAttrsAbstract n
+                          {-all instance types: -}
+                          (map (\ (x,loc)->(XName x,loc/=myLoc))
+                               $ fromMaybe []
+                               $ Map.lookup nx (env_extendty env))
+                          (comment (complex_annotation ct))
         c@ThisType{} | otherwise ->
             let (es,as) = particleAttrs (ci_thistype c)
                 es'     | complex_mixed ct = mkMixedContent es
                         | otherwise        = es
             in
-            ElementsAttrs n es' as {-(complex_abstract ct)-}
-                                   (comment (complex_annotation ct))
+            ElementsAttrs n es' as (comment (complex_annotation ct))
 
     mkMixedContent [e@OneOf{}] = [e{ elem_oneOf = [Text]: elem_oneOf e }]
     mkMixedContent es          = Text: concatMap (\e->[e,Text]) es
@@ -142,11 +170,11 @@ convert env s = concatMap item (schema_items s)
         Left  n   -> case theType n of
                        Nothing ->
                        --error "Not implemented: contentInfo on topElementDecl"
+                       --I'm pretty sure a topElementDecl can't be abstract...
                          let (es,as) = contentInfo (elem_content ed) in
                          [ ElementsAttrs ({-name-}xname $ theName n)
                                          ({-elems-}es)
                                          ({-attrs-}as)
-                                      -- (elem_abstract ed)
                                          (comment (elem_annotation ed))
                          , ElementOfType
                                Element{ elem_name = xname (theName n)
@@ -160,19 +188,32 @@ convert env s = concatMap item (schema_items s)
                                                   (comment (elem_annotation ed))
                                       }
                          ]
-                       Just t ->
+                       Just t | elem_abstract ed ->
+                         let nm     = N $ theName n
+                             myLoc  = fromMaybe "NUL"
+                                          (Map.lookup nm (env_superloc env)) in
+                         singleton $
+                         ElementAbstractOfType
+                                 (XName nm)
+                                 (checkXName s t)
+                                 (map (\ (x,loc)->(XName x,loc/=myLoc))
+                                     $ fromMaybe []
+                                     $ Map.lookup nm (env_substGrp env))
+                                 (comment (elem_annotation ed))
+                       Just t | otherwise ->
                          singleton $ ElementOfType $
                          Element{ elem_name    = xname $ theName n
                                 , elem_type    = checkXName s t
                                 , elem_modifier= Haskell.Range (elem_occurs ed)
                                 , elem_byRef   = False
                                 , elem_locals  = []
-                                , elem_substs  = if elem_abstract ed
-                                                 then fmap (map XName) $
-                                                      Map.lookup (N $ theName n)
-                                                             (env_substGrp env)
-                                                 else Nothing
-                                , elem_comment = (comment (elem_annotation ed))
+                                , elem_substs  = Nothing
+                            --  , elem_substs  = if elem_abstract ed
+                            --                   then fmap (map XName) $
+                            --                        Map.lookup (N $ theName n)
+                            --                               (env_substGrp env)
+                            --                   else Nothing
+                                , elem_comment = comment (elem_annotation ed)
                                 }
         Right ref -> case Map.lookup ref (env_element env) of
 		       Nothing -> error $ "<topElementDecl> unknown element reference "

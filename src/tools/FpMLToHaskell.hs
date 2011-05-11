@@ -91,15 +91,23 @@ main = do
         filedeps  = ordered (\ ((inf,_),_)-> inf)
                             (\ (_,(ds,_))-> map fst ds)
                             (zip files deps)
+        -- a single supertype environment, closed over all modules
+        supertypeEnv :: Environment
+        supertypeEnv = foldr (\((inf,_),(_,v))-> mkEnvironment inf v)
+                             emptyEnv filedeps
+        adjust :: Environment -> Environment
+        adjust env = env{ env_extendty = env_extendty supertypeEnv
+                        , env_substGrp = env_substGrp supertypeEnv }
+        -- each module's env includes only dependencies, apart from supertypes
         environs :: [(FilePath,(Environment,FilePath,Schema))]
         environs  = flip map filedeps (\((inf,outf),(ds,v))->
-                        ( inf, ( mkEnvironment v
+                        ( inf, ( adjust $ mkEnvironment inf v
                                      (foldr combineEnv emptyEnv
-                                            (flip map ds
-                                                  (\d-> fst3 $
-                                                        fromMaybe (error "FME")$
-                                                        lookup (fst d) environs)
-                                            )
+                                         (flip map ds
+                                             (\d-> fst3 $
+                                                   fromMaybe (error "FME") $
+                                                   lookup (fst d) environs)
+                                         )
                                      )
                                , outf
                                , v
