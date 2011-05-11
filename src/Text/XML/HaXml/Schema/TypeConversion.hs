@@ -108,21 +108,24 @@ convert env s = concatMap item (schema_items s)
                                               `mappend` ci_annotation c))
                 Right e | complex_abstract ct ->
                     let myLoc  = fromMaybe "NUL"
-                                           (Map.lookup nx (env_superloc env))
+                                           (Map.lookup nx (env_typeloc env))
                         supLoc = fromMaybe "NUL"
                                            (Map.lookup (extension_base e)
-                                                       (env_superloc env))
+                                                       (env_typeloc env))
                     in
                     ExtendComplexTypeAbstract n
-                                     ({-supertype-}XName $ extension_base e)
-                                     ({-subtypes-}
-                                      maybe (error "ECTA")
-                                            (map (\(t,l)->(XName t,l/=myLoc)))
-                                            (Map.lookup nx (env_extendty env)))
-                                     ({-fwddecl-}myLoc/=supLoc)
-                                     (comment (complex_annotation ct
-                                              `mappend` ci_annotation c
-                                              `mappend` extension_annotation e))
+                             ({-supertype-}XName $ extension_base e)
+                             ({-subtypes-}
+                              maybe (error "ECTA")
+                                    (map (\(t,l)->(XName t,if l/=myLoc
+                                                           then Just (xname l)
+                                                           else Nothing)))
+                                    (Map.lookup nx (env_extendty env)))
+                             ({-fwddecl-}if myLoc/=supLoc
+                                         then Just (xname supLoc) else Nothing)
+                             (comment (complex_annotation ct
+                                      `mappend` ci_annotation c
+                                      `mappend` extension_annotation e))
                 Right e | otherwise ->
                     let (es,as) = particleAttrs (extension_newstuff e)
                         es'     | ci_mixed c = mkMixedContent es
@@ -131,10 +134,10 @@ convert env s = concatMap item (schema_items s)
                                             Map.lookup (extension_base e)
                                                        (env_type env)
                         myLoc  = fromMaybe "NUL"
-                                           (Map.lookup nx (env_superloc env))
+                                           (Map.lookup nx (env_typeloc env))
                         supLoc = fromMaybe "NUL"
                                            (Map.lookup (extension_base e)
-                                                       (env_superloc env))
+                                                       (env_typeloc env))
                     in
                     ExtendComplexType n
                                      ({-supertype-}XName $ extension_base e)
@@ -142,16 +145,20 @@ convert env s = concatMap item (schema_items s)
                                      ({-supertype attrs-}oldAs)
                                      ({-elems-}es)
                                      ({-attrs-}as)
-                                     ({-fwddecl-}myLoc/=supLoc)
+                                     ({-fwddecl-}if myLoc/=supLoc
+                                                 then Just (xname supLoc)
+                                                 else Nothing)
                                      (comment (complex_annotation ct
                                               `mappend` ci_annotation c
                                               `mappend` extension_annotation e))
         c@ThisType{} | complex_abstract ct ->
             let myLoc  = fromMaybe "NUL"
-                                   (Map.lookup nx (env_superloc env)) in
+                                   (Map.lookup nx (env_typeloc env)) in
             ElementsAttrsAbstract n
                           {-all instance types: -}
-                          (map (\ (x,loc)->(XName x,loc/=myLoc))
+                          (map (\ (x,loc)->(XName x,if loc/=myLoc
+                                                    then Just (xname loc)
+                                                    else Nothing))
                                $ fromMaybe []
                                $ Map.lookup nx (env_extendty env))
                           (comment (complex_annotation ct))
@@ -191,12 +198,14 @@ convert env s = concatMap item (schema_items s)
                        Just t | elem_abstract ed ->
                          let nm     = N $ theName n
                              myLoc  = fromMaybe "NUL"
-                                          (Map.lookup nm (env_superloc env)) in
+                                          (Map.lookup nm (env_typeloc env)) in
                          singleton $
                          ElementAbstractOfType
                                  (XName nm)
                                  (checkXName s t)
-                                 (map (\ (x,loc)->(XName x,loc/=myLoc))
+                                 (map (\ (x,loc)->(XName x,if loc/=myLoc
+                                                           then Just (xname loc)
+                                                           else Nothing))
                                      $ fromMaybe []
                                      $ Map.lookup nm (env_substGrp env))
                                  (comment (elem_annotation ed))

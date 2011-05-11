@@ -85,7 +85,7 @@ data Decl
                  --         instance T C
                  -- but this is incorrect because the choice between A|B|C
                  -- rests with the input doc, not with the caller of the parser.
-               | ElementsAttrsAbstract XName [(XName,Bool)] Comment
+               | ElementsAttrsAbstract XName [(XName,Maybe XName)] Comment
 
                  -- becomes function
                  --    elementE :: Parser T
@@ -94,7 +94,7 @@ data Decl
                  -- or, if E is abstract, with substitutionGroup {Foo,Bar},
                  --    elementE = fmap T_Foo elementFoo `onFail`
                  --               fmap T_Bar elementBar `onFail` ...
-               | ElementAbstractOfType XName XName [(XName,Bool)] Comment
+               | ElementAbstractOfType XName XName [(XName,Maybe XName)] Comment
 
                  -- becomes (global) data T = E0 e0 | E1 e1 | E2 e2 | E3 e3
                  -- becomes (local)  OneOfN e0 e1 e2 e3
@@ -119,12 +119,14 @@ data Decl
       --       | ExtendComplexType XName XName [Element] [Attribute] Comment
                | ExtendComplexType XName XName [Element] [Attribute]
                                                [Element] [Attribute]
-                                               {-FwdDecl req'd-}Bool Comment
+                                               {-FwdDecl req'd-}(Maybe XName)
+                                               Comment
                  -- or when T is itself abstract, extending an abstract type S
                  --        class T a where parseT :: String -> XMLParser a
                  --        instance (T a) => S a where parseS = parseT
-               | ExtendComplexTypeAbstract XName XName [(XName,Bool)]
-                                               {-FwdDecl req'd-}Bool Comment
+               | ExtendComplexTypeAbstract XName XName [(XName,Maybe XName)]
+                                           {-FwdDecl req'd-}(Maybe XName)
+                                           Comment
 
                  -- becomes an import and re-export
                | XSDInclude XName Comment

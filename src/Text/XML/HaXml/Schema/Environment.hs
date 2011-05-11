@@ -42,7 +42,7 @@ data Environment =  Environment
     , env_namespace :: Map String{-URI-} String{-Prefix-}
     , env_extendty  :: Map QName [(QName,FilePath)] -- ^ supertype -> subtypes
     , env_substGrp  :: Map QName [(QName,FilePath)] -- ^ substitution groups
-    , env_superloc  :: Map QName FilePath           -- ^ where supertype defined
+    , env_typeloc   :: Map QName FilePath           -- ^ where type is defined
     }
 
 -- | An empty environment of XSD type mappings.
@@ -61,7 +61,7 @@ combineEnv e1 e0 = Environment
     , env_namespace = Map.union (env_namespace e1) (env_namespace e0)
     , env_extendty  = Map.unionWith (++) (env_extendty e1) (env_extendty e0)
     , env_substGrp  = Map.unionWith (++) (env_substGrp e1) (env_substGrp e0)
-    , env_superloc  = Map.union (env_superloc e1)  (env_superloc e0)
+    , env_typeloc   = Map.union (env_typeloc e1)   (env_typeloc e0)
     }
 
 -- | Build an environment of XSD type mappings from a schema module.
@@ -107,11 +107,8 @@ mkEnvironment fp s init = foldl' item (addNS init (schema_namespaces s))
                                                [(mkN n, fp)]
                                                (env_extendty env)})
                      (isExtn (complex_content c))
-              $ (if complex_abstract c then
-                     (\env->env{env_superloc =
-                                    Map.insert (mkN n) fp (env_superloc env)})
-                 else id)
-              $ env{env_type=Map.insert (mkN n) (Right c) (env_type env)}
+              $ env{env_type=Map.insert (mkN n) (Right c) (env_type env)
+                   ,env_typeloc=Map.insert (mkN n) fp (env_typeloc env)}
           where isExtn x@SimpleContent{}  = ci_stuff x
                 isExtn x@ComplexContent{} = ci_stuff x
                 isExtn x@ThisType{}       = Left undefined
@@ -130,7 +127,7 @@ mkEnvironment fp s init = foldl' item (addNS init (schema_namespaces s))
           where isExtn x@SimpleContent{}  = ci_stuff x
                 isExtn x@ComplexContent{} = ci_stuff x
                 isExtn x@ThisType{}       = Left undefined
-                isFwd = case Map.lookup (extension_base extn) (env_superloc env) of
+                isFwd = case Map.lookup (extension_base extn) (env_typeloc env) of
                           Nothing  -> error $ "unknown supertype of "++show c
                           Just mod -> mod /= fp
 -}
@@ -148,13 +145,10 @@ mkEnvironment fp s init = foldl' item (addNS init (schema_namespaces s))
                                           [(mkN $ theName nt, fp)]
                                           (env_substGrp env)})
                     (elem_substGroup e)
-              $ (if elem_abstract e then
-                     (\env->env{env_superloc =
-                                    Map.insert (mkN $ theName nt) fp
-                                               (env_superloc env)})
-                 else id)
               $ env{env_element=Map.insert (mkN $ theName nt) e
-                                           (env_element env)}
+                                           (env_element env)
+                   ,env_typeloc=Map.insert (mkN $ theName nt) fp
+                                           (env_typeloc env)}
     attributeDecl env a
       | Right r <- attr_nameOrRef a = env
       | Left nt <- attr_nameOrRef a = env{env_attribute=

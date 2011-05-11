@@ -13,6 +13,7 @@ import Text.XML.HaXml.Schema.NameConversion
 import Text.PrettyPrint.HughesPJ as PP
 
 import List (intersperse,notElem)
+import Maybe (isJust,fromJust)
 
 -- | Vertically pretty-print a list of things, with open and close brackets,
 --   and separators.
@@ -254,26 +255,29 @@ ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
                   $$ nest 4 (vcat (intersperse (text "`onFail`")
                                                (map ppParse insts)
                                    ++ [text "`onFail` fail" <+> errmsg])))
-    $$ vcat (map (ppFwdDecl . fst) $ filter snd insts)
+    $$ vcat (map ppFwdDecl $ filter (isJust . snd) insts)
   where
-    ppAbstrCons (name,False) = con name <+> ppConId nx name
-    ppAbstrCons (name,True)  = text "forall q . (FwdDecl" <+>
-                               fwd name <+> text "q," <+>
-                               text "SchemaType q) =>" <+>
-                               con name <+>
-                               text "("<>fwd name<>text"->q)" <+> fwd name
-    ppParse (name,False) = text "(fmap" <+> con name <+>
-                           text "$ parseSchemaType s)"
-    ppParse (name,True)  = text "(return" <+> con name <+>
-                           text "`apply` (fmap const $ parseSchemaType s)" <+>
-                           text "`apply` return" <+> fwd name <> text ")"
-    ppFwdDecl name = text "data" <+> fwd name <+> text "=" <+> fwd name
+    ppAbstrCons (name,Nothing)  = con name <+> ppConId nx name
+    ppAbstrCons (name,Just mod) = text "forall q . (FwdDecl" <+>
+                                  fwd name <+> text "q," <+>
+                                  text "SchemaType q) =>" <+>
+                                  con name <+>
+                                  text "("<>fwd name<>text"->q)" <+> fwd name
+    ppParse (name,Nothing) = text "(fmap" <+> con name <+>
+                             text "$ parseSchemaType s)"
+    ppParse (name,Just _)  = text "(return" <+> con name <+>
+                             text "`apply` (fmap const $ parseSchemaType s)" <+>
+                             text "`apply` return" <+> fwd name <> text ")"
+    ppFwdDecl (name,Just mod)
+           = text "-- | Proxy for" <+> ppConId nx name
+                 <+> text "declared later in" <+> ppModId nx mod
+             $$ text "data" <+> fwd name <+> text "=" <+> fwd name
     errmsg = text "\"Parse failed when expecting an extension type of"
-             <+> ppXName t <> text ",\n  namely one of:\n"
+             <+> ppXName t <> text ",\\n\\\n\\  namely one of:\\n\\\n\\"
              <> hcat (intersperse (text ",")
                                   (map (ppXName . fst) insts))
              <> text "\""
-    fwd name = text "Fwd" <> ppConId nx name
+    fwd name = text "QQQ" <> ppConId nx name
     con name = ppJoinConId nx t name
 
 --------------------------------------------------------------
@@ -293,13 +297,13 @@ ppHighLevelDecl nx (ElementAbstractOfType n t substgrp comm) =
        <+> vcat (intersperse (text "`onFail`") (map ppOne substgrp)
                  ++ [text "`onFail` fail" <+> errmsg])
   where
-    ppOne (c,False) = text "fmap" <+> ppJoinConId nx t c
-                      <+> (text "element" <> ppConId nx c)
-    ppOne (c,True)  = text "fmap" <+> ppJoinConId nx t c
-                      <+> (text "element" <> ppConId nx c)
-                      <+> text "-- FIXME: element is forward-declared"
-    errmsg = text "\"Parse failed when expecting an element in the substitution group for\n  <"
-             <> ppXName n <> text ">,\nnamely one of:\n<"
+    ppOne (c,Nothing) = text "fmap" <+> ppJoinConId nx t c
+                        <+> (text "element" <> ppConId nx c)
+    ppOne (c,Just _)  = text "fmap" <+> ppJoinConId nx t c
+                        <+> (text "element" <> ppConId nx c)
+                        <+> text "-- FIXME: element is forward-declared"
+    errmsg = text "\"Parse failed when expecting an element in the substitution group for\\n\\\n\\    <"
+             <> ppXName n <> text ">,\\n\\\n\\  namely one of:\\n\\\n\\<"
              <> hcat (intersperse (text ">, <")
                                   (map (ppXName . fst) substgrp))
              <> text ">\""
@@ -349,22 +353,28 @@ ppHighLevelDecl nx (ExtendComplexType t s es as _ comm)
         $$ nest 4 (text "supertype (" <> ppConId nx t <> text " s e) = s"
                    $$ text "extension (" <> ppConId nx t <> text " s e) = e")
 -}
-ppHighLevelDecl nx (ExtendComplexType t s oes oas es as abstr comm) =
+ppHighLevelDecl nx (ExtendComplexType t s oes oas es as fwdReqd comm) =
     ppHighLevelDecl nx (ElementsAttrs t (oes++es) (oas++as) comm)
     $$ text "instance Extension" <+> ppUnqConId nx t <+> ppUnqConId nx s
                                  <+> text "where"
         $$ nest 4 (text "supertype (" <> ppType t (oes++es) (oas++as)
                                       <> text ") ="
                                       $$ nest 11 (ppType s oes oas) )
+    $$ (if isJust fwdReqd then
+       -- text "data" <+> fwd t <+> text "=" <+> fwd t $$  -- already defined
+          text "-- | Proxy was declared earlier in"
+                     <+> ppModId nx (fromJust fwdReqd) $$
+          text "instance FwdDecl" <+> fwd t <+> ppUnqConId nx t
+        else empty)
   where
+    fwd name = text "QQQ" <> ppUnqConId nx name
     ppType t es as = ppUnqConId nx t
                      <+> hsep (take (length as) [text ('a':show n) | n<-[0..]])
                      <+> hsep (take (length es) [text ('e':show n) | n<-[0..]])
 
 ppHighLevelDecl nx (ExtendComplexTypeAbstract t s insts fwdReqd comm) =
-    text "ExtendComplexTypeAbstract not implemented"
---  ppHighLevelDecl nx (ElementsAttrs t (oes++es) (oas++as) comm)
---  $$ text "instance Extension" <+> ppUnqConId nx t <+> ppUnqConId nx s
+    ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm)
+    $$ text "instance Extension" <+> ppUnqConId nx t <+> ppUnqConId nx s
 --                               <+> text "where"
 --      $$ nest 4 (text "supertype (" <> ppType t (oes++es) (oas++as)
 --                                    <> text ") ="
@@ -373,6 +383,11 @@ ppHighLevelDecl nx (ExtendComplexTypeAbstract t s insts fwdReqd comm) =
 --  ppType t es as = ppUnqConId nx t
 --                   <+> hsep (take (length as) [text ('a':show n) | n<-[0..]])
 --                   <+> hsep (take (length es) [text ('e':show n) | n<-[0..]])
+    $$ (if isJust fwdReqd then
+       -- text "data" <+> fwd t <+> text "=" <+> fwd t $$  -- already defined
+          text "-- | Proxy was declared in" <+> ppModId nx (fromJust fwdReqd) $$
+          text "instance FwdDecl QQQ"<>ppUnqConId nx t <+> ppUnqConId nx t
+        else empty)
 
 ppHighLevelDecl nx (XSDInclude m comm) =
     ppComment After comm
