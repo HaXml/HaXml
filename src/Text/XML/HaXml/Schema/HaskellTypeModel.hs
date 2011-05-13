@@ -110,16 +110,15 @@ data Decl
                  --       + different (more restrictive) parser
                | RestrictComplexType  XName XName Comment
 
-                 -- becomes data T  = T  S Tf
-                 --       + data Tf = Tf {fields}
-                 --       + instance Extension T S Tf where ...
+                 -- becomes data T  = T  {fields}
+                 --       + instance Extension T S where ...
                  -- or when T extends an _abstract_ XSDtype S, defined in an
                  -- earlier module, it additionally has
                  --        instance FwdDecl FwdT T
-      --       | ExtendComplexType XName XName [Element] [Attribute] Comment
                | ExtendComplexType XName XName [Element] [Attribute]
                                                [Element] [Attribute]
                                                {-FwdDecl req'd-}(Maybe XName)
+                                               {-supertype abstract?-}Bool
                                                Comment
                  -- or when T is itself abstract, extending an abstract type S
                  --        class T a where parseT :: String -> XMLParser a

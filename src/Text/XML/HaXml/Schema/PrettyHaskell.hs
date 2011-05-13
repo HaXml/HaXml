@@ -354,7 +354,7 @@ ppHighLevelDecl nx (ExtendComplexType t s es as _ comm)
         $$ nest 4 (text "supertype (" <> ppConId nx t <> text " s e) = s"
                    $$ text "extension (" <> ppConId nx t <> text " s e) = e")
 -}
-ppHighLevelDecl nx (ExtendComplexType t s oes oas es as fwdReqd comm) =
+ppHighLevelDecl nx (ExtendComplexType t s oes oas es as fwdReqd absSup comm) =
     ppHighLevelDecl nx (ElementsAttrs t (oes++es) (oas++as) comm)
     $$ ppExtension nx t s fwdReqd absSup oes oas es as
 

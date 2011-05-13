@@ -148,6 +148,12 @@ convert env s = concatMap item (schema_items s)
                                      ({-fwddecl-}if myLoc/=supLoc
                                                  then Just (xname supLoc)
                                                  else Nothing)
+                                     ({-abstract supertype-}
+                                      maybe False 
+                                            (either (const False)
+                                                    complex_abstract)
+                                            (Map.lookup (extension_base e)
+                                                        (env_type env)))
                                      (comment (complex_annotation ct
                                               `mappend` ci_annotation c
                                               `mappend` extension_annotation e))
