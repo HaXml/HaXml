@@ -46,17 +46,18 @@ ppXName (XName (N x))     = text x
 ppXName (XName (QN ns x)) = text (nsPrefix ns) <> text ":" <> text x
 
 -- | Some different ways of using a Haskell identifier.
-ppModId, ppConId, ppVarId, ppUnqConId, ppUnqVarId
+ppModId, ppConId, ppVarId, ppUnqConId, ppUnqVarId, ppFwdConId
     :: NameConverter -> XName -> Doc
 ppModId nx = ppHName . modid nx
 ppConId nx = ppHName . conid nx
 ppVarId nx = ppHName . varid nx
 ppUnqConId nx = ppHName . unqconid nx
 ppUnqVarId nx = ppHName . unqvarid nx
-ppFieldId  nx = \t-> ppHName . fieldid nx t
+ppFwdConId nx = ppHName . fwdconid nx
 
-ppJoinConId :: NameConverter -> XName -> XName -> Doc
+ppJoinConId, ppFieldId :: NameConverter -> XName -> XName -> Doc
 ppJoinConId nx p q = ppHName (conid nx p) <> text "_" <> ppHName (conid nx q)
+ppFieldId   nx     = \t-> ppHName . fieldid nx t
 
 -- | Convert a whole document from HaskellTypeModel to Haskell source text.
 ppModule :: NameConverter -> Module -> Doc
@@ -277,7 +278,7 @@ ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
              <> hcat (intersperse (text ",")
                                   (map (ppXName . fst) insts))
              <> text "\""
-    fwd name = text "QQQ" <> ppConId nx name
+    fwd name = ppFwdConId nx name
     con name = ppJoinConId nx t name
 
 --------------------------------------------------------------
@@ -355,39 +356,12 @@ ppHighLevelDecl nx (ExtendComplexType t s es as _ comm)
 -}
 ppHighLevelDecl nx (ExtendComplexType t s oes oas es as fwdReqd comm) =
     ppHighLevelDecl nx (ElementsAttrs t (oes++es) (oas++as) comm)
-    $$ text "instance Extension" <+> ppUnqConId nx t <+> ppUnqConId nx s
-                                 <+> text "where"
-        $$ nest 4 (text "supertype (" <> ppType t (oes++es) (oas++as)
-                                      <> text ") ="
-                                      $$ nest 11 (ppType s oes oas) )
-    $$ (if isJust fwdReqd then
-       -- text "data" <+> fwd t <+> text "=" <+> fwd t $$  -- already defined
-          text "-- | Proxy was declared earlier in"
-                     <+> ppModId nx (fromJust fwdReqd) $$
-          text "instance FwdDecl" <+> fwd t <+> ppUnqConId nx t
-        else empty)
-  where
-    fwd name = text "QQQ" <> ppUnqConId nx name
-    ppType t es as = ppUnqConId nx t
-                     <+> hsep (take (length as) [text ('a':show n) | n<-[0..]])
-                     <+> hsep (take (length es) [text ('e':show n) | n<-[0..]])
+    $$ ppExtension nx t s fwdReqd absSup oes oas es as
 
 ppHighLevelDecl nx (ExtendComplexTypeAbstract t s insts fwdReqd comm) =
     ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm)
-    $$ text "instance Extension" <+> ppUnqConId nx t <+> ppUnqConId nx s
---                               <+> text "where"
---      $$ nest 4 (text "supertype (" <> ppType t (oes++es) (oas++as)
---                                    <> text ") ="
---                                    $$ nest 11 (ppType s oes oas) )
---where
---  ppType t es as = ppUnqConId nx t
---                   <+> hsep (take (length as) [text ('a':show n) | n<-[0..]])
---                   <+> hsep (take (length es) [text ('e':show n) | n<-[0..]])
-    $$ (if isJust fwdReqd then
-       -- text "data" <+> fwd t <+> text "=" <+> fwd t $$  -- already defined
-          text "-- | Proxy was declared in" <+> ppModId nx (fromJust fwdReqd) $$
-          text "instance FwdDecl QQQ"<>ppUnqConId nx t <+> ppUnqConId nx t
-        else empty)
+    $$ ppExtension nx t s fwdReqd True [] [] [] []
+
 
 ppHighLevelDecl nx (XSDInclude m comm) =
     ppComment After comm
@@ -403,6 +377,34 @@ ppHighLevelDecl nx (XSDComment comm) =
 
 
 --------------------------------------------------------------------------------
+
+-- | Generate an instance of the Extension class for a subtype/supertype pair.
+ppExtension :: NameConverter -> XName -> XName -> Maybe XName -> Bool ->
+               [Element] -> [Attribute] -> [Element] -> [Attribute] -> Doc
+ppExtension nx t s fwdReqd abstractSuper oes oas es as =
+    text "instance Extension" <+> ppUnqConId nx t <+> ppUnqConId nx s
+                              <+> text "where"
+        $$ if abstractSuper then
+           nest 4 (text "supertype v" <+> text "="
+                                      <+> ppJoinConId nx s t <+>
+                                      (if isJust fwdReqd
+                                       then text "(\\_-> v)" <+> ppFwdConId nx t
+                                       else text "v"))
+           else
+           nest 4 (text "supertype (" <> ppType t (oes++es) (oas++as)
+                                      <> text ") ="
+                                      $$ nest 11 (ppType s oes oas) )
+    $$ (if isJust fwdReqd then
+       -- text "data" <+> fwd t <+> text "=" <+> fwd t $$  -- already defined
+          text "-- | Proxy was declared earlier in"
+                     <+> ppModId nx (fromJust fwdReqd) $$
+          text "instance FwdDecl" <+> fwd t <+> ppConId nx t
+        else empty)
+  where
+    fwd name = ppFwdConId nx name
+    ppType t es as = ppUnqConId nx t
+                     <+> hsep (take (length as) [text ('a':show n) | n<-[0..]])
+                     <+> hsep (take (length es) [text ('e':show n) | n<-[0..]])
 
 -- | Generate named fields from elements and attributes.
 ppFields :: NameConverter -> XName -> [Element] -> [Attribute] -> Doc

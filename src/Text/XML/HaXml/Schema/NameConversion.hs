@@ -33,6 +33,7 @@ data NameConverter = NameConverter
                        , varid    :: XName -> HName
                        , unqconid :: XName -> HName
                        , unqvarid :: XName -> HName
+                       , fwdconid :: XName -> HName  -- ^ for forward type decls
                        , fieldid  :: XName -> XName -> HName
                        }
 
@@ -46,6 +47,7 @@ simpleNameConverter = NameConverter
     , unqconid = \(XName qn)-> HName . mkConid . local $ qn
     , unqvarid = \(XName qn)-> HName . mkVarid . last avoidKeywords
                                                . local $ qn
+    , fwdconid = \(XName qn)-> HName . ("Fwd"++) . mkConid . local $ qn
     , fieldid  = \(XName qnt) (XName qnf)->
                                HName $ (mkVarid . last id . hierarchy $ qnt)
                                        ++ "_" ++
@@ -145,9 +147,10 @@ fpmlNameConverter = simpleNameConverter
  --                             "munE" -> HName (reverse (drop 4 (reverse h)))
  --                             _      -> HName h )
  --             . conid simpleNameConverter
+    , fwdconid = \(XName qn)-> HName . ("Pseudo"++) . mkConId . local $ qn
     , fieldid  = \(XName qnt) (XName qnf)->
-                  let t = mkVarId . last . hierarchy $ qnt
-                      f = mkVarId . last . hierarchy $ qnf
+                  let t = mkVarId . local $ qnt
+                      f = mkVarId . local $ qnf
                   in HName $ if t==f then f
                              else if t `isPrefixOf` f
                              then t ++"_"++ mkVarId (drop (length t) f)
@@ -156,6 +159,8 @@ fpmlNameConverter = simpleNameConverter
   where
     hierarchy (N n)     = wordsBy (==':') n
     hierarchy (QN ns n) = [nsPrefix ns, n]
+
+    local               = Prelude.last . hierarchy
 
     mkVarId   ("id")    = "ID"
     mkVarId   (v:vs)    = toLower v: vs
