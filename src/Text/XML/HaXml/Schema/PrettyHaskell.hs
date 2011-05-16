@@ -298,9 +298,9 @@ ppHighLevelDecl nx (ElementAbstractOfType n t substgrp comm) =
        <+> vcat (intersperse (text "`onFail`") (map ppOne substgrp)
                  ++ [text "`onFail` fail" <+> errmsg])
   where
-    ppOne (c,Nothing) = text "fmap" <+> ppJoinConId nx t c
+    ppOne (c,Nothing) = text "fmap" <+> text "supertype" -- ppJoinConId nx t c
                         <+> (text "element" <> ppConId nx c)
-    ppOne (c,Just _)  = text "fmap" <+> ppJoinConId nx t c
+    ppOne (c,Just _)  = text "fmap" <+> text "supertype" -- ppJoinConId nx t c
                         <+> (text "element" <> ppConId nx c)
                         <+> text "-- FIXME: element is forward-declared"
     errmsg = text "\"Parse failed when expecting an element in the substitution group for\\n\\\n\\    <"
@@ -361,7 +361,7 @@ ppHighLevelDecl nx (ExtendComplexType t s oes oas es as fwdReqd absSup comm) =
 ppHighLevelDecl nx (ExtendComplexTypeAbstract t s insts fwdReqd comm) =
     ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm)
     $$ ppExtension nx t s fwdReqd True [] [] [] []
-
+    $$ vcat (map (ppSuperExtension nx s) insts)
 
 ppHighLevelDecl nx (XSDInclude m comm) =
     ppComment After comm
@@ -382,7 +382,7 @@ ppHighLevelDecl nx (XSDComment comm) =
 ppExtension :: NameConverter -> XName -> XName -> Maybe XName -> Bool ->
                [Element] -> [Attribute] -> [Element] -> [Attribute] -> Doc
 ppExtension nx t s fwdReqd abstractSuper oes oas es as =
-    text "instance Extension" <+> ppUnqConId nx t <+> ppUnqConId nx s
+    text "instance Extension" <+> ppUnqConId nx t <+> ppConId nx s
                               <+> text "where"
         $$ if abstractSuper then
            nest 4 (text "supertype v" <+> text "="
@@ -405,6 +405,19 @@ ppExtension nx t s fwdReqd abstractSuper oes oas es as =
     ppType t es as = ppUnqConId nx t
                      <+> hsep (take (length as) [text ('a':show n) | n<-[0..]])
                      <+> hsep (take (length es) [text ('e':show n) | n<-[0..]])
+
+-- | Generate an instance of the Extension class for a type and its
+--   "grand"-supertype, that is, the supertype of its supertype.
+ppSuperExtension :: NameConverter -> XName -> (XName,Maybe XName) -> Doc
+ppSuperExtension nx grandSuper (t,Nothing) =
+    text "instance Extension" <+> ppUnqConId nx t <+> ppConId nx grandSuper
+                              <+> text "where"
+    $$ nest 4 (text "supertype = supertype . supertype")
+ppSuperExtension nx grandSuper (t,Just mod) =
+    text "instance Extension" <+> ppUnqConId nx t <+> ppConId nx grandSuper
+                              <+> text "where"
+    $$ nest 4 (text "supertype = supertype . supertype"
+          $$ text "-- FIXME!" <+> ppUnqConId nx t <+> text "not yet in scope")
 
 -- | Generate named fields from elements and attributes.
 ppFields :: NameConverter -> XName -> [Element] -> [Attribute] -> Doc
