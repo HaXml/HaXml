@@ -1,3 +1,7 @@
+-- | Pretty-print the internal Haskell model of XSD datatypes to a real
+--   Haskell module containing type declarations, and instances for parsing
+--   (and printing - though not yet implemented) values of those datatypes
+--   from(/to) XML.
 module Text.XML.HaXml.Schema.PrettyHaskell
   ( ppComment
   , ppModule
@@ -384,7 +388,7 @@ ppExtension :: NameConverter -> XName -> XName -> Maybe XName -> Bool ->
 ppExtension nx t s fwdReqd abstractSuper oes oas es as =
     text "instance Extension" <+> ppUnqConId nx t <+> ppConId nx s
                               <+> text "where"
-        $$ if abstractSuper then
+       $$ (if abstractSuper then
            nest 4 (text "supertype v" <+> text "="
                                       <+> ppJoinConId nx s t <+>
                                       (if isJust fwdReqd
@@ -393,10 +397,10 @@ ppExtension nx t s fwdReqd abstractSuper oes oas es as =
            else
            nest 4 (text "supertype (" <> ppType t (oes++es) (oas++as)
                                       <> text ") ="
-                                      $$ nest 11 (ppType s oes oas) )
+                                      $$ nest 11 (ppType s oes oas) ))
     $$ (if isJust fwdReqd then
        -- text "data" <+> fwd t <+> text "=" <+> fwd t $$  -- already defined
-          text "-- | Proxy was declared earlier in"
+          text "-- | Proxy" <+> fwd t <+> text "was declared earlier in"
                      <+> ppModId nx (fromJust fwdReqd) $$
           text "instance FwdDecl" <+> fwd t <+> ppConId nx t
         else empty)
