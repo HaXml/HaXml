@@ -94,7 +94,11 @@ data Decl
                  -- or, if E is abstract, with substitutionGroup {Foo,Bar},
                  --    elementE = fmap T_Foo elementFoo `onFail`
                  --               fmap T_Bar elementBar `onFail` ...
-               | ElementAbstractOfType XName XName [(XName,Maybe XName)] Comment
+               | ElementAbstractOfType XName -- ^ element name
+                                       XName -- ^ abstract type name
+                                       [(XName,Maybe XName)]
+                                             -- ^ substitute elems and fwddecls
+                                       Comment
 
                  -- becomes (global) data T = E0 e0 | E1 e1 | E2 e2 | E3 e3
                  -- becomes (local)  OneOfN e0 e1 e2 e3
@@ -119,6 +123,7 @@ data Decl
                                                [Element] [Attribute]
                                                {-FwdDecl req'd-}(Maybe XName)
                                                {-supertype abstract?-}Bool
+                                               {-grandsupertype?-}(Maybe XName)
                                                Comment
                  -- or when T is itself abstract, extending an abstract type S
                  --        class T a where parseT :: String -> XMLParser a

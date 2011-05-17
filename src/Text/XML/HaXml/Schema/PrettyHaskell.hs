@@ -274,7 +274,7 @@ ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
                              text "`apply` (fmap const $ parseSchemaType s)" <+>
                              text "`apply` return" <+> fwd name <> text ")"
     ppFwdDecl (name,Just mod)
-           = text "-- | Proxy for" <+> ppConId nx name
+           = text "-- | Proxy:" <+> ppConId nx name
                  <+> text "declared later in" <+> ppModId nx mod
              $$ text "data" <+> fwd name <+> text "=" <+> fwd name
     errmsg = text "\"Parse failed when expecting an extension type of"
@@ -358,9 +358,13 @@ ppHighLevelDecl nx (ExtendComplexType t s es as _ comm)
         $$ nest 4 (text "supertype (" <> ppConId nx t <> text " s e) = s"
                    $$ text "extension (" <> ppConId nx t <> text " s e) = e")
 -}
-ppHighLevelDecl nx (ExtendComplexType t s oes oas es as fwdReqd absSup comm) =
+ppHighLevelDecl nx (ExtendComplexType t s oes oas es as
+                                      fwdReqd absSup grandsuper comm) =
     ppHighLevelDecl nx (ElementsAttrs t (oes++es) (oas++as) comm)
     $$ ppExtension nx t s fwdReqd absSup oes oas es as
+    $$ (if isJust grandsuper && isJust fwdReqd
+        then ppSuperExtension nx s (fromJust grandsuper) (t,Nothing)
+        else empty)
 
 ppHighLevelDecl nx (ExtendComplexTypeAbstract t s insts fwdReqd comm) =
     ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm)
@@ -426,10 +430,8 @@ ppSuperExtension nx super grandSuper (t,Nothing) =
                                            <+> text "->"
                                            <+> ppConId nx super <> text ")"))
 ppSuperExtension nx super grandSuper (t,Just mod) =  -- fwddecl
-    text "instance Extension" <+> ppUnqConId nx t <+> ppConId nx grandSuper
-                              <+> text "where"
-    $$ nest 4 (text "supertype = undefined"
-          <+> text "-- FIXME!" <+> ppUnqConId nx t <+> text "not yet in scope")
+    text "-- instance Extension" <+> ppUnqConId nx t <+> ppConId nx grandSuper
+    $$ text "--   will be declared in module" <+> ppModId nx mod
 
 -- | Generate named fields from elements and attributes.
 ppFields :: NameConverter -> XName -> [Element] -> [Attribute] -> Doc

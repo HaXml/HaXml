@@ -154,6 +154,19 @@ convert env s = concatMap item (schema_items s)
                                                     complex_abstract)
                                             (Map.lookup (extension_base e)
                                                         (env_type env)))
+                                     ({-grandsuper-}
+                                      do super <- Map.lookup (extension_base e)
+                                                             (env_type env)
+                                         a <- either (const Nothing)
+                                                     (Just . complex_content)
+                                                     super
+                                         b <- case a of
+                                                ComplexContent{}
+                                                  -> Just (ci_stuff a)
+                                                _ -> Nothing
+                                         either (const Nothing)
+                                             (Just . XName . extension_base)
+                                             b)
                                      (comment (complex_annotation ct
                                               `mappend` ci_annotation c
                                               `mappend` extension_annotation e))
