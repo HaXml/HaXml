@@ -361,7 +361,7 @@ ppHighLevelDecl nx (ExtendComplexType t s oes oas es as fwdReqd absSup comm) =
 ppHighLevelDecl nx (ExtendComplexTypeAbstract t s insts fwdReqd comm) =
     ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm)
     $$ ppExtension nx t s fwdReqd True [] [] [] []
-    $$ vcat (map (ppSuperExtension nx s) insts)
+    $$ vcat (map (ppSuperExtension nx t s) insts)
 
 ppHighLevelDecl nx (XSDInclude m comm) =
     ppComment After comm
@@ -408,16 +408,24 @@ ppExtension nx t s fwdReqd abstractSuper oes oas es as =
 
 -- | Generate an instance of the Extension class for a type and its
 --   "grand"-supertype, that is, the supertype of its supertype.
-ppSuperExtension :: NameConverter -> XName -> (XName,Maybe XName) -> Doc
-ppSuperExtension nx grandSuper (t,Nothing) =
+ppSuperExtension :: NameConverter -> XName -> XName
+                    -> (XName,Maybe XName) -> Doc
+ppSuperExtension nx super grandSuper (t,Nothing) =
     text "instance Extension" <+> ppUnqConId nx t <+> ppConId nx grandSuper
                               <+> text "where"
-    $$ nest 4 (text "supertype = supertype . supertype")
-ppSuperExtension nx grandSuper (t,Just mod) =
+    $$ nest 4 (text "supertype = (supertype ::"
+                                           <+> ppUnqConId nx super
+                                           <+> text "->"
+                                           <+> ppConId nx grandSuper <> text ")"
+              $$ nest 12 (text ". (supertype ::"
+                                           <+> ppUnqConId nx t
+                                           <+> text "->"
+                                           <+> ppConId nx super <> text ")"))
+ppSuperExtension nx super grandSuper (t,Just mod) =  -- fwddecl
     text "instance Extension" <+> ppUnqConId nx t <+> ppConId nx grandSuper
                               <+> text "where"
-    $$ nest 4 (text "supertype = supertype . supertype"
-          $$ text "-- FIXME!" <+> ppUnqConId nx t <+> text "not yet in scope")
+    $$ nest 4 (text "supertype = undefined"
+          <+> text "-- FIXME!" <+> ppUnqConId nx t <+> text "not yet in scope")
 
 -- | Generate named fields from elements and attributes.
 ppFields :: NameConverter -> XName -> [Element] -> [Attribute] -> Doc
