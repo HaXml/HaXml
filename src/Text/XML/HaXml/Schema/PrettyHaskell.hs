@@ -67,7 +67,7 @@ ppFieldId   nx     = \t-> ppHName . fieldid nx t
 ppModule :: NameConverter -> Module -> Doc
 ppModule nx m =
     text "{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies,"
-    $$ text "             ExistentialQuantification #-}"
+    $$ text "             ExistentialQuantification, FlexibleContexts #-}"
     $$ text "{-# OPTIONS_GHC -fno-warn-duplicate-exports #-}"
     $$ text "module" <+> ppModId nx (module_name m)
     $$ nest 2 (text "( module" <+> ppModId nx (module_name m)
@@ -294,7 +294,12 @@ ppHighLevelDecl nx (ElementOfType e@Element{}) =
     $$ (text "element" <> ppUnqConId nx (elem_name e)) <+> text "="
         <+> (text "parseSchemaType \"" <> ppXName (elem_name e)  <> text "\"")
 
-ppHighLevelDecl nx (ElementAbstractOfType n t substgrp comm) =
+ppHighLevelDecl nx (ElementAbstractOfType n t substgrp comm)
+    | any notInScope substgrp
+                = (text "-- element" <> ppUnqConId nx n) <+> text "::"
+                      <+> text "XMLParser" <+> ppConId nx t
+                $$ text "--     declared elsewhere"
+    | otherwise =
     ppComment Before comm
     $$ (text "element" <> ppUnqConId nx n) <+> text "::"
         <+> text "XMLParser" <+> ppConId nx t
@@ -307,6 +312,8 @@ ppHighLevelDecl nx (ElementAbstractOfType n t substgrp comm) =
     ppOne (c,Just _)  = text "fmap" <+> text "supertype" -- ppJoinConId nx t c
                         <+> (text "element" <> ppConId nx c)
                         <+> text "-- FIXME: element is forward-declared"
+    notInScope (_,Just _)  = True
+    notInScope (_,Nothing) = False
     errmsg = text "\"Parse failed when expecting an element in the substitution group for\\n\\\n\\    <"
              <> ppXName n <> text ">,\\n\\\n\\  namely one of:\\n\\\n\\<"
              <> hcat (intersperse (text ">, <")
