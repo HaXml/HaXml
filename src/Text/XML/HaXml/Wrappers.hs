@@ -30,7 +30,7 @@ fix2Args :: IO (String,String)
 fix2Args = do
   args <- getArgs
   when ("--version" `elem` args) $ do
-      putStrLn $ "part of HaXml-"++MYVERSION
+      putStrLn $ "part of HaXml-"++show MYVERSION
       exitWith ExitSuccess
   when ("--help" `elem` args) $ do
       putStrLn $ "See http://haskell.org/HaXml"
