@@ -115,15 +115,25 @@ main = do
                         )
                     )
     flip mapM_ environs (\ (inf,(env,outf,v))-> do
-        o <- openFile outf WriteMode
+        o  <- openFile outf WriteMode
+        oi <- openFile (insts outf) WriteMode
         let decls   = XsdToH.convert env v
             haskell = Haskell.mkModule inf v decls
             doc     = ppModule fpmlNameConverter haskell
+            docinst = ppModuleWithInstances fpmlNameConverter haskell
         hPutStrLn stdout $ "Writing "++outf
         hPutStrLn o $ render doc
+        hPutStrLn stdout $ "Writing "++(insts outf)
+        hPutStrLn oi $ render docinst
         hFlush o
+        hFlush oi
         )
 
+-- | Munge filename for instances.
+insts :: FilePath -> FilePath
+insts x = case reverse x of
+            's':'h':'.':f -> reverse f++"Instances.hs"
+            _ -> error "bad stuff made my brains melt"
 
 -- | Calculate dependency ordering of modules, least dependent first.
 ordered :: Eq a => (b->a) -> (b->[a]) -> [b] -> [b]
