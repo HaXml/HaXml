@@ -123,13 +123,14 @@ data Decl
                                                [Element] [Attribute]
                                                {-FwdDecl req'd-}(Maybe XName)
                                                {-supertype abstract?-}Bool
-                                               {-grandsupertype?-}(Maybe XName)
+                                               {-grandsupertypes-}[XName]
                                                Comment
                  -- or when T is itself abstract, extending an abstract type S
                  --        class T a where parseT :: String -> XMLParser a
                  --        instance (T a) => S a where parseS = parseT
                | ExtendComplexTypeAbstract XName XName [(XName,Maybe XName)]
-                                           {-FwdDecl req'd-}(Maybe XName)
+                                           {-FwdDecl instnc req'd-}(Maybe XName)
+                                           {-grandsupertypes-}[XName]
                                            Comment
 
                  -- becomes an import and re-export

@@ -18,7 +18,7 @@ import Text.XML.HaXml.Schema.XSDTypeModel (Occurs(..))
 import Text.XML.HaXml.Schema.NameConversion
 import Text.PrettyPrint.HughesPJ as PP
 
-import List (intersperse,notElem)
+import List (intersperse,notElem,inits)
 import Maybe (isJust,fromJust,catMaybes)
 
 -- | Vertically pretty-print a list of things, with open and close brackets,
@@ -124,7 +124,7 @@ ppModuleWithInstances nx m =
     hasInstances _                           = False
 
     imports (ElementsAttrsAbstract _ insts _) = insts
-    imports (ExtendComplexTypeAbstract _ _ insts _ _) = insts
+    imports (ExtendComplexTypeAbstract _ _ insts _ _ _) = insts
     imports _ = []
 
     ppFwdDecl (_,   Nothing)  = empty
@@ -399,14 +399,18 @@ ppHighLevelDecl nx (ExtendComplexType t s oes oas es as
                                       fwdReqd absSup grandsuper comm) =
     ppHighLevelDecl nx (ElementsAttrs t (oes++es) (oas++as) comm)
     $$ ppExtension nx t s fwdReqd absSup oes oas es as
-    $$ (if isJust grandsuper && isJust fwdReqd
-        then ppSuperExtension nx s (fromJust grandsuper) (t,Nothing)
+    $$ (if not (null grandsuper) -- && isJust fwdReqd
+        then ppSuperExtension nx s grandsuper (t,Nothing)
         else empty)
 
-ppHighLevelDecl nx (ExtendComplexTypeAbstract t s insts fwdReqd comm) =
+ppHighLevelDecl nx (ExtendComplexTypeAbstract t s insts
+                                              fwdReqd grandsuper comm) =
     ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm)
     $$ ppExtension nx t s fwdReqd True [] [] [] []
-    $$ vcat (map (ppSuperExtension nx t s) insts)
+    $$ if not (null grandsuper)
+       then vcat (map (ppSuperExtension nx t grandsuper) insts)
+                       -- FIXME some instances are missing!
+       else empty
 
 ppHighLevelDecl nx (XSDInclude m comm) =
     ppComment After comm
@@ -456,14 +460,18 @@ ppHighLevelInstances nx (ExtendComplexType t s oes oas es as
                                       fwdReqd absSup grandsuper comm) =
     empty
 --  ppExtension nx t s fwdReqd absSup oes oas es as
---  $$ (if isJust grandsuper && isJust fwdReqd
---      then ppSuperExtension nx s (fromJust grandsuper) (t,Nothing)
+--  $$ (if not (null grandsuper) && isJust fwdReqd
+--      then ppSuperExtension nx s grandsuper (t,Nothing)
 --      else empty)
 
-ppHighLevelInstances nx (ExtendComplexTypeAbstract t s insts fwdReqd comm) =
+ppHighLevelInstances nx (ExtendComplexTypeAbstract t s insts
+                                                   fwdReqd grandsuper comm) =
     ppHighLevelInstances nx (ElementsAttrsAbstract t insts comm)
 --  $$ ppExtension nx t s fwdReqd True [] [] [] []
---  $$ vcat (map (ppSuperExtension nx t s) insts)
+--  $$ if not (null grandsuper)
+--     then vcat (map (ppSuperExtension nx t grandsuper) insts)
+--                     -- FIXME some instances are missing!
+--     else empty
 
 ppElementAbstractOfType nx (ElementAbstractOfType n t substgrp comm) =
     ppComment Before comm
@@ -517,9 +525,10 @@ ppExtension nx t s fwdReqd abstractSuper oes oas es as =
 
 -- | Generate an instance of the Extension class for a type and its
 --   "grand"-supertype, that is, the supertype of its supertype.
-ppSuperExtension :: NameConverter -> XName -> XName
+ppSuperExtension :: NameConverter -> XName -> [XName]
                     -> (XName,Maybe XName) -> Doc
-ppSuperExtension nx super grandSuper (t,Nothing) =
+{-
+ppSuperExtension nx super (grandSuper:_) (t,Nothing) =
     text "instance Extension" <+> ppUnqConId nx t <+> ppConId nx grandSuper
                               <+> text "where"
     $$ nest 4 (text "supertype = (supertype ::"
@@ -530,9 +539,23 @@ ppSuperExtension nx super grandSuper (t,Nothing) =
                                            <+> ppUnqConId nx t
                                            <+> text "->"
                                            <+> ppConId nx super <> text ")"))
-ppSuperExtension nx super grandSuper (t,Just mod) =  -- fwddecl
+-}
+ppSuperExtension nx super (grandSuper:_) (t,Just mod) =  -- fwddecl
+    -- FIXME: generate comment for all of the grandSupers.
     text "-- instance Extension" <+> ppUnqConId nx t <+> ppConId nx grandSuper
     $$ text "--   will be declared in module" <+> ppModId nx mod
+ppSuperExtension nx super grandSupers (t,Nothing) =
+    vcat (map (ppSuper t) (map reverse . drop 2 . inits $ super: grandSupers))
+  where
+    ppSuper :: XName -> [XName] -> Doc
+    ppSuper t gss@(gs:_) =
+        text "instance Extension" <+> ppUnqConId nx t <+> ppConId nx gs
+                                  <+> text "where"
+        $$ nest 4 (text "supertype" <+>
+                      (ppvList "=" "." "" coerce (zip (tail gss++[t]) gss)))
+    coerce (a,b) = text "(supertype ::" <+> ppUnqConId nx a
+                                        <+> text "->"
+                                        <+> ppConId nx b <> text ")"
 
 -- | Generate named fields from elements and attributes.
 ppFields :: NameConverter -> XName -> [Element] -> [Attribute] -> Doc

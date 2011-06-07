@@ -106,14 +106,14 @@ convert env s = concatMap item (schema_items s)
                     RestrictComplexType n ({-complex-}xname $ "Can'tBeRight")
                                      (comment (complex_annotation ct
                                               `mappend` ci_annotation c))
-                Right e | complex_abstract ct ->
-                    let myLoc  = fromMaybe "NUL"
-                                           (Map.lookup nx (env_typeloc env))
-                        supLoc = fromMaybe "NUL"
-                                           (Map.lookup (extension_base e)
-                                                       (env_typeloc env))
+                Right e ->
+                    let myLoc  = fromMaybe "NUL" (Map.lookup nx
+                                                             (env_typeloc env))
+                        supLoc = fromMaybe "NUL" (Map.lookup (extension_base e)
+                                                             (env_typeloc env))
                     in
-                    ExtendComplexTypeAbstract n
+                    if complex_abstract ct then
+                        ExtendComplexTypeAbstract n
                              ({-supertype-}XName $ extension_base e)
                              ({-subtypes-}
                               maybe (error "ECTA")
@@ -123,53 +123,37 @@ convert env s = concatMap item (schema_items s)
                                     (Map.lookup nx (env_extendty env)))
                              ({-fwddecl-}if myLoc/=supLoc
                                          then Just (xname supLoc) else Nothing)
+                             ({-grandsupers-}
+                              map XName $ repeatedly (supertypeOf env) nx)
                              (comment (complex_annotation ct
                                       `mappend` ci_annotation c
                                       `mappend` extension_annotation e))
-                Right e | otherwise ->
+                    else
                     let (es,as) = particleAttrs (extension_newstuff e)
                         es'     | ci_mixed c = mkMixedContent es
                                 | otherwise  = es
                         (oldEs,oldAs) = contentInfo $
                                             Map.lookup (extension_base e)
                                                        (env_type env)
-                        myLoc  = fromMaybe "NUL"
-                                           (Map.lookup nx (env_typeloc env))
-                        supLoc = fromMaybe "NUL"
-                                           (Map.lookup (extension_base e)
-                                                       (env_typeloc env))
                     in
                     ExtendComplexType n
-                                     ({-supertype-}XName $ extension_base e)
-                                     ({-supertype elems-}oldEs)
-                                     ({-supertype attrs-}oldAs)
-                                     ({-elems-}es)
-                                     ({-attrs-}as)
-                                     ({-fwddecl-}if myLoc/=supLoc
-                                                 then Just (xname supLoc)
-                                                 else Nothing)
-                                     ({-abstract supertype-}
-                                      maybe False 
-                                            (either (const False)
-                                                    complex_abstract)
-                                            (Map.lookup (extension_base e)
-                                                        (env_type env)))
-                                     ({-grandsuper-}
-                                      do super <- Map.lookup (extension_base e)
-                                                             (env_type env)
-                                         a <- either (const Nothing)
-                                                     (Just . complex_content)
-                                                     super
-                                         b <- case a of
-                                                ComplexContent{}
-                                                  -> Just (ci_stuff a)
-                                                _ -> Nothing
-                                         either (const Nothing)
-                                             (Just . XName . extension_base)
-                                             b)
-                                     (comment (complex_annotation ct
-                                              `mappend` ci_annotation c
-                                              `mappend` extension_annotation e))
+                        ({-supertype-}XName $ extension_base e)
+                        ({-supertype elems-}oldEs)
+                        ({-supertype attrs-}oldAs)
+                        ({-elems-}es)
+                        ({-attrs-}as)
+                        ({-fwddecl-}if myLoc/=supLoc then Just (xname supLoc)
+                                                     else Nothing)
+                        ({-abstract supertype-}
+                         maybe False (either (const False) complex_abstract)
+                                     (Map.lookup (extension_base e)
+                                                 (env_type env)))
+                        ({-grandsupers-}
+                         map XName $ repeatedly (supertypeOf env)
+                                   $ extension_base e)
+                        (comment (complex_annotation ct
+                                 `mappend` ci_annotation c
+                                 `mappend` extension_annotation e))
         c@ThisType{} | complex_abstract ct ->
             let myLoc  = fromMaybe "NUL"
                                    (Map.lookup nx (env_typeloc env)) in
@@ -448,3 +432,18 @@ consolidate (Occurs min max) (UnorderedMinLength,_,n) =
 consolidate (Occurs min max) (UnorderedMaxLength,_,n) =
              Occurs min (Just (read n))
 
+
+-- | Find the supertype (if it exists) of a given type name.
+supertypeOf :: Environment -> QName -> Maybe QName
+supertypeOf env t =
+    do typ <- Map.lookup t (env_type env)
+       a <- either (const Nothing) (Just . complex_content) typ
+       b <- case a of ComplexContent{} -> Just (ci_stuff a)
+                      _ -> Nothing
+       either (const Nothing) (Just . extension_base) b
+
+-- | Keep applying the function to transform the value, until it yields
+--   Nothing.  Returns the sequence of transformed values.
+repeatedly :: (a->Maybe a) -> a -> [a]
+repeatedly f x = case f x of Nothing -> []
+                             Just y  -> y : repeatedly f y
