@@ -13,7 +13,7 @@ module Text.XML.HaXml.Xtract.Lex
   , Token
   ) where
 
-import Char
+import Data.Char
 
 
 type Token = Either String (Posn, TokenT)

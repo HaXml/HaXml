@@ -13,10 +13,10 @@ module Text.XML.HaXml.Html.ParseLazy
 
 import Prelude hiding (either,maybe,sequence)
 --import qualified Prelude (either)
-import Maybe hiding (maybe)
-import Char (toLower, {-isSpace,-} isDigit, isHexDigit)
+import Data.Maybe hiding (maybe)
+import Data.Char (toLower, {-isSpace,-} isDigit, isHexDigit)
 import Numeric (readDec,readHex)
-import Monad
+import Control.Monad
 
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Lex

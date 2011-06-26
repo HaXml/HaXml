@@ -9,9 +9,9 @@ module Text.XML.HaXml.Html.Pretty
   ) where
 
 import Prelude hiding (maybe,either)
-import Maybe hiding (maybe)
-import List (intersperse)
-import Char (isSpace)
+import Data.Maybe hiding (maybe)
+import Data.List (intersperse)
+import Data.Char (isSpace)
 import Text.PrettyPrint.HughesPJ
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Namespaces

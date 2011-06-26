@@ -12,7 +12,7 @@ import Text.XML.HaXml.Xtract.Lex
 import Text.XML.HaXml.Xtract.Combinators as D
 import Text.XML.HaXml.Combinators as C
 import Text.XML.HaXml.Types (Content)
-import List(isPrefixOf)
+import Data.List(isPrefixOf)
 import Text.XML.HaXml.Escape (xmlUnEscapeContent,stdXmlEscaper)
 
 -- output transformer - to ensure that text/references are glued together

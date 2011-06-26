@@ -52,7 +52,7 @@ module Text.XML.HaXml.Combinators
 
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Namespaces
-import Maybe (fromMaybe)
+import Data.Maybe (fromMaybe)
 
 infixl 6 `with`, `without`
 infixr 5 `o`, `oo`, `union`, `andThen`		-- , `orelse`

@@ -8,10 +8,11 @@ module Text.XML.HaXml.Wrappers
 
 -- imports required for processXmlWith and fix2Args
 import Prelude hiding (filter)
-import System
-import IO
-import List  (isSuffixOf)
-import Monad (when)
+import System.Exit
+import System.Environment
+import System.IO
+import Data.List  (isSuffixOf)
+import Control.Monad (when)
 
 import Text.XML.HaXml.Types       (Document(..),Content(..))
 import Text.XML.HaXml.Combinators (CFilter)

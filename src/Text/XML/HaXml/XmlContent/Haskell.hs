@@ -29,8 +29,8 @@ module Text.XML.HaXml.XmlContent.Haskell
 
   ) where
 
-import IO
-import List (isPrefixOf, isSuffixOf)
+import System.IO
+import Data.List (isPrefixOf, isSuffixOf)
 import qualified Text.XML.HaXml.ByteStringPP as FPS (document)
 import qualified Data.ByteString.Lazy.Char8 as FPS
 

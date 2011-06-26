@@ -2,7 +2,7 @@ module Text.XML.HaXml.DtdToHaskell.Instance
   ( mkInstance
   ) where
 
-import List (intersperse)
+import Data.List (intersperse)
 
 import Text.XML.HaXml.DtdToHaskell.TypeDef
 import Text.PrettyPrint.HughesPJ

@@ -1,7 +1,7 @@
 module Main where
 
-import IO
-import List   (isSuffixOf)
+import System.IO
+import Data.List   (isSuffixOf)
 
 import Text.XML.HaXml.Parse      (xmlParse)
 import Text.XML.HaXml.Html.Parse (htmlParse)

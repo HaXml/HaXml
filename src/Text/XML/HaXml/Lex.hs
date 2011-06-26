@@ -26,7 +26,7 @@ module Text.XML.HaXml.Lex
   , Section(..)
   ) where
 
-import Char
+import Data.Char
 import Text.XML.HaXml.Posn
 
 data Where = InTag String | NotInTag

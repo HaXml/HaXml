@@ -55,7 +55,7 @@ module Text.XML.HaXml.Escape(
 
    ) where
 
-import Char
+import Data.Char
 -- import Numeric
 import Text.XML.HaXml.Types
 

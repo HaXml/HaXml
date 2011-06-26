@@ -6,7 +6,7 @@ import Text.XML.HaXml.TypeMapping -- (toHType, toDTD, Tuple(), Defined, showHTyp
 
 import qualified Text.XML.HaXml.XmlContent as X
 import Prelude hiding (maybe,either)
-import Maybe hiding (maybe)
+import Data.Maybe hiding (maybe)
 import List
 
 -- | Convert a fully-typed XML document to a string (without DTD).

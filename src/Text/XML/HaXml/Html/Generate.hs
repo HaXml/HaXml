@@ -28,7 +28,7 @@ module Text.XML.HaXml.Html.Generate
   , htmlprint
   ) where
 
-import Char (isSpace)
+import Data.Char (isSpace)
 
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Namespaces

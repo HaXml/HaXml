@@ -31,7 +31,7 @@ module Text.XML.HaXml.XmlContent
   , hGetXml,  hPutXml, fpsHPutXml
   ) where
 
-import IO
+import System.IO
 import qualified Text.XML.HaXml.ByteStringPP as FPS (document)
 import qualified Data.ByteString.Lazy.Char8 as FPS
 

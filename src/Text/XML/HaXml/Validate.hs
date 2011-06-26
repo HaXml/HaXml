@@ -10,9 +10,9 @@ import Text.XML.HaXml.Types
 import Text.XML.HaXml.Namespaces
 import Text.XML.HaXml.Combinators (multi,tag,iffind,literal,none,o)
 import Text.XML.HaXml.XmlContent (attr2str)
-import Maybe (fromMaybe,isNothing,fromJust)
-import List (intersperse,nub,(\\))
-import Char (isSpace)
+import Data.Maybe (fromMaybe,isNothing,fromJust)
+import Data.List (intersperse,nub,(\\))
+import Data.Char (isSpace)
 
 #if __GLASGOW_HASKELL__ >= 604 || __NHC__ >= 118 || defined(__HUGS__)
 -- emulate older finite map interface using Data.Map, if it is available

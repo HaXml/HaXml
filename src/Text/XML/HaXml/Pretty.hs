@@ -22,8 +22,8 @@ module Text.XML.HaXml.Pretty
   ) where
 
 import Prelude hiding (maybe,either)
-import Maybe hiding (maybe)
-import List (intersperse)
+import Data.Maybe hiding (maybe)
+import Data.List (intersperse)
 --import Char (isSpace)
 import Text.PrettyPrint.HughesPJ
 import Text.XML.HaXml.Types

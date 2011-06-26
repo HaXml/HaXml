@@ -67,9 +67,9 @@ module Text.XML.HaXml.XmlContent.Parser
   , ANYContent(..)
   ) where
 
---import IO
-import Maybe (catMaybes)
-import Char  (chr, isSpace)
+--import System.IO
+import Data.Maybe (catMaybes)
+import Data.Char  (chr, isSpace)
 
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Namespaces

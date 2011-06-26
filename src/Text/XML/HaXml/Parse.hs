@@ -31,10 +31,10 @@ module Text.XML.HaXml.Parse
 
 import Prelude hiding (either,maybe,sequence)
 import qualified Prelude (either)
-import Maybe hiding (maybe)
-import List (intersperse)       -- debugging only
-import Char (isSpace,isDigit,isHexDigit)
-import Monad hiding (sequence)
+import Data.Maybe hiding (maybe)
+import Data.List (intersperse)       -- debugging only
+import Data.Char (isSpace,isDigit,isHexDigit)
+import Control.Monad hiding (sequence)
 import Numeric (readDec,readHex)
 
 import Text.XML.HaXml.Types

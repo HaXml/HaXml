@@ -14,7 +14,7 @@ module Text.XML.HaXml.Posn
   , posnFilename, posnLine, posnColumn
   ) where
 
-import Char
+import Data.Char
 
 -- | Source positions contain a filename, line, column, and an
 --   inclusion point, which is itself another source position,

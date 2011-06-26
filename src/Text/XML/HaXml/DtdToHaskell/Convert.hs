@@ -9,7 +9,7 @@ module Text.XML.HaXml.DtdToHaskell.Convert
   ( dtd2TypeDef
   ) where
 
-import List (intersperse,nub)
+import Data.List (intersperse,nub)
 
 import Text.XML.HaXml.Types hiding (Name)
 import Text.XML.HaXml.DtdToHaskell.TypeDef
