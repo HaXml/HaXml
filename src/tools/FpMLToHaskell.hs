@@ -8,12 +8,13 @@ module Main where
 -- (as well as the generated modules) wherever you intend to read and write
 -- XML files with your Haskell programs.
 
-import System
-import IO
-import Monad
+import System.Exit
+import System.Environment
+import System.IO
+import Control.Monad
 import System.Directory
-import List
-import Maybe (fromMaybe)
+import Data.List
+import Data.Maybe (fromMaybe)
 --import Either
 
 import Text.XML.HaXml            (version)

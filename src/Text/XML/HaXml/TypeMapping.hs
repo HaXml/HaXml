@@ -13,7 +13,7 @@ module Text.XML.HaXml.TypeMapping
   ) where
 
 import Text.XML.HaXml.Types
-import List (partition, intersperse)
+import Data.List (partition, intersperse)
 import Text.PrettyPrint.HughesPJ (render)
 import qualified Text.XML.HaXml.Pretty as PP
 

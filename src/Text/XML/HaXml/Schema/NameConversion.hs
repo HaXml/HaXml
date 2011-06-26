@@ -7,8 +7,8 @@ module Text.XML.HaXml.Schema.NameConversion
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Namespaces
 
-import Char
-import List
+import Data.Char
+import Data.List
 
 -- | An XName just holds the original XSD qualified name.  It does not
 --   ensure that the string conforms to any rules of the various Haskell

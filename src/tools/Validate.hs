@@ -1,7 +1,7 @@
 module Main where
 
-import IO
-import Maybe  (fromJust)
+import System.IO
+import Data.Maybe  (fromJust)
 
 import Text.XML.HaXml.Types     (Document(..))
 import Text.XML.HaXml.Parse     (xmlParse,dtdParse)

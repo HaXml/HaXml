@@ -16,7 +16,7 @@ module Text.XML.HaXml.Namespaces
 import Prelude hiding (lookup)
 import Text.XML.HaXml.Types
 import Data.Map as Map (Map, insert, lookup, empty)
-import List (isPrefixOf)
+import Data.List (isPrefixOf)
 
 -- | The null Namespace (no prefix, no URI).
 nullNamespace :: Namespace

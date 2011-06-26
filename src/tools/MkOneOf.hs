@@ -1,11 +1,12 @@
 module Main where
 
 import Prelude hiding (max)
-import System (getArgs,exitWith,ExitCode(..))
-import Char   (isDigit)
-import IO     (hFlush,stdout)
-import Monad  (when)
-import Text.XML.HaXml (version)
+import System.Exit        (exitWith,ExitCode(..))
+import System.Environment (getArgs)
+import Data.Char          (isDigit)
+import System.IO          (hFlush,stdout)
+import Control.Monad      (when)
+import Text.XML.HaXml     (version)
 
 main  :: IO ()
 main = do

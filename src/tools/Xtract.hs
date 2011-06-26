@@ -2,12 +2,12 @@
 -- The Xtract tool - an XML-grep.
 ------------------------------------------------------------ 
 module Main where
-import System (getArgs, exitWith, ExitCode(..))
-import IO
-import Char                   (toLower)
-import List                   (isSuffixOf)
-import Monad                  (when)
-import System.Environment     (getArgs)
+import System.Environment (getArgs)
+import System.Exit        (exitWith, ExitCode(..))
+import System.IO
+import Data.Char          (toLower)
+import Data.List          (isSuffixOf)
+import Control.Monad      (when)
 import System.Console.GetOpt
 
 import Text.XML.HaXml                          (version)

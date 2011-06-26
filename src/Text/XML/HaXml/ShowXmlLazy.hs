@@ -7,7 +7,7 @@ import Text.XML.HaXml.TypeMapping -- (toHType, toDTD, Tuple(), Defined, showHTyp
 import qualified Text.XML.HaXml.XmlContent as X
 import Prelude hiding (maybe,either)
 import Data.Maybe hiding (maybe)
-import List
+import Data.List
 
 -- | Convert a fully-typed XML document to a string (without DTD).
 showXmlLazy :: X.XmlContent a => Bool -> a -> String

@@ -18,8 +18,8 @@ import Text.XML.HaXml.Schema.XSDTypeModel (Occurs(..))
 import Text.XML.HaXml.Schema.NameConversion
 import Text.PrettyPrint.HughesPJ as PP
 
-import List (intersperse,notElem,inits)
-import Maybe (isJust,fromJust,catMaybes)
+import Data.List (intersperse,notElem,inits)
+import Data.Maybe (isJust,fromJust,catMaybes)
 
 -- | Vertically pretty-print a list of things, with open and close brackets,
 --   and separators.

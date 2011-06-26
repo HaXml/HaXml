@@ -2,8 +2,8 @@ module Text.XML.HaXml.Schema.Parse
   ( module Text.XML.HaXml.Schema.Parse
   ) where
 
-import Char (isSpace)
-import List (isPrefixOf)
+import Data.Char (isSpace)
+import Data.List (isPrefixOf)
 import Data.Monoid (Monoid(mappend))
 -- import Text.ParserCombinators.Poly
 import Text.Parse    -- for String parsers

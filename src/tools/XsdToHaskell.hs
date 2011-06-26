@@ -7,10 +7,11 @@ module Main where
 -- definitions, you should import Xsd2Haskell wherever you intend
 -- to read and write XML files with your Haskell programs.
 
-import System
-import IO
-import Monad
---import Either
+import System.Environment
+import System.Exit
+import System.IO
+import Control.Monad
+--import Data.Either
 
 --import Text.XML.HaXml.Wrappers   (fix2Args)
 import Text.XML.HaXml            (version)
