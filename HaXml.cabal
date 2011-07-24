@@ -1,5 +1,5 @@
 name:		HaXml
-version:	1.22
+version:	1.22.1
 license:	LGPL
 license-file:	COPYRIGHT
 author:		Malcolm Wallace <Malcolm.Wallace@me.com>
@@ -12,6 +12,7 @@ description:
 	generating XML documents.
 build-type:     Simple
 cabal-version:  >=1.2
+extra-source-files:    LICENCE-GPL, LICENCE-LGPL
 
 flag splitBase
   default: True
@@ -46,6 +47,7 @@ library
         Text.XML.HaXml.Schema.TypeConversion,
         Text.XML.HaXml.Schema.PrettyHaskell,
         Text.XML.HaXml.Schema.PrimitiveTypes,
+        Text.XML.HaXml.Schema.Environment,
         Text.XML.HaXml.ShowXmlLazy,
         Text.XML.HaXml.Types,
         Text.XML.HaXml.TypeMapping,

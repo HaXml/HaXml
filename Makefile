@@ -1,5 +1,5 @@
 SOFTWARE = HaXml
-VERSION  = 1.21
+VERSION  = 1.22.1
 
 #CPP      = cpp -traditional
 CPP     = cpphs --text --noline	# useful e.g. on MacOS X
@@ -36,7 +36,14 @@ SRCS = \
 	src/Text/XML/HaXml/DtdToHaskell/Convert.hs \
 	src/Text/XML/HaXml/DtdToHaskell/Instance.hs \
 	src/Text/XML/HaXml/Schema/XSDTypeModel.hs \
+	src/Text/XML/HaXml/Schema/HaskellTypeModel.hs \
 	src/Text/XML/HaXml/Schema/Parse.hs \
+	src/Text/XML/HaXml/Schema/PrettyHaskell.hs \
+	src/Text/XML/HaXml/Schema/Environment.hs \
+	src/Text/XML/HaXml/Schema/NameConversion.hs \
+	src/Text/XML/HaXml/Schema/TypeConversion.hs \
+	src/Text/XML/HaXml/Schema/PrimitiveTypes.hs \
+	src/Text/XML/HaXml/Schema/Schema.hs \
 
 TOOLSRCS = \
 	src/tools/DtdToHaskell.hs src/tools/Xtract.hs src/tools/Validate.hs \
