@@ -2,7 +2,7 @@
 #       configure -- prepare to compile/install the HaXml package
 #       author:   Malcolm.Wallace@cs.york.ac.uk, August 2002
 
-VERSION="1.22.1"
+VERSION="1.22.2"
 
 if [ -f obj/prefix ]
 then INSTALLDIR=`cat obj/prefix`
