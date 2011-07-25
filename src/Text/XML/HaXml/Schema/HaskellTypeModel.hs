@@ -94,10 +94,10 @@ data Decl
                  -- or, if E is abstract, with substitutionGroup {Foo,Bar},
                  --    elementE = fmap T_Foo elementFoo `onFail`
                  --               fmap T_Bar elementBar `onFail` ...
-               | ElementAbstractOfType XName -- ^ element name
-                                       XName -- ^ abstract type name
-                                       [(XName,Maybe XName)]
-                                             -- ^ substitute elems and fwddecls
+               | ElementAbstractOfType {-element name-}XName
+                                       {-abstract type name-}XName
+                                       {-substitute elems and fwddecls-}
+                                           [(XName,Maybe XName)]
                                        Comment
 
                  -- becomes (global) data T = E0 e0 | E1 e1 | E2 e2 | E3 e3
