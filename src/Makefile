@@ -1,5 +1,5 @@
 SOFTWARE = HaXml
-VERSION = 1.22.2
+VERSION = 1.22.3
 
 LIBSRCS = \
 	Text/XML/HaXml.hs Text/XML/HaXml/Combinators.hs Text/XML/HaXml/Lex.hs \

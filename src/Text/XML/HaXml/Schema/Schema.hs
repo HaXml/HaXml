@@ -47,7 +47,7 @@ class SchemaType a where
 
 -- | A type t can extend another type s by the addition of extra elements
 --   and/or attributes.  s is therefore the supertype of t.
-class Extension t s {- | t -> s -} where  -- fundep ill-advised.
+class Extension t s {- - | t -> s -} where  -- fundep ill-advised.
     supertype :: t -> s
 
 -- | A type t can restrict another type s, that is, t admits fewer values
