@@ -51,9 +51,17 @@ simplifyDTD (DTD _ _ decls) =
       , attributes = listToFM [ ((elem,attr),typ)
                               | AttList (AttListDecl elem attdefs) <- decls
                               , AttDef attr typ _ <- attdefs ]
-      , required   = listToFM [ (elem, [ attr
-                                       | AttDef attr _ REQUIRED <- attdefs ])
-                              | AttList (AttListDecl elem attdefs) <- decls ]
+      -- Be sure to look at all attribute declarations for each
+      -- element, since we must merge them.  This implements the
+      -- specification in that regard only; the specification's rules
+      -- about how to merge multiple declarations for the same
+      -- attribute are not considered by this implementation.
+      -- See: http://www.w3.org/TR/REC-xml/#NT-AttlistDecl
+      , required   = listToFM [ (elem, concat [ [ attr | AttDef attr _ REQUIRED <- attdefs ]
+                                              | AttList (AttListDecl elem' attdefs) <- decls
+                                              , elem' == elem ]
+                                )
+                              | Element (ElementDecl elem _) <- decls ]
       , ids        = [ (elem,attr)
                      | Element (ElementDecl elem _) <- decls
                      , AttList (AttListDecl name attdefs) <- decls
