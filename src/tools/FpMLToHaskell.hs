@@ -98,7 +98,8 @@ main = do
                              emptyEnv filedeps
         adjust :: Environment -> Environment
         adjust env = env{ env_extendty = env_extendty supertypeEnv
-                        , env_substGrp = env_substGrp supertypeEnv }
+                        , env_substGrp = env_substGrp supertypeEnv
+                        , env_allTypes = env_allTypes supertypeEnv }
         -- each module's env includes only dependencies, apart from supertypes
         environs :: [(FilePath,(Environment,FilePath,Schema))]
         environs  = flip map filedeps (\((inf,outf),(ds,v))->

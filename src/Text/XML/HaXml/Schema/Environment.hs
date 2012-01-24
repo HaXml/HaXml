@@ -33,8 +33,18 @@ import Data.List (foldl')
 -- types, we need to be able to lift them out to the top-level, then
 -- refer to them by name only at the nested position(?)
 
+-- When dealing with sub/supertype relationships, we often need to know all
+-- of the subtypes of a supertype before some of the subtypes are actually
+-- available in scope.  The environment must therefore first be closed
+-- over all modules: the resulting type mapping (env_types) should be _copied_
+-- across to (env_allTypes) in a fresh initial environment, which latter is
+-- then used to rebuild the local scope from scratch.
+
 data Environment =  Environment
     { env_type      :: Map QName (Either SimpleType ComplexType)
+                                 -- ^ type definitions in scope
+    , env_allTypes  :: Map QName (Either SimpleType ComplexType)
+                                 -- ^ all type definitions, regardless of scope
     , env_element   :: Map QName ElementDecl
     , env_attribute :: Map QName AttributeDecl
     , env_group     :: Map QName Group
@@ -48,12 +58,13 @@ data Environment =  Environment
 -- | An empty environment of XSD type mappings.
 emptyEnv :: Environment
 emptyEnv = Environment Map.empty Map.empty Map.empty Map.empty Map.empty
-                       Map.empty Map.empty Map.empty Map.empty
+                       Map.empty Map.empty Map.empty Map.empty Map.empty
 
 -- | Combine two environments (e.g. read from different interface files)
 combineEnv :: Environment -> Environment -> Environment
 combineEnv e1 e0 = Environment
     { env_type      = Map.union (env_type e1)      (env_type e0)
+    , env_allTypes  = Map.union (env_allTypes e1)  (env_allTypes e0)
     , env_element   = Map.union (env_element e1)   (env_element e0)
     , env_attribute = Map.union (env_attribute e1) (env_attribute e0)
     , env_group     = Map.union (env_group e1)     (env_group e0)
