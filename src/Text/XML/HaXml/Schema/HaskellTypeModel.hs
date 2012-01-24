@@ -85,7 +85,9 @@ data Decl
                  --         instance T C
                  -- but this is incorrect because the choice between A|B|C
                  -- rests with the input doc, not with the caller of the parser.
-               | ElementsAttrsAbstract XName [(XName,Maybe XName)] Comment
+               | ElementsAttrsAbstract {-typename-}XName
+                                       {-subtypes-}[(XName,Maybe (XName,Decl))]
+                                       Comment
 
                  -- becomes function
                  --    elementE :: Parser T
@@ -97,7 +99,7 @@ data Decl
                | ElementAbstractOfType {-element name-}XName
                                        {-abstract type name-}XName
                                        {-substitute elems and fwddecls-}
-                                           [(XName,Maybe XName)]
+                                           [(XName,Maybe (XName,Decl))]
                                        Comment
 
                  -- becomes (global) data T = E0 e0 | E1 e1 | E2 e2 | E3 e3
@@ -128,10 +130,11 @@ data Decl
                  -- or when T is itself abstract, extending an abstract type S
                  --        class T a where parseT :: String -> XMLParser a
                  --        instance (T a) => S a where parseS = parseT
-               | ExtendComplexTypeAbstract XName XName [(XName,Maybe XName)]
-                                           {-FwdDecl instnc req'd-}(Maybe XName)
-                                           {-grandsupertypes-}[XName]
-                                           Comment
+               | ExtendComplexTypeAbstract XName XName
+                                       {-subtypes-}[(XName,Maybe (XName,Decl))]
+                                       {-FwdDecl instnc req'd-}(Maybe XName)
+                                       {-grandsupertypes-}[XName]
+                                       Comment
 
                  -- becomes an import and re-export
                | XSDInclude XName Comment

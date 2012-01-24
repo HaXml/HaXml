@@ -301,6 +301,7 @@ ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
         $$ nest 8 (ppvList "=" "|" "" ppAbstrCons insts)
     $$ text "-- instance SchemaType" <+> ppUnqConId nx t
         <+> text "(declared in Instance module)"
+-- *** Declare instance here
 --  $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
 --      $$ nest 4 (text "parseSchemaType s = do" 
 --                $$ nest 4 (vcat (intersperse (text "`onFail`")
@@ -310,6 +311,7 @@ ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
     $$ vcat (map ppFwdDecl $ filter (isJust . snd) insts)
   where
     ppAbstrCons (name,Nothing)  = con name <+> ppConId nx name
+-- *** Declare type here (that should be declared in later module)
     ppAbstrCons (name,Just mod) = text "forall q . (FwdDecl" <+>
                                   fwd name <+> text "q," <+>
                                   text "SchemaType q) =>" <+>
