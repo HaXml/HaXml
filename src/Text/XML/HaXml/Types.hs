@@ -171,7 +171,13 @@ data Content i = CElem (Element i) i
                         -- ^ bool is whether whitespace is significant
                | CRef Reference i
                | CMisc Misc i
-               deriving Eq
+
+-- custom instance of Eq, ignoring the informational elements.
+instance Eq (Content i) where
+    (CElem e _)     == (CElem e' _)       =  e==e'
+    (CString b c _) == (CString b' c' _)  =  b==b' && c==c'
+    (CRef r _)      == (CRef r' _)        =  r==r'
+    (CMisc m _)     == (CMisc m' _)       =  m==m'
 
 info :: Content t -> t
 info (CElem _ i) = i
