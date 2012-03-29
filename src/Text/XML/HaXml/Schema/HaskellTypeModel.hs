@@ -76,7 +76,7 @@ data Decl
                  -- but this is incorrect because the choice between A|B|C
                  -- rests with the input doc, not with the caller of the parser.
                | ElementsAttrsAbstract {-typename-}XName
-                                       {-subtypes-}[(XName,Maybe (XName,Decl))]
+                                       {-subtypes-}[(XName,Maybe XName)]
                                  -- ^ [(type name, module where declared later)]
                                        Comment
 
@@ -90,7 +90,7 @@ data Decl
                | ElementAbstractOfType {-element name-}XName
                                        {-abstract type name-}XName
                                        {-substitute elems and fwddecls-}
-                                           [(XName,Maybe (XName,Decl))]
+                                           [(XName,Maybe XName)]
                                        Comment
 
                  -- becomes (global) data T = E0 e0 | E1 e1 | E2 e2 | E3 e3
@@ -122,7 +122,7 @@ data Decl
                  --        class T a where parseT :: String -> XMLParser a
                  --        instance (T a) => S a where parseS = parseT
                | ExtendComplexTypeAbstract XName XName
-                                       {-subtypes-}[(XName,Maybe (XName,Decl))]
+                                       {-subtypes-}[(XName,Maybe XName)]
                                        {-FwdDecl instnc req'd-}(Maybe XName)
                                        {-grandsupertypes-}[XName]
                                        Comment

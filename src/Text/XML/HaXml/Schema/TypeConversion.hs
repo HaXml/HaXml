@@ -118,8 +118,7 @@ convert env s = concatMap item (schema_items s)
                              ({-subtypes-}
                               maybe (error "ECTA")
                                     (map (\(t,l)->(XName t,if l/=myLoc
-                                                           then Just (xname l
-                                                                     ,{-mkDecl-})
+                                                           then Just (xname l)
                                                            else Nothing)))
                                     (Map.lookup nx (env_extendty env)))
                              ({-fwddecl-}if myLoc/=supLoc
@@ -161,7 +160,7 @@ convert env s = concatMap item (schema_items s)
             ElementsAttrsAbstract n
                           {-all instance types: -}
                           (map (\ (x,loc)->(XName x,if loc/=myLoc
-                                                    then Just (xname loc,{-mkDecl-})
+                                                    then Just (xname loc)
                                                     else Nothing))
                                $ fromMaybe []
                                $ Map.lookup nx (env_extendty env))
@@ -208,8 +207,7 @@ convert env s = concatMap item (schema_items s)
                                  (XName nm)
                                  (checkXName s t)
                                  (map (\ (x,loc)->(XName x,if loc/=myLoc
-                                                           then Just (xname loc
-                                                                     ,{-mkDecl-})
+                                                           then Just (xname loc)
                                                            else Nothing))
                                      $ fromMaybe []
                                      $ Map.lookup nm (env_substGrp env))
