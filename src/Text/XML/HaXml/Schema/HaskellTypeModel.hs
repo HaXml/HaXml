@@ -11,7 +11,7 @@ import Text.XML.HaXml.Types (QName(..),Namespace(..))
 import Data.List (partition)
 
 -- | Comments can be attached to most things, but not all of them will exist.
-type Comment = Maybe String
+type Comment   = Maybe String
 
 -- | The whole Haskell module.
 data Module    = Module
@@ -21,26 +21,6 @@ data Module    = Module
                  , module_import_only :: [Decl]  -- module + alias
                  , module_decls       :: [Decl]  -- the body of the module
                  }
-
-mkModule :: String -> Schema -> [Decl] -> Module
-mkModule name schema decls =
-                      Module { module_name        = XName $ N name
-                             , module_xsd_ns      = xsdQualification
-                                                      (schema_namespaces schema)
-                             , module_re_exports  = reexports
-                             , module_import_only = imports
-                             , module_decls       = theRest
-                             }
-    where (reexports,other)   = partition xsdinclude decls
-          (imports,  theRest) = partition xsdimport  other
-          xsdinclude (XSDInclude _ _)  = True
-          xsdinclude _                 = False
-          xsdimport  (XSDImport _ _ _) = True
-          xsdimport  _                 = False
-          xsdQualification nss = fmap (XName . N . nsPrefix) $
-                                      lookupBy ((==xsd).nsURI) nss
-              where xsd = "http://www.w3.org/2001/XMLSchema"
-
 
 -- | There are essentially simple types, and complex types, each of which
 --   can be either restricted or extended.  There are four kinds of complex
@@ -78,6 +58,16 @@ data Decl
                  --         data FwdC = FwdC -- because C is not yet in scope
                  --         instance FwdDecl FwdC C  -- later, at defn of C
                  --
+                 -- In fact, it is better to move the declaration of type C
+                 -- here, rather than use a FwdDecl proxy.  This will require
+                 -- some patching later where C was originally declared.
+                 --         data T = T_A  A
+                 --                | T_B  B
+                 --                | T_C  C -- but C not yet declared
+                 --                | ...
+                 --         data C = ... -- because C is not yet in scope
+                 --         -- later, at true defn site of C, omit its decl.
+                 --
                  -- An earlier solution was
                  --         class T a where parseT :: String -> XMLParser a
                  --         instance T A
@@ -87,6 +77,7 @@ data Decl
                  -- rests with the input doc, not with the caller of the parser.
                | ElementsAttrsAbstract {-typename-}XName
                                        {-subtypes-}[(XName,Maybe (XName,Decl))]
+                                 -- ^ [(type name, module where declared later)]
                                        Comment
 
                  -- becomes function
@@ -179,4 +170,25 @@ data Restrict  = RangeR Occurs Comment
                | Enumeration [(String,Comment)]
                | StrLength Occurs Comment
                  deriving (Eq,Show)
+
+
+-- | A helper for building the formal Module structure.
+mkModule :: String -> Schema -> [Decl] -> Module
+mkModule name schema decls =
+                      Module { module_name        = XName $ N name
+                             , module_xsd_ns      = xsdQualification
+                                                      (schema_namespaces schema)
+                             , module_re_exports  = reexports
+                             , module_import_only = imports
+                             , module_decls       = theRest
+                             }
+    where (reexports,other)   = partition xsdinclude decls
+          (imports,  theRest) = partition xsdimport  other
+          xsdinclude (XSDInclude _ _)  = True
+          xsdinclude _                 = False
+          xsdimport  (XSDImport _ _ _) = True
+          xsdimport  _                 = False
+          xsdQualification nss = fmap (XName . N . nsPrefix) $
+                                      lookupBy ((==xsd).nsURI) nss
+              where xsd = "http://www.w3.org/2001/XMLSchema"
 
