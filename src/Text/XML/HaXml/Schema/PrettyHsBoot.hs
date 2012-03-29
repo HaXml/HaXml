@@ -1,12 +1,14 @@
--- | Pretty-print the internal Haskell model of XSD datatypes to a real
---   Haskell module containing type declarations, and instances for parsing
---   (and printing - though not yet implemented) values of those datatypes
---   from(/to) XML.
-module Text.XML.HaXml.Schema.PrettyHaskell
+-- | Pretty-print the internal Haskell model of XSD datatypes to a
+--   Haskell hs-boot module containing only stub type declarations.
+--   This approach is intended to work around issues of mutually recursive
+--   datatype definitions.
+module Text.XML.HaXml.Schema.PrettyHsBoot
   ( ppComment
   , ppModule
   , ppHighLevelDecl
   , ppHighLevelDecls
+  , ppModuleWithInstances
+  , ppHighLevelInstances
   , ppvList
   ) where
 
@@ -85,20 +87,49 @@ ppModule nx m =
     $$ vcat (map (ppHighLevelDecl nx)
                  (module_re_exports m ++ module_import_only m))
     $$ text " "
-    $$ text "-- Some hs-boot imports are required, for fwd-declaring types."
-    $$ vcat (map ppFwdDecl $ concatMap imports $ module_decls m)
-    $$ text " "
     $$ ppHighLevelDecls nx (module_decls m)
 
+-- | Generate a supplementary module to contain instances, especially for
+--   types that needed to be forward-declared.
+ppModuleWithInstances :: NameConverter -> Module -> Doc
+ppModuleWithInstances nx m =
+    text "{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies,"
+    $$ text "             ExistentialQuantification, FlexibleContexts #-}"
+    $$ text "{-# OPTIONS_GHC -fno-warn-orphan-instances #-}"
+    $$ text "module" <+> ppModId nx (module_name m) <> text "Instances"
+    $$ nest 2 (text "( module" <+> ppModId nx (module_name m)
+                                                    <> text "Instances"
+              $$ text ") where")
+    $$ text " "
+    $$ text "import Text.XML.HaXml.Schema.Schema (SchemaType(..),SimpleType(..),Extension(..),Restricts(..))"
+    $$ text "import Text.XML.HaXml.Schema.Schema as Schema"
+    $$ (case module_xsd_ns m of
+         Nothing -> text "import Text.XML.HaXml.Schema.PrimitiveTypes as Xsd"
+         Just ns -> text "import qualified Text.XML.HaXml.Schema.PrimitiveTypes as"<+>ppConId nx ns)
+    $$ vcat (map (ppHighLevelDecl nx)
+                 (module_re_exports m ++ module_import_only m))
+    $$ text " "
+    $$ text "import" <+> ppModId nx (module_name m)
+    $$ text "-- More imports are required, extracted from FwdDecls"
+    $$ vcat (map ppFwdDecl $ concatMap imports $ module_decls m)
+    $$ text " "
+    $$ vcat (intersperse (text " ")
+                         (map (ppHighLevelInstances nx)
+                              (filter hasInstances (module_decls m))))
   where
+    hasInstances ElementsAttrsAbstract{}     = True
+    hasInstances ElementAbstractOfType{}     = True
+    hasInstances ExtendComplexType{}         = True
+    hasInstances ExtendComplexTypeAbstract{} = True
+    hasInstances _                           = False
+
     imports (ElementsAttrsAbstract _ insts _) = insts
     imports (ExtendComplexTypeAbstract _ _ insts _ _ _) = insts
     imports _ = []
 
     ppFwdDecl (_,   Nothing)  = empty
-    ppFwdDecl (name,Just mod) = text "import {-# SOURCE #-}" <+> ppModId nx mod
+    ppFwdDecl (name,Just mod) = text "import" <+> ppModId nx mod
                                 <+> text "-- for" <+> ppConId nx name
-
 
 -- | Generate a fragmentary parser for an attribute.
 ppAttr :: Attribute -> Int -> Doc
@@ -153,68 +184,20 @@ ppHighLevelDecl nx (RestrictSimpleType t s r comm) =
     ppComment Before comm
     $$ text "newtype" <+> ppUnqConId nx t <+> text "="
                       <+> ppUnqConId nx t <+> ppConId nx s
-                      <+> text "deriving (Eq,Show)"
+    $$ text "instance Eq" <+> ppUnqConId nx t
+    $$ text "instance Show" <+> ppUnqConId nx t
     $$ text "instance Restricts" <+> ppUnqConId nx t <+> ppConId nx s
-                      <+> text "where"
-        $$ nest 4 (text "restricts (" <> ppUnqConId nx t <+> text "x) = x")
-    $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
-        $$ nest 4 (text "parseSchemaType s = do" 
-                  $$ nest 4 (text "e <- element [s]"
-                           $$ text "commit $ interior e $ parseSimpleType")
-                  )
-    $$ text "instance SimpleType" <+> ppUnqConId nx t <+> text "where"
-        $$ nest 4 (text "acceptingParser = fmap" <+> ppUnqConId nx t
-                                                 <+> text "acceptingParser"
-                   -- XXX should enforce the restrictions somehow.  (?)
-                   $$ text "-- XXX should enforce the restrictions somehow?"
-                   $$ text "-- The restrictions are:"
-                   $$ vcat (map ((text "--     " <+>) . ppRestrict) r))
-  where
-    ppRestrict (RangeR occ comm)     = text "(RangeR"
-                                         <+> ppOccurs occ <>  text ")"
-    ppRestrict (Pattern regexp comm) = text ("(Pattern "++regexp++")")
-    ppRestrict (Enumeration items)   = text "(Enumeration"
-                                         <+> hsep (map (text . fst) items)
-                                         <>  text ")"
-    ppRestrict (StrLength occ comm)  = text "(StrLength"
-                                         <+> ppOccurs occ <>  text ")"
-    ppOccurs = parens . text . show
+    $$ text "instance SchemaType" <+> ppUnqConId nx t
+    $$ text "instance SimpleType" <+> ppUnqConId nx t
 
 ppHighLevelDecl nx (ExtendSimpleType t s as comm) =
     ppComment Before comm
-    $$ text "data" <+> ppUnqConId nx t <+> text "="
-                                    <+> ppUnqConId nx t <+> ppConId nx s
-                                    <+> ppConId nx t_attrs
-    $$ text "data" <+> ppConId nx t_attrs <+> text "=" <+> ppConId nx t_attrs
-        $$ nest 4 (ppFields nx t_attrs [] as)
-    $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
-        $$ nest 4 (text "parseSchemaType s = do" 
-                  $$ nest 4 (text "(pos,e) <- posnElement [s]"
-                            $$ text "commit $ do"
-                            $$ nest 2
-                                  (vcat (zipWith ppAttr as [0..])
-                                  $$ text "reparse [CElem e pos]"
-                                  $$ text "v <- parseSchemaType s"
-                                  $$ text "return $" <+> ppUnqConId nx t
-                                                     <+> text "v"
-                                                     <+> attrsValue as)
-                            )
-                  )
+    $$ text "data" <+> ppUnqConId nx t
+    $$ text "data" <+> ppConId nx t_attrs
+    $$ text "instance SchemaType" <+> ppUnqConId nx t
     $$ text "instance Extension" <+> ppUnqConId nx t <+> ppConId nx s
-                                 <+> text "where"
-        $$ nest 4 (text "supertype (" <> ppUnqConId nx t <> text " s _) = s")
   where
     t_attrs = let (XName (N t_base)) = t in XName (N (t_base++"Attributes"))
-
-    attrsValue [] = ppConId nx t_attrs
-    attrsValue as = parens (ppConId nx t_attrs <+>
-                            hsep [text ("a"++show n) | n <- [0..length as-1]])
-
-    -- do element [s]
-    --    blah <- attribute foo
-    --    interior e $ do
-    --        simple <- parseText acceptingParser
-    --        return (T simple blah)
 
 ppHighLevelDecl nx (UnionSimpleTypes t sts comm) =
     ppComment Before comm
@@ -227,126 +210,73 @@ ppHighLevelDecl nx (EnumSimpleType t [] comm) =
 ppHighLevelDecl nx (EnumSimpleType t is comm) =
     ppComment Before comm
     $$ text "data" <+> ppUnqConId nx t
-        $$ nest 4 ( ppvList "=" "|" "deriving (Eq,Show,Enum)" item is )
-    $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
-        $$ nest 4 (text "parseSchemaType s = do" 
-                  $$ nest 4 (text "e <- element [s]"
-                           $$ text "commit $ interior e $ parseSimpleType")
-                  )
-    $$ text "instance SimpleType" <+> ppUnqConId nx t <+> text "where"
-        $$ nest 4 (text "acceptingParser ="
-                        <+> ppvList "" "`onFail`" "" parseItem is)
-  where
-    item (i,c) = (ppUnqConId nx t <> text "_" <> ppConId nx i)
-                 $$ ppComment After c
-    parseItem (i,_) = text "do isWord \"" <> ppXName i <> text "\"; return"
-                           <+> (ppUnqConId nx t <> text "_" <> ppConId nx i)
+    $$ text "instance Eq" <+> ppUnqConId nx t
+    $$ text "instance Show" <+> ppUnqConId nx t
+    $$ text "instance Enum" <+> ppUnqConId nx t
+    $$ text "instance SchemaType" <+> ppUnqConId nx t
+    $$ text "instance SimpleType" <+> ppUnqConId nx t
 
 ppHighLevelDecl nx (ElementsAttrs t es as comm) =
     ppComment Before comm
-    $$ text "data" <+> ppUnqConId nx t <+> text "=" <+> ppUnqConId nx t
-        $$ nest 8 (ppFields nx t (uniqueify es) as)
-    $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
-        $$ nest 4 (text "parseSchemaType s = do" 
-                  $$ nest 4 (text "(pos,e) <- posnElement [s]"
-                            $$ text "commit $ do"
-                            $$ nest 2
-                                  (vcat (zipWith ppAttr as [0..])
-                                  $$ text "interior e $ return"
-                                      <+> returnValue as
-                                      $$ nest 4 (vcat (map ppApplyElem es))
-                                  )
-                            )
-                  )
-  where
-    returnValue [] = ppUnqConId nx t
-    returnValue as = parens (ppUnqConId nx t <+>
-                             hsep [text ("a"++show n) | n <- [0..length as-1]])
-    ppApplyElem e = text "`apply`" <+> ppElem nx e
+    $$ text "data" <+> ppUnqConId nx t
+    $$ text "instance SchemaType" <+> ppUnqConId nx t
 
 ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
     ppComment Before comm
     $$ text "data" <+> ppUnqConId nx t
-        $$ nest 8 (ppvList "=" "|" "" ppAbstrCons insts)
---  $$ text "-- instance SchemaType" <+> ppUnqConId nx t
---      <+> text "(declared in Instance module)"
+    $$ text "-- instance SchemaType" <+> ppUnqConId nx t
+        <+> text "(declared in Instance module)"
 -- *** Declare instance here
-    $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
-        $$ nest 4 (text "parseSchemaType s = do" 
-                  $$ nest 4 (vcat (intersperse (text "`onFail`")
-                                               (map ppParse insts)
-                                   ++ [text "`onFail` fail" <+> errmsg])))
---  $$ text ""
---  $$ vcat (map ppFwdDecl $ filter (isJust . snd) insts)
+--  $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
+--      $$ nest 4 (text "parseSchemaType s = do" 
+--                $$ nest 4 (vcat (intersperse (text "`onFail`")
+--                                             (map ppParse insts)
+--                                 ++ [text "`onFail` fail" <+> errmsg])))
+    $$ text ""
+    $$ vcat (map ppFwdDecl $ filter (isJust . snd) insts)
   where
     ppAbstrCons (name,Nothing)  = con name <+> ppConId nx name
-    ppAbstrCons (name,Just mod) = con name <+> ppConId nx name
--- *** Declare FwdDecl type here (proxy for type declared in later module)
---  ppAbstrCons (name,Just mod) = text "forall q . (FwdDecl" <+>
---                                fwd name <+> text "q," <+>
---                                text "SchemaType q) =>" <+>
---                                con name <+>
---                                text "("<>fwd name<>text"->q)" <+> fwd name
-    ppParse (name,Nothing) = text "(fmap" <+> con name <+>
-                             text "$ parseSchemaType s)"
-    ppParse (name,Just _)  = empty -- ppParse (name,Nothing)
+-- *** Declare type here (that should be declared in later module)
+    ppAbstrCons (name,Just mod) = text "forall q . (FwdDecl" <+>
+                                  fwd name <+> text "q," <+>
+                                  text "SchemaType q) =>" <+>
+                                  con name <+>
+                                  text "("<>fwd name<>text"->q)" <+> fwd name
+--  ppParse (name,Nothing) = text "(fmap" <+> con name <+>
+--                           text "$ parseSchemaType s)"
 --  ppParse (name,Just _)  = text "(return" <+> con name <+>
 --                           text "`apply` (fmap const $ parseSchemaType s)" <+>
 --                           text "`apply` return" <+> fwd name <> text ")"
---  ppFwdDecl (name,Just mod)
---         = text "-- | Proxy:" <+> ppConId nx name
---               <+> text "declared later in" <+> ppModId nx mod
---           $$ text "data" <+> fwd name <+> text "=" <+> fwd name
-    errmsg = text "\"Parse failed when expecting an extension type of"
-             <+> ppXName t <> text ",\\n\\\n\\  namely one of:\\n\\\n\\"
-             <> hcat (intersperse (text ",")
-                                  (map (ppXName . fst) insts))
-             <> text "\""
---  fwd name = ppFwdConId nx name
+    ppFwdDecl (name,Just mod)
+           = text "-- | Proxy:" <+> ppConId nx name
+                 <+> text "declared later in" <+> ppModId nx mod
+             $$ text "data" <+> fwd name <+> text "=" <+> fwd name
+--  errmsg = text "\"Parse failed when expecting an extension type of"
+--           <+> ppXName t <> text ",\\n\\\n\\  namely one of:\\n\\\n\\"
+--           <> hcat (intersperse (text ",")
+--                                (map (ppXName . fst) insts))
+--           <> text "\""
+    fwd name = ppFwdConId nx name
     con name = ppJoinConId nx t name
 
 ppHighLevelDecl nx (ElementOfType e@Element{}) =
     ppComment Before (elem_comment e)
     $$ (text "element" <> ppUnqConId nx (elem_name e)) <+> text "::"
         <+> text "XMLParser" <+> ppConId nx (elem_type e)
-    $$ (text "element" <> ppUnqConId nx (elem_name e)) <+> text "="
-        <+> (text "parseSchemaType \"" <> ppXName (elem_name e)  <> text "\"")
 
 ppHighLevelDecl nx e@(ElementAbstractOfType n t substgrp comm)
     | any notInScope substgrp
                 = (text "-- element" <> ppUnqConId nx n) <+> text "::"
                       <+> text "XMLParser" <+> ppConId nx t
-                $$ text "--     declared elsewhere"
---              $$ text "--     declared in Instances module"
-    | otherwise = ppComment Before comm
-                $$ (text "element" <> ppUnqConId nx n) <+> text "::"
-                    <+> text "XMLParser" <+> ppConId nx t
-                $$ (text "element" <> ppUnqConId nx n) <+> text "="
-                   <+> vcat (intersperse (text "`onFail`") (map ppOne substgrp)
-                             ++ [text "`onFail` fail" <+> errmsg])
---  | otherwise = ppElementAbstractOfType nx e
+                $$ text "--     declared in Instances module"
+    | otherwise = ppElementAbstractOfType nx e
   where
     notInScope (_,Just _)  = True
     notInScope (_,Nothing) = False
-    ppOne (c,Nothing) = text "fmap" <+> text "supertype" -- ppJoinConId nx t c
-                        <+> (text "element" <> ppConId nx c)
-    ppOne (c,Just _)  = text "fmap" <+> text "supertype" -- ppJoinConId nx t c
-                        <+> (text "element" <> ppConId nx c)
-                        <+> text "-- FIXME: element is forward-declared"
-    errmsg = text "\"Parse failed when expecting an element in the substitution group for\\n\\\n\\    <"
-             <> ppXName n <> text ">,\\n\\\n\\  namely one of:\\n\\\n\\<"
-             <> hcat (intersperse (text ">, <")
-                                  (map (ppXName . fst) substgrp))
-             <> text ">\""
-
 
 ppHighLevelDecl nx (Choice t es comm) =
     ppComment Before comm
     $$ text "data" <+> ppUnqConId nx t
-        <+> nest 4 ( ppvList "=" "|" "" choices (zip es [1..]) )
-  where
-    choices (e,n) = (ppUnqConId nx t <> text (show n))
-                    <+> ppConId nx (elem_type e)
 
 -- Comment out the Group for now.  Groups get inlined into the ComplexType
 -- where they are used, so it may not be sensible to declare them separately
@@ -366,12 +296,7 @@ ppHighLevelDecl nx (RestrictComplexType t s comm) =
                                        <+> ppUnqConId nx t <+> ppConId nx s
     $$ text "-- plus different (more restrictive) parser"
     $$ text "instance Restricts" <+> ppUnqConId nx t <+> ppConId nx s
-                                 <+> text "where"
-        $$ nest 4 (text "restricts (" <> ppUnqConId nx t <+> text "x) = x")
-    $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
-        $$ nest 4 (text "parseSchemaType = fmap " <+> ppUnqConId nx t <+>
-                   text ". parseSchemaType")
-		-- XXX should enforce the restriction.
+    $$ text "instance SchemaType" <+> ppUnqConId nx t
 
 {-
 ppHighLevelDecl nx (ExtendComplexType t s es as _ comm)
@@ -390,7 +315,7 @@ ppHighLevelDecl nx (ExtendComplexType t s oes oas es as
                                       fwdReqd absSup grandsuper comm) =
     ppHighLevelDecl nx (ElementsAttrs t (oes++es) (oas++as) comm)
     $$ ppExtension nx t s fwdReqd absSup oes oas es as
-    $$ (if not (null grandsuper) && not (isJust fwdReqd) -- && isJust fwdReqd
+    $$ (if not (null grandsuper) && not (isJust fwdReqd)
         then ppSuperExtension nx s grandsuper (t,Nothing)
         else empty)
 
@@ -421,24 +346,7 @@ ppHighLevelDecl nx (XSDComment comm) =
 --   different module.  So they have been separated out from ppHighLevelDecl.
 ppHighLevelInstances :: NameConverter -> Decl -> Doc
 ppHighLevelInstances nx (ElementsAttrsAbstract t insts comm) =
-    text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
-        $$ nest 4 (text "parseSchemaType s = do" 
-                  $$ nest 4 (vcat (intersperse (text "`onFail`")
-                                               (map ppParse insts)
-                                   ++ [text "`onFail` fail" <+> errmsg])))
-  where
-    ppParse (name,Nothing) = text "(fmap" <+> con name <+>
-                             text "$ parseSchemaType s)"
-    ppParse (name,Just _)  = text "(return" <+> con name <+>
-                             text "`apply` (fmap const $ parseSchemaType s)" <+>
-                             text "`apply` return" <+> fwd name <> text ")"
-    errmsg = text "\"Parse failed when expecting an extension type of"
-             <+> ppXName t <> text ",\\n\\\n\\  namely one of:\\n\\\n\\"
-             <> hcat (intersperse (text ",")
-                                  (map (ppXName . fst) insts))
-             <> text "\""
-    fwd name = ppFwdConId nx name
-    con name = ppJoinConId nx t name
+    text "instance SchemaType" <+> ppUnqConId nx t
 
 ppHighLevelInstances nx e@(ElementAbstractOfType n t substgrp comm)
     | any notInScope substgrp = ppElementAbstractOfType nx e
@@ -468,20 +376,6 @@ ppElementAbstractOfType nx (ElementAbstractOfType n t substgrp comm) =
     ppComment Before comm
     $$ (text "element" <> ppUnqConId nx n) <+> text "::"
         <+> text "XMLParser" <+> ppConId nx t
-    $$ (text "element" <> ppUnqConId nx n) <+> text "="
-       <+> vcat (intersperse (text "`onFail`") (map ppOne substgrp)
-                 ++ [text "`onFail` fail" <+> errmsg])
-  where
-    ppOne (c,Nothing) = text "fmap" <+> text "supertype" -- ppJoinConId nx t c
-                        <+> (text "element" <> ppConId nx c)
-    ppOne (c,Just _)  = text "fmap" <+> text "supertype" -- ppJoinConId nx t c
-                        <+> (text "element" <> ppConId nx c)
-                        <+> text "-- FIXME: element is forward-declared"
-    errmsg = text "\"Parse failed when expecting an element in the substitution group for\\n\\\n\\    <"
-             <> ppXName n <> text ">,\\n\\\n\\  namely one of:\\n\\\n\\<"
-             <> hcat (intersperse (text ">, <")
-                                  (map (ppXName . fst) substgrp))
-             <> text ">\""
 
 --------------------------------------------------------------------------------
 
@@ -490,30 +384,6 @@ ppExtension :: NameConverter -> XName -> XName -> Maybe XName -> Bool ->
                [Element] -> [Attribute] -> [Element] -> [Attribute] -> Doc
 ppExtension nx t s fwdReqd abstractSuper oes oas es as =
     text "instance Extension" <+> ppUnqConId nx t <+> ppConId nx s
-                              <+> text "where"
-       $$ (if abstractSuper then
-           nest 4 (text "supertype v" <+> text "="
-                                      <+> ppJoinConId nx s t <+>
-                                 --   (if isJust fwdReqd
-                                 --    then text "(\\_-> v)" <+> ppFwdConId nx t
-                                 --    else text "v")
-                                      text "v")
-           else
-           nest 4 (text "supertype (" <> ppType t (oes++es) (oas++as)
-                                      <> text ") ="
-                                      $$ nest 11 (ppType s oes oas) ))
---  $$ (if isJust fwdReqd then
---     -- text "data" <+> fwd t <+> text "=" <+> fwd t $$  -- already defined
---        text ""
---        $$ text "-- | Proxy" <+> fwd t <+> text "was declared earlier in"
---                   <+> ppModId nx (fromJust fwdReqd)
---        $$ text "instance FwdDecl" <+> fwd t <+> ppConId nx t
---      else empty)
-  where
-    fwd name = ppFwdConId nx name
-    ppType t es as = ppUnqConId nx t
-                     <+> hsep (take (length as) [text ('a':show n) | n<-[0..]])
-                     <+> hsep (take (length es) [text ('e':show n) | n<-[0..]])
 
 -- | Generate an instance of the Extension class for a type and its
 --   "grand"-supertype, that is, the supertype of its supertype.
@@ -532,22 +402,16 @@ ppSuperExtension nx super (grandSuper:_) (t,Nothing) =
                                            <+> text "->"
                                            <+> ppConId nx super <> text ")"))
 -}
-ppSuperExtension nx super grandSupers (t,Just mod) =  -- fwddecl
-    text "-- Note that" <+> ppUnqConId nx t
-    <+> text "will be declared later in module" <+> ppModId nx mod
-    $$ ppSuperExtension nx super grandSupers (t,Nothing)
+ppSuperExtension nx super (grandSuper:_) (t,Just mod) =  -- fwddecl
+    -- FIXME: generate comment for all of the grandSupers.
+    text "-- instance Extension" <+> ppUnqConId nx t <+> ppConId nx grandSuper
+    $$ text "--   will be declared in module" <+> ppModId nx mod
 ppSuperExtension nx super grandSupers (t,Nothing) =
     vcat (map (ppSuper t) (map reverse . drop 2 . inits $ super: grandSupers))
   where
     ppSuper :: XName -> [XName] -> Doc
     ppSuper t gss@(gs:_) =
         text "instance Extension" <+> ppUnqConId nx t <+> ppConId nx gs
-                                  <+> text "where"
-        $$ nest 4 (text "supertype" <+>
-                      (ppvList "=" "." "" coerce (zip (tail gss++[t]) gss)))
-    coerce (a,b) = text "(supertype ::" <+> ppUnqConId nx a
-                                        <+> text "->"
-                                        <+> ppConId nx b <> text ")"
 
 -- | Generate named fields from elements and attributes.
 ppFields :: NameConverter -> XName -> [Element] -> [Attribute] -> Doc

@@ -26,11 +26,12 @@ import Text.XML.HaXml.Util       (docContent)
 import Text.XML.HaXml.Posn       (posInNewCxt)
 
 import Text.XML.HaXml.Schema.Parse
+import Text.XML.HaXml.Schema.XSDTypeModel (Schema)
 import Text.XML.HaXml.Schema.NameConversion
 import Text.XML.HaXml.Schema.Environment    as Env
 import Text.XML.HaXml.Schema.TypeConversion as XsdToH
 import Text.XML.HaXml.Schema.PrettyHaskell
-import Text.XML.HaXml.Schema.XSDTypeModel (Schema)
+import qualified Text.XML.HaXml.Schema.PrettyHsBoot     as HsBoot
 import qualified Text.XML.HaXml.Schema.HaskellTypeModel as Haskell
 import Text.ParserCombinators.Poly
 import Text.PrettyPrint.HughesPJ (render,vcat)
@@ -118,17 +119,22 @@ main = do
                     )
     flip mapM_ environs (\ (inf,(env,outf,v))-> do
         o  <- openFile outf WriteMode
-        oi <- openFile (insts outf) WriteMode
+--      oi <- openFile (insts outf) WriteMode
+        hb <- openFile (bootf outf) WriteMode
         let decls   = XsdToH.convert env v
             haskell = Haskell.mkModule inf v decls
             doc     = ppModule fpmlNameConverter haskell
-            docinst = ppModuleWithInstances fpmlNameConverter haskell
+            docboot = HsBoot.ppModule fpmlNameConverter haskell
+--          docinst = ppModuleWithInstances fpmlNameConverter haskell
         hPutStrLn stdout $ "Writing "++outf
         hPutStrLn o $ render doc
-        hPutStrLn stdout $ "Writing "++(insts outf)
-        hPutStrLn oi $ render docinst
+        hPutStrLn stdout $ "Writing "++(bootf outf)
+        hPutStrLn hb $ render docboot
+--      hPutStrLn stdout $ "Writing "++(insts outf)
+--      hPutStrLn oi $ render docinst
         hFlush o
-        hFlush oi
+        hFlush hb
+--      hFlush oi
         )
 
 -- | Munge filename for instances.
@@ -136,6 +142,12 @@ insts :: FilePath -> FilePath
 insts x = case reverse x of
             's':'h':'.':f -> reverse f++"Instances.hs"
             _ -> error "bad stuff made my brains melt"
+
+-- | Munge filename for hs-boot.
+bootf :: FilePath -> FilePath
+bootf x = case reverse x of
+            's':'h':'.':f -> reverse f++".hs-boot"
+            _ -> error "bad stuff made my cheese boots melt"
 
 -- | Calculate dependency ordering of modules, least dependent first.
 ordered :: Eq a => (b->a) -> (b->[a]) -> [b] -> [b]
