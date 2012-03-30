@@ -85,7 +85,7 @@ ppModule nx m =
          Nothing -> text "import Text.XML.HaXml.Schema.PrimitiveTypes as Xsd"
          Just ns -> text "import qualified Text.XML.HaXml.Schema.PrimitiveTypes as"<+>ppConId nx ns)
     $$ vcat (map (ppHighLevelDecl nx)
-                 (module_re_exports m ++ module_import_only m))
+                 (module_re_exports m {-++ module_import_only m-}))
     $$ text " "
     $$ ppHighLevelDecls nx (module_decls m)
 
@@ -330,11 +330,11 @@ ppHighLevelDecl nx (ExtendComplexTypeAbstract t s insts
 
 ppHighLevelDecl nx (XSDInclude m comm) =
     ppComment After comm
-    $$ text "import" <+> ppModId nx m
+    $$ text "import {-# SOURCE #-}" <+> ppModId nx m
 
 ppHighLevelDecl nx (XSDImport m ma comm) =
     ppComment After comm
-    $$ text "import" <+> ppModId nx m
+    $$ text "import {-# SOURCE #-}" <+> ppModId nx m
                      <+> maybe empty (\a->text "as"<+>ppConId nx a) ma
 
 ppHighLevelDecl nx (XSDComment comm) =
