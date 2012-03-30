@@ -7,8 +7,6 @@ module Text.XML.HaXml.Schema.PrettyHsBoot
   , ppModule
   , ppHighLevelDecl
   , ppHighLevelDecls
-  , ppModuleWithInstances
-  , ppHighLevelInstances
   , ppvList
   ) where
 
@@ -88,48 +86,6 @@ ppModule nx m =
                  (module_re_exports m {-++ module_import_only m-}))
     $$ text " "
     $$ ppHighLevelDecls nx (module_decls m)
-
--- | Generate a supplementary module to contain instances, especially for
---   types that needed to be forward-declared.
-ppModuleWithInstances :: NameConverter -> Module -> Doc
-ppModuleWithInstances nx m =
-    text "{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies,"
-    $$ text "             ExistentialQuantification, FlexibleContexts #-}"
-    $$ text "{-# OPTIONS_GHC -fno-warn-orphan-instances #-}"
-    $$ text "module" <+> ppModId nx (module_name m) <> text "Instances"
-    $$ nest 2 (text "( module" <+> ppModId nx (module_name m)
-                                                    <> text "Instances"
-              $$ text ") where")
-    $$ text " "
-    $$ text "import Text.XML.HaXml.Schema.Schema (SchemaType(..),SimpleType(..),Extension(..),Restricts(..))"
-    $$ text "import Text.XML.HaXml.Schema.Schema as Schema"
-    $$ (case module_xsd_ns m of
-         Nothing -> text "import Text.XML.HaXml.Schema.PrimitiveTypes as Xsd"
-         Just ns -> text "import qualified Text.XML.HaXml.Schema.PrimitiveTypes as"<+>ppConId nx ns)
-    $$ vcat (map (ppHighLevelDecl nx)
-                 (module_re_exports m ++ module_import_only m))
-    $$ text " "
-    $$ text "import" <+> ppModId nx (module_name m)
-    $$ text "-- More imports are required, extracted from FwdDecls"
-    $$ vcat (map ppFwdDecl $ concatMap imports $ module_decls m)
-    $$ text " "
-    $$ vcat (intersperse (text " ")
-                         (map (ppHighLevelInstances nx)
-                              (filter hasInstances (module_decls m))))
-  where
-    hasInstances ElementsAttrsAbstract{}     = True
-    hasInstances ElementAbstractOfType{}     = True
-    hasInstances ExtendComplexType{}         = True
-    hasInstances ExtendComplexTypeAbstract{} = True
-    hasInstances _                           = False
-
-    imports (ElementsAttrsAbstract _ insts _) = insts
-    imports (ExtendComplexTypeAbstract _ _ insts _ _ _) = insts
-    imports _ = []
-
-    ppFwdDecl (_,   Nothing)  = empty
-    ppFwdDecl (name,Just mod) = text "import" <+> ppModId nx mod
-                                <+> text "-- for" <+> ppConId nx name
 
 -- | Generate a fragmentary parser for an attribute.
 ppAttr :: Attribute -> Int -> Doc
@@ -224,40 +180,7 @@ ppHighLevelDecl nx (ElementsAttrs t es as comm) =
 ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
     ppComment Before comm
     $$ text "data" <+> ppUnqConId nx t
-    $$ text "-- instance SchemaType" <+> ppUnqConId nx t
-        <+> text "(declared in Instance module)"
--- *** Declare instance here
---  $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
---      $$ nest 4 (text "parseSchemaType s = do" 
---                $$ nest 4 (vcat (intersperse (text "`onFail`")
---                                             (map ppParse insts)
---                                 ++ [text "`onFail` fail" <+> errmsg])))
-    $$ text ""
-    $$ vcat (map ppFwdDecl $ filter (isJust . snd) insts)
-  where
-    ppAbstrCons (name,Nothing)  = con name <+> ppConId nx name
--- *** Declare type here (that should be declared in later module)
-    ppAbstrCons (name,Just mod) = text "forall q . (FwdDecl" <+>
-                                  fwd name <+> text "q," <+>
-                                  text "SchemaType q) =>" <+>
-                                  con name <+>
-                                  text "("<>fwd name<>text"->q)" <+> fwd name
---  ppParse (name,Nothing) = text "(fmap" <+> con name <+>
---                           text "$ parseSchemaType s)"
---  ppParse (name,Just _)  = text "(return" <+> con name <+>
---                           text "`apply` (fmap const $ parseSchemaType s)" <+>
---                           text "`apply` return" <+> fwd name <> text ")"
-    ppFwdDecl (name,Just mod)
-           = text "-- | Proxy:" <+> ppConId nx name
-                 <+> text "declared later in" <+> ppModId nx mod
-             $$ text "data" <+> fwd name <+> text "=" <+> fwd name
---  errmsg = text "\"Parse failed when expecting an extension type of"
---           <+> ppXName t <> text ",\\n\\\n\\  namely one of:\\n\\\n\\"
---           <> hcat (intersperse (text ",")
---                                (map (ppXName . fst) insts))
---           <> text "\""
-    fwd name = ppFwdConId nx name
-    con name = ppJoinConId nx t name
+    $$ text "instance SchemaType" <+> ppUnqConId nx t
 
 ppHighLevelDecl nx (ElementOfType e@Element{}) =
     ppComment Before (elem_comment e)
@@ -266,9 +189,8 @@ ppHighLevelDecl nx (ElementOfType e@Element{}) =
 
 ppHighLevelDecl nx e@(ElementAbstractOfType n t substgrp comm)
     | any notInScope substgrp
-                = (text "-- element" <> ppUnqConId nx n) <+> text "::"
+                = (text "element" <> ppUnqConId nx n) <+> text "::"
                       <+> text "XMLParser" <+> ppConId nx t
-                $$ text "--     declared in Instances module"
     | otherwise = ppElementAbstractOfType nx e
   where
     notInScope (_,Just _)  = True
