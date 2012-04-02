@@ -398,10 +398,10 @@ ppHighLevelDecl nx (ExtendComplexTypeAbstract t s insts
                                               fwdReqd grandsuper comm) =
     ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm)
     $$ ppExtension nx t s fwdReqd True [] [] [] []
-    $$ if not (null grandsuper)
-       then vcat (map (ppSuperExtension nx t grandsuper) insts)
-                       -- FIXME some instances are missing!
-       else empty
+--  $$ if not (null grandsuper)
+--     then vcat (map (ppSuperExtension nx t grandsuper) insts)
+--                     -- FIXME some instances are missing!
+--     else empty
 
 ppHighLevelDecl nx (XSDInclude m comm) =
     ppComment After comm
