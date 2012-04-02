@@ -289,7 +289,7 @@ ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
 --                                text "("<>fwd name<>text"->q)" <+> fwd name
     ppParse (name,Nothing) = text "(fmap" <+> con name <+>
                              text "$ parseSchemaType s)"
-    ppParse (name,Just _)  = empty -- ppParse (name,Nothing)
+    ppParse (name,Just _)  = ppParse (name,Nothing)
 --  ppParse (name,Just _)  = text "(return" <+> con name <+>
 --                           text "`apply` (fmap const $ parseSchemaType s)" <+>
 --                           text "`apply` return" <+> fwd name <> text ")"
@@ -313,10 +313,9 @@ ppHighLevelDecl nx (ElementOfType e@Element{}) =
         <+> (text "parseSchemaType \"" <> ppXName (elem_name e)  <> text "\"")
 
 ppHighLevelDecl nx e@(ElementAbstractOfType n t substgrp comm)
-    | any notInScope substgrp
-                = (text "-- element" <> ppUnqConId nx n) <+> text "::"
-                      <+> text "XMLParser" <+> ppConId nx t
-                $$ text "--     declared elsewhere"
+--  | any notInScope substgrp
+--              = (text "-- element" <> ppUnqConId nx n) <+> text "::"
+--                    <+> text "XMLParser" <+> ppConId nx t
 --              $$ text "--     declared in Instances module"
     | otherwise = ppComment Before comm
                 $$ (text "element" <> ppUnqConId nx n) <+> text "::"
