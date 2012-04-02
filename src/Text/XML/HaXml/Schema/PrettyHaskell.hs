@@ -97,7 +97,7 @@ ppModule nx m =
 
     ppFwdDecl (_,   Nothing)  = empty
     ppFwdDecl (name,Just mod) = text "import {-# SOURCE #-}" <+> ppModId nx mod
-                                <+> text "-- for" <+> ppConId nx name
+                                <+> text "(" <+> ppConId nx name <+> text ")"
 
 
 -- | Generate a fragmentary parser for an attribute.
