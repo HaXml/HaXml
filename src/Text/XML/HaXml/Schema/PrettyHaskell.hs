@@ -87,6 +87,7 @@ ppModule nx m =
     $$ text " "
     $$ text "-- Some hs-boot imports are required, for fwd-declaring types."
     $$ vcat (map ppFwdDecl $ concatMap imports $ module_decls m)
+    $$ vcat (map ppFwdElem $ concatMap importElems $ module_decls m)
     $$ text " "
     $$ ppHighLevelDecls nx (module_decls m)
 
@@ -95,9 +96,18 @@ ppModule nx m =
     imports (ExtendComplexTypeAbstract _ _ insts _ _ _) = insts
     imports _ = []
 
+    importElems (ElementAbstractOfType _ _ insts _) = insts
+    importElems _ = []
+
     ppFwdDecl (_,   Nothing)  = empty
     ppFwdDecl (name,Just mod) = text "import {-# SOURCE #-}" <+> ppModId nx mod
                                 <+> text "(" <+> ppConId nx name <+> text ")"
+
+    ppFwdElem (_,   Nothing)  = empty
+    ppFwdElem (name,Just mod) = text "import {-# SOURCE #-}" <+> ppModId nx mod
+                                <+> text "("
+                                    <+> (text "element" <> ppUnqConId nx name)
+                                <+> text ")"
 
 
 -- | Generate a fragmentary parser for an attribute.
