@@ -92,11 +92,11 @@ ppModule nx m =
     $$ ppHighLevelDecls nx (module_decls m)
 
   where
-    imports (ElementsAttrsAbstract _ insts _) = insts
-    imports (ExtendComplexTypeAbstract _ _ insts _ _ _) = insts
+    imports (ElementsAttrsAbstract _ deps _) = deps
+    imports (ExtendComplexTypeAbstract _ _ deps _ _ _) = deps
     imports _ = []
 
-    importElems (ElementAbstractOfType _ _ insts _) = insts
+    importElems (ElementAbstractOfType _ _ deps _) = deps
     importElems _ = []
 
     ppFwdDecl (_,   Nothing)  = empty
@@ -399,7 +399,7 @@ ppHighLevelDecl nx (ExtendComplexType t s oes oas es as
                                       fwdReqd absSup grandsuper comm) =
     ppHighLevelDecl nx (ElementsAttrs t (oes++es) (oas++as) comm)
     $$ ppExtension nx t s fwdReqd absSup oes oas es as
-    $$ (if not (null grandsuper) && not (isJust fwdReqd) -- && isJust fwdReqd
+    $$ (if not (null grandsuper) -- && not (isJust fwdReqd) -- && isJust fwdReqd
         then ppSuperExtension nx s grandsuper (t,Nothing)
         else empty)
 

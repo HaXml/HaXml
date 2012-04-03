@@ -237,7 +237,7 @@ ppHighLevelDecl nx (ExtendComplexType t s oes oas es as
                                       fwdReqd absSup grandsuper comm) =
     ppHighLevelDecl nx (ElementsAttrs t (oes++es) (oas++as) comm)
     $$ ppExtension nx t s fwdReqd absSup oes oas es as
-    $$ (if not (null grandsuper) && not (isJust fwdReqd)
+    $$ (if not (null grandsuper) -- && not (isJust fwdReqd)
         then ppSuperExtension nx s grandsuper (t,Nothing)
         else empty)
 
