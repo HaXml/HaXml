@@ -149,8 +149,12 @@ ppHighLevelDecl nx (ExtendSimpleType t s as comm) =
     ppComment Before comm
     $$ text "data" <+> ppUnqConId nx t
     $$ text "data" <+> ppConId nx t_attrs
+    $$ text "instance Eq" <+> ppUnqConId nx t
+    $$ text "instance Eq" <+> ppConId nx t_attrs
+    $$ text "instance Show" <+> ppUnqConId nx t
+    $$ text "instance Show" <+> ppConId nx t_attrs
     $$ text "instance SchemaType" <+> ppUnqConId nx t
-    $$ text "instance Extension" <+> ppUnqConId nx t <+> ppConId nx s
+    $$ text "instance Extension"  <+> ppUnqConId nx t <+> ppConId nx s
   where
     t_attrs = let (XName (N t_base)) = t in XName (N (t_base++"Attributes"))
 
@@ -174,11 +178,15 @@ ppHighLevelDecl nx (EnumSimpleType t is comm) =
 ppHighLevelDecl nx (ElementsAttrs t es as comm) =
     ppComment Before comm
     $$ text "data" <+> ppUnqConId nx t
+    $$ text "instance Eq" <+> ppUnqConId nx t
+    $$ text "instance Show" <+> ppUnqConId nx t
     $$ text "instance SchemaType" <+> ppUnqConId nx t
 
 ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
     ppComment Before comm
     $$ text "data" <+> ppUnqConId nx t
+    $$ text "instance Eq" <+> ppUnqConId nx t
+    $$ text "instance Show" <+> ppUnqConId nx t
     $$ text "instance SchemaType" <+> ppUnqConId nx t
 
 ppHighLevelDecl nx (ElementOfType e@Element{}) =
@@ -198,6 +206,8 @@ ppHighLevelDecl nx e@(ElementAbstractOfType n t substgrp comm)
 ppHighLevelDecl nx (Choice t es comm) =
     ppComment Before comm
     $$ text "data" <+> ppUnqConId nx t
+    $$ text "instance Eq" <+> ppUnqConId nx t
+    $$ text "instance Show" <+> ppUnqConId nx t
 
 -- Comment out the Group for now.  Groups get inlined into the ComplexType
 -- where they are used, so it may not be sensible to declare them separately
@@ -216,6 +226,8 @@ ppHighLevelDecl nx (RestrictComplexType t s comm) =
     $$ text "newtype" <+> ppUnqConId nx t <+> text "="
                                        <+> ppUnqConId nx t <+> ppConId nx s
     $$ text "-- plus different (more restrictive) parser"
+    $$ text "instance Eq" <+> ppUnqConId nx t
+    $$ text "instance Show" <+> ppUnqConId nx t
     $$ text "instance Restricts" <+> ppUnqConId nx t <+> ppConId nx s
     $$ text "instance SchemaType" <+> ppUnqConId nx t
 

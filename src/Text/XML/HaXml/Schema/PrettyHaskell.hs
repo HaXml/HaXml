@@ -194,8 +194,10 @@ ppHighLevelDecl nx (ExtendSimpleType t s as comm) =
     $$ text "data" <+> ppUnqConId nx t <+> text "="
                                     <+> ppUnqConId nx t <+> ppConId nx s
                                     <+> ppConId nx t_attrs
+                                    <+> text "deriving (Eq,Show)"
     $$ text "data" <+> ppConId nx t_attrs <+> text "=" <+> ppConId nx t_attrs
-        $$ nest 4 (ppFields nx t_attrs [] as)
+        $$ nest 4 (ppFields nx t_attrs [] as
+                  $$ text "deriving (Eq,Show)")
     $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
         $$ nest 4 (text "parseSchemaType s = do" 
                   $$ nest 4 (text "(pos,e) <- posnElement [s]"
@@ -254,7 +256,8 @@ ppHighLevelDecl nx (EnumSimpleType t is comm) =
 ppHighLevelDecl nx (ElementsAttrs t es as comm) =
     ppComment Before comm
     $$ text "data" <+> ppUnqConId nx t <+> text "=" <+> ppUnqConId nx t
-        $$ nest 8 (ppFields nx t (uniqueify es) as)
+        $$ nest 8 (ppFields nx t (uniqueify es) as
+                  $$ text "deriving (Eq,Show)")
     $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
         $$ nest 4 (text "parseSchemaType s = do" 
                   $$ nest 4 (text "(pos,e) <- posnElement [s]"
@@ -276,7 +279,8 @@ ppHighLevelDecl nx (ElementsAttrs t es as comm) =
 ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
     ppComment Before comm
     $$ text "data" <+> ppUnqConId nx t
-        $$ nest 8 (ppvList "=" "|" "" ppAbstrCons insts)
+        $$ nest 8 (ppvList "=" "|" "" ppAbstrCons insts
+                  $$ text "deriving (Eq,Show)")
 --  $$ text "-- instance SchemaType" <+> ppUnqConId nx t
 --      <+> text "(declared in Instance module)"
 -- *** Declare instance here
@@ -351,7 +355,8 @@ ppHighLevelDecl nx e@(ElementAbstractOfType n t substgrp comm)
 ppHighLevelDecl nx (Choice t es comm) =
     ppComment Before comm
     $$ text "data" <+> ppUnqConId nx t
-        <+> nest 4 ( ppvList "=" "|" "" choices (zip es [1..]) )
+        <+> nest 4 ( ppvList "=" "|" "" choices (zip es [1..])
+                   $$ text "deriving (Eq,Show)" )
   where
     choices (e,n) = (ppUnqConId nx t <> text (show n))
                     <+> ppConId nx (elem_type e)
@@ -372,6 +377,7 @@ ppHighLevelDecl nx (RestrictComplexType t s comm) =
     ppComment Before comm
     $$ text "newtype" <+> ppUnqConId nx t <+> text "="
                                        <+> ppUnqConId nx t <+> ppConId nx s
+                                       <+> text "deriving (Eq,Show)"
     $$ text "-- plus different (more restrictive) parser"
     $$ text "instance Restricts" <+> ppUnqConId nx t <+> ppConId nx s
                                  <+> text "where"
@@ -388,6 +394,7 @@ ppHighLevelDecl nx (ExtendComplexType t s es as _ comm)
     $$ text "data" <+> ppConId nx t <+> text "="
                                     <+> ppConId nx t <+> ppConId nx s
                                     <+> ppFields nx t es as
+                                    <+> text "deriving (Eq,Show)"
     $$ text "instance Extension" <+> ppConId nx t <+> ppConId nx s
                                  <+> ppAuxConId nx t <+> text "where"
         $$ nest 4 (text "supertype (" <> ppConId nx t <> text " s e) = s"
