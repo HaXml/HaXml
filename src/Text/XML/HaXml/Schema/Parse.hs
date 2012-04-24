@@ -633,7 +633,7 @@ processContents =
 qname :: (String->String->QName) -> TextParser QName
 qname q = do a <- word
              ( do ":" <- word
-                  b   <- word
+                  b   <- many (satisfy (/=':'))
                   return (q a b)
                `onFail`
                do cs <- many next

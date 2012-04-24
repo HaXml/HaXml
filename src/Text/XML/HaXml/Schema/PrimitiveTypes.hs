@@ -102,7 +102,7 @@ instance SimpleType Bool where
                                    "1"     -> return True
                                    _       -> fail ("Not a bool: "++w)
 instance SimpleType XsdString where
-    acceptingParser = fmap XsdString word
+    acceptingParser = fmap XsdString (many next)
 instance SimpleType Base64Binary where
     acceptingParser = fmap Base64Binary (many (satisfy isAlphaNum `onFail`
                                                satisfy isSpace `onFail`
