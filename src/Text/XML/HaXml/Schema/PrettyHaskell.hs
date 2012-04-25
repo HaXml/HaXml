@@ -261,10 +261,10 @@ ppHighLevelDecl nx (ElementsAttrs t es as comm) =
     $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
         $$ nest 4 (text "parseSchemaType s = do" 
                   $$ nest 4 (text "(pos,e) <- posnElement [s]"
-                            $$ text "commit $ do"
-                            $$ nest 2
-                                  (vcat (zipWith ppAttr as [0..])
-                                  $$ text "interior e $ return"
+                       --   $$ text "commit $ do"
+                       --   $$ nest 2
+                            $$    (vcat (zipWith ppAttr as [0..])
+                                  $$ text "commit $ interior e $ return"
                                       <+> returnValue as
                                       $$ nest 4 (vcat (map ppApplyElem es))
                                   )

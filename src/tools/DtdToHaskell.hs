@@ -56,6 +56,7 @@ main =
   in
   do hPutStrLn o ("module "++realname
                   ++" where\n\nimport Text.XML.HaXml.XmlContent"
+                  ++"\nimport Text.XML.HaXml.Types"
                   ++"\nimport Text.XML.HaXml.OneOfN")
     --            ++"\nimport Char (isSpace)"
     --            ++"\nimport List (isPrefixOf)"

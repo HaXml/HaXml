@@ -23,7 +23,7 @@ mkInstance (DataDef _ n fs []) =
     text "instance XmlContent" <+> ppHName n <+> text "where" $$
     nest 4 (
              text "toContents" <+> topatval <+> text "=" $$
-             nest 4 (text "[CElem (Elem \"" <> ppXName n <> text "\""
+             nest 4 (text "[CElem (Elem (N \"" <> ppXName n <> text "\")"
                           <+> toattr <+> text "[]) ()]")
            $$
              text "parseContents = do" $$
@@ -48,7 +48,7 @@ mkInstance (DataDef False n fs [(n0,sts)]) =
     text "instance XmlContent" <+> ppHName n <+> text "where" $$
     nest 4 (
              text "toContents" <+> parens (mkCpat n0 topat vs) <+> text "=" $$
-             nest 4 (text "[CElem (Elem \"" <> ppXName n <> text "\""
+             nest 4 (text "[CElem (Elem (N \"" <> ppXName n <> text "\")"
                           <+> toattr <+> parens (mkToElem sts vs)
                           <> text ") ()]")
            $$
@@ -131,7 +131,7 @@ mkInstance (DataDef True n fs cs) =
 -- enumeration of attribute values
 mkInstance (EnumDef n es) =
     text "instance XmlAttrType" <+> ppHName n <+> text "where" $$
-    nest 4 ( text "fromAttrToTyp n (n',v)" $$
+    nest 4 ( text "fromAttrToTyp n (N n',v)" $$
              nest 4 (text "| n==n'     = translate (attr2str v)" $$
                      text "| otherwise = Nothing") $$
              nest 2 (text "where" <+> mkTranslate es)
@@ -289,7 +289,7 @@ mkTranslate es =
 
 mkToAttr :: Name -> Doc
 mkToAttr n = text "toAttrFrTyp n" <+> ppHName n <+> text "=" <+>
-             text "Just (n, str2attr" <+> doubleQuotes (ppXName n) <> text ")"
+             text "Just (N n, str2attr" <+> doubleQuotes (ppXName n) <> text ")"
 
 mkFrFld :: Name -> (Name,StructType) -> Doc
 mkFrFld tag (n,st) =
@@ -392,6 +392,6 @@ mkToMult tag attrpat attrexp (n,sts) =
     let vs = nameSupply sts
     in
     text "toContents" <+> parens (mkCpat n attrpat vs) <+> text "="
-    $$ nest 4 (text "[CElem (Elem \"" <> ppXName tag <> text "\""<+> attrexp
+    $$ nest 4 (text "[CElem (Elem (N \"" <> ppXName tag <> text "\")"<+> attrexp
               <+> parens (mkToElem sts vs) <+> text ") ()]")
 
