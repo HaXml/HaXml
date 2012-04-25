@@ -116,7 +116,7 @@ convert env s = concatMap item (schema_items s)
                         ExtendComplexTypeAbstract n
                              ({-supertype-}XName $ extension_base e)
                              ({-subtypes-}
-                              maybe (error "ECTA")
+                              maybe (error ("ExtendComplexTypeAbstract "++show nx))
                                     (map (\(t,l)->(XName t,if l/=myLoc
                                                            then Just (xname l)
                                                            else Nothing)))

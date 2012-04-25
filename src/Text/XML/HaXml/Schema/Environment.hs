@@ -118,6 +118,13 @@ mkEnvironment fp s init = foldl' item (addNS init (schema_namespaces s))
                                                [(mkN n, fp)]
                                                (env_extendty env)})
                      (isExtn (complex_content c))
+              $ (if complex_abstract c then \env->
+              -- because an abstract type might have no concrete instantiations!
+                        env{env_extendty = Map.insertWith (++)
+                                               (mkN n)
+                                               []
+                                               (env_extendty env)}
+                 else id)
               $ env{env_type=Map.insert (mkN n) (Right c) (env_type env)
                    ,env_typeloc=Map.insert (mkN n) fp (env_typeloc env)}
           where isExtn x@SimpleContent{}  = ci_stuff x
