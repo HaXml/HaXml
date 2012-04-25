@@ -52,7 +52,7 @@ argDirsToFiles = do
                           (getDirectoryContents xsddir)
             return (xsddir, files)
     _ -> do prog <- getProgName
-            putStrLn ("Usage: "++prog++" xsdDir haskellDir")
+            putStrLn ("Usage: "++prog++" xsdDir")
             exitFailure
  where
   reslash = map (\c-> case c of '.'->'/'; _->c)
