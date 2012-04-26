@@ -121,9 +121,17 @@ main = do
     putStrLn ""
     putStrLn $ "Type cycles:\n------------"
     putStrLn . unlines . map unwords . cycles $ supertypeEnv
+    putStrLn ""
     putStrLn $ "Module dependency ordering:\n---------------------------"
     putStrLn . unlines
              . map (\(inf,(deps,_)) -> inf++": "++unwords (map (show.fst) deps))
+             $ filedeps
+    putStrLn ""
+    putStrLn $ "Module cycles:\n--------------"
+    putStrLn . unlines . map (unwords . map fst)
+             . cyclicDeps (\(inf,_)->inf)
+                          (\(_,(ds,_))->map fst ds)
+                          (\x-> lookupWith fst x filedeps)
              $ filedeps
 
 
@@ -202,6 +210,20 @@ ordered name deps = foldr insert []
     peelOff ds x (a:q) | any (== name a) ds = a: peelOff (ds\\[name a]) x q
                        | otherwise          = a: peelOff ds             x q
     splitOnDep x q = break (any (==name x) . deps) q
+
+-- | Find cyclic dependencies between modules.
+cyclicDeps :: Eq a => (b->a) -> (b->[a]) -> (a->Maybe b) -> [b] -> [[b]]
+cyclicDeps name deps env = concatMap (walk [])
+  where
+--  walk :: [b] -> b -> [[b]]
+    walk acc t = if name t `elem` map name acc then [acc]
+                 else concatMap (walk (t:acc)) (catMaybes . map env $ deps t)
+
+-- | A variation on the standard lookup function.
+lookupWith :: Eq a => (b->a) -> a -> [b] -> Maybe b
+lookupWith proj x [] = Nothing
+lookupWith proj x (y:ys) | proj y == x = Just y
+                         | otherwise   = lookupWith proj x ys
 
 
 -- | What is the targetNamespace of the unique top-level element?
