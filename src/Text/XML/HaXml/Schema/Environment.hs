@@ -36,9 +36,11 @@ import Data.List (foldl')
 -- When dealing with sub/supertype relationships, we often need to know all
 -- of the subtypes of a supertype before some of the subtypes are actually
 -- available in scope.  The environment must therefore first be closed
--- over all modules: the resulting type mapping (env_types) should be _copied_
+-- over all modules: the resulting type mapping (env_type) should be _copied_
 -- across to (env_allTypes) in a fresh initial environment, which latter is
 -- then used to rebuild the local scope from scratch.
+-- Likewise, the mappings from supertype->subtype (env_extendty) and for
+-- substitution groups (env_substGrp) also need to be global.
 
 data Environment =  Environment
     { env_type      :: Map QName (Either SimpleType ComplexType)
