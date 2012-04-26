@@ -121,6 +121,11 @@ main = do
     putStrLn ""
     putStrLn $ "Type cycles:\n------------"
     putStrLn . unlines . map unwords . cycles $ supertypeEnv
+    putStrLn $ "Module dependency ordering:\n---------------------------"
+    putStrLn . unlines
+             . map (\(inf,(deps,_)) -> inf++": "++unwords (map (show.fst) deps))
+             $ filedeps
+
 
 -- | Pretty print the names involved in a super/subtype (or substitution group)
 --   environment.
@@ -190,11 +195,14 @@ insts x = case reverse x of
 ordered :: Eq a => (b->a) -> (b->[a]) -> [b] -> [b]
 ordered name deps = foldr insert []
   where
-    insert x q = peelOff (deps x) x q
+    insert x q = let (no_need_x,needs_x) = splitOnDep x q
+                 in peelOff (deps x) x no_need_x ++ needs_x
     peelOff [] x q     = x:q
     peelOff ds x []    = x:[]
     peelOff ds x (a:q) | any (== name a) ds = a: peelOff (ds\\[name a]) x q
                        | otherwise          = a: peelOff ds             x q
+    splitOnDep x q = break (any (==name x) . deps) q
+
 
 -- | What is the targetNamespace of the unique top-level element?
 targetNamespace :: Element i -> String
