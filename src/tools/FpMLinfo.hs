@@ -13,6 +13,7 @@ import Data.List
 import Data.Maybe (fromMaybe,catMaybes)
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Data.Function (on)
 --import Either
 
 import Text.XML.HaXml            (version)
@@ -81,17 +82,22 @@ main = do
                                hPutStrLn stdout $ "\n-----------------\n"
                                return ([],v)
         )
-    let filedeps :: [(FilePath,([(FilePath,Maybe String)],Schema))]
+
+    let filedeps :: [[(FilePath,([(FilePath,Maybe String)],Schema))]]
         filedeps  = ordered (\ (inf,_)-> inf)
                             (\ (_,(ds,_))-> map fst ds)
+                            (\x-> lookupWith fst x (zip files deps))
                             (zip files deps)
         -- a single supertype environment, closed over all modules
         supertypeEnv :: Environment
-        supertypeEnv = foldr (\(inf,(_,v))-> mkEnvironment inf v)
+        supertypeEnv = foldr (\fs e->
+                              foldr (\(inf,(_,v))-> mkEnvironment inf v) e fs)
                              emptyEnv filedeps
+
         adjust :: Environment -> Environment
         adjust env = env{ env_extendty = env_extendty supertypeEnv
                         , env_substGrp = env_substGrp supertypeEnv }
+{-
         -- each module's env includes only dependencies, apart from supertypes
         environs :: [(FilePath,(Environment,Schema))]
         environs  = flip map filedeps (\(inf,(ds,v))->
@@ -107,6 +113,8 @@ main = do
                                )
                         )
                     )
+-}
+
     putStrLn $ "Supertype environment:\n----------------------"
     putStrLn . display . env_extendty $ supertypeEnv
     putStrLn ""
@@ -124,15 +132,17 @@ main = do
     putStrLn ""
     putStrLn $ "Module dependency ordering:\n---------------------------"
     putStrLn . unlines
-             . map (\(inf,(deps,_)) -> inf++": "++unwords (map (show.fst) deps))
+             . concatMap (map (\(inf,(deps,_)) ->
+                                 inf++": "++unwords (map fst deps)))
              $ filedeps
+
     putStrLn ""
     putStrLn $ "Module cycles:\n--------------"
     putStrLn . unlines . map (unwords . map fst)
              . cyclicDeps (\(inf,_)->inf)
                           (\(_,(ds,_))->map fst ds)
-                          (\x-> lookupWith fst x filedeps)
-             $ filedeps
+                          (\x-> lookupWith fst x (zip files deps))
+             $ zip files deps
 
 
 -- | Pretty print the names involved in a super/subtype (or substitution group)
@@ -199,25 +209,36 @@ insts x = case reverse x of
             's':'h':'.':f -> reverse f++"Instances.hs"
             _ -> error "bad stuff made my brains melt"
 
+
 -- | Calculate dependency ordering of modules, least dependent first.
-ordered :: Eq a => (b->a) -> (b->[a]) -> [b] -> [b]
-ordered name deps = foldr insert []
+--   Cyclic groups may occur, suitably placed in the ordering.
+ordered :: (Eq a, Eq b) => (b->a) -> (b->[a]) -> (a->Maybe b) -> [b] -> [[b]]
+ordered name deps env list =
+    let cycles    = cyclicDeps name deps env list
+        noncyclic = map (:[]) $ list \\ concat cycles
+        workqueue = noncyclic++cycles
+    in traverse [] workqueue
   where
-    insert x q = let (no_need_x,needs_x) = splitOnDep x q
-                 in peelOff (deps x) x no_need_x ++ needs_x
-    peelOff [] x q     = x:q
-    peelOff ds x []    = x:[]
-    peelOff ds x (a:q) | any (== name a) ds = a: peelOff (ds\\[name a]) x q
-                       | otherwise          = a: peelOff ds             x q
-    splitOnDep x q = break (any (==name x) . deps) q
+    traverse acc []     = acc
+    traverse acc (w:wq) = if all (`elem` concatMap (map name) acc)
+                                 (concatMap deps w \\ map name w)
+                          then traverse (acc++[w]) wq
+                          else traverse     acc   (wq++[w])
 
 -- | Find cyclic dependencies between modules.
 cyclicDeps :: Eq a => (b->a) -> (b->[a]) -> (a->Maybe b) -> [b] -> [[b]]
-cyclicDeps name deps env = concatMap (walk [])
+cyclicDeps name deps env = nubBy (setEq`on`map name)
+                           . (\cs-> foldl minimal cs cs)
+                           . concatMap (walk [])
   where
 --  walk :: [b] -> b -> [[b]]
     walk acc t = if name t `elem` map name acc then [acc]
                  else concatMap (walk (t:acc)) (catMaybes . map env $ deps t)
+    minimal acc c = concatMap (prune c) acc
+    prune c c' = if map name c `isProperSubsetOf` map name c' then [] else [c']
+    isSubsetOf a b = all (`elem`b) a
+    setEq a b            = a`isSubsetOf`b &&      b`isSubsetOf`a
+    isProperSubsetOf a b = a`isSubsetOf`b && not (b`isSubsetOf`a)
 
 -- | A variation on the standard lookup function.
 lookupWith :: Eq a => (b->a) -> a -> [b] -> Maybe b
