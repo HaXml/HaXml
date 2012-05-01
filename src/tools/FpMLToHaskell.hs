@@ -14,7 +14,9 @@ import System.IO
 import Control.Monad
 import System.Directory
 import Data.List
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe,catMaybes)
+import Data.Function (on)
+import Data.Monoid (mconcat)
 --import Either
 
 import Text.XML.HaXml            (version)
@@ -89,13 +91,16 @@ main = do
                                hPutStrLn stdout $ "\n-----------------\n"
                                return ([],v)
         )
-    let filedeps :: [((FilePath,FilePath),([(FilePath,Maybe String)],Schema))]
+    let filedeps :: [[((FilePath,FilePath),([(FilePath,Maybe String)],Schema))]]
         filedeps  = ordered (\ ((inf,_),_)-> inf)
                             (\ (_,(ds,_))-> map fst ds)
+                            (\x-> lookupWith (fst.fst) x (zip files deps))
                             (zip files deps)
         -- a single supertype environment, closed over all modules
         supertypeEnv :: Environment
-        supertypeEnv = foldr (\((inf,_),(_,v))-> mkEnvironment inf v)
+        supertypeEnv = foldr (\fs e->
+                              foldr (\((inf,_),(_,v))-> mkEnvironment inf v)
+                                    e fs)
                              emptyEnv filedeps
         adjust :: Environment -> Environment
         adjust env = env{ env_extendty = env_extendty supertypeEnv
@@ -103,45 +108,56 @@ main = do
                         , env_allTypes = env_allTypes supertypeEnv }
         -- each module's env includes only dependencies, apart from supertypes
         environs :: [(FilePath,(Environment,FilePath,Schema))]
-        environs  = flip map filedeps (\((inf,outf),(ds,v))->
-                        ( inf, ( adjust $ mkEnvironment inf v
+        environs  = flip concatMap filedeps $ \scc->
+                      case scc of
+                        [((inf,outf),(ds,v))]->
+                          [(inf, ( adjust $ mkEnvironment inf v
                                      (foldr combineEnv emptyEnv
                                          (flip map ds
-                                             (\d-> fst3 $
-                                                   fromMaybe (error "FME") $
-                                                   lookup (fst d) environs)
+                                               (\d-> fst3 $
+                                                     fromMaybe (error "FME") $
+                                                     lookup (fst d) environs)
                                          )
                                      )
-                               , outf
-                               , v
-                               )
-                        )
-                    )
+                                 , outf
+                                 , v
+                                 )
+                          )]
+                        cyclic ->
+                            let jointSchema :: Schema
+                                jointSchema = mconcat (map (snd.snd) cyclic)
+                                jointDeps :: [FilePath]
+                                jointDeps = concatMap (map fst.fst.snd) cyclic
+                                jointEnv :: Environment
+                                jointEnv = mkEnvironment "" jointSchema $
+                                           foldr combineEnv emptyEnv $
+                                           flip map (nub jointDeps
+                                                    \\ map (fst.fst) cyclic)
+                                               (\d-> fst3 $
+                                                     fromMaybe (error "FME") $
+                                                     lookup d environs)
+                            in flip map cyclic
+                                    (\((inf,outf),(_,v))->
+                                      (inf,(adjust $ mkEnvironment inf v
+                                                   $ jointEnv
+                                           ,outf
+                                           ,v)
+                                      )
+                                    )
     flip mapM_ environs (\ (inf,(env,outf,v))-> do
         o  <- openFile outf WriteMode
---      oi <- openFile (insts outf) WriteMode
         hb <- openFile (bootf outf) WriteMode
         let decls   = XsdToH.convert env v
             haskell = Haskell.mkModule inf v decls
             doc     = ppModule fpmlNameConverter haskell
             docboot = HsBoot.ppModule fpmlNameConverter haskell
---          docinst = ppModuleWithInstances fpmlNameConverter haskell
         hPutStrLn stdout $ "Writing "++outf
         hPutStrLn o $ render doc
         hPutStrLn stdout $ "Writing "++(bootf outf)
         hPutStrLn hb $ render docboot
---      hPutStrLn stdout $ "Writing "++(insts outf)
---      hPutStrLn oi $ render docinst
         hFlush o
         hFlush hb
---      hFlush oi
         )
-
--- | Munge filename for instances.
-insts :: FilePath -> FilePath
-insts x = case reverse x of
-            's':'h':'.':f -> reverse f++"Instances.hs"
-            _ -> error "bad stuff made my brains melt"
 
 -- | Munge filename for hs-boot.
 bootf :: FilePath -> FilePath
@@ -150,14 +166,40 @@ bootf x = case reverse x of
             _ -> error "bad stuff made my cheese boots melt"
 
 -- | Calculate dependency ordering of modules, least dependent first.
-ordered :: Eq a => (b->a) -> (b->[a]) -> [b] -> [b]
-ordered name deps = foldr insert []
+--   Cyclic groups may occur, suitably placed in the ordering.
+ordered :: (Eq a, Eq b) => (b->a) -> (b->[a]) -> (a->Maybe b) -> [b] -> [[b]]
+ordered name deps env list =
+    let cycles    = cyclicDeps name deps env list
+        noncyclic = map (:[]) $ list \\ concat cycles
+        workqueue = noncyclic++cycles
+    in traverse [] workqueue
   where
-    insert x q = peelOff (deps x) x q
-    peelOff [] x q     = x:q
-    peelOff ds x []    = x:[]
-    peelOff ds x (a:q) | any (== name a) ds = a: peelOff (ds\\[name a]) x q
-                       | otherwise          = a: peelOff ds             x q
+    traverse acc []     = acc
+    traverse acc (w:wq) = if all (`elem` concatMap (map name) acc)
+                                 (concatMap deps w \\ map name w)
+                          then traverse (acc++[w]) wq
+                          else traverse     acc   (wq++[w])
+
+-- | Find cyclic dependencies between modules.
+cyclicDeps :: Eq a => (b->a) -> (b->[a]) -> (a->Maybe b) -> [b] -> [[b]]
+cyclicDeps name deps env = nubBy (setEq`on`map name)
+                           . (\cs-> foldl minimal cs cs)
+                           . concatMap (walk [])
+  where
+--  walk :: [b] -> b -> [[b]]
+    walk acc t = if name t `elem` map name acc then [acc]
+                 else concatMap (walk (t:acc)) (catMaybes . map env $ deps t)
+    minimal acc c = concatMap (prune c) acc
+    prune c c' = if map name c `isProperSubsetOf` map name c' then [] else [c']
+    isSubsetOf a b = all (`elem`b) a
+    setEq a b            = a`isSubsetOf`b &&      b`isSubsetOf`a
+    isProperSubsetOf a b = a`isSubsetOf`b && not (b`isSubsetOf`a)
+
+-- | A variation on the standard lookup function.
+lookupWith :: Eq a => (b->a) -> a -> [b] -> Maybe b
+lookupWith proj x [] = Nothing
+lookupWith proj x (y:ys) | proj y == x = Just y
+                         | otherwise   = lookupWith proj x ys
 
 -- | What is the targetNamespace of the unique top-level element?
 targetNamespace :: Element i -> String
