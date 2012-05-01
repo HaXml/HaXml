@@ -276,6 +276,15 @@ ppHighLevelDecl nx (ElementsAttrs t es as comm) =
                              hsep [text ("a"++show n) | n <- [0..length as-1]])
     ppApplyElem e = text "`apply`" <+> ppElem nx e
 
+ppHighLevelDecl nx (ElementsAttrsAbstract t [] comm) =
+    ppComment Before comm
+    $$ text "data" <+> ppUnqConId nx t
+                   <+> text "deriving (Eq,Show)"
+    $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
+        $$ nest 4 (text "parseSchemaType s = fail" <+> errmsg)
+  where
+    errmsg = text "\"Parse failed when expecting an extension type of"
+             <+> ppXName t <> text ":\\n  No extension types are known.\""
 ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
     ppComment Before comm
     $$ text "data" <+> ppUnqConId nx t
@@ -325,6 +334,15 @@ ppHighLevelDecl nx (ElementOfType e@Element{}) =
     $$ (text "element" <> ppUnqConId nx (elem_name e)) <+> text "="
         <+> (text "parseSchemaType \"" <> ppXName (elem_name e)  <> text "\"")
 
+ppHighLevelDecl nx e@(ElementAbstractOfType n t [] comm)
+                = ppComment Before comm
+                $$ (text "element" <> ppUnqConId nx n) <+> text "::"
+                    <+> text "XMLParser" <+> ppConId nx t
+                $$ (text "element" <> ppUnqConId nx n) <+> text "="
+                   <+> text "fail" <+> errmsg
+  where
+    errmsg = text "\"Parse failed when expecting an element in the substitution group for\\n\\\n\\    <"
+             <> ppXName n <> text ">,\\n\\\n\\  There are no substitutable elements.\""
 ppHighLevelDecl nx e@(ElementAbstractOfType n t substgrp comm)
 --  | any notInScope substgrp
 --              = (text "-- element" <> ppUnqConId nx n) <+> text "::"
