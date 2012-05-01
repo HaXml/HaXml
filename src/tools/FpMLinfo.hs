@@ -14,6 +14,7 @@ import Data.Maybe (fromMaybe,catMaybes)
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Function (on)
+import Data.Monoid (mconcat)
 --import Either
 
 import Text.XML.HaXml            (version)
@@ -97,23 +98,44 @@ main = do
         adjust :: Environment -> Environment
         adjust env = env{ env_extendty = env_extendty supertypeEnv
                         , env_substGrp = env_substGrp supertypeEnv }
-{-
+
         -- each module's env includes only dependencies, apart from supertypes
         environs :: [(FilePath,(Environment,Schema))]
-        environs  = flip map filedeps (\(inf,(ds,v))->
-                        ( inf, ( adjust $ mkEnvironment inf v
-                                     (foldr combineEnv emptyEnv
-                                         (flip map ds
-                                             (\d-> fst $
-                                                   fromMaybe (error "FME") $
-                                                   lookup (fst d) environs)
-                                         )
-                                     )
-                               , v
-                               )
-                        )
+        environs  = flip concatMap filedeps (\scc->
+                      case scc of
+                        [(inf,(ds,v))]->
+                          [(inf, ( adjust $ mkEnvironment inf v
+                                       (foldr combineEnv emptyEnv
+                                           (flip map ds
+                                               (\d-> fst $
+                                                     fromMaybe (error "FME") $
+                                                     lookup (fst d) environs)
+                                           )
+                                       )
+                                 , v
+                                 )
+                          )]
+                        cyclic ->
+                            let jointSchema :: Schema
+                                jointSchema = mconcat (map (snd.snd) cyclic)
+                                jointDeps :: [FilePath]
+                                jointDeps = concatMap (map fst.fst.snd) cyclic
+                                jointEnv :: Environment
+                                jointEnv = mkEnvironment "" jointSchema $
+                                           foldr combineEnv emptyEnv $
+                                           flip map (nub jointDeps
+                                                    \\ map fst cyclic)
+                                               (\d-> fst $
+                                                     fromMaybe (error "FME") $
+                                                     lookup d environs)
+                            in flip map cyclic
+                                    (\(inf,(_,v))->
+                                      (inf,(adjust $ mkEnvironment inf v
+                                                   $ jointEnv
+                                           ,v)
+                                      )
+                                    )
                     )
--}
 
     putStrLn $ "Supertype environment:\n----------------------"
     putStrLn . display . env_extendty $ supertypeEnv

@@ -296,3 +296,12 @@ instance Monoid Annotation where
   (Documentation d) `mappend` (Documentation e) = Documentation (d++"\n"++e)
   _                 `mappend` (Documentation e) = Documentation e
   ann               `mappend` _                 = ann          
+
+-- This instance is pretty unsatisfactory, and is useful only for
+-- building environments involving recursive modules.  The /mappend/
+-- method is left-biased, and the /mempty/ value contains lots of
+-- undefined values.
+instance Monoid Schema where
+  mempty        = Schema{ schema_items=[] }
+  s `mappend` t = s{ schema_items = schema_items s ++ schema_items t }
+
