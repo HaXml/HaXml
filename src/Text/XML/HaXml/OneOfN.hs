@@ -2,6 +2,31 @@ module Text.XML.HaXml.OneOfN where
 
 import Text.XML.HaXml.XmlContent
 
+-- | Somewhat of a nonsense - a choice of a single item.  But sometimes it
+--   occurs in auto-generated code.
+data OneOf1 a
+    = OneOf1 a
+    deriving (Eq,Show)
+
+instance (HTypeable a)
+    => HTypeable (OneOf1 a)
+  where      toHType _ = Defined "OneOf1" [] []
+  --         toHType m = Defined "OneOf2" [a,b] []
+  --            where a = toHType $ (\ (OneOf2 a)->a) $ m
+  --                  b = toHType $ (\ (TwoOf2 b)->b) $ m
+
+instance (XmlContent a)
+    => XmlContent (OneOf1 a)
+  where
+    parseContents =
+        (choice OneOf1
+        $ fail "OneOf1")
+    toContents (OneOf1 x) = toContents x
+
+----
+
+-- | Equivalent to the Either type, but using the regular naming
+--   scheme of this module.
 data OneOf2 a b
     = OneOf2 a | TwoOf2 b
     deriving (Eq,Show)
