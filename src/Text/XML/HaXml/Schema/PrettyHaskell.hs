@@ -278,7 +278,8 @@ ppHighLevelDecl nx (ElementsAttrs t es as comm) =
 
 ppHighLevelDecl nx (ElementsAttrsAbstract t [] comm) =
     ppComment Before comm
-    $$ text "data" <+> ppUnqConId nx t
+    $$ text "--  (There are no subtypes defined for this abstract type.)"
+    $$ text "data" <+> ppUnqConId nx t <+> text "=" <+> ppUnqConId nx t
                    <+> text "deriving (Eq,Show)"
     $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
         $$ nest 4 (text "parseSchemaType s = fail" <+> errmsg)
@@ -336,6 +337,7 @@ ppHighLevelDecl nx (ElementOfType e@Element{}) =
 
 ppHighLevelDecl nx e@(ElementAbstractOfType n t [] comm)
                 = ppComment Before comm
+                $$ text "--  (There are no elements in any substitution group for this element.)"
                 $$ (text "element" <> ppUnqConId nx n) <+> text "::"
                     <+> text "XMLParser" <+> ppConId nx t
                 $$ (text "element" <> ppUnqConId nx n) <+> text "="
