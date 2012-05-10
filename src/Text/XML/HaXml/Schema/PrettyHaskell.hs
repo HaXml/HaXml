@@ -111,7 +111,10 @@ ppModule nx m =
 
 -- | Generate a fragmentary parser for an attribute.
 ppAttr :: Attribute -> Int -> Doc
-ppAttr a n = (text "a"<>text (show n)) <+> text "<- getAttribute \""
+ppAttr a n = (text "a"<>text (show n)) <+> text "<-"
+                                       <+> (if attr_required a then empty
+                                                 else text "optional $")
+                                       <+> text "getAttribute \""
                                        <> ppXName (attr_name a)
                                        <> text "\" e pos"
 -- | Generate a fragmentary parser for an element.
@@ -629,6 +632,8 @@ ppElemTypeName nx brack e@Text{} =
 -- | Generate a single named field from an attribute.
 ppFieldAttribute :: NameConverter -> XName -> Attribute -> Doc
 ppFieldAttribute nx t a = ppFieldId nx t (attr_name a) <+> text "::"
+                                   <+> (if attr_required a then empty
+                                           else text "Maybe")
                                    <+> ppConId nx (attr_type a)
                           $$ ppComment After (attr_comment a)
 

@@ -268,6 +268,7 @@ convert env s = concatMap item (schema_items s)
                                              (attr_simpleType ad))
                                       XName
                                       (theType n))
+                               (attr_use ad == Required)
                                (comment  (attr_annotation ad))
         Right ref -> case Map.lookup ref (env_attribute env) of
                        Nothing -> error $ "<attributeDecl> unknown attribute reference "

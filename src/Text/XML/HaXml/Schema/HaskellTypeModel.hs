@@ -155,6 +155,7 @@ data Element   = Element { elem_name     :: XName
                  deriving (Eq,Show)
 data Attribute = Attribute { attr_name    :: XName
                            , attr_type    :: XName
+                           , attr_required:: Bool
                            , attr_comment :: Comment
                            }
                  deriving (Eq,Show)
