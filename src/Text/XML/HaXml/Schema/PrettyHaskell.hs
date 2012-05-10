@@ -137,7 +137,7 @@ ppElem nx e@OneOf{}   = ppElemModifier (elem_modifier e)
   where
     n = length (elem_oneOf e)
     ppOneOf n (e,i) = text "fmap" <+> text (ordinal i ++"Of"++show n)
-                      <+> parens (ppSeqElem e)
+                      <+> parens (ppSeqElem . cleanChoices $ e)
     ordinal i | i <= 20   = ordinals!!i
               | otherwise = "Choice" ++ show i
     ordinals = ["Zero","One","Two","Three","Four","Five","Six","Seven","Eight"
@@ -616,7 +616,7 @@ ppElemTypeName nx brack e@Element{} =
 ppElemTypeName nx brack e@OneOf{}   = 
     brack $ ppTypeModifier (elem_modifier e) parens $
     text "OneOf" <> text (show (length (elem_oneOf e)))
-     <+> hsep (map ppSeq (elem_oneOf e))
+     <+> hsep (map (ppSeq . cleanChoices) (elem_oneOf e))
   where
     ppSeq []  = text "()"
     ppSeq [e] = ppElemTypeName nx parens e
@@ -651,8 +651,24 @@ ppElemModifier Optional  doc = text "optional" <+> parens doc
 ppElemModifier (Range (Occurs Nothing Nothing))  doc = doc
 ppElemModifier (Range (Occurs (Just 0) Nothing)) doc = text "optional"
                                                        <+> parens doc
+ppElemModifier (Range (Occurs (Just 0) (Just n))) doc
+               | n==maxBound = text "many" <+> parens doc
+ppElemModifier (Range (Occurs (Just 1) (Just n))) doc
+               | n==maxBound = text "many1" <+> parens doc
 ppElemModifier (Range o) doc = text "between" <+> (parens (text (show o))
                                                   $$ parens doc)
+
+-- | Eliminate a Maybe type modifier, when it occurs directly inside a
+--   choice construct (since a parsed Nothing would always be preferred over
+--   a real value later in the choice).  Likewise, empty lists must
+--   be disallowed inside choice.
+cleanChoices :: [Element] -> [Element]
+cleanChoices [e@Element{}] = (:[]) $
+    case elem_modifier e of
+      Range (Occurs (Just 0) Nothing) -> e{elem_modifier=Single}
+      Range (Occurs (Just 0) max)-> e{elem_modifier=Range (Occurs (Just 1) max)}
+      _ -> e
+cleanChoices es = es
 
 -- | Split long lines of comment text into a paragraph with a maximum width.
 paragraph :: Int -> String -> String
