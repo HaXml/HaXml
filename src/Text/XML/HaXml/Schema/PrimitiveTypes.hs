@@ -81,14 +81,19 @@ data Decimal      = Decimal Double         deriving (Eq,Show)
 --data Float
 --data Double
 data Duration     = Duration Bool Int Int Int Int Int Float  deriving (Eq,Show)
-data DateTime     = DateTime               deriving (Eq,Show) -- LocalTime ?
-data Time         = Time                   deriving (Eq,Show) -- TimeOfDay ?
-data Date         = Date                   deriving (Eq,Show) -- Day ?
-data GYearMonth   = GYearMonth             deriving (Eq,Show)
-data GYear        = GYear                  deriving (Eq,Show)
-data GMonthDay    = GMonthDay              deriving (Eq,Show)
-data GDay         = GDay                   deriving (Eq,Show)
-data GMonth       = GMonth                 deriving (Eq,Show)
+
+-- * All of the following temporal types are incompletely specified for now.
+--   They should probably be mapped to something appropriate from the time
+--   package?
+
+data DateTime     = DateTime String        deriving (Eq,Show) -- LocalTime ?
+data Time         = Time String            deriving (Eq,Show) -- TimeOfDay ?
+data Date         = Date String            deriving (Eq,Show) -- Day ?
+data GYearMonth   = GYearMonth String      deriving (Eq,Show) -- ??
+data GYear        = GYear String           deriving (Eq,Show) -- ??
+data GMonthDay    = GMonthDay String       deriving (Eq,Show) -- ??
+data GDay         = GDay String            deriving (Eq,Show) -- ??
+data GMonth       = GMonth String          deriving (Eq,Show) -- ??
 
 isNext :: Char -> TextParser Char
 isNext c = do d <- next
@@ -139,22 +144,31 @@ instance SimpleType Duration where
                                                `onFail` return 0)
                                       `apply` ((parseFloat `discard` isNext 'S')
                                                `onFail` return 0)
+
 instance SimpleType DateTime where
-    acceptingParser = fail "not implemented: simpletype parser for DateTime"
+    acceptingParser = fmap DateTime (many next)
+ -- acceptingParser = fail "not implemented: simpletype parser for DateTime"
 instance SimpleType Time where
-    acceptingParser = fail "not implemented: simpletype parser for Time"
+    acceptingParser = fmap Time (many next)
+ -- acceptingParser = fail "not implemented: simpletype parser for Time"
 instance SimpleType Date where
-    acceptingParser = fail "not implemented: simpletype parser for Date"
+    acceptingParser = fmap Date (many next)
+ -- acceptingParser = fail "not implemented: simpletype parser for Date"
 instance SimpleType GYearMonth where
-    acceptingParser = fail "not implemented: simpletype parser for GYearMonth"
+    acceptingParser = fmap GYearMonth (many next)
+ -- acceptingParser = fail "not implemented: simpletype parser for GYearMonth"
 instance SimpleType GYear where
-    acceptingParser = fail "not implemented: simpletype parser for GYear"
+    acceptingParser = fmap GYear (many next)
+ -- acceptingParser = fail "not implemented: simpletype parser for GYear"
 instance SimpleType GMonthDay where
-    acceptingParser = fail "not implemented: simpletype parser for GMonthDay"
+    acceptingParser = fmap GMonthDay (many next)
+ -- acceptingParser = fail "not implemented: simpletype parser for GMonthDay"
 instance SimpleType GDay where
-    acceptingParser = fail "not implemented: simpletype parser for GDay"
+    acceptingParser = fmap GDay (many next)
+ -- acceptingParser = fail "not implemented: simpletype parser for GDay"
 instance SimpleType GMonth where
-    acceptingParser = fail "not implemented: simpletype parser for GMonth"
+    acceptingParser = fmap GMonth (many next)
+ -- acceptingParser = fail "not implemented: simpletype parser for GMonth"
 
 -- * Derived builtin types
 
