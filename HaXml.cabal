@@ -1,5 +1,5 @@
 name:		HaXml
-version:	1.22.5
+version:	1.23
 license:	LGPL
 license-file:	COPYRIGHT
 author:		Malcolm Wallace <Malcolm.Wallace@me.com>
@@ -75,54 +75,54 @@ library
   else
     build-depends: base < 2 || >= 3, bytestring
   extensions: CPP, ExistentialQuantification
-  cpp-options: -DMAJOR=1 -DMINOR=22
+  cpp-options: -DMAJOR=1 -DMINOR=23
   nhc98-options: -K10M
 
 Executable Canonicalise
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMAJOR=1 -DMINOR=22
+  cpp-options: -DMAJOR=1 -DMINOR=23
   Main-Is: Canonicalise.hs
 
 Executable CanonicaliseLazy
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMAJOR=1 -DMINOR=22
+  cpp-options: -DMAJOR=1 -DMINOR=23
   Main-Is: CanonicaliseLazy.hs
 
 Executable Xtract
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMAJOR=1 -DMINOR=22
+  cpp-options: -DMAJOR=1 -DMINOR=23
   Main-Is: Xtract.hs
 
 Executable Validate
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMAJOR=1 -DMINOR=22
+  cpp-options: -DMAJOR=1 -DMINOR=23
   Main-Is: Validate.hs
 
 Executable MkOneOf
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMAJOR=1 -DMINOR=22
+  cpp-options: -DMAJOR=1 -DMINOR=23
   Main-Is: MkOneOf.hs
 
 Executable DtdToHaskell
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMAJOR=1 -DMINOR=22
+  cpp-options: -DMAJOR=1 -DMINOR=23
   Main-Is: DtdToHaskell.hs
 
 Executable XsdToHaskell
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMAJOR=1 -DMINOR=22
+  cpp-options: -DMAJOR=1 -DMINOR=23
   Main-Is: XsdToHaskell.hs
