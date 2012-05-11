@@ -71,7 +71,9 @@ instance Verbatim (Content i) where
     verbatim (CElem c _)     = verbatim c
     verbatim (CString _ c _) = c
     verbatim (CRef c _)      = verbatim c
-    verbatim (CMisc _ _)     = error "NYI: verbatim not defined for CMisc"
+    verbatim (CMisc (Comment c) _) = "<!--"++c++"-->"
+    verbatim (CMisc _ _)     = "<? ?>"
+ -- verbatim (CMisc _ _)     = error "NYI: verbatim not defined for CMisc"
 
 instance Verbatim (Element i) where
     verbatim (Elem nam att [])   = "<" ++ qname nam
