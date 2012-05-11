@@ -126,3 +126,12 @@ Executable XsdToHaskell
   Hs-Source-Dirs: src/tools, src
   cpp-options: -DMAJOR=1 -DMINOR=23
   Main-Is: XsdToHaskell.hs
+
+Executable FpMLToHaskell
+  GHC-Options: -Wall
+  Extensions:  CPP
+  Hs-Source-Dirs: src/tools, src
+  cpp-options: -DMAJOR=1 -DMINOR=23
+  Main-Is: FpMLToHaskell.hs
+  build-depends: directory
+
