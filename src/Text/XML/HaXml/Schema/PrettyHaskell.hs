@@ -681,14 +681,19 @@ cleanChoices es = es
 liftedElemModifier :: Element -> Modifier
 liftedElemModifier e@OneOf{} =
     case elem_modifier e of
-      Single -> if all (\x-> case elem_modifier x of
-                               Range (Occurs (Just 0) _) -> True
-                               Optional                  -> True
-                               _                         -> False)
-                       (concat (elem_oneOf e))
-                then Optional
-                else Single
+      Range (Occurs Nothing Nothing) -> newModifier
+      Single -> newModifier
       m -> m
+  where
+    newModifier = if all (\x-> case x of
+                                 Text -> True
+                                 _ -> case elem_modifier x of
+                                        Range (Occurs (Just 0) _) -> True
+                                        Optional                  -> True
+                                        _                         -> False)
+                         (concat (elem_oneOf e))
+                  then Optional
+                  else Single
 
 -- | Split long lines of comment text into a paragraph with a maximum width.
 paragraph :: Int -> String -> String
