@@ -192,7 +192,9 @@ interior (Elem e _ cs) p =
             | otherwise       -> fail ("Too many elements inside <"
                                       ++printableName e++"> at\n"
                                       ++show (info d)++"\n"
-                                      ++"Found excess: "++verbatim d)
+                                      ++"Found excess: "
+                                      ++verbatim (take 7 ds)
+                                      ++"\n[...]")
   where onlyMisc (CMisc _ _) = True
         onlyMisc (CString False s _) | all isSpace s = True
         onlyMisc _ = False
