@@ -130,14 +130,18 @@ ppElem nx e@Element{}
 ppElem nx e@AnyElem{} = ppElemModifier (elem_modifier e)
                           (text "parseAnyElement")
 ppElem nx e@Text{}    = text "parseText"
-ppElem nx e@OneOf{}   = ppElemModifier (elem_modifier e)
-                          (text "oneOf" <+> ppvList "[" "," "]"
+ppElem nx e@OneOf{}   = ppElemModifier (liftedElemModifier e)
+                          (text "oneOf'" <+> ppvList "[" "," "]"
                                                     (ppOneOf n)
                                                     (zip (elem_oneOf e) [1..n]))
   where
     n = length (elem_oneOf e)
-    ppOneOf n (e,i) = text "fmap" <+> text (ordinal i ++"Of"++show n)
-                      <+> parens (ppSeqElem . cleanChoices $ e)
+    ppOneOf n (e,i) = text "(\"" <> hsep (map (ppElemTypeName nx id)
+                                         . cleanChoices $ e)
+                      <> text "\","
+                      <+> text "fmap" <+> text (ordinal i ++"Of"++show n)
+                          <+> parens (ppSeqElem . cleanChoices $ e)
+                      <> text ")"
     ordinal i | i <= 20   = ordinals!!i
               | otherwise = "Choice" ++ show i
     ordinals = ["Zero","One","Two","Three","Four","Five","Six","Seven","Eight"
@@ -614,7 +618,7 @@ ppElemTypeName :: NameConverter -> (Doc->Doc) -> Element -> Doc
 ppElemTypeName nx brack e@Element{} =
     ppTypeModifier (elem_modifier e) brack $ ppConId nx (elem_type e)
 ppElemTypeName nx brack e@OneOf{}   = 
-    brack $ ppTypeModifier (elem_modifier e) parens $
+    brack $ ppTypeModifier (liftedElemModifier e) parens $
     text "OneOf" <> text (show (length (elem_oneOf e)))
      <+> hsep (map (ppSeq . cleanChoices) (elem_oneOf e))
   where
@@ -646,6 +650,7 @@ ppTypeModifier (Range (Occurs (Just 0) Nothing)) k d = k $ text "Maybe" <+> k d
 ppTypeModifier (Range (Occurs _ _))              _ d = text "[" <> d <> text "]"
 
 -- | Generate a parser for a list or Maybe value.
+ppElemModifier :: Modifier -> Doc -> Doc
 ppElemModifier Single    doc = doc
 ppElemModifier Optional  doc = text "optional" <+> parens doc
 ppElemModifier (Range (Occurs Nothing Nothing))  doc = doc
@@ -669,6 +674,21 @@ cleanChoices [e@Element{}] = (:[]) $
       Range (Occurs (Just 0) max)-> e{elem_modifier=Range (Occurs (Just 1) max)}
       _ -> e
 cleanChoices es = es
+
+-- | Sometimes, a choice without a type modifier contains element sequences,
+--   all of which have the same modifier. In that case, it makes sense to lift
+--   the modifier (typically Maybe) to the outer layer.
+liftedElemModifier :: Element -> Modifier
+liftedElemModifier e@OneOf{} =
+    case elem_modifier e of
+      Single -> if all (\x-> case elem_modifier x of
+                               Range (Occurs (Just 0) _) -> True
+                               Optional                  -> True
+                               _                         -> False)
+                       (concat (elem_oneOf e))
+                then Optional
+                else Single
+      m -> m
 
 -- | Split long lines of comment text into a paragraph with a maximum width.
 paragraph :: Int -> String -> String
