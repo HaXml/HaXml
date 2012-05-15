@@ -687,6 +687,8 @@ ppElemModifier (Range (Occurs (Just 0) Nothing)) doc = text "optional"
                                                        <+> parens doc
 ppElemModifier (Range (Occurs (Just 0) (Just n))) doc
                | n==maxBound = text "many" <+> parens doc
+ppElemModifier (Range (Occurs Nothing  (Just n))) doc
+               | n==maxBound = text "many1" <+> parens doc
 ppElemModifier (Range (Occurs (Just 1) (Just n))) doc
                | n==maxBound = text "many1" <+> parens doc
 ppElemModifier (Range o) doc = text "between" <+> (parens (text (show o))
