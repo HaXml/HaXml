@@ -14,7 +14,7 @@ import Text.XML.HaXml.Schema.Parse (xsd)
 import qualified Data.Map as Map
 import Data.Map (Map)
 import Data.List (foldl')
-import Data.Maybe (fromMaybe,fromJust,isNothing)
+import Data.Maybe (fromMaybe,fromJust,isNothing,isJust)
 import Data.Monoid
 
 -- | Given an environment of schema type mappings, and a schema module,
@@ -235,9 +235,11 @@ convert env s = concatMap item (schema_items s)
     elementDecl :: XSD.ElementDecl -> Haskell.Element
     elementDecl ed = case elem_nameOrRef ed of
         Left  n   -> Element ({-name-}xname $ theName n)
-                             ({-type-}maybe (xname $ theName n{-"unknownElement"-}) XName $ theType n)
+                             ({-type-}maybe (localTypeExp ed)
+                                            XName
+                                            (theType n))
                              ({-modifier-}Haskell.Range $ elem_occurs ed)
-                             (isNothing $ theType n) -- by reference
+                             False   -- by reference
                              []      -- internal Decl
                              Nothing -- substitution group
                              (comment (elem_annotation ed))
@@ -258,6 +260,25 @@ convert env s = concatMap item (schema_items s)
                                               ({-type-}XName ref)
                                               (Haskell.Range (elem_occurs ed))
                                               True [] Nothing Nothing
+
+    localTypeExp :: XSD.ElementDecl -> XName
+    localTypeExp ed | isJust (elem_content ed) =
+                          case fromJust (elem_content ed) of
+                            Left st@Primitive{}   -> xname "SomethingPrimitive"
+                            Left st@Restricted{}  -> (\x-> maybe x xname
+                                                          (simple_name st)) $
+                                                     (maybe (xname "GiveUp")
+                                                            XName $
+                                                      restrict_base $
+                                                      simple_restriction st)
+                            Left st@ListOf{}      -> xname "SomethingListy"
+                            Left st@UnionOf{}     -> xname "SomethingUnionLike"
+                            Right c@ComplexType{} -> xname $ fromMaybe "unknown"
+                                                     $ complex_name c
+                    | otherwise =
+                          case elem_nameOrRef ed of
+                            Left n  -> xname $ theName n
+                            Right _ -> xname $ "unknownElement"
 
     attributeDecl :: XSD.AttributeDecl -> [Haskell.Attribute]
     attributeDecl ad = case attr_nameOrRef ad of
