@@ -40,6 +40,28 @@ ppComment pos (Just s) =
   where
     (c:cs) = lines (paragraph 60 s)
 
+-- | Generate aligned haddock-style docs for choices (where each choice
+--   has its own documentation, but haddock cannot place it directly next
+--   to the appropriate component.
+ppCommentForChoice :: CommentPosition -> Comment -> [[Comment]] -> Doc
+ppCommentForChoice pos outer nested =
+    text "--" <+> text (case pos of Before -> "|"; After -> "^") <+> text c
+    $$ vcat (map (\x-> text "--  " <+> text x) cs)
+    $$ vcat (map (\x-> text "--  " <+> text x) bullets)
+  where
+    (c:cs)  = lines intro
+    intro   = maybe "Choice between:"
+                    (\s-> paragraph 60 s++"\n\nChoice between:")
+                    outer
+    bullets = concatMap lines
+              $ map (\seq-> case seq of
+                              [x]-> "\n(1) "++paragraph 56 x
+                              _  -> "\n(1) Sequence of:"
+                                    ++ concatMap (\s->"\n\n  * "
+                                                      ++paragraph 52 s)
+                                                 seq)
+              $ map (map (\c-> maybe ("unknown") id c)) nested
+
 -- | Pretty-print a Haskell-style name.
 ppHName :: HName -> Doc
 ppHName (HName x) = text x
@@ -606,7 +628,10 @@ ppFieldElement nx t e@Element{} _ = ppFieldId nx t (elem_name e)
                                     $$ ppComment After (elem_comment e)
 ppFieldElement nx t e@OneOf{}   i = ppFieldId nx t (XName $ N $"choice"++show i)
                                         <+> text "::" <+> ppElemTypeName nx id e
-                                    $$ ppComment After (elem_comment e)
+                                    $$ ppCommentForChoice After (elem_comment e)
+                                         (map (map safeComment) $ elem_oneOf e)
+                                    where safeComment Text = Just "mixed text"
+                                          safeComment e    = elem_comment e
 ppFieldElement nx t e@AnyElem{} i = ppFieldId nx t (XName $ N $"any"++show i)
                                         <+> text "::" <+> ppElemTypeName nx id e
                                     $$ ppComment After (elem_comment e)
