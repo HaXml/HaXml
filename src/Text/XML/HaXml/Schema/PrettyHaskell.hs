@@ -54,12 +54,13 @@ ppCommentForChoice pos outer nested =
                     (\s-> paragraph 60 s++"\n\nChoice between:")
                     outer
     bullets = concatMap lines
-              $ map (\seq-> case seq of
-                              [x]-> "\n(1) "++paragraph 56 x
-                              _  -> "\n(1) Sequence of:"
+              $ zipWith (\n seq-> case seq of
+                              [x]-> "\n("++show n++") "++paragraph 56 x
+                              _  -> "\n("++show n++") Sequence of:"
                                     ++ concatMap (\s->"\n\n  * "
                                                       ++paragraph 52 s)
                                                  seq)
+                        [1..]
               $ map (map safeComment)
               $ nested
     safeComment Text = "mixed text"
