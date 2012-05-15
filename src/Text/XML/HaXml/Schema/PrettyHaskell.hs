@@ -724,6 +724,9 @@ liftedElemModifier e@OneOf{} =
 paragraph :: Int -> String -> String
 paragraph n s = go n (words s)
     where go i []     = []
+          go i [x]    | len<i     =       x
+                      | otherwise = "\n"++x
+              where len = length x
           go i (x:xs) | len<i     =       x++" "++go (i-len-1) xs
                       | otherwise = "\n"++x++" "++go (n-len-1) xs
               where len = length x
