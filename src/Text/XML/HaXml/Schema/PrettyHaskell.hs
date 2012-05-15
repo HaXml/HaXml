@@ -17,7 +17,7 @@ import Text.XML.HaXml.Schema.NameConversion
 import Text.PrettyPrint.HughesPJ as PP
 
 import Data.List (intersperse,notElem,inits)
-import Data.Maybe (isJust,fromJust,catMaybes)
+import Data.Maybe (isJust,fromJust,fromMaybe,catMaybes)
 
 -- | Vertically pretty-print a list of things, with open and close brackets,
 --   and separators.
@@ -43,7 +43,7 @@ ppComment pos (Just s) =
 -- | Generate aligned haddock-style docs for choices (where each choice
 --   has its own documentation, but haddock cannot place it directly next
 --   to the appropriate component.
-ppCommentForChoice :: CommentPosition -> Comment -> [[Comment]] -> Doc
+ppCommentForChoice :: CommentPosition -> Comment -> [[Element]] -> Doc
 ppCommentForChoice pos outer nested =
     text "--" <+> text (case pos of Before -> "|"; After -> "^") <+> text c
     $$ vcat (map (\x-> text "--  " <+> text x) cs)
@@ -60,7 +60,13 @@ ppCommentForChoice pos outer nested =
                                     ++ concatMap (\s->"\n\n  * "
                                                       ++paragraph 52 s)
                                                  seq)
-              $ map (map (\c-> maybe ("unknown") id c)) nested
+              $ map (map safeComment)
+              $ nested
+    safeComment Text = "mixed text"
+    safeComment e@Element{} = fromMaybe (xname $ elem_name e) (elem_comment e)
+    safeComment e@_         = fromMaybe ("unknown") (elem_comment e)
+    xname (XName (N x))     = x
+    xname (XName (QN ns x)) = nsPrefix ns++":"++x
 
 -- | Pretty-print a Haskell-style name.
 ppHName :: HName -> Doc
@@ -629,9 +635,7 @@ ppFieldElement nx t e@Element{} _ = ppFieldId nx t (elem_name e)
 ppFieldElement nx t e@OneOf{}   i = ppFieldId nx t (XName $ N $"choice"++show i)
                                         <+> text "::" <+> ppElemTypeName nx id e
                                     $$ ppCommentForChoice After (elem_comment e)
-                                         (map (map safeComment) $ elem_oneOf e)
-                                    where safeComment Text = Just "mixed text"
-                                          safeComment e    = elem_comment e
+                                                                (elem_oneOf e)
 ppFieldElement nx t e@AnyElem{} i = ppFieldId nx t (XName $ N $"any"++show i)
                                         <+> text "::" <+> ppElemTypeName nx id e
                                     $$ ppComment After (elem_comment e)
