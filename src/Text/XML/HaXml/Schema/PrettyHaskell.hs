@@ -146,6 +146,13 @@ ppAttr a n = (text "a"<>text (show n)) <+> text "<-"
                                        <+> text "getAttribute \""
                                        <> ppXName (attr_name a)
                                        <> text "\" e pos"
+
+-- | Generate a fragmentary toXML for an attribute.
+toXmlAttr :: Attribute -> Doc
+toXmlAttr a = (if attr_required a then id
+                                  else (\d-> text "maybe []" <+> parens d))
+              (text "toAttribute \"" <> ppXName (attr_name a) <> text "\"")
+
 -- | Generate a fragmentary parser for an element.
 ppElem :: NameConverter -> Element -> Doc
 ppElem nx e@Element{}
@@ -181,6 +188,34 @@ ppElem nx e@OneOf{}   = ppElemModifier (liftedElemModifier e)
     ppSeqElem es  = text ("return ("++replicate (length es-1) ','++")")
                     <+> vcat (map (\e-> text "`apply`" <+> ppElem nx e) es)
 
+-- | Generate a fragmentary toXML for an element.  Fragment must still be
+--   applied to an actual element value.
+toXmlElem :: NameConverter -> Element -> Doc
+toXmlElem nx e@Element{}
+    | elem_byRef e    = xmlElemModifier (elem_modifier e)
+                                        (text "elementToXML"
+                                        <> ppUnqConId nx (elem_name e))
+    | otherwise       = xmlElemModifier (elem_modifier e)
+                                        (text "schemaTypeToXML \""
+                                        <> ppXName (elem_name e)
+                                        <> text "\"")
+toXmlElem nx e@AnyElem{} = xmlElemModifier (elem_modifier e)
+                                           (text "toXMLAnyElement")
+toXmlElem nx e@Text{}    = text "toXMLText"
+toXmlElem nx e@OneOf{}   = xmlElemModifier (liftedElemModifier e)
+                           (text "fmapOneOf" <> text (show n)
+                           <+> ppvList "" "" "" xmlOneOf (elem_oneOf e))
+  where
+    n = length (elem_oneOf e)
+    xmlOneOf e = parens (xmlSeqElem . cleanChoices $ e)
+    xmlSeqElem []  = PP.empty
+    xmlSeqElem [e] = toXmlElem nx e
+    xmlSeqElem es  = text "\\ (" <> hcat (intersperse (text ",") vars)
+                     <> text ") -> concat"
+                     <+> ppvList "[" "," "]" (\(e,v)-> toXmlElem nx e <+> v)
+                                             (zip es vars)
+        where vars = map (text.(:[])) . take (length es) $ ['a'..'z']
+
 -- | Convert multiple HaskellTypeModel Decls to Haskell source text.
 ppHighLevelDecls :: NameConverter -> [Decl] -> Doc
 ppHighLevelDecls nx hs = vcat (intersperse (text " ")
@@ -207,6 +242,9 @@ ppHighLevelDecl nx (RestrictSimpleType t s r comm) =
                   $$ nest 4 (text "e <- element [s]"
                            $$ text "commit $ interior e $ parseSimpleType")
                   )
+        $$ nest 4 (text "schemaTypeToXML s ("<> ppUnqConId nx t <> text "x) = " 
+                  $$ nest 4 (text "toXMLElement s [] [toXMLText (simpleTypeText x)]")
+                  )
     $$ text "instance SimpleType" <+> ppUnqConId nx t <+> text "where"
         $$ nest 4 (text "acceptingParser = fmap" <+> ppUnqConId nx t
                                                  <+> text "acceptingParser"
@@ -214,6 +252,8 @@ ppHighLevelDecl nx (RestrictSimpleType t s r comm) =
                    $$ text "-- XXX should enforce the restrictions somehow?"
                    $$ text "-- The restrictions are:"
                    $$ vcat (map ((text "--     " <+>) . ppRestrict) r))
+        $$ nest 4 (text "simpleTypeText (" <> ppUnqConId nx t
+                                          <+> text "x) = simpleTypeText x")
   where
     ppRestrict (RangeR occ comm)     = text "(RangeR"
                                          <+> ppOccurs occ <>  text ")"
@@ -246,6 +286,11 @@ ppHighLevelDecl nx (ExtendSimpleType t s as comm) =
                                                      <+> text "v"
                                                      <+> attrsValue as)
                             )
+                  )
+        $$ nest 4 (text "schemaTypeToXML s x@"<> ppUnqConId nx t <> text "{} ="
+                  $$ nest 4 (text "toXMLElement s []"
+                          -- <+> ppvList "[" "," "]" (zipWith foo as [0..])
+                             $$ text "[this is wrong]")
                   )
     $$ text "instance Extension" <+> ppUnqConId nx t <+> ppConId nx s
                                  <+> text "where"
@@ -304,6 +349,21 @@ ppHighLevelDecl nx (ElementsAttrs t es as comm) =
                                       <+> returnValue as
                                       $$ nest 4 (vcat (map ppApplyElem es))
                                   )
+                            )
+                  )
+        $$ nest 4 (text "schemaTypeToXML s x@"<> ppUnqConId nx t <> text "{} ="
+                  $$ nest 4 (text "toXMLElement s"
+                             <+> ppvList "[" "," "]"
+                                         (\a-> toXmlAttr a <+> text "$"
+                                               <+> ppFieldId nx t (attr_name a)
+                                               <+> text "x")
+                                         as
+                             $$ nest 4 (ppvList "[" "," "]"
+                                           (\ (e,i)-> toXmlElem nx e
+                                                      <+> text "$"
+                                                      <+> ppFieldName nx t e i
+                                                      <+> text "x")
+                                           (zip es [0..]))
                             )
                   )
   where
@@ -628,20 +688,27 @@ ppFields nx t es as =  ppvList "{" "," "}" id fields
     fields = map (ppFieldAttribute nx t) as ++
              zipWith (ppFieldElement nx t) es [0..]
 
--- | Generate a single named field from an element.
+-- | Generate a single named field (including type sig) from an element.
 ppFieldElement :: NameConverter -> XName -> Element -> Int -> Doc
-ppFieldElement nx t e@Element{} _ = ppFieldId nx t (elem_name e)
-                                        <+> text "::" <+> ppElemTypeName nx id e
+ppFieldElement nx t e@Element{} i = ppFieldName nx t e i
+                                    <+> text "::" <+> ppElemTypeName nx id e
                                     $$ ppComment After (elem_comment e)
-ppFieldElement nx t e@OneOf{}   i = ppFieldId nx t (XName $ N $"choice"++show i)
-                                        <+> text "::" <+> ppElemTypeName nx id e
+ppFieldElement nx t e@OneOf{}   i = ppFieldName nx t e i
+                                    <+> text "::" <+> ppElemTypeName nx id e
                                     $$ ppCommentForChoice After (elem_comment e)
                                                                 (elem_oneOf e)
-ppFieldElement nx t e@AnyElem{} i = ppFieldId nx t (XName $ N $"any"++show i)
-                                        <+> text "::" <+> ppElemTypeName nx id e
+ppFieldElement nx t e@AnyElem{} i = ppFieldName nx t e i
+                                    <+> text "::" <+> ppElemTypeName nx id e
                                     $$ ppComment After (elem_comment e)
-ppFieldElement nx t e@Text{}    i = ppFieldId nx t (XName $ N $"text"++show i)
-                                        <+> text "::" <+> ppElemTypeName nx id e
+ppFieldElement nx t e@Text{}    i = ppFieldName nx t e i
+                                    <+> text "::" <+> ppElemTypeName nx id e
+
+-- | Generate a single named field (no type sig) from an element.
+ppFieldName :: NameConverter -> XName -> Element -> Int -> Doc
+ppFieldName nx t e@Element{} _ = ppFieldId nx t (elem_name e)
+ppFieldName nx t e@OneOf{}   i = ppFieldId nx t (XName $ N $"choice"++show i)
+ppFieldName nx t e@AnyElem{} i = ppFieldId nx t (XName $ N $"any"++show i)
+ppFieldName nx t e@Text{}    i = ppFieldId nx t (XName $ N $"text"++show i)
 
 -- | What is the name of the type for an Element (or choice of Elements)?
 ppElemTypeName :: NameConverter -> (Doc->Doc) -> Element -> Doc
@@ -694,6 +761,15 @@ ppElemModifier (Range (Occurs (Just 1) (Just n))) doc
                | n==maxBound = text "many1" <+> parens doc
 ppElemModifier (Range o) doc = text "between" <+> (parens (text (show o))
                                                   $$ parens doc)
+
+-- | Generate a toXML for a list or Maybe value.
+xmlElemModifier :: Modifier -> Doc -> Doc
+xmlElemModifier Single    doc = doc
+xmlElemModifier Optional  doc = text "maybe []" <+> parens doc
+xmlElemModifier (Range (Occurs Nothing Nothing))  doc = doc
+xmlElemModifier (Range (Occurs (Just 0) Nothing)) doc = text "maybe []"
+                                                        <+> parens doc
+xmlElemModifier (Range (Occurs _ _)) doc = text "concatMap" <+> parens doc
 
 -- | Eliminate a Maybe type modifier, when it occurs directly inside a
 --   choice construct (since a parsed Nothing would always be preferred over
