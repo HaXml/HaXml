@@ -25,6 +25,8 @@ module Text.XML.HaXml.Schema.Schema
   , module Text.Parse
 --  , module Text.XML.HaXml.Schema.PrimitiveTypes
   , module Text.XML.HaXml.OneOfN
+  , toXMLElement
+  , toXMLText
   ) where
 
 import Text.ParserCombinators.Poly
@@ -40,10 +42,11 @@ import Text.XML.HaXml.Schema.PrimitiveTypes as Prim
 import Text.XML.HaXml.OneOfN
 import Text.XML.HaXml.Verbatim
 
--- | A SchemaType is for element types, and has a parser from generic XML
---   content tree to a Haskell value.
+-- | A SchemaType promises to interconvert between a generic XML
+--   content tree and a Haskell value, according to the rules of XSD.
 class SchemaType a where
     parseSchemaType :: String -> XMLParser a
+    schemaTypeToXML :: String -> a -> [Content ()]
 
 -- | A type t can extend another type s by the addition of extra elements
 --   and/or attributes.  s is therefore the supertype of t.
@@ -69,6 +72,8 @@ parseSimpleType = do s <- text
                        (Left err, _) -> fail err
                        (Right v, "") -> return v
                        (Right v, _)  -> return v -- ignore trailing text
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 -- | Between is a list parser that tries to ensure that any range
 --   specification (min and max elements) is obeyed when parsing.
@@ -127,6 +132,37 @@ parseText :: XMLParser String
 parseText = text  -- from XmlContent.Parser
             `onFail` return ""
 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+toXMLElement :: String -> [[Attribute]] -> [[Content ()]] -> [Content ()]
+toXMLElement name attrs content =
+    [CElem name (concat attrs) (concat content) ()]
+
+toXMLText :: String -> [Content ()]
+toXMLText text =
+    [CString False text ()]
+
+toXMLAnyElement :: AnyElement -> [Content ()]
+toXMLAnyElement (UnconvertedANY c) = [c]
+--toXMLAnyElement (ANYSchemaType x)  = [c]
+
+fmapOneOf2 :: (a->z) -> (b->z) -> OneOf2 a b -> z
+fmapOneOf2 f g (OneOf2 x) = f x
+fmapOneOf2 f g (TwoOf2 x) = g x
+
+fmapOneOf3 :: (a->z) -> (b->z) -> (c->z) -> OneOf3 a b c -> z
+fmapOneOf3 f g h (OneOf3 x)   = f x
+fmapOneOf3 f g h (TwoOf3 x)   = g x
+fmapOneOf3 f g h (ThreeOf3 x) = h x
+
+fmapOneOf4 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> OneOf4 a b c d -> z
+fmapOneOf4 f g h i (OneOf4 x)   = f x
+fmapOneOf4 f g h i (TwoOf4 x)   = g x
+fmapOneOf4 f g h i (ThreeOf4 x) = h x
+fmapOneOf4 f g h i (FourOf4 x)  = i x
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
 
 {- examples
    --------
@@ -142,11 +178,31 @@ instance SchemaType FpMLSomething where
                              c2 <- optional $ parseSchemaType "doodad"
                              c3 <- between (Occurs (Just 3) (Just 5))
                                             $ parseSchemaType "rinta"
-                             return $ FpMLSomething a0 a1 c0 c1 c2 c3
+                             c4 <- fmap OneOf2 (parseSchemaType "left")
+                                   `onFail`
+                                   fmap TwoOf2 (parseSchemaType "right")
+                             return $ FpMLSomething a0 a1 c0 c1 c2 c3 c4
+  schemaTypeToXML s x@FPMLSomething{} =
+      toXMLElement s [ mkAttribute "flirble" (something_flirble x)
+                     , mkAttribute "binky"   (something_binky x)
+                     ]
+          [            schemaTypeToXML "foobar"  (something_foobar x)
+          , concatMap (schemaTypeToXML "quux")   (something_quux x)
+          , maybe []  (schemaTypeToXML "doodad") (something_doodad x)
+          , concatMap (schemaTypeToXML "rinta")  (something_rinta x)
+          , fmapOneOf2 (schemaTypeToXML "left")
+                       (schemaTypeToXML "right") (something_choice4 x)
+          ]
 
 instance SimpleType FpMLNumber where
     acceptingParser = ...
+    simpleTypeText  = ...
 -}
+
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+-- Ensure that all primitive/simple types can also be used as elements.
 
 #define SchemaInstance(TYPE)  instance SchemaType TYPE where parseSchemaType s = do { e <- element [s]; interior e $ parseSimpleType; }
 
