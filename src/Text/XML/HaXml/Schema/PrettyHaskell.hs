@@ -203,7 +203,7 @@ toXmlElem nx e@AnyElem{} = xmlElemModifier (elem_modifier e)
                                            (text "toXMLAnyElement")
 toXmlElem nx e@Text{}    = text "toXMLText"
 toXmlElem nx e@OneOf{}   = xmlElemModifier (liftedElemModifier e)
-                           (text "fmapOneOf" <> text (show n)
+                           (text "foldOneOf" <> text (show n)
                            <+> ppvList "" "" "" xmlOneOf (elem_oneOf e))
   where
     n = length (elem_oneOf e)

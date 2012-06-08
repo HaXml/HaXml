@@ -27,6 +27,11 @@ module Text.XML.HaXml.Schema.Schema
   , module Text.XML.HaXml.OneOfN
   , toXMLElement
   , toXMLText
+  , toXMLAnyElement
+  , foldOneOf1
+  , foldOneOf2
+  , foldOneOf3
+  , foldOneOf4
   ) where
 
 import Text.ParserCombinators.Poly
@@ -146,20 +151,23 @@ toXMLAnyElement :: AnyElement -> [Content ()]
 toXMLAnyElement (UnconvertedANY c) = [c]
 --toXMLAnyElement (ANYSchemaType x)  = [c]
 
-fmapOneOf2 :: (a->z) -> (b->z) -> OneOf2 a b -> z
-fmapOneOf2 f g (OneOf2 x) = f x
-fmapOneOf2 f g (TwoOf2 x) = g x
+foldOneOf1 :: (a->z) -> OneOf1 a -> z
+foldOneOf1 f (OneOf1 x) = f x
 
-fmapOneOf3 :: (a->z) -> (b->z) -> (c->z) -> OneOf3 a b c -> z
-fmapOneOf3 f g h (OneOf3 x)   = f x
-fmapOneOf3 f g h (TwoOf3 x)   = g x
-fmapOneOf3 f g h (ThreeOf3 x) = h x
+foldOneOf2 :: (a->z) -> (b->z) -> OneOf2 a b -> z
+foldOneOf2 f g (OneOf2 x) = f x
+foldOneOf2 f g (TwoOf2 x) = g x
 
-fmapOneOf4 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> OneOf4 a b c d -> z
-fmapOneOf4 f g h i (OneOf4 x)   = f x
-fmapOneOf4 f g h i (TwoOf4 x)   = g x
-fmapOneOf4 f g h i (ThreeOf4 x) = h x
-fmapOneOf4 f g h i (FourOf4 x)  = i x
+foldOneOf3 :: (a->z) -> (b->z) -> (c->z) -> OneOf3 a b c -> z
+foldOneOf3 f g h (OneOf3 x)   = f x
+foldOneOf3 f g h (TwoOf3 x)   = g x
+foldOneOf3 f g h (ThreeOf3 x) = h x
+
+foldOneOf4 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> OneOf4 a b c d -> z
+foldOneOf4 f g h i (OneOf4 x)   = f x
+foldOneOf4 f g h i (TwoOf4 x)   = g x
+foldOneOf4 f g h i (ThreeOf4 x) = h x
+foldOneOf4 f g h i (FourOf4 x)  = i x
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
