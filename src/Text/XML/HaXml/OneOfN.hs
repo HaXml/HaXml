@@ -11,9 +11,8 @@ data OneOf1 a
 instance (HTypeable a)
     => HTypeable (OneOf1 a)
   where      toHType _ = Defined "OneOf1" [] []
-  --         toHType m = Defined "OneOf2" [a,b] []
-  --            where a = toHType $ (\ (OneOf2 a)->a) $ m
-  --                  b = toHType $ (\ (TwoOf2 b)->b) $ m
+  --         toHType m = Defined "OneOf1" [a] []
+  --            where a = toHType $ (\ (OneOf1 a)->a) $ m
 
 instance (XmlContent a)
     => XmlContent (OneOf1 a)
@@ -22,6 +21,11 @@ instance (XmlContent a)
         (choice OneOf1
         $ fail "OneOf1")
     toContents (OneOf1 x) = toContents x
+
+foldOneOf1 :: (a->z) -> 
+               OneOf1 a
+               -> z
+foldOneOf1 a (OneOf1 z) = a z
 
 ----
 
@@ -38,7 +42,6 @@ instance (HTypeable a,HTypeable b)
   --            where a = toHType $ (\ (OneOf2 a)->a) $ m
   --                  b = toHType $ (\ (TwoOf2 b)->b) $ m
 
-
 instance (XmlContent a,XmlContent b)
     => XmlContent (OneOf2 a b)
   where
@@ -47,6 +50,12 @@ instance (XmlContent a,XmlContent b)
         $ fail "OneOf2")
     toContents (OneOf2 x) = toContents x
     toContents (TwoOf2 x) = toContents x
+
+foldOneOf2 :: (a->z) -> (b->z) -> 
+               OneOf2 a b
+               -> z
+foldOneOf2 a b (OneOf2 z) = a z
+foldOneOf2 a b (TwoOf2 z) = b z
 
 ----
 data OneOf3 a b c
@@ -67,6 +76,13 @@ instance (XmlContent a,XmlContent b,XmlContent c)
     toContents (TwoOf3 x) = toContents x
     toContents (ThreeOf3 x) = toContents x
 
+foldOneOf3 :: (a->z) -> (b->z) -> (c->z) -> 
+               OneOf3 a b c
+               -> z
+foldOneOf3 a b c (OneOf3 z) = a z
+foldOneOf3 a b c (TwoOf3 z) = b z
+foldOneOf3 a b c (ThreeOf3 z) = c z
+
 ----
 data OneOf4 a b c d
     = OneOf4 a | TwoOf4 b | ThreeOf4 c | FourOf4 d
@@ -86,6 +102,14 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d)
     toContents (TwoOf4 x) = toContents x
     toContents (ThreeOf4 x) = toContents x
     toContents (FourOf4 x) = toContents x
+
+foldOneOf4 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> 
+               OneOf4 a b c d
+               -> z
+foldOneOf4 a b c d (OneOf4 z) = a z
+foldOneOf4 a b c d (TwoOf4 z) = b z
+foldOneOf4 a b c d (ThreeOf4 z) = c z
+foldOneOf4 a b c d (FourOf4 z) = d z
 
 ----
 data OneOf5 a b c d e
@@ -109,18 +133,27 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e)
     toContents (FourOf5 x) = toContents x
     toContents (FiveOf5 x) = toContents x
 
+foldOneOf5 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> 
+               OneOf5 a b c d e
+               -> z
+foldOneOf5 a b c d e (OneOf5 z) = a z
+foldOneOf5 a b c d e (TwoOf5 z) = b z
+foldOneOf5 a b c d e (ThreeOf5 z) = c z
+foldOneOf5 a b c d e (FourOf5 z) = d z
+foldOneOf5 a b c d e (FiveOf5 z) = e z
+
 ----
 data OneOf6 a b c d e f
     = OneOf6 a | TwoOf6 b | ThreeOf6 c | FourOf6 d | FiveOf6 e | SixOf6 f
     deriving (Eq,Show)
 
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
-          ,HTypeable f)
+         ,HTypeable f)
     => HTypeable (OneOf6 a b c d e f)
   where      toHType _ = Defined "OneOf6" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
-          ,XmlContent f)
+         ,XmlContent f)
     => XmlContent (OneOf6 a b c d e f)
   where
     parseContents =
@@ -134,6 +167,16 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (FiveOf6 x) = toContents x
     toContents (SixOf6 x) = toContents x
 
+foldOneOf6 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
+               OneOf6 a b c d e f
+               -> z
+foldOneOf6 a b c d e f (OneOf6 z) = a z
+foldOneOf6 a b c d e f (TwoOf6 z) = b z
+foldOneOf6 a b c d e f (ThreeOf6 z) = c z
+foldOneOf6 a b c d e f (FourOf6 z) = d z
+foldOneOf6 a b c d e f (FiveOf6 z) = e z
+foldOneOf6 a b c d e f (SixOf6 z) = f z
+
 ----
 data OneOf7 a b c d e f g
     = OneOf7 a | TwoOf7 b | ThreeOf7 c | FourOf7 d | FiveOf7 e | SixOf7 f
@@ -141,12 +184,12 @@ data OneOf7 a b c d e f g
     deriving (Eq,Show)
 
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
-          ,HTypeable f,HTypeable g)
+         ,HTypeable f,HTypeable g)
     => HTypeable (OneOf7 a b c d e f g)
   where      toHType _ = Defined "OneOf7" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
-          ,XmlContent f,XmlContent g)
+         ,XmlContent f,XmlContent g)
     => XmlContent (OneOf7 a b c d e f g)
   where
     parseContents =
@@ -161,6 +204,18 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (SixOf7 x) = toContents x
     toContents (SevenOf7 x) = toContents x
 
+foldOneOf7 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
+               (g->z) -> 
+               OneOf7 a b c d e f g
+               -> z
+foldOneOf7 a b c d e f g (OneOf7 z) = a z
+foldOneOf7 a b c d e f g (TwoOf7 z) = b z
+foldOneOf7 a b c d e f g (ThreeOf7 z) = c z
+foldOneOf7 a b c d e f g (FourOf7 z) = d z
+foldOneOf7 a b c d e f g (FiveOf7 z) = e z
+foldOneOf7 a b c d e f g (SixOf7 z) = f z
+foldOneOf7 a b c d e f g (SevenOf7 z) = g z
+
 ----
 data OneOf8 a b c d e f g h
     = OneOf8 a | TwoOf8 b | ThreeOf8 c | FourOf8 d | FiveOf8 e | SixOf8 f
@@ -168,12 +223,12 @@ data OneOf8 a b c d e f g h
     deriving (Eq,Show)
 
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
-          ,HTypeable f,HTypeable g,HTypeable h)
+         ,HTypeable f,HTypeable g,HTypeable h)
     => HTypeable (OneOf8 a b c d e f g h)
   where      toHType _ = Defined "OneOf8" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
-          ,XmlContent f,XmlContent g,XmlContent h)
+         ,XmlContent f,XmlContent g,XmlContent h)
     => XmlContent (OneOf8 a b c d e f g h)
   where
     parseContents =
@@ -189,6 +244,19 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (SevenOf8 x) = toContents x
     toContents (EightOf8 x) = toContents x
 
+foldOneOf8 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
+               (g->z) -> (h->z) -> 
+               OneOf8 a b c d e f g h
+               -> z
+foldOneOf8 a b c d e f g h (OneOf8 z) = a z
+foldOneOf8 a b c d e f g h (TwoOf8 z) = b z
+foldOneOf8 a b c d e f g h (ThreeOf8 z) = c z
+foldOneOf8 a b c d e f g h (FourOf8 z) = d z
+foldOneOf8 a b c d e f g h (FiveOf8 z) = e z
+foldOneOf8 a b c d e f g h (SixOf8 z) = f z
+foldOneOf8 a b c d e f g h (SevenOf8 z) = g z
+foldOneOf8 a b c d e f g h (EightOf8 z) = h z
+
 ----
 data OneOf9 a b c d e f g h i
     = OneOf9 a | TwoOf9 b | ThreeOf9 c | FourOf9 d | FiveOf9 e | SixOf9 f
@@ -196,12 +264,12 @@ data OneOf9 a b c d e f g h i
     deriving (Eq,Show)
 
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
-          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i)
+         ,HTypeable f,HTypeable g,HTypeable h,HTypeable i)
     => HTypeable (OneOf9 a b c d e f g h i)
   where      toHType _ = Defined "OneOf9" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
-          ,XmlContent f,XmlContent g,XmlContent h,XmlContent i)
+         ,XmlContent f,XmlContent g,XmlContent h,XmlContent i)
     => XmlContent (OneOf9 a b c d e f g h i)
   where
     parseContents =
@@ -219,6 +287,20 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (EightOf9 x) = toContents x
     toContents (NineOf9 x) = toContents x
 
+foldOneOf9 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
+               (g->z) -> (h->z) -> (i->z) -> 
+               OneOf9 a b c d e f g h i
+               -> z
+foldOneOf9 a b c d e f g h i (OneOf9 z) = a z
+foldOneOf9 a b c d e f g h i (TwoOf9 z) = b z
+foldOneOf9 a b c d e f g h i (ThreeOf9 z) = c z
+foldOneOf9 a b c d e f g h i (FourOf9 z) = d z
+foldOneOf9 a b c d e f g h i (FiveOf9 z) = e z
+foldOneOf9 a b c d e f g h i (SixOf9 z) = f z
+foldOneOf9 a b c d e f g h i (SevenOf9 z) = g z
+foldOneOf9 a b c d e f g h i (EightOf9 z) = h z
+foldOneOf9 a b c d e f g h i (NineOf9 z) = i z
+
 ----
 data OneOf10 a b c d e f g h i j
     = OneOf10 a | TwoOf10 b | ThreeOf10 c | FourOf10 d | FiveOf10 e
@@ -226,12 +308,12 @@ data OneOf10 a b c d e f g h i j
     deriving (Eq,Show)
 
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
-          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j)
+         ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j)
     => HTypeable (OneOf10 a b c d e f g h i j)
   where      toHType _ = Defined "OneOf10" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
-          ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j)
+         ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j)
     => XmlContent (OneOf10 a b c d e f g h i j)
   where
     parseContents =
@@ -250,6 +332,21 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (NineOf10 x) = toContents x
     toContents (TenOf10 x) = toContents x
 
+foldOneOf10 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> 
+               OneOf10 a b c d e f g h i j
+               -> z
+foldOneOf10 a b c d e f g h i j (OneOf10 z) = a z
+foldOneOf10 a b c d e f g h i j (TwoOf10 z) = b z
+foldOneOf10 a b c d e f g h i j (ThreeOf10 z) = c z
+foldOneOf10 a b c d e f g h i j (FourOf10 z) = d z
+foldOneOf10 a b c d e f g h i j (FiveOf10 z) = e z
+foldOneOf10 a b c d e f g h i j (SixOf10 z) = f z
+foldOneOf10 a b c d e f g h i j (SevenOf10 z) = g z
+foldOneOf10 a b c d e f g h i j (EightOf10 z) = h z
+foldOneOf10 a b c d e f g h i j (NineOf10 z) = i z
+foldOneOf10 a b c d e f g h i j (TenOf10 z) = j z
+
 ----
 data OneOf11 a b c d e f g h i j k
     = OneOf11 a | TwoOf11 b | ThreeOf11 c | FourOf11 d | FiveOf11 e
@@ -258,14 +355,14 @@ data OneOf11 a b c d e f g h i j k
     deriving (Eq,Show)
 
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
-          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
-          ,HTypeable k)
+         ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
+         ,HTypeable k)
     => HTypeable (OneOf11 a b c d e f g h i j k)
   where      toHType _ = Defined "OneOf11" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
-          ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
-          ,XmlContent k)
+         ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
+         ,XmlContent k)
     => XmlContent (OneOf11 a b c d e f g h i j k)
   where
     parseContents =
@@ -286,6 +383,22 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (TenOf11 x) = toContents x
     toContents (ElevenOf11 x) = toContents x
 
+foldOneOf11 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> 
+               OneOf11 a b c d e f g h i j k
+               -> z
+foldOneOf11 a b c d e f g h i j k (OneOf11 z) = a z
+foldOneOf11 a b c d e f g h i j k (TwoOf11 z) = b z
+foldOneOf11 a b c d e f g h i j k (ThreeOf11 z) = c z
+foldOneOf11 a b c d e f g h i j k (FourOf11 z) = d z
+foldOneOf11 a b c d e f g h i j k (FiveOf11 z) = e z
+foldOneOf11 a b c d e f g h i j k (SixOf11 z) = f z
+foldOneOf11 a b c d e f g h i j k (SevenOf11 z) = g z
+foldOneOf11 a b c d e f g h i j k (EightOf11 z) = h z
+foldOneOf11 a b c d e f g h i j k (NineOf11 z) = i z
+foldOneOf11 a b c d e f g h i j k (TenOf11 z) = j z
+foldOneOf11 a b c d e f g h i j k (ElevenOf11 z) = k z
+
 ----
 data OneOf12 a b c d e f g h i j k l
     = OneOf12 a | TwoOf12 b | ThreeOf12 c | FourOf12 d | FiveOf12 e
@@ -294,14 +407,14 @@ data OneOf12 a b c d e f g h i j k l
     deriving (Eq,Show)
 
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
-          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
-          ,HTypeable k,HTypeable l)
+         ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
+         ,HTypeable k,HTypeable l)
     => HTypeable (OneOf12 a b c d e f g h i j k l)
   where      toHType _ = Defined "OneOf12" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
-          ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
-          ,XmlContent k,XmlContent l)
+         ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
+         ,XmlContent k,XmlContent l)
     => XmlContent (OneOf12 a b c d e f g h i j k l)
   where
     parseContents =
@@ -323,6 +436,23 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (ElevenOf12 x) = toContents x
     toContents (TwelveOf12 x) = toContents x
 
+foldOneOf12 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) -> 
+               OneOf12 a b c d e f g h i j k l
+               -> z
+foldOneOf12 a b c d e f g h i j k l (OneOf12 z) = a z
+foldOneOf12 a b c d e f g h i j k l (TwoOf12 z) = b z
+foldOneOf12 a b c d e f g h i j k l (ThreeOf12 z) = c z
+foldOneOf12 a b c d e f g h i j k l (FourOf12 z) = d z
+foldOneOf12 a b c d e f g h i j k l (FiveOf12 z) = e z
+foldOneOf12 a b c d e f g h i j k l (SixOf12 z) = f z
+foldOneOf12 a b c d e f g h i j k l (SevenOf12 z) = g z
+foldOneOf12 a b c d e f g h i j k l (EightOf12 z) = h z
+foldOneOf12 a b c d e f g h i j k l (NineOf12 z) = i z
+foldOneOf12 a b c d e f g h i j k l (TenOf12 z) = j z
+foldOneOf12 a b c d e f g h i j k l (ElevenOf12 z) = k z
+foldOneOf12 a b c d e f g h i j k l (TwelveOf12 z) = l z
+
 ----
 data OneOf13 a b c d e f g h i j k l m
     = OneOf13 a | TwoOf13 b | ThreeOf13 c | FourOf13 d | FiveOf13 e
@@ -331,14 +461,14 @@ data OneOf13 a b c d e f g h i j k l m
     deriving (Eq,Show)
 
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
-          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
-          ,HTypeable k,HTypeable l,HTypeable m)
+         ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
+         ,HTypeable k,HTypeable l,HTypeable m)
     => HTypeable (OneOf13 a b c d e f g h i j k l m)
   where      toHType _ = Defined "OneOf13" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
-          ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
-          ,XmlContent k,XmlContent l,XmlContent m)
+         ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
+         ,XmlContent k,XmlContent l,XmlContent m)
     => XmlContent (OneOf13 a b c d e f g h i j k l m)
   where
     parseContents =
@@ -361,6 +491,25 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (TwelveOf13 x) = toContents x
     toContents (ThirteenOf13 x) = toContents x
 
+foldOneOf13 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) -> 
+               (m->z) -> 
+               OneOf13 a b c d e f g h i j k l m
+               -> z
+foldOneOf13 a b c d e f g h i j k l m (OneOf13 z) = a z
+foldOneOf13 a b c d e f g h i j k l m (TwoOf13 z) = b z
+foldOneOf13 a b c d e f g h i j k l m (ThreeOf13 z) = c z
+foldOneOf13 a b c d e f g h i j k l m (FourOf13 z) = d z
+foldOneOf13 a b c d e f g h i j k l m (FiveOf13 z) = e z
+foldOneOf13 a b c d e f g h i j k l m (SixOf13 z) = f z
+foldOneOf13 a b c d e f g h i j k l m (SevenOf13 z) = g z
+foldOneOf13 a b c d e f g h i j k l m (EightOf13 z) = h z
+foldOneOf13 a b c d e f g h i j k l m (NineOf13 z) = i z
+foldOneOf13 a b c d e f g h i j k l m (TenOf13 z) = j z
+foldOneOf13 a b c d e f g h i j k l m (ElevenOf13 z) = k z
+foldOneOf13 a b c d e f g h i j k l m (TwelveOf13 z) = l z
+foldOneOf13 a b c d e f g h i j k l m (ThirteenOf13 z) = m z
+
 ----
 data OneOf14 a b c d e f g h i j k l m n
     = OneOf14 a | TwoOf14 b | ThreeOf14 c | FourOf14 d | FiveOf14 e
@@ -369,14 +518,14 @@ data OneOf14 a b c d e f g h i j k l m n
     deriving (Eq,Show)
 
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
-          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
-          ,HTypeable k,HTypeable l,HTypeable m,HTypeable n)
+         ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
+         ,HTypeable k,HTypeable l,HTypeable m,HTypeable n)
     => HTypeable (OneOf14 a b c d e f g h i j k l m n)
   where      toHType _ = Defined "OneOf14" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
-          ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
-          ,XmlContent k,XmlContent l,XmlContent m,XmlContent n)
+         ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
+         ,XmlContent k,XmlContent l,XmlContent m,XmlContent n)
     => XmlContent (OneOf14 a b c d e f g h i j k l m n)
   where
     parseContents =
@@ -401,6 +550,26 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (ThirteenOf14 x) = toContents x
     toContents (FourteenOf14 x) = toContents x
 
+foldOneOf14 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) -> 
+               (m->z) -> (n->z) -> 
+               OneOf14 a b c d e f g h i j k l m n
+               -> z
+foldOneOf14 a b c d e f g h i j k l m n (OneOf14 z) = a z
+foldOneOf14 a b c d e f g h i j k l m n (TwoOf14 z) = b z
+foldOneOf14 a b c d e f g h i j k l m n (ThreeOf14 z) = c z
+foldOneOf14 a b c d e f g h i j k l m n (FourOf14 z) = d z
+foldOneOf14 a b c d e f g h i j k l m n (FiveOf14 z) = e z
+foldOneOf14 a b c d e f g h i j k l m n (SixOf14 z) = f z
+foldOneOf14 a b c d e f g h i j k l m n (SevenOf14 z) = g z
+foldOneOf14 a b c d e f g h i j k l m n (EightOf14 z) = h z
+foldOneOf14 a b c d e f g h i j k l m n (NineOf14 z) = i z
+foldOneOf14 a b c d e f g h i j k l m n (TenOf14 z) = j z
+foldOneOf14 a b c d e f g h i j k l m n (ElevenOf14 z) = k z
+foldOneOf14 a b c d e f g h i j k l m n (TwelveOf14 z) = l z
+foldOneOf14 a b c d e f g h i j k l m n (ThirteenOf14 z) = m z
+foldOneOf14 a b c d e f g h i j k l m n (FourteenOf14 z) = n z
+
 ----
 data OneOf15 a b c d e f g h i j k l m n o
     = OneOf15 a | TwoOf15 b | ThreeOf15 c | FourOf15 d | FiveOf15 e
@@ -410,14 +579,14 @@ data OneOf15 a b c d e f g h i j k l m n o
     deriving (Eq,Show)
 
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
-          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
-          ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o)
+         ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
+         ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o)
     => HTypeable (OneOf15 a b c d e f g h i j k l m n o)
   where      toHType _ = Defined "OneOf15" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
-          ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
-          ,XmlContent k,XmlContent l,XmlContent m,XmlContent n,XmlContent o)
+         ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
+         ,XmlContent k,XmlContent l,XmlContent m,XmlContent n,XmlContent o)
     => XmlContent (OneOf15 a b c d e f g h i j k l m n o)
   where
     parseContents =
@@ -443,6 +612,27 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (FourteenOf15 x) = toContents x
     toContents (FifteenOf15 x) = toContents x
 
+foldOneOf15 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) -> 
+               (m->z) -> (n->z) -> (o->z) -> 
+               OneOf15 a b c d e f g h i j k l m n o
+               -> z
+foldOneOf15 a b c d e f g h i j k l m n o (OneOf15 z) = a z
+foldOneOf15 a b c d e f g h i j k l m n o (TwoOf15 z) = b z
+foldOneOf15 a b c d e f g h i j k l m n o (ThreeOf15 z) = c z
+foldOneOf15 a b c d e f g h i j k l m n o (FourOf15 z) = d z
+foldOneOf15 a b c d e f g h i j k l m n o (FiveOf15 z) = e z
+foldOneOf15 a b c d e f g h i j k l m n o (SixOf15 z) = f z
+foldOneOf15 a b c d e f g h i j k l m n o (SevenOf15 z) = g z
+foldOneOf15 a b c d e f g h i j k l m n o (EightOf15 z) = h z
+foldOneOf15 a b c d e f g h i j k l m n o (NineOf15 z) = i z
+foldOneOf15 a b c d e f g h i j k l m n o (TenOf15 z) = j z
+foldOneOf15 a b c d e f g h i j k l m n o (ElevenOf15 z) = k z
+foldOneOf15 a b c d e f g h i j k l m n o (TwelveOf15 z) = l z
+foldOneOf15 a b c d e f g h i j k l m n o (ThirteenOf15 z) = m z
+foldOneOf15 a b c d e f g h i j k l m n o (FourteenOf15 z) = n z
+foldOneOf15 a b c d e f g h i j k l m n o (FifteenOf15 z) = o z
+
 ----
 data OneOf16 a b c d e f g h i j k l m n o p
     = OneOf16 a | TwoOf16 b | ThreeOf16 c | FourOf16 d | FiveOf16 e
@@ -452,16 +642,16 @@ data OneOf16 a b c d e f g h i j k l m n o p
     deriving (Eq,Show)
 
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
-          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
-          ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o
-          ,HTypeable p)
+         ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
+         ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o
+         ,HTypeable p)
     => HTypeable (OneOf16 a b c d e f g h i j k l m n o p)
   where      toHType _ = Defined "OneOf16" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
-          ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
-          ,XmlContent k,XmlContent l,XmlContent m,XmlContent n,XmlContent o
-          ,XmlContent p)
+         ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
+         ,XmlContent k,XmlContent l,XmlContent m,XmlContent n,XmlContent o
+         ,XmlContent p)
     => XmlContent (OneOf16 a b c d e f g h i j k l m n o p)
   where
     parseContents =
@@ -488,6 +678,28 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (FifteenOf16 x) = toContents x
     toContents (SixteenOf16 x) = toContents x
 
+foldOneOf16 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) -> 
+               (m->z) -> (n->z) -> (o->z) -> (p->z) -> 
+               OneOf16 a b c d e f g h i j k l m n o p
+               -> z
+foldOneOf16 a b c d e f g h i j k l m n o p (OneOf16 z) = a z
+foldOneOf16 a b c d e f g h i j k l m n o p (TwoOf16 z) = b z
+foldOneOf16 a b c d e f g h i j k l m n o p (ThreeOf16 z) = c z
+foldOneOf16 a b c d e f g h i j k l m n o p (FourOf16 z) = d z
+foldOneOf16 a b c d e f g h i j k l m n o p (FiveOf16 z) = e z
+foldOneOf16 a b c d e f g h i j k l m n o p (SixOf16 z) = f z
+foldOneOf16 a b c d e f g h i j k l m n o p (SevenOf16 z) = g z
+foldOneOf16 a b c d e f g h i j k l m n o p (EightOf16 z) = h z
+foldOneOf16 a b c d e f g h i j k l m n o p (NineOf16 z) = i z
+foldOneOf16 a b c d e f g h i j k l m n o p (TenOf16 z) = j z
+foldOneOf16 a b c d e f g h i j k l m n o p (ElevenOf16 z) = k z
+foldOneOf16 a b c d e f g h i j k l m n o p (TwelveOf16 z) = l z
+foldOneOf16 a b c d e f g h i j k l m n o p (ThirteenOf16 z) = m z
+foldOneOf16 a b c d e f g h i j k l m n o p (FourteenOf16 z) = n z
+foldOneOf16 a b c d e f g h i j k l m n o p (FifteenOf16 z) = o z
+foldOneOf16 a b c d e f g h i j k l m n o p (SixteenOf16 z) = p z
+
 ----
 data OneOf17 a b c d e f g h i j k l m n o p q
     = OneOf17 a | TwoOf17 b | ThreeOf17 c | FourOf17 d | FiveOf17 e
@@ -497,16 +709,16 @@ data OneOf17 a b c d e f g h i j k l m n o p q
     deriving (Eq,Show)
 
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
-          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
-          ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o
-          ,HTypeable p,HTypeable q)
+         ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
+         ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o
+         ,HTypeable p,HTypeable q)
     => HTypeable (OneOf17 a b c d e f g h i j k l m n o p q)
   where      toHType _ = Defined "OneOf17" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
-          ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
-          ,XmlContent k,XmlContent l,XmlContent m,XmlContent n,XmlContent o
-          ,XmlContent p,XmlContent q)
+         ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
+         ,XmlContent k,XmlContent l,XmlContent m,XmlContent n,XmlContent o
+         ,XmlContent p,XmlContent q)
     => XmlContent (OneOf17 a b c d e f g h i j k l m n o p q)
   where
     parseContents =
@@ -535,6 +747,29 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (SixteenOf17 x) = toContents x
     toContents (SeventeenOf17 x) = toContents x
 
+foldOneOf17 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) -> 
+               (m->z) -> (n->z) -> (o->z) -> (p->z) -> (q->z) -> 
+               OneOf17 a b c d e f g h i j k l m n o p q
+               -> z
+foldOneOf17 a b c d e f g h i j k l m n o p q (OneOf17 z) = a z
+foldOneOf17 a b c d e f g h i j k l m n o p q (TwoOf17 z) = b z
+foldOneOf17 a b c d e f g h i j k l m n o p q (ThreeOf17 z) = c z
+foldOneOf17 a b c d e f g h i j k l m n o p q (FourOf17 z) = d z
+foldOneOf17 a b c d e f g h i j k l m n o p q (FiveOf17 z) = e z
+foldOneOf17 a b c d e f g h i j k l m n o p q (SixOf17 z) = f z
+foldOneOf17 a b c d e f g h i j k l m n o p q (SevenOf17 z) = g z
+foldOneOf17 a b c d e f g h i j k l m n o p q (EightOf17 z) = h z
+foldOneOf17 a b c d e f g h i j k l m n o p q (NineOf17 z) = i z
+foldOneOf17 a b c d e f g h i j k l m n o p q (TenOf17 z) = j z
+foldOneOf17 a b c d e f g h i j k l m n o p q (ElevenOf17 z) = k z
+foldOneOf17 a b c d e f g h i j k l m n o p q (TwelveOf17 z) = l z
+foldOneOf17 a b c d e f g h i j k l m n o p q (ThirteenOf17 z) = m z
+foldOneOf17 a b c d e f g h i j k l m n o p q (FourteenOf17 z) = n z
+foldOneOf17 a b c d e f g h i j k l m n o p q (FifteenOf17 z) = o z
+foldOneOf17 a b c d e f g h i j k l m n o p q (SixteenOf17 z) = p z
+foldOneOf17 a b c d e f g h i j k l m n o p q (SeventeenOf17 z) = q z
+
 ----
 data OneOf18 a b c d e f g h i j k l m n o p q r
     = OneOf18 a | TwoOf18 b | ThreeOf18 c | FourOf18 d | FiveOf18 e
@@ -544,16 +779,16 @@ data OneOf18 a b c d e f g h i j k l m n o p q r
     deriving (Eq,Show)
 
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
-          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
-          ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o
-          ,HTypeable p,HTypeable q,HTypeable r)
+         ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
+         ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o
+         ,HTypeable p,HTypeable q,HTypeable r)
     => HTypeable (OneOf18 a b c d e f g h i j k l m n o p q r)
   where      toHType _ = Defined "OneOf18" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
-          ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
-          ,XmlContent k,XmlContent l,XmlContent m,XmlContent n,XmlContent o
-          ,XmlContent p,XmlContent q,XmlContent r)
+         ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
+         ,XmlContent k,XmlContent l,XmlContent m,XmlContent n,XmlContent o
+         ,XmlContent p,XmlContent q,XmlContent r)
     => XmlContent (OneOf18 a b c d e f g h i j k l m n o p q r)
   where
     parseContents =
@@ -583,6 +818,30 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (SeventeenOf18 x) = toContents x
     toContents (EighteenOf18 x) = toContents x
 
+foldOneOf18 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) -> 
+               (m->z) -> (n->z) -> (o->z) -> (p->z) -> (q->z) -> (r->z) -> 
+               OneOf18 a b c d e f g h i j k l m n o p q r
+               -> z
+foldOneOf18 a b c d e f g h i j k l m n o p q r (OneOf18 z) = a z
+foldOneOf18 a b c d e f g h i j k l m n o p q r (TwoOf18 z) = b z
+foldOneOf18 a b c d e f g h i j k l m n o p q r (ThreeOf18 z) = c z
+foldOneOf18 a b c d e f g h i j k l m n o p q r (FourOf18 z) = d z
+foldOneOf18 a b c d e f g h i j k l m n o p q r (FiveOf18 z) = e z
+foldOneOf18 a b c d e f g h i j k l m n o p q r (SixOf18 z) = f z
+foldOneOf18 a b c d e f g h i j k l m n o p q r (SevenOf18 z) = g z
+foldOneOf18 a b c d e f g h i j k l m n o p q r (EightOf18 z) = h z
+foldOneOf18 a b c d e f g h i j k l m n o p q r (NineOf18 z) = i z
+foldOneOf18 a b c d e f g h i j k l m n o p q r (TenOf18 z) = j z
+foldOneOf18 a b c d e f g h i j k l m n o p q r (ElevenOf18 z) = k z
+foldOneOf18 a b c d e f g h i j k l m n o p q r (TwelveOf18 z) = l z
+foldOneOf18 a b c d e f g h i j k l m n o p q r (ThirteenOf18 z) = m z
+foldOneOf18 a b c d e f g h i j k l m n o p q r (FourteenOf18 z) = n z
+foldOneOf18 a b c d e f g h i j k l m n o p q r (FifteenOf18 z) = o z
+foldOneOf18 a b c d e f g h i j k l m n o p q r (SixteenOf18 z) = p z
+foldOneOf18 a b c d e f g h i j k l m n o p q r (SeventeenOf18 z) = q z
+foldOneOf18 a b c d e f g h i j k l m n o p q r (EighteenOf18 z) = r z
+
 ----
 data OneOf19 a b c d e f g h i j k l m n o p q r s
     = OneOf19 a | TwoOf19 b | ThreeOf19 c | FourOf19 d | FiveOf19 e
@@ -593,16 +852,16 @@ data OneOf19 a b c d e f g h i j k l m n o p q r s
     deriving (Eq,Show)
 
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
-          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
-          ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o
-          ,HTypeable p,HTypeable q,HTypeable r,HTypeable s)
+         ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
+         ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o
+         ,HTypeable p,HTypeable q,HTypeable r,HTypeable s)
     => HTypeable (OneOf19 a b c d e f g h i j k l m n o p q r s)
   where      toHType _ = Defined "OneOf19" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
-          ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
-          ,XmlContent k,XmlContent l,XmlContent m,XmlContent n,XmlContent o
-          ,XmlContent p,XmlContent q,XmlContent r,XmlContent s)
+         ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
+         ,XmlContent k,XmlContent l,XmlContent m,XmlContent n,XmlContent o
+         ,XmlContent p,XmlContent q,XmlContent r,XmlContent s)
     => XmlContent (OneOf19 a b c d e f g h i j k l m n o p q r s)
   where
     parseContents =
@@ -633,6 +892,32 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (EighteenOf19 x) = toContents x
     toContents (NineteenOf19 x) = toContents x
 
+foldOneOf19 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) -> 
+               (m->z) -> (n->z) -> (o->z) -> (p->z) -> (q->z) -> (r->z) -> 
+               (s->z) -> 
+               OneOf19 a b c d e f g h i j k l m n o p q r s
+               -> z
+foldOneOf19 a b c d e f g h i j k l m n o p q r s (OneOf19 z) = a z
+foldOneOf19 a b c d e f g h i j k l m n o p q r s (TwoOf19 z) = b z
+foldOneOf19 a b c d e f g h i j k l m n o p q r s (ThreeOf19 z) = c z
+foldOneOf19 a b c d e f g h i j k l m n o p q r s (FourOf19 z) = d z
+foldOneOf19 a b c d e f g h i j k l m n o p q r s (FiveOf19 z) = e z
+foldOneOf19 a b c d e f g h i j k l m n o p q r s (SixOf19 z) = f z
+foldOneOf19 a b c d e f g h i j k l m n o p q r s (SevenOf19 z) = g z
+foldOneOf19 a b c d e f g h i j k l m n o p q r s (EightOf19 z) = h z
+foldOneOf19 a b c d e f g h i j k l m n o p q r s (NineOf19 z) = i z
+foldOneOf19 a b c d e f g h i j k l m n o p q r s (TenOf19 z) = j z
+foldOneOf19 a b c d e f g h i j k l m n o p q r s (ElevenOf19 z) = k z
+foldOneOf19 a b c d e f g h i j k l m n o p q r s (TwelveOf19 z) = l z
+foldOneOf19 a b c d e f g h i j k l m n o p q r s (ThirteenOf19 z) = m z
+foldOneOf19 a b c d e f g h i j k l m n o p q r s (FourteenOf19 z) = n z
+foldOneOf19 a b c d e f g h i j k l m n o p q r s (FifteenOf19 z) = o z
+foldOneOf19 a b c d e f g h i j k l m n o p q r s (SixteenOf19 z) = p z
+foldOneOf19 a b c d e f g h i j k l m n o p q r s (SeventeenOf19 z) = q z
+foldOneOf19 a b c d e f g h i j k l m n o p q r s (EighteenOf19 z) = r z
+foldOneOf19 a b c d e f g h i j k l m n o p q r s (NineteenOf19 z) = s z
+
 ----
 data OneOf20 a b c d e f g h i j k l m n o p q r s t
     = OneOf20 a | TwoOf20 b | ThreeOf20 c | FourOf20 d | FiveOf20 e
@@ -643,16 +928,16 @@ data OneOf20 a b c d e f g h i j k l m n o p q r s t
     deriving (Eq,Show)
 
 instance (HTypeable a,HTypeable b,HTypeable c,HTypeable d,HTypeable e
-          ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
-          ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o
-          ,HTypeable p,HTypeable q,HTypeable r,HTypeable s,HTypeable t)
+         ,HTypeable f,HTypeable g,HTypeable h,HTypeable i,HTypeable j
+         ,HTypeable k,HTypeable l,HTypeable m,HTypeable n,HTypeable o
+         ,HTypeable p,HTypeable q,HTypeable r,HTypeable s,HTypeable t)
     => HTypeable (OneOf20 a b c d e f g h i j k l m n o p q r s t)
   where      toHType _ = Defined "OneOf20" [] []
 
 instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
-          ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
-          ,XmlContent k,XmlContent l,XmlContent m,XmlContent n,XmlContent o
-          ,XmlContent p,XmlContent q,XmlContent r,XmlContent s,XmlContent t)
+         ,XmlContent f,XmlContent g,XmlContent h,XmlContent i,XmlContent j
+         ,XmlContent k,XmlContent l,XmlContent m,XmlContent n,XmlContent o
+         ,XmlContent p,XmlContent q,XmlContent r,XmlContent s,XmlContent t)
     => XmlContent (OneOf20 a b c d e f g h i j k l m n o p q r s t)
   where
     parseContents =
@@ -684,5 +969,52 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (EighteenOf20 x) = toContents x
     toContents (NineteenOf20 x) = toContents x
     toContents (TwentyOf20 x) = toContents x
+
+foldOneOf20 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) -> 
+               (m->z) -> (n->z) -> (o->z) -> (p->z) -> (q->z) -> (r->z) -> 
+               (s->z) -> (t->z) -> 
+               OneOf20 a b c d e f g h i j k l m n o p q r s t
+               -> z
+foldOneOf20 a b c d e f g h i j k l m n o p q r s
+            t (OneOf20 z) = a z
+foldOneOf20 a b c d e f g h i j k l m n o p q r s
+            t (TwoOf20 z) = b z
+foldOneOf20 a b c d e f g h i j k l m n o p q r s
+            t (ThreeOf20 z) = c z
+foldOneOf20 a b c d e f g h i j k l m n o p q r s
+            t (FourOf20 z) = d z
+foldOneOf20 a b c d e f g h i j k l m n o p q r s
+            t (FiveOf20 z) = e z
+foldOneOf20 a b c d e f g h i j k l m n o p q r s
+            t (SixOf20 z) = f z
+foldOneOf20 a b c d e f g h i j k l m n o p q r s
+            t (SevenOf20 z) = g z
+foldOneOf20 a b c d e f g h i j k l m n o p q r s
+            t (EightOf20 z) = h z
+foldOneOf20 a b c d e f g h i j k l m n o p q r s
+            t (NineOf20 z) = i z
+foldOneOf20 a b c d e f g h i j k l m n o p q r s
+            t (TenOf20 z) = j z
+foldOneOf20 a b c d e f g h i j k l m n o p q r s
+            t (ElevenOf20 z) = k z
+foldOneOf20 a b c d e f g h i j k l m n o p q r s
+            t (TwelveOf20 z) = l z
+foldOneOf20 a b c d e f g h i j k l m n o p q r s
+            t (ThirteenOf20 z) = m z
+foldOneOf20 a b c d e f g h i j k l m n o p q r s
+            t (FourteenOf20 z) = n z
+foldOneOf20 a b c d e f g h i j k l m n o p q r s
+            t (FifteenOf20 z) = o z
+foldOneOf20 a b c d e f g h i j k l m n o p q r s
+            t (SixteenOf20 z) = p z
+foldOneOf20 a b c d e f g h i j k l m n o p q r s
+            t (SeventeenOf20 z) = q z
+foldOneOf20 a b c d e f g h i j k l m n o p q r s
+            t (EighteenOf20 z) = r z
+foldOneOf20 a b c d e f g h i j k l m n o p q r s
+            t (NineteenOf20 z) = s z
+foldOneOf20 a b c d e f g h i j k l m n o p q r s
+            t (TwentyOf20 z) = t z
 
 ----
