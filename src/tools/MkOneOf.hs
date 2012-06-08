@@ -42,7 +42,7 @@ mkOneOf n =
     ++ "\n\ninstance "++ format 9 78 9 "(" ","
                                 (map ("HTypeable "++) (take n variables))
     ++ ")\n    => HTypeable ("++ typename n 26 ++")\n  where"
-    ++ "      toHType m = Defined \""++constructor 1 n++"\" [] []"
+    ++ "      toHType _ = Defined \""++constructor 1 n++"\" [] []"
     ++ "\n\ninstance "++ format 9 78 9 "(" ","
                                 (map ("XmlContent "++) (take n variables))
     ++ ")\n    => XmlContent ("++ typename n 26 ++")\n  where"
