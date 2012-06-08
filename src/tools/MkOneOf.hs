@@ -39,11 +39,11 @@ mkOneOf n =
                                  [1..n]
                                  (take n variables))
     ++ "\n    deriving (Eq,Show)"
-    ++ "\n\ninstance "++ format 10 78 10 "(" ","
+    ++ "\n\ninstance "++ format 9 78 9 "(" ","
                                 (map ("HTypeable "++) (take n variables))
     ++ ")\n    => HTypeable ("++ typename n 26 ++")\n  where"
     ++ "      toHType m = Defined \""++constructor 1 n++"\" [] []"
-    ++ "\n\ninstance "++ format 10 78 10 "(" ","
+    ++ "\n\ninstance "++ format 9 78 9 "(" ","
                                 (map ("XmlContent "++) (take n variables))
     ++ ")\n    => XmlContent ("++ typename n 26 ++")\n  where"
     ++ "\n    parseContents ="
@@ -53,6 +53,17 @@ mkOneOf n =
     ++ concatMap (\v->"\n    toContents ("++constructor v n
                                           ++" x) = toContents x")
                  [1..n]
+    ++ "\n\nfold"++constructor 1 n++" :: "
+                 ++format 15 78 15 "" ""
+                          (map (\v->"("++v++"->z) -> ") (take n variables))
+                 ++"\n               "
+                 ++constructor 1 n++format 22 78 22 " " " " (take n variables)
+                 ++"\n               -> z"
+    ++ concat (zipWith (\i v-> "\n"++"fold"++constructor 1 n
+                               ++format 11 50 11 " " " " (take n variables)
+                               ++" ("++constructor i n ++" z) = "++v++" z")
+                       [1..n]
+                       (take n variables))
     ++ "\n\n----"
 
 ---- constructor names ----
@@ -73,7 +84,7 @@ ordinals = ["Zero","One","Two","Three","Four","Five","Six","Seven","Eight"
 
 ---- variable names ----
 variables :: [String]
-variables = [ v:[] | v <- ['a'..'z']]
+variables = [ v:[] | v <- ['a'..'y']]
             ++ [ v:w:[] | v <- ['a'..'z'], w <- ['a'..'z']]
 
 ---- simple pretty-printing ----
