@@ -107,6 +107,7 @@ ppModule nx m =
     $$ text " "
     $$ text "import Text.XML.HaXml.Schema.Schema (SchemaType(..),SimpleType(..),Extension(..),Restricts(..))"
     $$ text "import Text.XML.HaXml.Schema.Schema as Schema"
+    $$ text "import Text.XML.HaXml.OneOfN"
     $$ (case module_xsd_ns m of
          Nothing -> text "import Text.XML.HaXml.Schema.PrimitiveTypes as Xsd"
          Just ns -> text "import qualified Text.XML.HaXml.Schema.PrimitiveTypes as"<+>ppConId nx ns)
@@ -151,7 +152,7 @@ ppAttr a n = (text "a"<>text (show n)) <+> text "<-"
 toXmlAttr :: Attribute -> Doc
 toXmlAttr a = (if attr_required a then id
                                   else (\d-> text "maybe []" <+> parens d))
-              (text "toAttribute \"" <> ppXName (attr_name a) <> text "\"")
+              (text "toXMLAttribute \"" <> ppXName (attr_name a) <> text "\"")
 
 -- | Generate a fragmentary parser for an element.
 ppElem :: NameConverter -> Element -> Doc

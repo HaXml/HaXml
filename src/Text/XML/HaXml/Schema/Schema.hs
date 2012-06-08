@@ -28,6 +28,7 @@ module Text.XML.HaXml.Schema.Schema
   , toXMLElement
   , toXMLText
   , toXMLAnyElement
+  , toXMLAttribute
   ) where
 
 import Text.ParserCombinators.Poly
@@ -137,15 +138,18 @@ parseText = text  -- from XmlContent.Parser
 
 toXMLElement :: String -> [[Attribute]] -> [[Content ()]] -> [Content ()]
 toXMLElement name attrs content =
-    [CElem name (concat attrs) (concat content) ()]
+    [CElem (Elem (N name) (concat attrs) (concat content)) ()]
 
 toXMLText :: String -> [Content ()]
 toXMLText text =
     [CString False text ()]
 
 toXMLAnyElement :: AnyElement -> [Content ()]
-toXMLAnyElement (UnconvertedANY c) = [c]
+toXMLAnyElement (UnconvertedANY c) = [fmap (const ()) c]
 --toXMLAnyElement (ANYSchemaType x)  = [c]
+
+toXMLAttribute :: (SimpleType a) => String -> a -> [Attribute]
+toXMLAttribute name val = [ (N name, AttValue [Left (simpleTypeText val)]) ]
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
