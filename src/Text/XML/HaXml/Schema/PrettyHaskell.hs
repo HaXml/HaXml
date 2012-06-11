@@ -326,14 +326,21 @@ ppHighLevelDecl nx (EnumSimpleType t is comm) =
                   $$ nest 4 (text "e <- element [s]"
                            $$ text "commit $ interior e $ parseSimpleType")
                   )
+        $$ nest 4 (text "schemaTypeToXML s x = " 
+                  $$ nest 4 (text "toXMLElement s [] [toXMLText (simpleTypeText x)]")
+                  )
     $$ text "instance SimpleType" <+> ppUnqConId nx t <+> text "where"
         $$ nest 4 (text "acceptingParser ="
-                        <+> ppvList "" "`onFail`" "" parseItem is)
+                        <+> ppvList "" "`onFail`" "" parseItem is
+                   $$ vcat (map enumText is))
   where
     item (i,c) = (ppUnqConId nx t <> text "_" <> ppConId nx i)
                  $$ ppComment After c
     parseItem (i,_) = text "do isWord \"" <> ppXName i <> text "\"; return"
                            <+> (ppUnqConId nx t <> text "_" <> ppConId nx i)
+    enumText  (i,_) = text "simpleTypeText"
+                           <+> (ppUnqConId nx t <> text "_" <> ppConId nx i)
+                           <+> text "= \"" <> ppXName i <> text "\""
 
 ppHighLevelDecl nx (ElementsAttrs t es as comm) =
     ppComment Before comm
@@ -380,6 +387,7 @@ ppHighLevelDecl nx (ElementsAttrsAbstract t [] comm) =
                    <+> text "deriving (Eq,Show)"
     $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
         $$ nest 4 (text "parseSchemaType s = fail" <+> errmsg)
+        $$ nest 4 (text "schemaTypeToXML s _ = toXMLElement s [] []")
   where
     errmsg = text "\"Parse failed when expecting an extension type of"
              <+> ppXName t <> text ":\\n  No extension types are known.\""
@@ -396,6 +404,7 @@ ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
                   $$ nest 4 (vcat (intersperse (text "`onFail`")
                                                (map ppParse insts)
                                    ++ [text "`onFail` fail" <+> errmsg])))
+        $$ nest 4 (vcat (map toXML insts))
 --  $$ text ""
 --  $$ vcat (map ppFwdDecl $ filter (isJust . snd) insts)
   where
@@ -424,6 +433,8 @@ ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
              <> text "\""
 --  fwd name = ppFwdConId nx name
     con name = ppJoinConId nx t name
+    toXML (name,_) = text "schemaTypeToXML (" <> con name
+                                              <+> text "x) = schemaTypeToXML x"
 
 ppHighLevelDecl nx (ElementOfType e@Element{}) =
     ppComment Before (elem_comment e)
@@ -431,14 +442,22 @@ ppHighLevelDecl nx (ElementOfType e@Element{}) =
         <+> text "XMLParser" <+> ppConId nx (elem_type e)
     $$ (text "element" <> ppUnqConId nx (elem_name e)) <+> text "="
         <+> (text "parseSchemaType \"" <> ppXName (elem_name e)  <> text "\"")
+    $$ (text "elementToXML" <> ppUnqConId nx (elem_name e)) <+> text "::"
+        <+> ppConId nx (elem_type e) <+> text "-> [Content ()]"
+    $$ (text "elementToXML" <> ppUnqConId nx (elem_name e)) <+> text "="
+        <+> (text "schemaTypeToXML \"" <> ppXName (elem_name e)  <> text "\"")
 
-ppHighLevelDecl nx e@(ElementAbstractOfType n t [] comm)
-                = ppComment Before comm
-                $$ text "--  (There are no elements in any substitution group for this element.)"
-                $$ (text "element" <> ppUnqConId nx n) <+> text "::"
-                    <+> text "XMLParser" <+> ppConId nx t
-                $$ (text "element" <> ppUnqConId nx n) <+> text "="
-                   <+> text "fail" <+> errmsg
+ppHighLevelDecl nx e@(ElementAbstractOfType n t [] comm) =
+    ppComment Before comm
+    $$ text "--  (There are no elements in any substitution group for this element.)"
+    $$ (text "element" <> ppUnqConId nx n) <+> text "::"
+        <+> text "XMLParser" <+> ppConId nx t
+    $$ (text "element" <> ppUnqConId nx n) <+> text "="
+        <+> text "fail" <+> errmsg
+    $$ (text "elementToXML" <> ppUnqConId nx n) <+> text "::"
+        <+> ppConId nx t <+> text "-> [Content ()]"
+    $$ (text "elementToXML" <> ppUnqConId nx n) <+> text "="
+        <+> (text "schemaTypeToXML \"" <> ppXName n <> text "\"")
   where
     errmsg = text "\"Parse failed when expecting an element in the substitution group for\\n\\\n\\    <"
              <> ppXName n <> text ">,\\n\\\n\\  There are no substitutable elements.\""
@@ -453,6 +472,10 @@ ppHighLevelDecl nx e@(ElementAbstractOfType n t substgrp comm)
                 $$ (text "element" <> ppUnqConId nx n) <+> text "="
                    <+> vcat (intersperse (text "`onFail`") (map ppOne substgrp)
                              ++ [text "`onFail` fail" <+> errmsg])
+                $$ (text "elementToXML" <> ppUnqConId nx n) <+> text "::"
+                    <+> ppConId nx t <+> text "-> [Content ()]"
+                $$ (text "elementToXML" <> ppUnqConId nx n) <+> text "="
+                    <+> (text "schemaTypeToXML \"" <> ppXName n <> text "\"")
 --  | otherwise = ppElementAbstractOfType nx e
   where
     notInScope (_,Just _)  = True
@@ -496,6 +519,7 @@ ppHighLevelDecl nx (RestrictComplexType t s comm) =
                                        <+> ppUnqConId nx t <+> ppConId nx s
                                        <+> text "deriving (Eq,Show)"
     $$ text "-- plus different (more restrictive) parser"
+    $$ text "-- (parsing restrictions currently unimplemented)"
     $$ text "instance Restricts" <+> ppUnqConId nx t <+> ppConId nx s
                                  <+> text "where"
         $$ nest 4 (text "restricts (" <> ppUnqConId nx t <+> text "x) = x")
@@ -503,6 +527,8 @@ ppHighLevelDecl nx (RestrictComplexType t s comm) =
         $$ nest 4 (text "parseSchemaType = fmap " <+> ppUnqConId nx t <+>
                    text ". parseSchemaType")
 		-- XXX should enforce the restriction.
+        $$ nest 4 (text "schemaTypeToXML s (" <> ppUnqConId nx t <> text "x)")
+                   <+> text "= schemaTypeToXML s x"
 
 {-
 ppHighLevelDecl nx (ExtendComplexType t s es as _ comm)
@@ -547,7 +573,7 @@ ppHighLevelDecl nx (XSDImport m ma comm) =
 ppHighLevelDecl nx (XSDComment comm) =
     ppComment Before comm
 
---------------------------------------------------------------------------------
+{-------------------------------------------------------------------------------
 
 -- | Instances that depend on FwdDecl'd types, need to be declared in a
 --   different module.  So they have been separated out from ppHighLevelDecl.
@@ -596,6 +622,7 @@ ppHighLevelInstances nx (ExtendComplexTypeAbstract t s insts
 --                     -- FIXME some instances are missing!
 --     else empty
 
+
 ppElementAbstractOfType nx (ElementAbstractOfType n t substgrp comm) =
     ppComment Before comm
     $$ (text "element" <> ppUnqConId nx n) <+> text "::"
@@ -614,6 +641,8 @@ ppElementAbstractOfType nx (ElementAbstractOfType n t substgrp comm) =
              <> hcat (intersperse (text ">, <")
                                   (map (ppXName . fst) substgrp))
              <> text ">\""
+
+----------------------------------------------------------------------------- -}
 
 --------------------------------------------------------------------------------
 
