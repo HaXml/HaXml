@@ -194,7 +194,7 @@ instance SimpleType FpMLNumber where
 
 -- Ensure that all primitive/simple types can also be used as elements.
 
-#define SchemaInstance(TYPE)  instance SchemaType TYPE where parseSchemaType s = do { e <- element [s]; interior e $ parseSimpleType; }
+#define SchemaInstance(TYPE)  instance SchemaType TYPE where { parseSchemaType s = do { e <- element [s]; interior e $ parseSimpleType; }; schemaTypeToXML s x = toXMLElement s [] [toXMLText (simpleTypeText x)] }
 
 SchemaInstance(XsdString)
 SchemaInstance(Prim.Boolean)
