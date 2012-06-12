@@ -243,7 +243,7 @@ ppHighLevelDecl nx (RestrictSimpleType t s r comm) =
                   $$ nest 4 (text "e <- element [s]"
                            $$ text "commit $ interior e $ parseSimpleType")
                   )
-        $$ nest 4 (text "schemaTypeToXML s ("<> ppUnqConId nx t <> text "x) = " 
+        $$ nest 4 (text "schemaTypeToXML s ("<> ppUnqConId nx t <+> text "x) = " 
                   $$ nest 4 (text "toXMLElement s [] [toXMLText (simpleTypeText x)]")
                   )
     $$ text "instance SimpleType" <+> ppUnqConId nx t <+> text "where"
@@ -433,8 +433,8 @@ ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
              <> text "\""
 --  fwd name = ppFwdConId nx name
     con name = ppJoinConId nx t name
-    toXML (name,_) = text "schemaTypeToXML (" <> con name
-                                              <+> text "x) = schemaTypeToXML x"
+    toXML (name,_) = text "schemaTypeToXML s ("
+                     <> con name <+> text "x) = schemaTypeToXML s x"
 
 ppHighLevelDecl nx (ElementOfType e@Element{}) =
     ppComment Before (elem_comment e)
@@ -527,7 +527,7 @@ ppHighLevelDecl nx (RestrictComplexType t s comm) =
         $$ nest 4 (text "parseSchemaType = fmap " <+> ppUnqConId nx t <+>
                    text ". parseSchemaType")
 		-- XXX should enforce the restriction.
-        $$ nest 4 (text "schemaTypeToXML s (" <> ppUnqConId nx t <> text "x)")
+        $$ nest 4 (text "schemaTypeToXML s (" <> ppUnqConId nx t <+> text "x)")
                    <+> text "= schemaTypeToXML s x"
 
 {-
