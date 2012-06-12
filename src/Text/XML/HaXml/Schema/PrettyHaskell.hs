@@ -18,6 +18,7 @@ import Text.PrettyPrint.HughesPJ as PP
 
 import Data.List (intersperse,notElem,inits)
 import Data.Maybe (isJust,fromJust,fromMaybe,catMaybes)
+import Data.Char (toLower)
 
 -- | Vertically pretty-print a list of things, with open and close brackets,
 --   and separators.
@@ -136,6 +137,7 @@ ppModule nx m =
     ppFwdElem (name,Just mod) = text "import {-# SOURCE #-}" <+> ppModId nx mod
                                 <+> text "("
                                     <+> (text "element" <> ppUnqConId nx name)
+                                    <> (text ", elementToXML" <> ppUnqConId nx name)
                                 <+> text ")"
 
 
@@ -438,8 +440,14 @@ ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
              <> text "\""
 --  fwd name = ppFwdConId nx name
     con name = ppJoinConId nx t name
-    toXML (name,_) = text "schemaTypeToXML s ("
-                     <> con name <+> text "x) = schemaTypeToXML s x"
+    -- This is probably an unportable hack, but because an abstract type never
+    -- has an element in its own name, we need to guess at the name of the
+    -- possible subtype elements that could substitute for it.
+    toXML (name,_) = text "schemaTypeToXML _s ("
+                     <> con name <+> text "x) = schemaTypeToXML \""
+                     <> ppXName (initLower name) <> text "\" x"
+    initLower (XName (N (c:cs))) = XName $ N (toLower c:cs)
+    initLower (XName (QN ns (c:cs))) = XName $ QN ns (toLower c:cs)
 
 ppHighLevelDecl nx (ElementOfType e@Element{}) =
     ppComment Before (elem_comment e)
@@ -481,6 +489,7 @@ ppHighLevelDecl nx e@(ElementAbstractOfType n t substgrp comm)
                     <+> ppConId nx t <+> text "-> [Content ()]"
                 $$ (text "elementToXML" <> ppUnqConId nx n) <+> text "="
                     <+> (text "schemaTypeToXML \"" <> ppXName n <> text "\"")
+            --  $$ vcat (map elementToXML substgrp)
 --  | otherwise = ppElementAbstractOfType nx e
   where
     notInScope (_,Just _)  = True
@@ -495,6 +504,10 @@ ppHighLevelDecl nx e@(ElementAbstractOfType n t substgrp comm)
              <> hcat (intersperse (text ">, <")
                                   (map (ppXName . fst) substgrp))
              <> text ">\""
+--  elementToXML (c,_) = (text "elementToXML" <> ppUnqConId nx n)
+--                       <+> text "(" <> ppJoinConId nx t c
+--                       <+> text " x) = elementToXML" <> ppUnqConId nx c
+--                       <+> text "x"
 
 
 ppHighLevelDecl nx (Choice t es comm) =
