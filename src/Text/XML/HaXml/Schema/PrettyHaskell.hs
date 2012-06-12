@@ -288,10 +288,15 @@ ppHighLevelDecl nx (ExtendSimpleType t s as comm) =
                                                      <+> attrsValue as)
                             )
                   )
-        $$ nest 4 (text "schemaTypeToXML s x@"<> ppUnqConId nx t <> text "{} ="
-                  $$ nest 4 (text "toXMLElement s []"
-                          -- <+> ppvList "[" "," "]" (zipWith foo as [0..])
-                             $$ text "[this is wrong]")
+        $$ nest 4 (text "schemaTypeToXML s ("<> ppUnqConId nx t
+                                             <+> text "bt at) ="
+                  $$ nest 4 (text "addXMLAttributes"
+                             <+> ppvList "[" "," "]"
+                                     (\a-> toXmlAttr a <+> text "$"
+                                         <+> ppFieldId nx t_attrs (attr_name a)
+                                         <+> text "at")
+                                     as
+                             $$ nest 4 (text "$ schemaTypeToXML s bt"))
                   )
     $$ text "instance Extension" <+> ppUnqConId nx t <+> ppConId nx s
                                  <+> text "where"

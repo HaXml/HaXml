@@ -29,6 +29,7 @@ module Text.XML.HaXml.Schema.Schema
   , toXMLText
   , toXMLAnyElement
   , toXMLAttribute
+  , addXMLAttributes
   ) where
 
 import Text.ParserCombinators.Poly
@@ -150,6 +151,14 @@ toXMLAnyElement (UnconvertedANY c) = [fmap (const ()) c]
 
 toXMLAttribute :: (SimpleType a) => String -> a -> [Attribute]
 toXMLAttribute name val = [ (N name, AttValue [Left (simpleTypeText val)]) ]
+
+-- | For a ComplexType that is an extension of a SimpleType, it is necessary to
+--   convert the value to XML first, then add in the extra attributes that
+--   constitute the extension.
+addXMLAttributes :: [[Attribute]] -> [Content ()] -> [Content ()]
+addXMLAttributes extra [CElem (Elem n attrs content) ()] =
+                       [CElem (Elem n (attrs++concat extra) content) ()]
+addXMLAttributes _ x = x
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
