@@ -193,11 +193,16 @@ ppHighLevelDecl nx (ElementOfType e@Element{}) =
     ppComment Before (elem_comment e)
     $$ (text "element" <> ppUnqConId nx (elem_name e)) <+> text "::"
         <+> text "XMLParser" <+> ppConId nx (elem_type e)
+    $$ (text "elementToXML" <> ppUnqConId nx (elem_name e)) <+> text "::"
+        <+> ppConId nx (elem_type e) <+> text "-> [Content ()]"
+
 
 ppHighLevelDecl nx e@(ElementAbstractOfType n t substgrp comm)
     | any notInScope substgrp
                 = (text "element" <> ppUnqConId nx n) <+> text "::"
                       <+> text "XMLParser" <+> ppConId nx t
+                $$ (text "elementToXML" <> ppUnqConId nx n) <+> text "::"
+                    <+> ppConId nx t <+> text "-> [Content ()]"
     | otherwise = ppElementAbstractOfType nx e
   where
     notInScope (_,Just _)  = True
