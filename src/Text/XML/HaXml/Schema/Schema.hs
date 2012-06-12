@@ -126,6 +126,7 @@ instance Eq AnyElement where
     a == b  =  show a == show b
 instance SchemaType AnyElement where
     parseSchemaType _ = parseAnyElement
+    schemaTypeToXML _ = toXMLAnyElement
 
 parseAnyElement :: XMLParser AnyElement
 parseAnyElement = fmap UnconvertedANY next
