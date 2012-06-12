@@ -129,13 +129,13 @@ instance SimpleType NOTATION where
 
 instance SimpleType Decimal where
     acceptingParser = fmap Decimal parse
-    simpleTypeText (Decimal s) = show s
+    simpleTypeText (Decimal s) = show s	-- XXX FIXME: showGFloat?
 instance SimpleType Float where
     acceptingParser  = parse
-    simpleTypeText x = show x
+    simpleTypeText x = show x		-- XXX FIXME: showGFloat?
 instance SimpleType Double where
     acceptingParser  = parse
-    simpleTypeText x = show x
+    simpleTypeText x = show x		-- XXX FIXME: showGFloat?
 
 instance SimpleType Duration where
     acceptingParser = return Duration `apply` (do isNext '-'; return False
