@@ -73,7 +73,7 @@ provided:
     into equivalent Haskell types, together with <em>XmlContent</em> instances.
 <li><em>XsdToHaskell</em> is a tool for translating any valid XML Schema
     definition into equivalent Haskell types, together with
-    <em>XmlContent</em> instances.
+    <em>SchemaType</em> instances.
 <li>Finally, <em>Xtract</em> is a <em>grep</em>-like tool for XML documents,
     loosely based on the XPath and XQL query languages.  It can be used
     either from the command-line, or within your own code as part of the
@@ -142,11 +142,11 @@ Some additional info about using the various facilities is here:
 <center><h3><a name="download">Downloads</a></h3></center>
 <p>
 <b>Latest version:</b><br>
-HaXml-1.22.3, release date 2011.08.04<br>
+HaXml-1.23, release date 2012.06.15<br>
 From <a href="http://hackage.haskell.org/package/HaXml">Hackage</a><br>
 By HTTP:
-<a href="HaXml-1.22.3.tar.gz">.tar.gz</a>,
-<a href="HaXml-1.22.3.zip">.zip</a>.
+<a href="HaXml-1.23.tar.gz">.tar.gz</a>,
+<a href="HaXml-1.23.zip">.zip</a>.
 <br>
 
 <p>
@@ -167,7 +167,7 @@ Then, for more recent compilers,
 use the standard Cabal method of installation:
 <pre>
     cabal update
-    cabal install HaXml-1.22.3
+    cabal install HaXml-1.23
 </pre>
 or
 <pre>
@@ -199,6 +199,10 @@ of your compiler etc.
 
 <hr>
 <center><h3><a name="news">Recent news</a></h3></center>
+
+<p>
+Version 1.23 improves the XSD to Haskell translation, focussed mainly on
+             FpML as the driving application.
 
 <p>
 Version 1.22.3 fixes another haddock documentation bug.<br>
