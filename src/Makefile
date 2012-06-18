@@ -1,5 +1,5 @@
 SOFTWARE = HaXml
-VERSION = 1.23
+VERSION = 1.23.1
 
 LIBSRCS = \
 	Text/XML/HaXml.hs Text/XML/HaXml/Combinators.hs Text/XML/HaXml/Lex.hs \
@@ -26,6 +26,14 @@ LIBSRCS = \
 	Text/XML/HaXml/Xtract/Parse.hs \
 	Text/XML/HaXml/Schema/XSDTypeModel.hs \
 	Text/XML/HaXml/Schema/Parse.hs \
+        Text/XML/HaXml/Schema/HaskellTypeModel.hs \
+        Text/XML/HaXml/Schema/PrettyHaskell.hs \
+        Text/XML/HaXml/Schema/PrettyHsBoot.hs \
+        Text/XML/HaXml/Schema/Environment.hs \
+        Text/XML/HaXml/Schema/NameConversion.hs \
+        Text/XML/HaXml/Schema/TypeConversion.hs \
+        Text/XML/HaXml/Schema/PrimitiveTypes.hs \
+        Text/XML/HaXml/Schema/Schema.hs \
 
 LIBOBJS = $(patsubst %.hs, %.o, $(LIBSRCS))
 
