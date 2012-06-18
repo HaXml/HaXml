@@ -1,5 +1,5 @@
 name:		HaXml
-version:	1.23
+version:	1.23.1
 license:	LGPL
 license-file:	COPYRIGHT
 author:		Malcolm Wallace <Malcolm.Wallace@me.com>
@@ -46,6 +46,7 @@ library
         Text.XML.HaXml.Schema.NameConversion,
         Text.XML.HaXml.Schema.TypeConversion,
         Text.XML.HaXml.Schema.PrettyHaskell,
+        Text.XML.HaXml.Schema.PrettyHsBoot,
         Text.XML.HaXml.Schema.PrimitiveTypes,
         Text.XML.HaXml.Schema.Environment,
         Text.XML.HaXml.ShowXmlLazy,
