@@ -405,7 +405,7 @@ ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
                   $$ text "deriving (Eq,Show)")
 --  $$ text "-- instance SchemaType" <+> ppUnqConId nx t
 --      <+> text "(declared in Instance module)"
--- *** Declare instance here
+--  *** Declare instance here
     $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
         $$ nest 4 (text "parseSchemaType s = do" 
                   $$ nest 4 (vcat (intersperse (text "`onFail`")
@@ -417,7 +417,7 @@ ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
   where
     ppAbstrCons (name,Nothing)  = con name <+> ppConId nx name
     ppAbstrCons (name,Just mod) = con name <+> ppConId nx name
--- *** Declare FwdDecl type here (proxy for type declared in later module)
+--  *** Declare FwdDecl type here (proxy for type declared in later module)
 --  ppAbstrCons (name,Just mod) = text "forall q . (FwdDecl" <+>
 --                                fwd name <+> text "q," <+>
 --                                text "SchemaType q) =>" <+>
