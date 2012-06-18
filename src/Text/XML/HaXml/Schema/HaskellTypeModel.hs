@@ -77,7 +77,7 @@ data Decl
                  -- rests with the input doc, not with the caller of the parser.
                | ElementsAttrsAbstract {-typename-}XName
                                        {-subtypes-}[(XName,Maybe XName)]
-                                 -- ^ [(type name, module where declared later)]
+                                --  ^ [(type name, module where declared later)]
                                        Comment
 
                  -- becomes function
