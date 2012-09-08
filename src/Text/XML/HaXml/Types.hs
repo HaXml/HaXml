@@ -133,14 +133,14 @@ lookupST = lookup
 -- | The symbol table stored in a document holds all its general entity
 --   reference definitions.
 data Document i = Document Prolog (SymTab EntityDef) (Element i) [Misc]
-                  deriving Eq
+                  deriving (Eq, Show)
 data Prolog     = Prolog (Maybe XMLDecl) [Misc] (Maybe DocTypeDecl) [Misc]
-                  deriving Eq
+                  deriving (Eq, Show)
 data XMLDecl    = XMLDecl VersionInfo (Maybe EncodingDecl) (Maybe SDDecl)
-                  deriving Eq
+                  deriving (Eq, Show)
 data Misc       = Comment Comment
                 | PI ProcessingInstruction
-                deriving Eq
+                deriving (Eq, Show)
 
 type ProcessingInstruction = (PITarget,String)
 
@@ -149,20 +149,20 @@ type VersionInfo = String
 type Comment     = String
 type PITarget    = String
 
-data DocTypeDecl = DTD QName (Maybe ExternalID) [MarkupDecl]  deriving Eq
+data DocTypeDecl = DTD QName (Maybe ExternalID) [MarkupDecl]  deriving (Eq, Show)
 data MarkupDecl  = Element  ElementDecl
                  | AttList  AttListDecl
                  | Entity   EntityDecl
                  | Notation NotationDecl
                  | MarkupMisc Misc
-                 deriving Eq
+                 deriving (Eq, Show)
 
-data ExtSubset     = ExtSubset (Maybe TextDecl) [ExtSubsetDecl]  deriving Eq
+data ExtSubset     = ExtSubset (Maybe TextDecl) [ExtSubsetDecl]  deriving (Eq, Show)
 data ExtSubsetDecl = ExtMarkupDecl MarkupDecl
                    | ExtConditionalSect ConditionalSect
-                   deriving Eq
+                   deriving (Eq, Show)
 
-data Element i = Elem QName [Attribute] [Content i] deriving Eq
+data Element i = Elem QName [Attribute] [Content i] deriving (Eq, Show)
 --  ElemTag is an intermediate type for parsing only
 data ElemTag   = ElemTag QName [Attribute]
 type Attribute = (QName, AttValue)
@@ -171,6 +171,7 @@ data Content i = CElem (Element i) i
                         -- ^ bool is whether whitespace is significant
                | CRef Reference i
                | CMisc Misc i
+               deriving Show
 
 -- custom instance of Eq, ignoring the informational elements.
 instance Eq (Content i) where
@@ -195,30 +196,30 @@ instance Functor Content where
   fmap f (CRef r i)      = CRef r (f i)
   fmap f (CMisc m i)     = CMisc m (f i)
 
-data ElementDecl = ElementDecl QName ContentSpec deriving Eq
+data ElementDecl = ElementDecl QName ContentSpec deriving (Eq, Show)
 data ContentSpec = EMPTY
                  | ANY
                  | Mixed Mixed
                  | ContentSpec CP
-                 deriving Eq
+                 deriving (Eq, Show)
 data CP = TagName QName Modifier
         | Choice [CP] Modifier
         | Seq [CP] Modifier
-        deriving Eq
+        deriving (Eq, Show)
 data Modifier = None  -- ^ Just One
               | Query -- ^ Zero Or One
               | Star  -- ^ Zero Or More
               | Plus  -- ^ One Or More
-              deriving Eq
+              deriving (Eq, Show)
 data Mixed = PCDATA
            | PCDATAplus [QName]
-           deriving Eq
-data AttListDecl = AttListDecl QName [AttDef] deriving Eq
-data AttDef      = AttDef QName AttType DefaultDecl deriving Eq
+           deriving (Eq, Show)
+data AttListDecl = AttListDecl QName [AttDef] deriving (Eq, Show)
+data AttDef      = AttDef QName AttType DefaultDecl deriving (Eq, Show)
 data AttType     = StringType
                  | TokenizedType TokenizedType
                  | EnumeratedType EnumeratedType
-                 deriving Eq
+                 deriving (Eq, Show)
 data TokenizedType = ID
                    | IDREF
                    | IDREFS
@@ -226,25 +227,25 @@ data TokenizedType = ID
                    | ENTITIES
                    | NMTOKEN
                    | NMTOKENS
-                   deriving Eq
+                   deriving (Eq, Show)
 data EnumeratedType = NotationType NotationType
                     | Enumeration Enumeration
-                    deriving Eq
+                    deriving (Eq, Show)
 type NotationType   = [Name]    -- nonempty list
 type Enumeration    = [NmToken] -- nonempty list
 data DefaultDecl    = REQUIRED
                     | IMPLIED
                     | DefaultTo AttValue (Maybe FIXED)
-                    deriving Eq
-data FIXED          = FIXED deriving Eq
+                    deriving (Eq, Show)
+data FIXED          = FIXED deriving (Eq, Show)
 
 data ConditionalSect = IncludeSect IncludeSect
                      | IgnoreSect IgnoreSect
-                     deriving Eq
+                     deriving (Eq, Show)
 type IncludeSect = [ExtSubsetDecl]
 type IgnoreSect  = [IgnoreSectContents]
-data Ignore      = Ignore deriving Eq
-data IgnoreSectContents = IgnoreSectContents Ignore [(IgnoreSectContents,Ignore)]  deriving Eq
+data Ignore      = Ignore deriving (Eq, Show)
+data IgnoreSectContents = IgnoreSectContents Ignore [(IgnoreSectContents,Ignore)]  deriving (Eq, Show)
 
 data Reference    = RefEntity EntityRef
                   | RefChar CharRef
@@ -255,25 +256,25 @@ type PEReference  = Name
 
 data EntityDecl   = EntityGEDecl GEDecl
                   | EntityPEDecl PEDecl
-                  deriving Eq
-data GEDecl       = GEDecl Name EntityDef deriving Eq
-data PEDecl       = PEDecl Name PEDef deriving Eq
+                  deriving (Eq, Show)
+data GEDecl       = GEDecl Name EntityDef deriving (Eq, Show)
+data PEDecl       = PEDecl Name PEDef deriving (Eq, Show)
 data EntityDef    = DefEntityValue EntityValue
                   | DefExternalID ExternalID (Maybe NDataDecl)
-                  deriving Eq
+                  deriving (Eq, Show)
 data PEDef        = PEDefEntityValue EntityValue
                   | PEDefExternalID ExternalID deriving (Eq,Show)
 data ExternalID   = SYSTEM SystemLiteral
                   | PUBLIC PubidLiteral SystemLiteral deriving (Eq,Show)
-newtype NDataDecl = NDATA Name  deriving Eq
+newtype NDataDecl = NDATA Name  deriving (Eq, Show)
 
-data TextDecl       = TextDecl (Maybe VersionInfo) EncodingDecl  deriving Eq
-data ExtParsedEnt i = ExtParsedEnt (Maybe TextDecl) (Content i) deriving Eq
-data ExtPE          = ExtPE (Maybe TextDecl) [ExtSubsetDecl] deriving Eq
+data TextDecl       = TextDecl (Maybe VersionInfo) EncodingDecl  deriving (Eq, Show)
+data ExtParsedEnt i = ExtParsedEnt (Maybe TextDecl) (Content i) deriving (Eq, Show)
+data ExtPE          = ExtPE (Maybe TextDecl) [ExtSubsetDecl] deriving (Eq, Show)
 
-data NotationDecl    = NOTATION Name (Either ExternalID PublicID) deriving Eq
-newtype PublicID     = PUBLICID PubidLiteral deriving Eq
-newtype EncodingDecl = EncodingDecl String deriving Eq
+data NotationDecl    = NOTATION Name (Either ExternalID PublicID) deriving (Eq, Show)
+newtype PublicID     = PUBLICID PubidLiteral deriving (Eq, Show)
+newtype EncodingDecl = EncodingDecl String deriving (Eq, Show)
 
 -- | A QName is a (possibly) qualified name, in the sense of XML namespaces.
 data QName    = N  Name
