@@ -515,7 +515,7 @@ elementdecl = do
     blank (tok TokAnyClose) `onFail` failBadP
        ("expected > terminating ELEMENT decl"
        ++"\n    element name was "++show (printableName n)
-       ++"\n    contentspec was "++(\ (ContentSpec p)-> show p) c)
+       ++"\n    contentspec was "++(\ (ContentSpec p)-> debugShowCP p) c)
     return (ElementDecl n c)
 
 contentspec :: XParser ContentSpec
@@ -544,15 +544,15 @@ cp :: XParser CP
 cp = oneOf [ ( do n <- qname
                   m <- modifier
                   let c = TagName n m
-                  return c `debug` ("ContentSpec: name "++show c))
+                  return c `debug` ("ContentSpec: name "++debugShowCP c))
            , ( do ss <- sequence
                   m <- modifier
                   let c = Seq ss m
-                  return c `debug` ("ContentSpec: sequence "++show c))
+                  return c `debug` ("ContentSpec: sequence "++debugShowCP c))
            , ( do cs <- choice
                   m <- modifier
                   let c = Choice cs m
-                  return c `debug` ("ContentSpec: choice "++show c))
+                  return c `debug` ("ContentSpec: choice "++debugShowCP c))
            ] `adjustErr` (++"\nwhen looking for a content particle")
 
 modifier :: XParser Modifier
@@ -563,17 +563,17 @@ modifier = oneOf [ ( tok TokStar >> return Star )
                  ]
 
 -- just for debugging
-instance Show CP where
-    show (TagName n m) = printableName n++show m
-    show (Choice cps m) = '(': concat (intersperse "|" (map show cps))
-                          ++")"++show m
-    show (Seq cps m) = '(': concat (intersperse "," (map show cps))
-                          ++")"++show m
-instance Show Modifier where
-    show None = ""
-    show Query = "?"
-    show Star = "*"
-    show Plus = "+"
+debugShowCP :: CP -> String
+debugShowCP cp = case cp of
+    TagName n m  -> printableName n++debugShowModifier m
+    Choice cps m -> '(': concat (intersperse "|" (map debugShowCP cps))++")"++debugShowModifier m
+    Seq cps m    -> '(': concat (intersperse "," (map debugShowCP cps))++")"++debugShowModifier m
+debugShowModifier :: Modifier -> String
+debugShowModifier modifier = case modifier of
+    None  -> ""
+    Query -> "?"
+    Star  -> "*"
+    Plus  -> "+"
 ----
 
 mixed :: XParser Mixed
