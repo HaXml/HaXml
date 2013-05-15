@@ -159,6 +159,10 @@ textUntil close  tok  acc pos p (s:ss) k
     | close `prefixes` (s:ss)  = emit (TokFreeText (reverse acc)) pos:
                                  emit tok p:
                                  skip (length close-1) (addcol 1 p) ss k
+    | tok==TokSemi && length acc >= 8 -- special case for repairing broken &
+                               = emit (TokFreeText "amp") pos:
+                                 emit tok pos:
+                                 k (addcol 1 pos) (reverse acc++s:ss)
     | isSpace s  = textUntil close tok (s:acc) pos (white s p) ss k
     | otherwise  = textUntil close tok (s:acc) pos (addcol 1 p) ss k
 
