@@ -223,7 +223,7 @@ processinginstruction = do
 cdsect :: HParser CDSect
 cdsect = do
     tok TokSectionOpen
-    bracket (tok (TokSection CDATAx)) (tok TokSectionClose) chardata
+    bracket (tok (TokSection CDATAx)) (commit $ tok TokSectionClose) chardata
 
 prolog :: HParser Prolog
 prolog = do
@@ -252,7 +252,7 @@ versioninfo :: HParser VersionInfo
 versioninfo = do
     (word "version" `onFail` word "VERSION")
     tok TokEqual
-    bracket (tok TokQuote) (tok TokQuote) freetext
+    bracket (tok TokQuote) (commit $ tok TokQuote) freetext
 
 misc :: HParser Misc
 misc = 
@@ -271,7 +271,7 @@ doctypedecl = do
     commit $ do
       n <- qname
       eid <- maybe externalid
---    es <- maybe (bracket (tok TokSqOpen) (tok TokSqClose)) (many markupdecl)
+--    es <- maybe (bracket (tok TokSqOpen) (commit $ tok TokSqClose)) (many markupdecl)
       tok TokAnyClose  `onFail` failP "missing > in DOCTYPE decl"
 --    return (DTD n eid (case es of { Nothing -> []; Just e -> e }))
       return (DTD n eid [])
@@ -302,7 +302,7 @@ sddecl = do
     (word "standalone" `onFail` word "STANDALONE")
     commit $ do
       tok TokEqual `onFail` failP "missing = in 'standalone' decl"
-      bracket (tok TokQuote) (tok TokQuote)
+      bracket (tok TokQuote) (commit $ tok TokQuote)
               ( (word "yes" >> return True) `onFail`
                 (word "no" >> return False) `onFail`
                 failP "'standalone' decl requires 'yes' or 'no' value" )
@@ -334,7 +334,7 @@ element ctx =
               return ([], Elem (N e) avs [])) `onFail`
      --  ( do tok TokAnyClose	-- sequence <tag></tag>	(**not HTML?**)
      --       debug (e++"[+")
-     --       n <- bracket (tok TokEndOpen) (tok TokAnyClose) qname
+     --       n <- bracket (tok TokEndOpen) (commit $ tok TokAnyClose) qname
      --       debug "]"
      --       if e == (map toLower n :: Name) 
      --         then return ([], Elem e avs [])      
@@ -349,7 +349,7 @@ element ctx =
          ( do tok TokAnyClose `onFail` failP "missing > or /> in element tag"
               debug (e++"[")
            -- zz <- many (content e)
-           -- n <- bracket (tok TokEndOpen) (tok TokAnyClose) qname
+           -- n <- bracket (tok TokEndOpen) (commit $ tok TokAnyClose) qname
               zz <- manyFinally (content e)
                                 (tok TokEndOpen)
               (N n) <- qname
@@ -575,12 +575,12 @@ reference =
 
 entityref :: HParser EntityRef
 entityref = do
-    n <- bracket (tok TokAmp) (tok TokSemi) name
+    n <- bracket (tok TokAmp) (commit $ tok TokSemi) name
     return n
 
 charref :: HParser CharRef
 charref = do
-    bracket (tok TokAmp) (tok TokSemi) (freetext >>= readCharVal)
+    bracket (tok TokAmp) (commit $ tok TokSemi) (freetext >>= readCharVal)
   where
     readCharVal ('#':'x':i) = return . fst . head . readHex $ i
     readCharVal ('#':i)     = return . fst . head . readDec $ i
@@ -668,7 +668,7 @@ encodingdecl :: HParser EncodingDecl
 encodingdecl = do
     (word "encoding" `onFail` word "ENCODING")
     tok TokEqual `onFail` failBadP "expected = in 'encoding' decl"
-    f <- bracket (tok TokQuote) (tok TokQuote) freetext
+    f <- bracket (tok TokQuote) (commit $ tok TokQuote) freetext
     return (EncodingDecl f)
 
 --notationdecl :: HParser NotationDecl
@@ -688,7 +688,7 @@ encodingdecl = do
 
 --entityvalue :: HParser EntityValue
 --entityvalue = do
---    evs <- bracket (tok TokQuote) (tok TokQuote) (many ev)
+--    evs <- bracket (tok TokQuote) (commit $ tok TokQuote) (many ev)
 --    return (EntityValue evs)
 
 --ev :: HParser EV
@@ -699,7 +699,7 @@ encodingdecl = do
 
 attvalue :: HParser AttValue
 attvalue =
-  ( do avs <- bracket (tok TokQuote) (tok TokQuote)
+  ( do avs <- bracket (tok TokQuote) (commit $ tok TokQuote)
                       (many (either freetext reference))
        return (AttValue avs) ) `onFail`
   ( do v <- nmtoken
@@ -714,12 +714,12 @@ attvalue =
 
 systemliteral :: HParser SystemLiteral
 systemliteral = do
-    s <- bracket (tok TokQuote) (tok TokQuote) freetext
+    s <- bracket (tok TokQuote) (commit $ tok TokQuote) freetext
     return (SystemLiteral s)		-- note: need to fold &...; escapes
 
 pubidliteral :: HParser PubidLiteral
 pubidliteral = do
-    s <- bracket (tok TokQuote) (tok TokQuote) freetext
+    s <- bracket (tok TokQuote) (commit $ tok TokQuote) freetext
     return (PubidLiteral s)		-- note: need to fold &...; escapes
 
 chardata :: HParser CharData

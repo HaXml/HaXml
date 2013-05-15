@@ -159,14 +159,6 @@ thd3 (_,_,a) = a
 
 ---- Auxiliary Parsing Functions ----
 
--- | Parse a bracketed item, discarding the brackets AND NOT using adjustErrBad
-myBracket :: PolyParse p => p bra -> p ket -> p a -> p a
-myBracket open close p = do
-    do { open    `adjustErr` ("Missing opening bracket:\n\t"++)
-       ; p `discard` (close `adjustErr` ("Missing closing bracket:\n\t"++))
-       }
-
-
 -- | XParser is just a specialisation of the PolyStateLazy parser.
 type XParser a = Parser SymTabs (Posn,TokenT) a
 
@@ -317,7 +309,7 @@ document = do
 -- | Return an XML comment.
 comment :: XParser Comment
 comment = do
-    myBracket (tok TokCommentOpen) (tok TokCommentClose) freetext
+    bracket (tok TokCommentOpen) (tok TokCommentClose) freetext
 --  tok TokCommentOpen
 --  commit $ do
 --    c <- freetext
@@ -337,7 +329,7 @@ processinginstruction = do
 cdsect :: XParser CDSect
 cdsect = do
     tok TokSectionOpen
-    bracket (tok (TokSection CDATAx)) (tok TokSectionClose) chardata
+    bracket (tok (TokSection CDATAx)) (commit $ tok TokSectionClose) chardata
 
 prolog :: XParser Prolog
 prolog = do
@@ -369,7 +361,7 @@ versioninfo :: XParser VersionInfo
 versioninfo = do
     (word "version" `onFail` word "VERSION")
     tok TokEqual
-    bracket (tok TokQuote) (tok TokQuote) freetext
+    bracket (tok TokQuote) (commit $ tok TokQuote) freetext
 
 misc :: XParser Misc
 misc =
@@ -385,7 +377,7 @@ doctypedecl = do
     commit $ do
       n   <- qname
       eid <- maybe externalid
-      es  <- maybe (bracket (tok TokSqOpen) (tok TokSqClose)
+      es  <- maybe (bracket (tok TokSqOpen) (commit $ tok TokSqClose)
                             (many (peRef markupdecl)))
       blank (tok TokAnyClose)  `onFail` failP "missing > in DOCTYPE decl"
       return (DTD n eid (case es of { Nothing -> []; Just e -> e }))
@@ -419,7 +411,7 @@ sddecl = do
     (word "standalone" `onFail` word "STANDALONE")
     commit $ do
       tok TokEqual `onFail` failP "missing = in 'standalone' decl"
-      bracket (tok TokQuote) (tok TokQuote)
+      bracket (tok TokQuote) (commit $ tok TokQuote)
               ( (word "yes" >> return True) `onFail`
                 (word "no" >> return False) `onFail`
                 failP "'standalone' decl requires 'yes' or 'no' value" )
@@ -436,7 +428,7 @@ element = do
              ,  do tok TokAnyClose
                    cs <- many content
                    p  <- posn
-                   m  <- bracket (tok TokEndOpen) (tok TokAnyClose) qname
+                   m  <- bracket (tok TokEndOpen) (commit $ tok TokAnyClose) qname
                    checkmatch p n m
                    return (Elem n as cs))
            ] `adjustErr` (("in element tag "++n++",\n")++)
@@ -455,7 +447,7 @@ element = do
              commit $ manyFinally content
                                   (do p <- posn
                                       m <- bracket (tok TokEndOpen)
-                                                   (tok TokAnyClose) qname
+                                                   (commit $ tok TokAnyClose) qname
                                       checkmatch p n m)
           ) `adjustErrBad` (("in element tag "++printableName n++",\n")++)
 
@@ -540,15 +532,15 @@ contentspec =
 
 choice :: XParser [CP]
 choice = do
-    myBracket (tok TokBraOpen `debug` "Trying choice")
-              (blank (tok TokBraClose `debug` "Succeeded with choice"))
-              (peRef cp `sepBy1` blank (tok TokPipe))
+    bracket (tok TokBraOpen `debug` "Trying choice")
+            (blank (tok TokBraClose `debug` "Succeeded with choice"))
+            (peRef cp `sepBy1` blank (tok TokPipe))
 
 sequence :: XParser [CP]
 sequence = do
- myBracket (tok TokBraOpen `debug` "Trying sequence")
-           (blank (tok TokBraClose `debug` "Succeeded with sequence"))
-           (peRef cp `sepBy1` blank (tok TokComma))
+    bracket (tok TokBraOpen `debug` "Trying sequence")
+            (blank (tok TokBraClose `debug` "Succeeded with sequence"))
+            (peRef cp `sepBy1` blank (tok TokComma))
 
 cp :: XParser CP
 cp = oneOf [ ( do n <- qname
@@ -654,12 +646,12 @@ enumeratedtype =
 notationtype :: XParser NotationType
 notationtype = do
     word "NOTATION"
-    bracket (tok TokBraOpen) (blank (tok TokBraClose))
+    bracket (tok TokBraOpen) (commit $ blank $ tok TokBraClose)
             (peRef name `sepBy1` peRef (tok TokPipe))
 
 enumeration :: XParser Enumeration
 enumeration =
-    bracket (tok TokBraOpen) (blank (tok TokBraClose))
+    bracket (tok TokBraOpen) (commit $ blank $ tok TokBraClose)
             (peRef nmtoken `sepBy1` blank (peRef (tok TokPipe)))
 
 defaultdecl :: XParser DefaultDecl
@@ -726,7 +718,7 @@ newIgnore =
 -- | Return either a general entity reference, or a character reference.
 reference :: XParser Reference
 reference = do
-    bracket (tok TokAmp) (tok TokSemi) (freetext >>= val)
+    bracket (tok TokAmp) (commit $ tok TokSemi) (freetext >>= val)
   where
     val ('#':'x':i) | all isHexDigit i
                     = return . RefChar . fst . head . readHex $ i
@@ -741,11 +733,11 @@ reference =
 
 entityref :: XParser EntityRef
 entityref = do
-    bracket (tok TokAmp) (tok TokSemi) name
+    bracket (tok TokAmp) (commit $ tok TokSemi) name
 
 charref :: XParser CharRef
 charref = do
-    bracket (tok TokAmp) (tok TokSemi) (freetext >>= readCharVal)
+    bracket (tok TokAmp) (commit $ tok TokSemi) (freetext >>= readCharVal)
   where
     readCharVal ('#':'x':i) = return . fst . head . readHex $ i
     readCharVal ('#':i)     = return . fst . head . readDec $ i
@@ -754,7 +746,7 @@ charref = do
 
 pereference :: XParser PEReference
 pereference = do
-    myBracket (tok TokPercent) (tok TokSemi) nmtoken
+    bracket (tok TokPercent) (tok TokSemi) nmtoken
 
 entitydecl :: XParser EntityDecl
 entitydecl =
@@ -839,7 +831,7 @@ encodingdecl :: XParser EncodingDecl
 encodingdecl = do
     (word "encoding" `onFail` word "ENCODING")
     tok TokEqual `onFail` failBadP "expected = in 'encoding' decl"
-    f <- bracket (tok TokQuote) (tok TokQuote) freetext
+    f <- bracket (tok TokQuote) (commit $ tok TokQuote) freetext
     return (EncodingDecl f)
 
 notationdecl :: XParser NotationDecl
@@ -859,7 +851,7 @@ publicid = do
 
 entityvalue :: XParser EntityValue
 entityvalue = do
- -- evs <- bracket (tok TokQuote) (tok TokQuote) (many (peRef ev))
+ -- evs <- bracket (tok TokQuote) (commit $ tok TokQuote) (many (peRef ev))
     tok TokQuote
     pn <- posn
     evs <- many ev
@@ -885,18 +877,18 @@ ev =
 
 attvalue :: XParser AttValue
 attvalue = do
-    avs <- bracket (tok TokQuote) (tok TokQuote)
+    avs <- bracket (tok TokQuote) (commit $ tok TokQuote)
                    (many (either freetext reference))
     return (AttValue avs)
 
 systemliteral :: XParser SystemLiteral
 systemliteral = do
-    s <- bracket (tok TokQuote) (tok TokQuote) freetext
+    s <- bracket (tok TokQuote) (commit $ tok TokQuote) freetext
     return (SystemLiteral s)            -- note: refs &...; not permitted
 
 pubidliteral :: XParser PubidLiteral
 pubidliteral = do
-    s <- bracket (tok TokQuote) (tok TokQuote) freetext
+    s <- bracket (tok TokQuote) (commit $ tok TokQuote) freetext
     return (PubidLiteral s)             -- note: freetext is too liberal here
 
 -- | Return parsed freetext (i.e. until the next markup)
