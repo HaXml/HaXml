@@ -1,5 +1,5 @@
 name:		HaXml
-version:	1.23.3
+version:	1.24
 license:	LGPL
 license-file:	COPYRIGHT
 author:		Malcolm Wallace <Malcolm.Wallace@me.com>
@@ -66,7 +66,7 @@ library
     exposed-modules:
         Text.XML.HaXml.Schema.Schema
   hs-source-dirs: src
-  build-depends: polyparse >= 1.5, filepath
+  build-depends: polyparse >= 1.9, filepath
   if flag(splitBase)
     build-depends: base >= 3 && < 6, pretty, random, containers
   else
@@ -76,63 +76,63 @@ library
   else
     build-depends: base < 2 || >= 3, bytestring
   extensions: CPP, ExistentialQuantification
-  cpp-options: -DMAJOR=1 -DMINOR=23
+  cpp-options: -DMAJOR=1 -DMINOR=24
   nhc98-options: -K10M
 
 Executable Canonicalise
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMAJOR=1 -DMINOR=23
+  cpp-options: -DMAJOR=1 -DMINOR=24
   Main-Is: Canonicalise.hs
 
 Executable CanonicaliseLazy
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMAJOR=1 -DMINOR=23
+  cpp-options: -DMAJOR=1 -DMINOR=24
   Main-Is: CanonicaliseLazy.hs
 
 Executable Xtract
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMAJOR=1 -DMINOR=23
+  cpp-options: -DMAJOR=1 -DMINOR=24
   Main-Is: Xtract.hs
 
 Executable Validate
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMAJOR=1 -DMINOR=23
+  cpp-options: -DMAJOR=1 -DMINOR=24
   Main-Is: Validate.hs
 
 Executable MkOneOf
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMAJOR=1 -DMINOR=23
+  cpp-options: -DMAJOR=1 -DMINOR=24
   Main-Is: MkOneOf.hs
 
 Executable DtdToHaskell
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMAJOR=1 -DMINOR=23
+  cpp-options: -DMAJOR=1 -DMINOR=24
   Main-Is: DtdToHaskell.hs
 
 Executable XsdToHaskell
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMAJOR=1 -DMINOR=23
+  cpp-options: -DMAJOR=1 -DMINOR=24
   Main-Is: XsdToHaskell.hs
 
 Executable FpMLToHaskell
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DMAJOR=1 -DMINOR=23
+  cpp-options: -DMAJOR=1 -DMINOR=24
   Main-Is: FpMLToHaskell.hs
   build-depends: directory
 
