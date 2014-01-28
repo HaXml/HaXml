@@ -337,6 +337,69 @@ addAttribute _ _ _ = []
 
 
 -- LABELLING
+-- $labelling
+-- LabelFilters are a way of annotating the results of a filter operation
+-- with some arbitrary values drawn from the tree values.  Typically, the
+-- annotations are then consumed by a label-processing filter (of
+-- type @a -> CFilter@).  This is useful way of passing information between
+-- sections of the tree as you process it.  An example may help to explain.
+--
+-- Let's say we want to add an attribute to every node of the tree,
+-- containing a textual representation of its path from the root,
+-- e.g. "/foo/bar/quux".  Where there are multiple identically-tagged elements
+-- under the same parent node of the original tree, we expect them to have
+-- a distinguishing attribute called "name".
+--
+-- Step one.  Given the path prefix to this node, how do we add the "xpath"
+-- attribute?
+--
+-- > annotateOne :: String -> CFilter a
+-- > annotateOne prefix =
+-- >    (f `oo` ((tagged `x` attributed "name") (attr "name")))
+-- >    |>|
+-- >    (g `oo` (tagged keep))
+-- >  where
+-- >    f (tag,att) = addAttribute "xpath" (prefix++"/"++tag++"["++att++"]")
+-- >    g  tag      = addAttribute "xpath" (prefix++"/"++tag)@
+--
+-- First, the @attr "name"@ filter distinguishes whether this node contains
+-- the attribute, hence choosing whether the left or right branch of the
+-- @|>|@ is taken.  If the attribute is /not/ present, then the LabelFilter
+-- @tagged keep@ selects the current node, and annotates it with the
+-- tagname of the element.  The @oo@ applies the label-consuming function @g@
+-- to the result, and this injects the "xpath" attribute by suffixing
+-- the tagname to the known path prefix.
+--
+-- If the "name" attribute /is/ present, then there are /two/ labelling filters
+-- applied to the current node, annotating it with the pair of its tag
+-- and the value of the attribute "name".  The label-consuming function @f@ is
+-- applied to the pair with @oo@, to inject the "xpath" attribute with a more
+-- complex representation of its path.
+--
+-- Step two.  Recursively apply the annotation throughout the tree.
+--
+-- > labelAllPaths :: CFilter a
+-- > labelAllPaths = allPaths `o` initialise
+-- >   where
+-- >     initialise = annotateOne "/"
+-- > 
+-- >     allPaths :: CFilter a
+-- >     allPaths = inplace ( allPaths
+-- >                          `o`
+-- >                          (\prefix-> annotateOne prefix `o` children)
+-- >                          `oo`
+-- >                          (attributed "xpath" keep)
+-- >                        )
+--
+-- In order to apply @annotateOne@ to any node, we need to know the path
+-- prefix thus far into the tree.  So, we read the "xpath" attribute from
+-- the current node (assumed to have already been processed) as a
+-- LabelFilter, then consume the label by passing it to @annotateOne@ on
+-- the children of the current node.  Using @inplace@ rebuilds the processed
+-- children into the current node, after recursively dealing with their
+-- children.
+
+
 
 -- | A LabelFilter is like a CFilter except that it pairs up a polymorphic
 --   value (label) with each of its results.
