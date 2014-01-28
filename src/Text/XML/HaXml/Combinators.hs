@@ -34,7 +34,8 @@ module Text.XML.HaXml.Combinators
    -- ** Interior editing.
   , when, guards, chip, inplace, foldXml
    -- ** Constructive filters.
-  , mkElem, mkElemAttr, literal, cdata, replaceTag, replaceAttrs
+   -- $constructive
+  , mkElem, mkElemAttr, literal, cdata, replaceTag, replaceAttrs, addAttribute
 
    -- * C-like conditionals.
    -- $cond
@@ -288,6 +289,10 @@ foldXml f = f `o` chip (foldXml f)
 
 
 -- CONSTRUCTIVE CONTENT FILTERS
+--
+-- $constructive
+-- The constructive filters are primitive filters for building new elements,
+-- or editing existing elements.
 
 -- | Build an element with the given tag name - its content is the results
 --   of the given list of filters.
@@ -320,6 +325,14 @@ replaceAttrs :: [(String,String)] -> CFilter i
 replaceAttrs as (CElem (Elem n _ cs) i) = [CElem (Elem n as' cs) i]
     where as' = map (\(n,v)-> (N n, AttValue [Left v])) as
 replaceAttrs _  _ = []
+
+-- | Add the desired attribute name and value to the topmost element,
+--   without changing the element in any other way.
+addAttribute :: String -> String -> CFilter a
+addAttribute name val (CElem (Elem n   as   cs) i) =
+                      [CElem (Elem n (a:as) cs) i]
+  where a = (N name, AttValue [Left val])
+addAttribute _ _ _ = []
 
 
 
