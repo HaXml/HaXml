@@ -32,7 +32,7 @@ module Text.XML.HaXml.Combinators
    -- $recursive
   , deep, deepest, multi
    -- ** Interior editing.
-  , when, guards, chip, inplace, foldXml
+  , when, guards, chip, inplace, recursivelyInPlace, foldXml
    -- ** Constructive filters.
    -- $constructive
   , mkElem, mkElemAttr, literal, cdata, replaceTag, replaceAttrs, addAttribute
@@ -278,6 +278,13 @@ chip _f c = [c]
 inplace :: CFilter i -> CFilter i
 inplace  f c@(CElem (Elem name as _) i) = [ CElem (Elem name as (f c)) i ]
 inplace _f c = [c]
+
+-- | Recursively process an element in place.  That is, the filter is
+--   applied to the element itself, then recursively to the results of the
+--   filter, all the way to the bottom, then the original element rebuilt
+--   around the final results.
+recursivelyInPlace :: CFilter i -> CFilter i
+recursivelyInPlace f = inplace (recursivelyInPlace f `o` f)
 
 
 -- | Recursive application of filters: a fold-like operator.  Defined
