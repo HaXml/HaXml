@@ -31,10 +31,10 @@ fix2Args :: IO (String,String)
 fix2Args = do
   args <- getArgs
   when ("--version" `elem` args) $ do
-      putStrLn $ "part of HaXml-"++show MAJOR ++ "." ++ show MINOR
+      putStrLn $ "part of HaXml-"++ VERSION
       exitWith ExitSuccess
   when ("--help" `elem` args) $ do
-      putStrLn $ "See http://haskell.org/HaXml"
+      putStrLn $ "See http://projects.haskell.org/HaXml"
       exitWith ExitSuccess
   case length args of
     0 -> return ("-",     "-")
