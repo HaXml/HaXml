@@ -1,5 +1,5 @@
 name:		HaXml
-version:	1.24
+version:	1.24.1
 license:	LGPL
 license-file:	COPYRIGHT
 author:		Malcolm Wallace <Malcolm.Wallace@me.com>
@@ -76,63 +76,63 @@ library
   else
     build-depends: base < 2 || >= 3, bytestring
   extensions: CPP, ExistentialQuantification
-  cpp-options: -DVERSION="\"1.24\""
+  cpp-options: -DVERSION="\"1.24.1\""
   nhc98-options: -K10M
 
 Executable Canonicalise
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DVERSION="\"1.24\""
+  cpp-options: -DVERSION="\"1.24.1\""
   Main-Is: Canonicalise.hs
 
 Executable CanonicaliseLazy
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DVERSION="\"1.24\""
+  cpp-options: -DVERSION="\"1.24.1\""
   Main-Is: CanonicaliseLazy.hs
 
 Executable Xtract
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DVERSION="\"1.24\""
+  cpp-options: -DVERSION="\"1.24.1\""
   Main-Is: Xtract.hs
 
 Executable Validate
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DVERSION="\"1.24\""
+  cpp-options: -DVERSION="\"1.24.1\""
   Main-Is: Validate.hs
 
 Executable MkOneOf
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DVERSION="\"1.24\""
+  cpp-options: -DVERSION="\"1.24.1\""
   Main-Is: MkOneOf.hs
 
 Executable DtdToHaskell
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DVERSION="\"1.24\""
+  cpp-options: -DVERSION="\"1.24.1\""
   Main-Is: DtdToHaskell.hs
 
 Executable XsdToHaskell
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DVERSION="\"1.24\""
+  cpp-options: -DVERSION="\"1.24.1\""
   Main-Is: XsdToHaskell.hs
 
 Executable FpMLToHaskell
   GHC-Options: -Wall
   Extensions:  CPP
   Hs-Source-Dirs: src/tools, src
-  cpp-options: -DVERSION="\"1.24\""
+  cpp-options: -DVERSION="\"1.24.1\""
   Main-Is: FpMLToHaskell.hs
   build-depends: directory
 
