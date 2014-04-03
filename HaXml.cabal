@@ -4,7 +4,7 @@ license:	LGPL
 license-file:	COPYRIGHT
 author:		Malcolm Wallace <Malcolm.Wallace@me.com>
 maintainer:	author
-homepage:	http://www.cs.york.ac.uk/fp/HaXml/
+homepage:	http://projects.haskell.org/HaXml/
 category:	Text, XML
 synopsis:	Utilities for manipulating XML documents
 description:
