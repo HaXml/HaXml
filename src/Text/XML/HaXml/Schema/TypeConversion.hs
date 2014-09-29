@@ -17,6 +17,71 @@ import Data.List (foldl')
 import Data.Maybe (fromMaybe,fromJust,isNothing,isJust)
 import Data.Monoid
 
+-- | Transform a Schema by lifting all locally-defined anonymous types to
+--   the top-level, naming them, and planting a referend at their original
+--   location.
+typeLift :: Schema -> Schema
+typeLift s = s{ schema_items =
+                    concat [ hoist e | SchemaElement e <- schema_items s ]
+                    ++ map renameLocals (schema_items s) }
+  where
+    hoist :: ElementDecl -> [SchemaItem]
+    hoist e = flip concatMap (findE e) $
+              \e@ElementDecl{elem_nameOrRef=Left (NT{ theName=n
+                                                    , theType=Nothing})}->
+                  localType n (elem_content e)
+
+    findE :: ElementDecl -> [ElementDecl]
+    findE e = ( case elem_nameOrRef e of
+                  Left (NT{theType=Nothing}) -> (e:)
+                  _                          -> id
+              ) $
+              ( case elem_content e of
+                  Nothing        -> []
+                  Just (Left  _) -> []
+                  Just (Right c) ->
+                    case complex_content c of
+                      v@SimpleContent{ci_stuff=Left (Restriction1 p)} -> particle p
+                      v@SimpleContent{ci_stuff=Right (Extension{extension_newstuff=PA p _ _})} -> particle p
+                      v@ComplexContent{ci_stuff=Left (Restriction1 p)} -> particle p
+                      v@ComplexContent{ci_stuff=Right (Extension{extension_newstuff=PA p _ _})} -> particle p
+                      v@ThisType{ci_thistype=PA p _ _} -> particle p
+              )
+    particle Nothing = []
+    particle (Just (Left cos)) = choiceOrSeq cos
+    particle (Just (Right g))  = maybe [] choiceOrSeq $ group_stuff g
+    choiceOrSeq (XSD.All _ es)        = concatMap findE es
+    choiceOrSeq (XSD.Choice   _ _ es) = concatMap etc es
+    choiceOrSeq (XSD.Sequence _ _ es) = concatMap etc es
+    etc (HasElement e) = findE e
+    etc (HasGroup g)   = maybe [] choiceOrSeq $ group_stuff g
+    etc (HasCS cos)    = choiceOrSeq cos
+    etc (HasAny _)     = []
+
+    localType n Nothing          = []
+    localType n (Just (Left s))  = [Simple  (renameSimple n s)]
+    localType n (Just (Right c)) = [Complex c{ complex_name = Just n }]
+
+    renameSimple n s@Primitive{}  = s
+    renameSimple n s@Restricted{} = s{ simple_name  = Just n }
+    renameSimple n s@ListOf{}     = s{ simple_name  = Just n }
+    renameSimple n s@UnionOf{}    = s{ simple_name  = Just n }
+
+
+-- * For now, rather than walk the tree, giving typenames to nodes that were
+--   previously locally-typed, we will instead assume in the pretty-printer
+--   that it can always replace a missing typename with the element name, and
+--   have it resolve to something sensible.
+    renameLocals :: SchemaItem -> SchemaItem
+    renameLocals s = s
+--  renameLocals (SchemaElement e)
+--                 | Left (NT{theName=n,theType=Nothing}) <- elem_nameOrRef e
+--                 = SchemaElement e{ elem_nameOrRef = Left (NT{theName=n
+--                                                             ,theType=Just n})
+--                                  }
+--            -- still gotta do the recursive search + rename
+
+
 -- | Given an environment of schema type mappings, and a schema module,
 --   create a bunch of Decls that describe the types in a more
 --   Haskell-friendly way.
