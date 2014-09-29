@@ -334,7 +334,7 @@ simpleType q = do
                             `apply` (return Restriction1 `apply` particle q)
     restrictType a b = return (RestrictType a b)
                             `apply` (optional (simpleType q))
-                            `apply` many aFacet
+                            `apply` many1 aFacet
 
 aFacet :: XsdParser Facet
 aFacet = foldr onFail (fail "Could not recognise simpleType Facet")
@@ -611,7 +611,10 @@ uri = string
 
 -- | Text parser for an arbitrary string consisting of possibly multiple tokens.
 string :: TextParser String
-string = fmap concat $ many word
+string = fmap concat $ many (space `onFail` word)
+
+space :: TextParser String
+space = many1 $ satisfy isSpace
 
 -- | Parse a textual boolean, i.e. "true", "false", "0", or "1"
 bool :: TextParser Bool
