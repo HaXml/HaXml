@@ -253,6 +253,19 @@ schemaItem qual = oneOf'
        , ("xsd:attributeGroup", fmap AttributeGroup   (attributeGroup qual))
        , ("xsd:group",          fmap SchemaGroup      (group_ qual))
    --  , ("xsd:notation",       notation)
+-- sigh
+       , ("xs:include",        include)
+       , ("xs:import",         import_)
+       , ("xs:redefine",       (redefine qual))
+       , ("xs:annotation",     fmap Annotation     definiteAnnotation)
+         --
+       , ("xs:simpleType",     fmap Simple           (simpleType qual))
+       , ("xs:complexType",    fmap Complex          (complexType qual))
+       , ("xs:element",        fmap SchemaElement    (elementDecl qual))
+       , ("xs:attribute",      fmap SchemaAttribute  (attributeDecl qual))
+       , ("xs:attributeGroup", fmap AttributeGroup   (attributeGroup qual))
+       , ("xs:group",          fmap SchemaGroup      (group_ qual))
+   --  , ("xs:notation",       notation)
        ]
 
 -- | Parse an <xsd:include>.
