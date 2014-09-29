@@ -338,7 +338,8 @@ convert env s = concatMap item (schema_items s)
                                                       simple_restriction st)
                             Left st@ListOf{}      -> xname "SomethingListy"
                             Left st@UnionOf{}     -> xname "SomethingUnionLike"
-                            Right c@ComplexType{} -> xname $ fromMaybe "unknown"
+                            Right c@ComplexType{} -> maybe (localTypeExp ed{elem_content=Nothing})
+                                                           xname
                                                      $ complex_name c
                     | otherwise =
                           case elem_nameOrRef ed of
@@ -349,7 +350,9 @@ convert env s = concatMap item (schema_items s)
     attributeDecl ad = case attr_nameOrRef ad of
         Left  n   -> singleton $
                      Attribute (xname $ theName n)
-                               (maybe (maybe (error "XSD.attributeDecl->")
+                               (maybe (maybe (xname $ theName n)
+                                           -- guess at an attribute typename?
+                                           --(error "XSD.attributeDecl->")
                                              nameOfSimple
                                              (attr_simpleType ad))
                                       XName
