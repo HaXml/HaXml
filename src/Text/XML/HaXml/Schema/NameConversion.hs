@@ -59,18 +59,32 @@ simpleNameConverter = NameConverter
 
     local               = (:[]) . Prelude.last . hierarchy
 
+    mkConid  []         = "Empty"
     mkConid  [c]        | map toLower c == "string"     = "Xsd.XsdString"
-                        | otherwise = first toUpper c
+                        | otherwise = first toUpper $ map escape c
     mkConid [m,c]       | map toLower c == "string"     = "Xsd.XsdString"
-                        | otherwise = first toUpper m++"."++first toUpper c
-    mkVarid  [v]        = first toLower v
-    mkVarid [m,v]       = first toUpper m++"."++first toLower v
+                        | map toLower c == "date"       = "Xsd.Date"
+                        | map toLower c == "double"     = "Xsd.Double"
+                        | map toLower c == "integer"    = "Xsd.Integer"
+                        | map toLower c == "boolean"    = "Xsd.Boolean"
+                        | map toLower c == "decimal"    = "Xsd.Decimal"
+                        | otherwise = first toUpper m++"."++first toUpper (map escape c)
+    mkConid more        = mkConid [concat more]
+    mkVarid  [v]        = first toLower (map escape v)
+    mkVarid [m,v]       = first toUpper m++"."++first toLower (map escape v)
 
     first f (x:xs)
       | not (isAlpha x) = f 'v': x: xs
       | otherwise       = f x: xs
     last  f [x]         = [ f x ]
     last  f (x:xs)      = x: last f xs
+
+-- | Character escapes to create a valid Haskell identifier.
+escape :: Char -> Char
+escape x | x==' '       = '_'
+         | x=='_'       = '_'
+         | isAlphaNum x = x
+         | otherwise    = '\''
 
  -- cleanUp = map (\c-> if not (isAlphaNum c) then '_' else c)
 
@@ -163,8 +177,8 @@ fpmlNameConverter = simpleNameConverter
     local               = Prelude.last . hierarchy
 
     mkVarId   ("id")    = "ID"
-    mkVarId   (v:vs)    = toLower v: vs
-    mkConId   (v:vs)    = toUpper v: vs
+    mkVarId   (v:vs)    = toLower v: map escape vs
+    mkConId   (v:vs)    = toUpper v: map escape vs
 
     shorten t | length t <= 12 = t
               | length t <  35 = concatMap shortenWord (splitWords t)
