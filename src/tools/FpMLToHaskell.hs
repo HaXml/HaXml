@@ -12,6 +12,7 @@ import System.Exit
 import System.Environment
 import System.IO
 import Control.Monad
+import Control.Exception as E
 import System.Directory
 import Data.List
 import Data.Maybe (fromMaybe,catMaybes)
@@ -75,7 +76,7 @@ main = do
     (dir,files) <- argDirsToFiles
     deps <- flip mapM files (\ (inf,outf)-> do
         hPutStrLn stdout $ "Reading "++inf
-        thiscontent <- readFile (dir++"/"++inf)
+        thiscontent <- readFileUTF8 (dir++"/"++inf)
         let d@Document{} = resolveAllNames qualify
                            . either (error . ("not XML:\n"++)) id
                            . xmlParse' inf
@@ -147,7 +148,9 @@ main = do
     flip mapM_ environs (\ (inf,(env,outf,v))-> do
         o  <- openFile outf WriteMode
         hb <- openFile (bootf outf) WriteMode
-        let decls   = XsdToH.convert env v
+        hSetEncoding o  utf8
+        hSetEncoding hb utf8
+        let decls   = XsdToH.convert env (XsdToH.typeLift v)
             haskell = Haskell.mkModule inf v decls
             doc     = ppModule fpmlNameConverter haskell
             docboot = HsBoot.ppModule fpmlNameConverter haskell
@@ -214,3 +217,9 @@ xsdSchema :: QName
 xsdSchema = QN (nullNamespace{nsURI="http://www.w3.org/2001/XMLSchema"})
                "schema"
 
+-- | UTF8-clean readFile; avoids handle-leaks.
+readFileUTF8 :: FilePath -> IO String
+readFileUTF8 file = do
+    h <- openFile file ReadMode
+    (do hSetEncoding h utf8
+        hGetContents h) `E.onException` (hClose h)
