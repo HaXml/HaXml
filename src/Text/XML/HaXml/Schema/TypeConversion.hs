@@ -251,17 +251,17 @@ convert env s = concatMap item (schema_items s)
                                          ({-elems-}es)
                                          ({-attrs-}as)
                                          (comment (elem_annotation ed))
-                         , ElementOfType
-                               Element{ elem_name = xname (theName n)
-                                      , elem_type = checkXName s (N $ theName n)
-                                      , elem_modifier =
-                                                  Haskell.Range (elem_occurs ed)
-                                      , elem_byRef   = False
-                                      , elem_locals  = []
-                                      , elem_substs  = Nothing
-                                      , elem_comment =
-                                                  (comment (elem_annotation ed))
-                                      }
+                         , ElementOfType $ elementDecl ed
+                           --  Element{ elem_name = xname (theName n)
+                           --         , elem_type = checkXName s (N $ theName n)
+                           --         , elem_modifier =
+                           --                     Haskell.Range (elem_occurs ed)
+                           --         , elem_byRef   = False
+                           --         , elem_locals  = []
+                           --         , elem_substs  = Nothing
+                           --         , elem_comment =
+                           --                     (comment (elem_annotation ed))
+                           --         }
                          ]
                        Just t | elem_abstract ed ->
                          let nm     = N $ theName n
@@ -278,20 +278,15 @@ convert env s = concatMap item (schema_items s)
                                      $ Map.lookup nm (env_substGrp env))
                                  (comment (elem_annotation ed))
                        Just t | otherwise ->
-                         singleton $ ElementOfType $
-                         Element{ elem_name    = xname $ theName n
-                                , elem_type    = checkXName s t
-                                , elem_modifier= Haskell.Range (elem_occurs ed)
-                                , elem_byRef   = False
-                                , elem_locals  = []
-                                , elem_substs  = Nothing
-                            --  , elem_substs  = if elem_abstract ed
-                            --                   then fmap (map XName) $
-                            --                        Map.lookup (N $ theName n)
-                            --                               (env_substGrp env)
-                            --                   else Nothing
-                                , elem_comment = comment (elem_annotation ed)
-                                }
+                         singleton $ ElementOfType $ elementDecl ed
+                     --  Element{ elem_name    = xname $ theName n
+                     --         , elem_type    = checkXName s t
+                     --         , elem_modifier= Haskell.Range (elem_occurs ed)
+                     --         , elem_byRef   = False
+                     --         , elem_locals  = []
+                     --         , elem_substs  = Nothing
+                     --         , elem_comment = comment (elem_annotation ed)
+                     --         }
         Right ref -> case Map.lookup ref (env_element env) of
 		       Nothing -> error $ "<topElementDecl> unknown element reference "
 					  ++printableName ref
@@ -299,15 +294,21 @@ convert env s = concatMap item (schema_items s)
 
     elementDecl :: XSD.ElementDecl -> Haskell.Element
     elementDecl ed = case elem_nameOrRef ed of
-        Left  n   -> Element ({-name-}xname $ theName n)
-                             ({-type-}maybe (localTypeExp ed)
-                                            XName
-                                            (theType n))
-                             ({-modifier-}Haskell.Range $ elem_occurs ed)
-                             False   -- by reference
-                             []      -- internal Decl
-                             Nothing -- substitution group
-                             (comment (elem_annotation ed))
+        Left  n   -> Element { elem_name     = xname $ theName n
+                             , elem_type     = maybe (localTypeExp ed)
+                                                     (checkXName s)
+                                                     (theType n)
+                             , elem_modifier = Haskell.Range $ elem_occurs ed
+                             , elem_byRef    = False   -- by reference
+                             , elem_locals   = []      -- internal Decl
+                             , elem_substs   = Nothing -- substitution group
+                         --  , elem_substs   = if elem_abstract ed
+                         --                    then fmap (map XName) $
+                         --                         Map.lookup (N $ theName n)
+                         --                                (env_substGrp env)
+                         --                    else Nothing
+                             , elem_comment  = comment $ elem_annotation ed
+                             }
         Right ref -> case Map.lookup ref (env_element env) of
                        Just e' -> (elementDecl e')
                                       { elem_modifier =
