@@ -166,9 +166,10 @@ fpmlNameConverter = simpleNameConverter
                   let t = mkVarId . local $ qnt
                       f = mkVarId . local $ qnf
                   in HName $ if t==f then f
-                             else if t `isPrefixOf` f
-                             then t ++"_"++ mkVarId (drop (length t) f)
-                             else mkVarId (shorten (mkConId t)) ++"_"++ f
+                             else mkVarId (shorten (mkConId t)) ++"_"++
+                                  if t `isPrefixOf` f
+                                  then mkVarId (drop (length t) f)
+                                  else f
     }
   where
     hierarchy (N n)     = wordsBy (==':') n
@@ -184,7 +185,7 @@ fpmlNameConverter = simpleNameConverter
               | length t <  35 = concatMap shortenWord (splitWords t)
               | otherwise      = map toLower (head t: filter isUpper (tail t))
     splitWords "" = []
-    splitWords (u:s)  = let (w,rest) = span (not . isUpper) s
+    splitWords (u:s)  = let (w,rest) = span (not . (\c->isUpper c || c=='_')) s
                         in (u:w) : splitWords rest
 
     shortenWord "Request"     = "Req" -- some special cases
@@ -209,8 +210,10 @@ fpmlNameConverter = simpleNameConverter
     shortenWord "Property"    = "Prop"
     shortenWord "Affirmation" = "Affirmation"
     shortenWord "Affirmed"    = "Affirmed"
-    shortenWord "KnockIn"     = "KnockIn"
+    shortenWord "KnockIn"     = "KnockIn"  -- avoid shortening
+    shortenWord "Knockin"     = "Knockin"
     shortenWord "KnockOut"    = "KnockOut"
+    shortenWord "Knockout"    = "Knockout"
     shortenWord w | length w < 8 = w   -- then the general rule
                   | otherwise    = case splitAt 5 w of
                                      (pref,c:suf) | isVowel c -> pref
