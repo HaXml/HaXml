@@ -350,7 +350,7 @@ convert env s = concatMap item (schema_items s)
     attributeDecl ad = case attr_nameOrRef ad of
         Left  n   -> singleton $
                      Attribute (xname $ theName n)
-                               (maybe (maybe (xname $ theName n)
+                               (maybe (maybe (xname $ "String")
                                            -- guess at an attribute typename?
                                            --(error "XSD.attributeDecl->")
                                              nameOfSimple
