@@ -28,12 +28,19 @@ typeLift s = s{ schema_items =
     hoist :: ElementDecl -> [SchemaItem]
     hoist e = flip concatMap (findE e) $
               \e@ElementDecl{elem_nameOrRef=Left (NT{ theName=n
-                                                    , theType=Nothing})}->
+                                                  {-, theType=Nothing-}})}->
                   localType n (elem_content e)
 
     findE :: ElementDecl -> [ElementDecl]
     findE e = ( case elem_nameOrRef e of
                   Left (NT{theType=Nothing}) -> (e:)
+                  Left (NT{theType=Just t})  -> case elem_content e of
+                                                  Just (Right
+                                                    (ComplexType
+                                                       {complex_name=Just t'}))
+                                                  {-| t==t'-}
+                                                    -> (e:)
+                                                  _ -> id
                   _                          -> id
               ) $
               ( case elem_content e of
