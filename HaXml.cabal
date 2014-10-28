@@ -66,7 +66,7 @@ library
     exposed-modules:
         Text.XML.HaXml.Schema.Schema
   hs-source-dirs: src
-  build-depends: polyparse >= 1.9, filepath
+  build-depends: polyparse >= 1.10, filepath
   if flag(splitBase)
     build-depends: base >= 3 && < 6, pretty, random, containers
   else

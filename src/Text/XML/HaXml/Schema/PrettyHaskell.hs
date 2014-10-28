@@ -343,7 +343,7 @@ ppHighLevelDecl nx (EnumSimpleType t is comm) =
   where
     item (i,c) = (ppUnqConId nx t <> text "_" <> ppConId nx i)
                  $$ ppComment After c
-    parseItem (i,_) = text "do isWord \"" <> ppXName i <> text "\"; return"
+    parseItem (i,_) = text "do literal \"" <> ppXName i <> text "\"; return"
                            <+> (ppUnqConId nx t <> text "_" <> ppConId nx i)
     enumText  (i,_) = text "simpleTypeText"
                            <+> (ppUnqConId nx t <> text "_" <> ppConId nx i)
