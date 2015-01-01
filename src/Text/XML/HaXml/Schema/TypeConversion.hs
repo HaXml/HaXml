@@ -38,7 +38,7 @@ typeLift s = s{ schema_items =
                                                   Just (Right
                                                     (ComplexType
                                                        {complex_name=Just t'}))
-                                                  {-| t==t'-}
+                                                 {--| t==t'-}
                                                     -> (e:)
                                                   _ -> id
                   _                          -> id
