@@ -75,10 +75,10 @@ typeLift s = s{ schema_items =
     renameSimple n s@UnionOf{}    = s{ simple_name  = Just n }
 
 
--- * For now, rather than walk the tree, giving typenames to nodes that were
---   previously locally-typed, we will instead assume in the pretty-printer
---   that it can always replace a missing typename with the element name, and
---   have it resolve to something sensible.
+    -- * For now, rather than walk the tree, giving typenames to nodes that were
+    --   previously locally-typed, we will instead assume in the pretty-printer
+    --   that it can always replace a missing typename with the element name, and
+    --   have it resolve to something sensible.
     renameLocals :: SchemaItem -> SchemaItem
     renameLocals s = s
 --  renameLocals (SchemaElement e)
