@@ -11,7 +11,7 @@ description:
 	Haskell utilities for parsing, filtering, transforming and
 	generating XML documents.
 build-type:     Simple
-cabal-version:  >=1.2
+cabal-version:  >=1.8
 extra-source-files:    LICENCE-GPL, LICENCE-LGPL
 
 flag splitBase
@@ -82,57 +82,63 @@ library
 Executable Canonicalise
   GHC-Options: -Wall
   Extensions:  CPP
-  Hs-Source-Dirs: src/tools, src
+  Hs-Source-Dirs: src/tools
   cpp-options: -DVERSION="\"1.25.2\""
   Main-Is: Canonicalise.hs
+  build-depends: base, HaXml, pretty
 
 Executable CanonicaliseLazy
   GHC-Options: -Wall
   Extensions:  CPP
-  Hs-Source-Dirs: src/tools, src
+  Hs-Source-Dirs: src/tools
   cpp-options: -DVERSION="\"1.25.2\""
   Main-Is: CanonicaliseLazy.hs
-
+  build-depends: base, HaXml, pretty
+  
 Executable Xtract
   GHC-Options: -Wall
   Extensions:  CPP
-  Hs-Source-Dirs: src/tools, src
+  Hs-Source-Dirs: src/tools
   cpp-options: -DVERSION="\"1.25.2\""
   Main-Is: Xtract.hs
-
+  build-depends: base, HaXml, pretty
+  
 Executable Validate
   GHC-Options: -Wall
   Extensions:  CPP
-  Hs-Source-Dirs: src/tools, src
+  Hs-Source-Dirs: src/tools
   cpp-options: -DVERSION="\"1.25.2\""
   Main-Is: Validate.hs
-
+  build-depends: base, HaXml
+  
 Executable MkOneOf
   GHC-Options: -Wall
   Extensions:  CPP
-  Hs-Source-Dirs: src/tools, src
+  Hs-Source-Dirs: src/tools
   cpp-options: -DVERSION="\"1.25.2\""
   Main-Is: MkOneOf.hs
-
+  build-depends: base, HaXml
+  
 Executable DtdToHaskell
   GHC-Options: -Wall
   Extensions:  CPP
-  Hs-Source-Dirs: src/tools, src
+  Hs-Source-Dirs: src/tools
   cpp-options: -DVERSION="\"1.25.2\""
   Main-Is: DtdToHaskell.hs
-
+  build-depends: base, HaXml, pretty
+  
 Executable XsdToHaskell
   GHC-Options: -Wall
   Extensions:  CPP
-  Hs-Source-Dirs: src/tools, src
+  Hs-Source-Dirs: src/tools
   cpp-options: -DVERSION="\"1.25.2\""
   Main-Is: XsdToHaskell.hs
-
+  build-depends: base, HaXml, pretty, polyparse, directory
+  
 Executable FpMLToHaskell
   GHC-Options: -Wall
   Extensions:  CPP
-  Hs-Source-Dirs: src/tools, src
+  Hs-Source-Dirs: src/tools
   cpp-options: -DVERSION="\"1.25.2\""
   Main-Is: FpMLToHaskell.hs
-  build-depends: directory
-
+  build-depends: base, HaXml, pretty, polyparse, directory
