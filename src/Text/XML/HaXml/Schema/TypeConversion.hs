@@ -262,7 +262,7 @@ convert env s = concatMap item (schema_items s)
                            --  Element{ elem_name = xname (theName n)
                            --         , elem_type = checkXName s (N $ theName n)
                            --         , elem_modifier =
-                           --                     Haskell.Range (elem_occurs ed)
+                           --                 occursToModifier (elem_occurs ed)
                            --         , elem_byRef   = False
                            --         , elem_locals  = []
                            --         , elem_substs  = Nothing
@@ -288,7 +288,8 @@ convert env s = concatMap item (schema_items s)
                          singleton $ ElementOfType $ elementDecl ed
                      --  Element{ elem_name    = xname $ theName n
                      --         , elem_type    = checkXName s t
-                     --         , elem_modifier= Haskell.Range (elem_occurs ed)
+                     --         , elem_modifier=
+                     --                       occursToModifier (elem_occurs ed)
                      --         , elem_byRef   = False
                      --         , elem_locals  = []
                      --         , elem_substs  = Nothing
@@ -305,7 +306,7 @@ convert env s = concatMap item (schema_items s)
                              , elem_type     = maybe (localTypeExp ed)
                                                      (checkXName s)
                                                      (theType n)
-                             , elem_modifier = Haskell.Range $ elem_occurs ed
+                             , elem_modifier = occursToModifier $ elem_occurs ed
                              , elem_byRef    = False   -- by reference
                              , elem_locals   = []      -- internal Decl
                              , elem_substs   = Nothing -- substitution group
@@ -319,19 +320,19 @@ convert env s = concatMap item (schema_items s)
         Right ref -> case Map.lookup ref (env_element env) of
                        Just e' -> (elementDecl e')
                                       { elem_modifier =
-                                            Haskell.Range (elem_occurs ed)
+                                              occursToModifier (elem_occurs ed)
                                       , elem_byRef = True }
                        Nothing -> -- possible ref is imported qualified?
                            case Map.lookup (N $ localName ref)
                                            (env_element env) of
                                Just e' -> (elementDecl e')
                                             { elem_modifier =
-                                               Haskell.Range (elem_occurs ed)
+                                               occursToModifier (elem_occurs ed)
                                             , elem_byRef = True }
                                Nothing -> Element ({-name-}XName ref)
                                               -- best guess at type
                                               ({-type-}XName ref)
-                                              (Haskell.Range (elem_occurs ed))
+                                              (occursToModifier (elem_occurs ed))
                                               True [] Nothing Nothing
 
     localTypeExp :: XSD.ElementDecl -> XName
@@ -386,7 +387,12 @@ convert env s = concatMap item (schema_items s)
         Left  n   -> let ({-highs,-}es) = choiceOrSeq (fromMaybe (error "XSD.group")
                                                              (group_stuff g))
                      in {-highs ++-} singleton $
-                           Haskell.Group (xname n) es
+                           Haskell.Group (xname n)
+                                         (map (\e->e{elem_modifier=
+                                                         combineOccursModifier
+                                                             (group_occurs g)
+                                                             (elem_modifier e)})
+                                              es)
                                          (comment (group_annotation g))
         Right ref -> case Map.lookup ref (env_group env) of
                   --   Nothing -> error $ "bad group reference "
@@ -394,7 +400,7 @@ convert env s = concatMap item (schema_items s)
                        Nothing -> singleton $
                                   Haskell.Group (xname ("unknown-group-"++printableName ref)) []
                                                 (comment (group_annotation g))
-                       Just g' -> group g'
+                       Just g' -> group g'{ group_occurs=group_occurs g }
 
     particleAttrs :: ParticleAttrs -> ([Haskell.Element],[Haskell.Attribute])
     particleAttrs (PA part attrs _) = -- ignoring AnyAttr for now
@@ -410,7 +416,7 @@ convert env s = concatMap item (schema_items s)
     choiceOrSeq (XSD.All      ann eds)   = error "not yet implemented: XSD.All"
     choiceOrSeq (XSD.Choice   ann o ees) = [ OneOf (anyToEnd
                                                      (map elementEtc ees))
-                                                   (Haskell.Range o)
++                                                  (occursToModifier o)
                                                    (comment ann) ]
     choiceOrSeq (XSD.Sequence ann _ ees) = concatMap elementEtc ees
 
@@ -422,7 +428,7 @@ convert env s = concatMap item (schema_items s)
 
     any :: XSD.Any -> [Haskell.Element]
     any a@XSD.Any{}  = [Haskell.AnyElem
-                           { elem_modifier = Haskell.Range (any_occurs a)
+                           { elem_modifier = occursToModifier (any_occurs a)
                            , elem_comment  = comment (any_annotation a) }]
 
     -- If an ANY element is part of a choice, ensure it is the last part.
@@ -529,6 +535,33 @@ consolidate (Occurs min max) (UnorderedMinLength,_,n) =
              Occurs (Just (read n)) max
 consolidate (Occurs min max) (UnorderedMaxLength,_,n) =
              Occurs min (Just (read n))
+
+instance Monoid Occurs where
+    mempty = Occurs Nothing Nothing
+    (Occurs Nothing  Nothing)  `mappend` o  = o
+    (Occurs (Just z) Nothing)  `mappend` (Occurs min max)
+                                        = Occurs (Just $ maybe z (*z) min) max
+    (Occurs Nothing  (Just x)) `mappend` (Occurs min max)
+                                        = Occurs min (Just $ maybe x (*x) max)
+    (Occurs (Just z) (Just x)) `mappend` (Occurs min max)
+                                        = Occurs (Just $ maybe z (*z) min)
+                                                 (Just $ maybe x (*x) max)
+
+-- | Push another Occurs value inside an existing Modifier.
+combineOccursModifier :: Occurs -> Modifier -> Modifier
+combineOccursModifier o Haskell.Single     = occursToModifier $ mappend o
+                                                    $ Occurs (Just 1) (Just 1)
+combineOccursModifier o Haskell.Optional   = occursToModifier $ mappend o
+                                                    $ Occurs (Just 0) (Just 1)
+combineOccursModifier o (Haskell.Range o') = occursToModifier $ mappend o o'
+
+-- | Convert an occurs range to a Haskell-style type modifier (Maybe, List, Id)
+occursToModifier :: Occurs -> Modifier
+occursToModifier (Occurs Nothing  Nothing)  = Haskell.Single
+occursToModifier (Occurs (Just 0) Nothing)  = Haskell.Optional
+occursToModifier (Occurs (Just 0) (Just 1)) = Haskell.Optional
+occursToModifier (Occurs (Just 1) (Just 1)) = Haskell.Single
+occursToModifier o                          = Haskell.Range o
 
 
 -- | Find the supertype (if it exists) of a given type name.
