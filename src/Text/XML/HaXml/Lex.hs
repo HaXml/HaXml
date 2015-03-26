@@ -244,9 +244,11 @@ xmlAny w p s@('<':ss)
     | "!"   `prefixes` ss = emit TokSpecialOpen p:
                                      skip 2 p s (xmlSpecial (InTag "<!...>":w))
     | "/"   `prefixes` ss = emit TokEndOpen p: 
-                                    skip 2 p s (xmlTag (InTag "</...>":tail w))
+                                    skip 2 p s (xmlTag (InTag "</...>":tale w))
     | otherwise           = emit TokAnyOpen p:
                                  skip 1 p s (xmlTag (InTag "<...>":NotInTag:w))
+    where tale [] = [NotInTag] -- cope with non-well-formed input
+          tale xs = tail xs
 xmlAny (_:_:w) p s@('/':ss)
     | ">"   `prefixes` ss = emit TokEndClose p: skip 2 p s (xmlAny w)
 xmlAny w p ('&':ss) = emit TokAmp p:      textUntil ";" TokSemi "" p
