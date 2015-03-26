@@ -485,8 +485,10 @@ nameOfSimple (UnionOf _ (Just n) _ _ _)  = xname n -- return to this
 nameOfSimple s                           = xname "String" -- anonymous simple
 
 mkRestrict :: XSD.Restriction -> [Haskell.Restrict]
-mkRestrict (RestrictSim1 ann base r1) =
-        error "Not yet implemented: Restriction1 on simpletype"
+mkRestrict (RestrictSim1 ann base r1) = []
+--      = error "Not yet implemented: Restriction1 on simpletype"
+--      ^ This branch is not strictly correct.  There ought to be some
+--        restrictions.
 mkRestrict (RestrictType _ _ _ facets) =
     (let occurs = [ (f,ann,v)  | (Facet f ann v _) <- facets
                                , f `elem` [OrderedBoundsMinIncl
