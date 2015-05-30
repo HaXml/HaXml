@@ -112,7 +112,7 @@ convert env s = concatMap item (schema_items s)
     simple (Primitive prim)     = []
     simple s@(Restricted a n f r)
         | (Just enums) <- isEnumeration s
-                                = [EnumSimpleType 
+                                = [EnumSimpleType
                                        (maybe (error "missing Name") xname n)
                                        enums (comment a) ]
         | otherwise             = [RestrictSimpleType
@@ -126,7 +126,7 @@ convert env s = concatMap item (schema_items s)
                               --                      (comment a)]
     simple s@(UnionOf a n f u m)
         | (Just enums) <- isEnumeration s
-                                = [EnumSimpleType 
+                                = [EnumSimpleType
                                        (maybe (error "missing Name") xname n)
                                        enums (comment a) ]
         | otherwise             = [UnionSimpleTypes
@@ -296,9 +296,9 @@ convert env s = concatMap item (schema_items s)
                      --         , elem_comment = comment (elem_annotation ed)
                      --         }
         Right ref -> case Map.lookup ref (env_element env) of
-		       Nothing -> error $ "<topElementDecl> unknown element reference "
-					  ++printableName ref
-		       Just e' -> topElementDecl e'
+           Nothing -> error $ "<topElementDecl> unknown element reference "
+                            ++printableName ref
+           Just e' -> topElementDecl e'
 
     elementDecl :: XSD.ElementDecl -> Haskell.Element
     elementDecl ed = case elem_nameOrRef ed of
@@ -416,7 +416,7 @@ convert env s = concatMap item (schema_items s)
     choiceOrSeq (XSD.All      ann eds)   = error "not yet implemented: XSD.All"
     choiceOrSeq (XSD.Choice   ann o ees) = [ OneOf (anyToEnd
                                                      (map elementEtc ees))
-+                                                  (occursToModifier o)
+                                                   (occursToModifier o)
                                                    (comment ann) ]
     choiceOrSeq (XSD.Sequence ann _ ees) = concatMap elementEtc ees
 

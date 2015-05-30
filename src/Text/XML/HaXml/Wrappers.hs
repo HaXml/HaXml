@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-#define dummy		-- just to ensure that cpp gets called on this file
+#define dummy   -- just to ensure that cpp gets called on this file
 module Text.XML.HaXml.Wrappers
   ( fix2Args
   , processXmlWith
@@ -31,7 +31,7 @@ fix2Args :: IO (String,String)
 fix2Args = do
   args <- getArgs
   when ("--version" `elem` args) $ do
-      putStrLn $ "part of HaXml-"++ VERSION
+      putStrLn $ "part of HaXml-" ++ VERSION
       exitWith ExitSuccess
   when ("--help" `elem` args) $ do
       putStrLn $ "See http://projects.haskell.org/HaXml"

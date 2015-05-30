@@ -94,7 +94,7 @@ Executable CanonicaliseLazy
   cpp-options: -DVERSION="\"1.25.3\""
   Main-Is: CanonicaliseLazy.hs
   build-depends: base, HaXml, pretty
-  
+
 Executable Xtract
   GHC-Options: -Wall
   Extensions:  CPP
@@ -102,7 +102,7 @@ Executable Xtract
   cpp-options: -DVERSION="\"1.25.3\""
   Main-Is: Xtract.hs
   build-depends: base, HaXml, pretty
-  
+
 Executable Validate
   GHC-Options: -Wall
   Extensions:  CPP
@@ -110,7 +110,7 @@ Executable Validate
   cpp-options: -DVERSION="\"1.25.3\""
   Main-Is: Validate.hs
   build-depends: base, HaXml
-  
+
 Executable MkOneOf
   GHC-Options: -Wall
   Extensions:  CPP
@@ -118,7 +118,7 @@ Executable MkOneOf
   cpp-options: -DVERSION="\"1.25.3\""
   Main-Is: MkOneOf.hs
   build-depends: base, HaXml
-  
+
 Executable DtdToHaskell
   GHC-Options: -Wall
   Extensions:  CPP
@@ -126,7 +126,7 @@ Executable DtdToHaskell
   cpp-options: -DVERSION="\"1.25.3\""
   Main-Is: DtdToHaskell.hs
   build-depends: base, HaXml, pretty
-  
+
 Executable XsdToHaskell
   GHC-Options: -Wall
   Extensions:  CPP
@@ -134,7 +134,7 @@ Executable XsdToHaskell
   cpp-options: -DVERSION="\"1.25.3\""
   Main-Is: XsdToHaskell.hs
   build-depends: base, HaXml, pretty, polyparse, directory
-  
+
 Executable FpMLToHaskell
   GHC-Options: -Wall
   Extensions:  CPP
