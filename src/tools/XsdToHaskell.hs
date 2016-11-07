@@ -71,7 +71,7 @@ main =
                            let decls = convert (mkEnvironment inf v emptyEnv) v
                                haskl = Haskell.mkModule inf v decls
                                doc   = ppModule simpleNameConverter haskl
-                           hPutStrLn stdout $ render doc
+                           hPutStrLn o $ render doc
         (Right v,_)  -> do hPutStrLn stdout $ "Parse incomplete!"
                            hPutStrLn stdout $ "\n-----------------\n"
                            hPutStrLn stdout $ show v
