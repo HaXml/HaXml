@@ -20,6 +20,7 @@ import Text.XML.HaXml.Posn        (Posn,posInNewCxt)
 import Text.XML.HaXml.Parse       (xmlParse)
 import Text.XML.HaXml.Html.Parse  (htmlParse)
 import Text.XML.HaXml.Pretty as PP(document)
+import Text.XML.HaXml.Version
 import Text.PrettyPrint.HughesPJ  (render)
 
 
@@ -31,7 +32,7 @@ fix2Args :: IO (String,String)
 fix2Args = do
   args <- getArgs
   when ("--version" `elem` args) $ do
-      putStrLn $ "part of HaXml-" ++ VERSION
+      putStrLn $ "part of HaXml-" ++ version
       exitWith ExitSuccess
   when ("--help" `elem` args) $ do
       putStrLn $ "See http://projects.haskell.org/HaXml"

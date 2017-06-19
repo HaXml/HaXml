@@ -28,10 +28,7 @@ import Text.XML.HaXml.Validate    (validate)
 import Text.XML.HaXml.Wrappers    (fix2Args,processXmlWith)
 import Text.XML.HaXml.Verbatim
 import Text.XML.HaXml.Escape
+import Text.XML.HaXml.Version
 
 import Text.PrettyPrint.HughesPJ  (render)
 
--- | The version of the library.
-version :: String
-version  = VERSION
-		-- expect cpp to fill in value

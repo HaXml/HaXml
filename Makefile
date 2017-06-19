@@ -1,5 +1,5 @@
 SOFTWARE = HaXml
-VERSION  = 1.25.3
+VERSION  = 1.25.4
 
 #CPP      = cpp -traditional
 CPP     = cpphs --text --noline	# useful e.g. on MacOS X
