@@ -224,12 +224,10 @@ text = text' []
                  CRef (RefEntity s) _ -> text' (('&':s++";"):acc)
                  CMisc _ _            -> text' acc
                  CElem _ _         -> do { reparse [c] -- put it back!
-                                         ; if null acc then fail "empty string"
-                                           else return (concat (reverse acc))
+                                         ; return (concat (reverse acc))
                                          }
              }
-          `onFail` ( if null acc then fail "empty string"
-                     else return (concat (reverse acc)) )
+          `onFail` return (concat (reverse acc))
 
 
 -- | 'choice f p' means if parseContents succeeds, apply f to the result,
