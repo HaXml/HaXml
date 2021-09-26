@@ -241,14 +241,14 @@ compressAttValue (AttValue l) = AttValue (compress l)
       compress :: [Either String Reference] -> [Either String Reference]
       compress [] = []
       compress (Right ref : es) = Right ref : (compress es)
-      compress ( (ls @ (Left s1)) : es) =
+      compress ( (ls@(Left s1)) : es) =
          case compress es of
             (Left s2 : es2) -> Left (s1 ++ s2) : es2
             es2 -> ls : es2
 
 compressContent :: [Content i] -> [Content i]
 compressContent [] = []
-compressContent ((csb @ (CString b1 s1 i1)) : cs) =
+compressContent ((csb@(CString b1 s1 i1)) : cs) =
    case compressContent cs of
       (CString b2 s2 _) : cs2
           | b1 == b2
