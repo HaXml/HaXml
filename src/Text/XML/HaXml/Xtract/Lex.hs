@@ -18,7 +18,7 @@ import Data.Char
 
 type Token = Either String (Posn, TokenT)
 
-data Posn = Pn Int		-- char index only
+data Posn = Pn Int              -- char index only
         deriving Eq
 
 instance Show Posn where
@@ -26,8 +26,8 @@ instance Show Posn where
 
 data TokenT =
       Symbol String
-    | TokString String		--     begins with letter
-    | TokNum Integer		--     begins with digit
+    | TokString String          --     begins with letter
+    | TokNum Integer            --     begins with digit
     deriving Eq
 
 instance Show TokenT where

@@ -246,11 +246,11 @@ ppHighLevelDecl nx (RestrictSimpleType t s r comm) =
                       <+> text "where"
         $$ nest 4 (text "restricts (" <> ppUnqConId nx t <+> text "x) = x")
     $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
-        $$ nest 4 (text "parseSchemaType s = do" 
+        $$ nest 4 (text "parseSchemaType s = do"
                   $$ nest 4 (text "e <- element [s]"
                            $$ text "commit $ interior e $ parseSimpleType")
                   )
-        $$ nest 4 (text "schemaTypeToXML s ("<> ppUnqConId nx t <+> text "x) = " 
+        $$ nest 4 (text "schemaTypeToXML s ("<> ppUnqConId nx t <+> text "x) = "
                   $$ nest 4 (text "toXMLElement s [] [toXMLText (simpleTypeText x)]")
                   )
     $$ text "instance SimpleType" <+> ppUnqConId nx t <+> text "where"
@@ -283,7 +283,7 @@ ppHighLevelDecl nx (ExtendSimpleType t s as comm) =
         $$ nest 4 (ppFields nx t_attrs [] as
                   $$ text "deriving (Eq,Show)")
     $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
-        $$ nest 4 (text "parseSchemaType s = do" 
+        $$ nest 4 (text "parseSchemaType s = do"
                   $$ nest 4 (text "(pos,e) <- posnElement [s]"
                             $$ text "commit $ do"
                             $$ nest 2
@@ -334,11 +334,11 @@ ppHighLevelDecl nx (EnumSimpleType t is comm) =
     $$ text "data" <+> ppUnqConId nx t
         $$ nest 4 ( ppvList "=" "|" "deriving (Eq,Show,Enum)" item is )
     $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
-        $$ nest 4 (text "parseSchemaType s = do" 
+        $$ nest 4 (text "parseSchemaType s = do"
                   $$ nest 4 (text "e <- element [s]"
                            $$ text "commit $ interior e $ parseSimpleType")
                   )
-        $$ nest 4 (text "schemaTypeToXML s x = " 
+        $$ nest 4 (text "schemaTypeToXML s x = "
                   $$ nest 4 (text "toXMLElement s [] [toXMLText (simpleTypeText x)]")
                   )
     $$ text "instance SimpleType" <+> ppUnqConId nx t <+> text "where"
@@ -360,7 +360,7 @@ ppHighLevelDecl nx (ElementsAttrs t es as comm) =
         $$ nest 8 (ppFields nx t (uniqueify es) as
                   $$ text "deriving (Eq,Show)")
     $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
-        $$ nest 4 (text "parseSchemaType s = do" 
+        $$ nest 4 (text "parseSchemaType s = do"
                   $$ nest 4 (text "(pos,e) <- posnElement [s]"
                        --   $$ text "commit $ do"
                        --   $$ nest 2
@@ -412,7 +412,7 @@ ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
 --      <+> text "(declared in Instance module)"
 --  *** Declare instance here
     $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
-        $$ nest 4 (text "parseSchemaType s = do" 
+        $$ nest 4 (text "parseSchemaType s = do"
                   $$ nest 4 (vcat (intersperse (text "`onFail`")
                                                (map ppParse insts)
                                    ++ [text "`onFail` fail" <+> errmsg])))
@@ -532,7 +532,7 @@ ppHighLevelDecl nx (Group t es comm) = PP.empty
 --  $$ text "data" <+> ppConId nx t <+> text "="
 --                 <+> ppConId nx t <+> hsep (map (ppConId nx . elem_type) es)
 
--- Possibly we want to declare a really more restrictive type, e.g. 
+-- Possibly we want to declare a really more restrictive type, e.g.
 --    to remove optionality, (Maybe Foo) -> (Foo), [Foo] -> Foo
 --    consequently the "restricts" method should do a proper translation,
 --    not merely an unwrapping.
@@ -549,7 +549,7 @@ ppHighLevelDecl nx (RestrictComplexType t s comm) =
     $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
         $$ nest 4 (text "parseSchemaType = fmap " <+> ppUnqConId nx t <+>
                    text ". parseSchemaType")
-		-- XXX should enforce the restriction.
+                -- XXX should enforce the restriction.
         $$ nest 4 (text "schemaTypeToXML s (" <> ppUnqConId nx t <+> text "x)")
                    <+> text "= schemaTypeToXML s x"
 
@@ -603,7 +603,7 @@ ppHighLevelDecl nx (XSDComment comm) =
 ppHighLevelInstances :: NameConverter -> Decl -> Doc
 ppHighLevelInstances nx (ElementsAttrsAbstract t insts comm) =
     text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
-        $$ nest 4 (text "parseSchemaType s = do" 
+        $$ nest 4 (text "parseSchemaType s = do"
                   $$ nest 4 (vcat (intersperse (text "`onFail`")
                                                (map ppParse insts)
                                    ++ [text "`onFail` fail" <+> errmsg])))
@@ -767,7 +767,7 @@ ppFieldName nx t e@Text{}    i = ppFieldId nx t (XName $ N $"text"++show i)
 ppElemTypeName :: NameConverter -> (Doc->Doc) -> Element -> Doc
 ppElemTypeName nx brack e@Element{} =
     ppTypeModifier (elem_modifier e) brack $ ppConId nx (elem_type e)
-ppElemTypeName nx brack e@OneOf{}   = 
+ppElemTypeName nx brack e@OneOf{}   =
     brack $ ppTypeModifier (liftedElemModifier e) parens $
     text "OneOf" <> text (show (length (elem_oneOf e)))
      <+> hsep (map (ppSeq . cleanChoices) (elem_oneOf e))
@@ -881,4 +881,3 @@ uniqueify = go []
                                  dropWhile pred [(n++show i) | i <- [2..]]
     new pred (XName (QN ns n)) = XName $ QN ns $ head $
                                  dropWhile pred [(n++show i) | i <- [2..]]
-

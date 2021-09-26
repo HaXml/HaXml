@@ -26,7 +26,7 @@ import Text.XML.HaXml.Posn
 import Text.ParserCombinators.Poly.Plain
 
 --  #define DEBUG
- 
+
 #if defined(DEBUG)
 #  if ( defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ > 502 ) || \
       ( defined(__NHC__) && __NHC__ > 114 ) || defined(__HUGS__)
@@ -141,8 +141,8 @@ qname = fmap N name
 name :: HParser Name
 --name = do {(p,TokName s) <- next; return s}
 name = do (p,tok) <- next
-          case tok of 
-            TokName s  -> return s 
+          case tok of
+            TokName s  -> return s
             TokError _ -> report failBad "a name" p tok
             _          -> report fail "a name" p tok
 
@@ -255,7 +255,7 @@ versioninfo = do
     bracket (tok TokQuote) (commit $ tok TokQuote) freetext
 
 misc :: HParser Misc
-misc = 
+misc =
     oneOf' [ ("<!--comment-->", comment >>= return . Comment)
            , ("<?PI?>",         processinginstruction >>= return . PI)
            ]
@@ -329,17 +329,17 @@ element ctx =
               return ([], Elem (N "null") [] []))
       else if e `elem` selfclosingtags then
          -- complete the parse straightaway.
-         ( do tok TokEndClose	-- self-closing <tag /> 
+         ( do tok TokEndClose   -- self-closing <tag />
               debug (e++"[+]")
               return ([], Elem (N e) avs [])) `onFail`
-     --  ( do tok TokAnyClose	-- sequence <tag></tag>	(**not HTML?**)
+     --  ( do tok TokAnyClose   -- sequence <tag></tag> (**not HTML?**)
      --       debug (e++"[+")
      --       n <- bracket (tok TokEndOpen) (commit $ tok TokAnyClose) qname
      --       debug "]"
-     --       if e == (map toLower n :: Name) 
-     --         then return ([], Elem e avs [])      
+     --       if e == (map toLower n :: Name)
+     --         then return ([], Elem e avs [])
      --         else return (error "no nesting in empty tag")) `onFail`
-         ( do tok TokAnyClose	-- <tag> with no close (e.g. <IMG>)
+         ( do tok TokAnyClose   -- <tag> with no close (e.g. <IMG>)
               debug (e++"[+]")
               return ([], Elem (N e) avs []))
       else
@@ -715,13 +715,12 @@ attvalue =
 systemliteral :: HParser SystemLiteral
 systemliteral = do
     s <- bracket (tok TokQuote) (commit $ tok TokQuote) freetext
-    return (SystemLiteral s)		-- note: need to fold &...; escapes
+    return (SystemLiteral s)            -- note: need to fold &...; escapes
 
 pubidliteral :: HParser PubidLiteral
 pubidliteral = do
     s <- bracket (tok TokQuote) (commit $ tok TokQuote) freetext
-    return (PubidLiteral s)		-- note: need to fold &...; escapes
+    return (PubidLiteral s)             -- note: need to fold &...; escapes
 
 chardata :: HParser CharData
 chardata = freetext -- >>= return . CharData
-

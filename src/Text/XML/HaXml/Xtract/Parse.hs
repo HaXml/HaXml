@@ -79,76 +79,76 @@ pam fs x = [ f x | f <- fs ]
 
 
 {--- original Xtract grammar ----
-      query     = string			tagname
-                | string *			tagname prefix
-                | * string			tagname suffix
-                | *				any element
-                | -				chardata
+      query     = string                        tagname
+                | string *                      tagname prefix
+                | * string                      tagname suffix
+                | *                             any element
+                | -                             chardata
                 | ( query )
-                | query / query			parent/child relationship
-                | query // query		deep inside
-                | query + query			union of queries
+                | query / query                 parent/child relationship
+                | query // query                deep inside
+                | query + query                 union of queries
                 | query [predicate]
                 | query [positions]
 
-      predicate = quattr			has attribute
-                | quattr op ' string '		attribute has value
-                | quattr op " string "		attribute has value
-                | quattr op  quattr		attribute value comparison (lexical)
-                | quattr nop integer  		attribute has value (numerical)
-                | quattr nop quattr		attribute value comparison (numerical)
-                | ( predicate )			bracketting
-                | predicate & predicate		logical and
-                | predicate | predicate		logical or
-                | ~ predicate			logical not
+      predicate = quattr                        has attribute
+                | quattr op ' string '          attribute has value
+                | quattr op " string "          attribute has value
+                | quattr op  quattr             attribute value comparison (lexical)
+                | quattr nop integer            attribute has value (numerical)
+                | quattr nop quattr             attribute value comparison (numerical)
+                | ( predicate )                 bracketting
+                | predicate & predicate         logical and
+                | predicate | predicate         logical or
+                | ~ predicate                   logical not
 
-      attribute = @ string			has attribute
-                | query / @ string		child has attribute
-                | -				has textual content
-                | query / -			child has textual content
+      attribute = @ string                      has attribute
+                | query / @ string              child has attribute
+                | -                             has textual content
+                | query / -                     child has textual content
 
       quattr    = query
                 | attribute
 
-      op        =  =				equal to
-                |  !=				not equal to
-                |  <				less than
-                |  <=				less than or equal to
-                |  >				greater than
-                |  >=				greater than or equal to
+      op        =  =                            equal to
+                |  !=                           not equal to
+                |  <                            less than
+                |  <=                           less than or equal to
+                |  >                            greater than
+                |  >=                           greater than or equal to
 
-      nop       =  .=.				equal to
-                |  .!=.				not equal to
-                |  .<.				less than
-                |  .<=.				less than or equal to
-                |  .>.				greater than
-                |  .>=.				greater than or equal to
+      nop       =  .=.                          equal to
+                |  .!=.                         not equal to
+                |  .<.                          less than
+                |  .<=.                         less than or equal to
+                |  .>.                          greater than
+                |  .>=.                         greater than or equal to
 
-      positions = position {, positions}	multiple positions
-                | position - position		ranges
+      positions = position {, positions}        multiple positions
+                | position - position           ranges
 
-      position  = integer			numbering is from 0 upwards
-                | $				last
+      position  = integer                       numbering is from 0 upwards
+                | $                             last
 
 
 ---- transformed grammar (removing left recursion)
-      aquery = ./ tquery	-- current context
-             | tquery		-- also current context
-             | / tquery		-- root context
-             | // tquery	-- deep context from root
+      aquery = ./ tquery        -- current context
+             | tquery           -- also current context
+             | / tquery         -- root context
+             | // tquery        -- deep context from root
 
       tquery = ( tquery ) xquery
              | tag xquery
-             | -		-- fixes original grammar ("-/*" is incorrect)
-      
+             | -                -- fixes original grammar ("-/*" is incorrect)
+
       tag    = string *
              | string
              | * string
              | *
-      
+
       xquery = / tquery
              | // tquery
-             | / @ string	-- new: print attribute value
+             | / @ string       -- new: print attribute value
              | + tquery
              | [ tpredicate ] xquery
              | [ positions ] xquery
@@ -228,7 +228,7 @@ tquery (qf:cxt) = oneOf
     [ do q <- bracket (tquery (qf:qf:cxt))
          xquery cxt q
     , do q <- xtag
-         xquery cxt (qf ((unescape .).q))	-- glue inners texts together
+         xquery cxt (qf ((unescape .).q))       -- glue inners texts together
     , do symbol "-"
          return (qf (local C.txt))
     ]
@@ -263,7 +263,7 @@ xquery cxt q1 = oneOf
          q2 <- tquery cxt
          return (D.cat [q1,q2])
     , do symbol "["
-         is <- iindex	-- now extended to multiple indexes
+         is <- iindex   -- now extended to multiple indexes
          symbol "]"
          xquery cxt (\xml-> concat . pam is . q1 xml)
     , do symbol "["
@@ -327,7 +327,7 @@ vattribute (q,a,iffn) = oneOf
        return ((iffn (\s1->if cmp s1 s2 then D.keep else D.none) D.none)
                `D.o` q)
   , do cmp <- op
-       (q2,iffn2) <- wattribute	-- q2 unused?  is this a mistake?
+       (q2,iffn2) <- wattribute -- q2 unused?  is this a mistake?
        return ((iffn (\s1-> iffn2 (\s2-> if cmp s1 s2 then D.keep else D.none)
                                   D.none)
                      D.none) `D.o` q)
@@ -336,7 +336,7 @@ vattribute (q,a,iffn) = oneOf
        return ((iffn (\s->if cmp (read s) n then D.keep else D.none) D.none)
                `D.o` q)
   , do cmp <- nop
-       (q2,iffn2) <- wattribute	-- q2 unused?  is this a mistake?
+       (q2,iffn2) <- wattribute -- q2 unused?  is this a mistake?
        return ((iffn (\s1-> iffn2 (\s2-> if cmp (read s1) (read s2) then D.keep
                                                                     else D.none)
                                   D.none)
@@ -417,4 +417,3 @@ nop = oneOf
     , do symbol ".>.";  return (>)
     , do symbol ".>=."; return (>=)
     ]
-

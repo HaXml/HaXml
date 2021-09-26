@@ -64,7 +64,7 @@ misc (Comment s)           = text "<!--" <+> text s <+> text "-->"
 misc (PI (n,s))            = text "<?" <> text n <+> text s <+> text "?>"
 sddecl sd   | sd           = text "standalone='yes'"
             | otherwise    = text "standalone='no'"
-doctypedecl (DTD n eid ds) = if null ds then 
+doctypedecl (DTD n eid ds) = if null ds then
                                   hd <> text ">"
                              else hd <+> text " [" $$
                                   vcat (map markupdecl ds) $$ text "]>"
@@ -150,39 +150,39 @@ content (CString _ s _)  = chardata s
 content (CRef r _)       = reference r
 content (CMisc m _)      = misc m
 
-elementdecl	:: ElementDecl -> Doc
-contentspec	:: ContentSpec -> Doc
-cp		:: CP -> Doc
-modifier	:: Modifier -> Doc
-mixed		:: Mixed -> Doc
-attlistdecl	:: AttListDecl -> Doc
-attdef		:: AttDef -> Doc
-atttype		:: AttType -> Doc
-tokenizedtype	:: TokenizedType -> Doc
-enumeratedtype	:: EnumeratedType -> Doc
-notationtype	:: [String] -> Doc
-enumeration	:: [String] -> Doc
-defaultdecl	:: DefaultDecl -> Doc
-reference	:: Reference -> Doc
-entityref	:: String -> Doc
-charref		:: (Show a) => a -> Doc
-entitydecl	:: EntityDecl -> Doc
-gedecl		:: GEDecl -> Doc
-pedecl		:: PEDecl -> Doc
-entitydef	:: EntityDef -> Doc
-pedef		:: PEDef -> Doc
-externalid	:: ExternalID -> Doc
-ndatadecl	:: NDataDecl -> Doc
-notationdecl	:: NotationDecl -> Doc
-publicid	:: PublicID -> Doc
-encodingdecl	:: EncodingDecl -> Doc
-nmtoken		:: String -> Doc
-attvalue	:: AttValue -> Doc
-entityvalue	:: EntityValue -> Doc
-ev		:: EV -> Doc
-pubidliteral	:: PubidLiteral -> Doc
-systemliteral	:: SystemLiteral -> Doc
-chardata	:: [Char] -> Doc
+elementdecl     :: ElementDecl -> Doc
+contentspec     :: ContentSpec -> Doc
+cp              :: CP -> Doc
+modifier        :: Modifier -> Doc
+mixed           :: Mixed -> Doc
+attlistdecl     :: AttListDecl -> Doc
+attdef          :: AttDef -> Doc
+atttype         :: AttType -> Doc
+tokenizedtype   :: TokenizedType -> Doc
+enumeratedtype  :: EnumeratedType -> Doc
+notationtype    :: [String] -> Doc
+enumeration     :: [String] -> Doc
+defaultdecl     :: DefaultDecl -> Doc
+reference       :: Reference -> Doc
+entityref       :: String -> Doc
+charref         :: (Show a) => a -> Doc
+entitydecl      :: EntityDecl -> Doc
+gedecl          :: GEDecl -> Doc
+pedecl          :: PEDecl -> Doc
+entitydef       :: EntityDef -> Doc
+pedef           :: PEDef -> Doc
+externalid      :: ExternalID -> Doc
+ndatadecl       :: NDataDecl -> Doc
+notationdecl    :: NotationDecl -> Doc
+publicid        :: PublicID -> Doc
+encodingdecl    :: EncodingDecl -> Doc
+nmtoken         :: String -> Doc
+attvalue        :: AttValue -> Doc
+entityvalue     :: EntityValue -> Doc
+ev              :: EV -> Doc
+pubidliteral    :: PubidLiteral -> Doc
+systemliteral   :: SystemLiteral -> Doc
+chardata        :: [Char] -> Doc
 
 
 elementdecl (ElementDecl n cs) = text "<!ELEMENT" <+> qname n <+>

@@ -129,13 +129,13 @@ instance SimpleType NOTATION where
 
 instance SimpleType Decimal where
     acceptingParser = fmap Decimal parse
-    simpleTypeText (Decimal s) = show s	-- XXX FIXME: showGFloat?
+    simpleTypeText (Decimal s) = show s -- XXX FIXME: showGFloat?
 instance SimpleType Float where
     acceptingParser  = parse
-    simpleTypeText x = show x		-- XXX FIXME: showGFloat?
+    simpleTypeText x = show x           -- XXX FIXME: showGFloat?
 instance SimpleType Double where
     acceptingParser  = parse
-    simpleTypeText x = show x		-- XXX FIXME: showGFloat?
+    simpleTypeText x = show x           -- XXX FIXME: showGFloat?
 
 instance SimpleType Duration where
     acceptingParser = return Duration `apply` (do isNext '-'; return False
@@ -194,7 +194,7 @@ instance SimpleType GMonth where
 
 -- * Derived builtin types
 
-newtype NormalizedString = Normalized String	deriving (Eq,Show)
+newtype NormalizedString = Normalized String    deriving (Eq,Show)
 newtype Token    = Token    String              deriving (Eq,Show)
 newtype Language = Language String              deriving (Eq,Show)
 newtype Name     = Name     String              deriving (Eq,Show)
@@ -297,4 +297,3 @@ instance SimpleType UnsignedByte where
 instance SimpleType PositiveInteger where
     acceptingParser = fmap Positive parse
     simpleTypeText (Positive x) = show x
-

@@ -1,13 +1,13 @@
 module Text.XML.HaXml.TypeMapping
   (
   -- * A class to get an explicit type representation for any value
-    HTypeable(..)	-- sole method, toHType
+    HTypeable(..)       -- sole method, toHType
   -- * Explicit representation of Haskell datatype information
-  , HType(..)		-- instance of Eq, Show
-  , Constr(..)		-- instance of Eq, Show
+  , HType(..)           -- instance of Eq, Show
+  , Constr(..)          -- instance of Eq, Show
   -- * Helper functions to extract type info as strings
-  , showHType		-- :: HType -> ShowS
-  , showConstr		-- :: Int -> HType -> String
+  , showHType           -- :: HType -> ShowS
+  , showConstr          -- :: Int -> HType -> String
   -- * Conversion from Haskell datatype to DTD
   , toDTD
   ) where
@@ -38,9 +38,9 @@ data HType =
     | Prim String String        -- ^ separate Haskell name and XML name
     | String
     | Defined String [HType] [Constr]
-	-- ^ A user-defined type has a name, a sequence of type variables,
-	--   and a set of constructors.  (The variables might already be
-	--   instantiated to actual types.)
+        -- ^ A user-defined type has a name, a sequence of type variables,
+        --   and a set of constructors.  (The variables might already be
+        --   instantiated to actual types.)
     deriving (Show)
 
 instance Eq HType where
@@ -49,7 +49,7 @@ instance Eq HType where
     (Tuple xs) == (Tuple ys) =  xs==ys
     (Prim x _) == (Prim y _) =  x==y
     String     == String     =  True
-    (Defined n _xs _) == (Defined m _ys _)  =  n==m 	-- && xs==ys
+    (Defined n _xs _) == (Defined m _ys _)  =  n==m     -- && xs==ys
     _          == _          =  False
 
 -- | A concrete representation of any user-defined Haskell constructor.
@@ -238,7 +238,7 @@ toDTD ht =
     declConstr chist c@(Constr s fv hts)
       | c `notElem` chist = [Element (ElementDecl (N $ flatConstr c "")
                                          (ContentSpec (constrHtExpr c)))]
-      | otherwise = [] 
+      | otherwise = []
     declprim (Prim _ t) =
       [ Element (ElementDecl (N t) EMPTY)
       , AttList (AttListDecl (N t) [AttDef (N "value") StringType REQUIRED])]

@@ -50,8 +50,8 @@ data StructType =
     | Tuple [StructType]
     | OneOf [StructType]
     | Any                               -- ^ XML's contentspec allows ANY
-    | StringMixed			-- ^ mixed (#PCDATA | ... )*
-    | String				-- ^ string only (#PCDATA)
+    | StringMixed                       -- ^ mixed (#PCDATA | ... )*
+    | String                            -- ^ string only (#PCDATA)
     | Defined Name
     deriving Eq
 

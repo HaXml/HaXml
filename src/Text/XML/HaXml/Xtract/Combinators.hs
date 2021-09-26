@@ -67,8 +67,8 @@ f `without` g = \xml-> filter     (null.g xml) . f xml
 
 -- | lifted unit and zero.
 keep, none :: DFilter i
-keep = \_xml  sub-> [sub]	-- local C.keep
-none = \_xml _sub-> []	-- local C.none
+keep = \_xml  sub-> [sub]       -- local C.keep
+none = \_xml _sub-> []  -- local C.none
 
 children, elm, txt :: DFilter i
 children = local C.children

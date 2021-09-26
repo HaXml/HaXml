@@ -85,7 +85,7 @@ mkEnvironment fp s init = foldl' item (addNS init (schema_namespaces s))
     -- think about qualification, w.r.t targetNamespace, elementFormDefault, etc
     item env (Include _ _)       = env
     item env (Import _ _ _)      = env
-    item env (Redefine _ _)      = env	-- revisit this
+    item env (Redefine _ _)      = env  -- revisit this
     item env (Annotation _)      = env
     item env (Simple st)         = simple env st
     item env (Complex ct)        = complex env ct
@@ -194,4 +194,3 @@ gatherImports s =
     [ (f,Nothing)  | (Include f _)    <- schema_items s ] ++
     [ (f,ns)       | (Import uri f _) <- schema_items s
                    , let ns = targetPrefix (Just uri) (schema_namespaces s) ]
-

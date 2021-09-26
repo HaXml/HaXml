@@ -38,38 +38,38 @@ type Token = (Posn, TokenT)
 
 -- | The basic token type.
 data TokenT =
-      TokCommentOpen		-- ^   \<!--
-    | TokCommentClose		-- ^   -->
-    | TokPIOpen			-- ^   \<?
-    | TokPIClose		-- ^   ?>
-    | TokSectionOpen		-- ^   \<![
-    | TokSectionClose		-- ^   ]]>
-    | TokSection Section	-- ^   CDATA INCLUDE IGNORE etc
-    | TokSpecialOpen		-- ^   \<!
-    | TokSpecial Special	-- ^   DOCTYPE ELEMENT ATTLIST etc
-    | TokEndOpen		-- ^   \<\/
-    | TokEndClose		-- ^   \/>
-    | TokAnyOpen		-- ^   \<
-    | TokAnyClose		-- ^   >
-    | TokSqOpen			-- ^   \[
-    | TokSqClose		-- ^   \]
-    | TokEqual			-- ^   =
-    | TokQuery			-- ^   ?
-    | TokStar			-- ^   \*
-    | TokPlus			-- ^   +
-    | TokAmp			-- ^   &
-    | TokSemi			-- ^   ;
-    | TokHash			-- ^   #
-    | TokBraOpen		-- ^   (
-    | TokBraClose		-- ^   )
-    | TokPipe			-- ^   |
-    | TokPercent		-- ^   %
-    | TokComma			-- ^   ,
-    | TokQuote			-- ^   \'\' or \"\"
-    | TokName      String	-- ^   begins with letter, no spaces
-    | TokFreeText  String	-- ^   any character data
-    | TokNull			-- ^   fake token
-    | TokError     String	-- ^   lexical error
+      TokCommentOpen            -- ^   \<!--
+    | TokCommentClose           -- ^   -->
+    | TokPIOpen                 -- ^   \<?
+    | TokPIClose                -- ^   ?>
+    | TokSectionOpen            -- ^   \<![
+    | TokSectionClose           -- ^   ]]>
+    | TokSection Section        -- ^   CDATA INCLUDE IGNORE etc
+    | TokSpecialOpen            -- ^   \<!
+    | TokSpecial Special        -- ^   DOCTYPE ELEMENT ATTLIST etc
+    | TokEndOpen                -- ^   \<\/
+    | TokEndClose               -- ^   \/>
+    | TokAnyOpen                -- ^   \<
+    | TokAnyClose               -- ^   >
+    | TokSqOpen                 -- ^   \[
+    | TokSqClose                -- ^   \]
+    | TokEqual                  -- ^   =
+    | TokQuery                  -- ^   ?
+    | TokStar                   -- ^   \*
+    | TokPlus                   -- ^   +
+    | TokAmp                    -- ^   &
+    | TokSemi                   -- ^   ;
+    | TokHash                   -- ^   #
+    | TokBraOpen                -- ^   (
+    | TokBraClose               -- ^   )
+    | TokPipe                   -- ^   |
+    | TokPercent                -- ^   %
+    | TokComma                  -- ^   ,
+    | TokQuote                  -- ^   \'\' or \"\"
+    | TokName      String       -- ^   begins with letter, no spaces
+    | TokFreeText  String       -- ^   any character data
+    | TokNull                   -- ^   fake token
+    | TokError     String       -- ^   lexical error
     deriving (Eq)
 
 data Special =
@@ -86,38 +86,38 @@ data Section =
     deriving (Eq,Show)
 
 instance Show TokenT where
-  showsPrec _p TokCommentOpen		= showString     "<!--"
-  showsPrec _p TokCommentClose		= showString     "-->"
-  showsPrec _p TokPIOpen		= showString     "<?"
-  showsPrec _p TokPIClose		= showString     "?>"
-  showsPrec _p TokSectionOpen		= showString     "<!["
-  showsPrec _p TokSectionClose		= showString     "]]>"
-  showsPrec  p (TokSection s)		= showsPrec p s
-  showsPrec _p TokSpecialOpen		= showString     "<!"
-  showsPrec  p (TokSpecial s)		= showsPrec p s
-  showsPrec _p TokEndOpen		= showString     "</"
-  showsPrec _p TokEndClose		= showString     "/>"
-  showsPrec _p TokAnyOpen		= showString     "<"
-  showsPrec _p TokAnyClose		= showString     ">"
-  showsPrec _p TokSqOpen		= showString     "["
-  showsPrec _p TokSqClose		= showString     "]"
-  showsPrec _p TokEqual			= showString     "="
-  showsPrec _p TokQuery			= showString     "?"
-  showsPrec _p TokStar			= showString     "*"
-  showsPrec _p TokPlus			= showString     "+"
-  showsPrec _p TokAmp			= showString     "&"
-  showsPrec _p TokSemi			= showString     ";"
-  showsPrec _p TokHash			= showString     "#"
-  showsPrec _p TokBraOpen		= showString     "("
-  showsPrec _p TokBraClose		= showString     ")"
-  showsPrec _p TokPipe			= showString     "|"
-  showsPrec _p TokPercent		= showString     "%"
-  showsPrec _p TokComma			= showString     ","
-  showsPrec _p TokQuote			= showString     "' or \""
-  showsPrec _p (TokName      s)		= showString     s
-  showsPrec _p (TokFreeText  s)		= showString     s
-  showsPrec _p TokNull			= showString     "(null)"
-  showsPrec _p (TokError     s)		= showString     s
+  showsPrec _p TokCommentOpen           = showString     "<!--"
+  showsPrec _p TokCommentClose          = showString     "-->"
+  showsPrec _p TokPIOpen                = showString     "<?"
+  showsPrec _p TokPIClose               = showString     "?>"
+  showsPrec _p TokSectionOpen           = showString     "<!["
+  showsPrec _p TokSectionClose          = showString     "]]>"
+  showsPrec  p (TokSection s)           = showsPrec p s
+  showsPrec _p TokSpecialOpen           = showString     "<!"
+  showsPrec  p (TokSpecial s)           = showsPrec p s
+  showsPrec _p TokEndOpen               = showString     "</"
+  showsPrec _p TokEndClose              = showString     "/>"
+  showsPrec _p TokAnyOpen               = showString     "<"
+  showsPrec _p TokAnyClose              = showString     ">"
+  showsPrec _p TokSqOpen                = showString     "["
+  showsPrec _p TokSqClose               = showString     "]"
+  showsPrec _p TokEqual                 = showString     "="
+  showsPrec _p TokQuery                 = showString     "?"
+  showsPrec _p TokStar                  = showString     "*"
+  showsPrec _p TokPlus                  = showString     "+"
+  showsPrec _p TokAmp                   = showString     "&"
+  showsPrec _p TokSemi                  = showString     ";"
+  showsPrec _p TokHash                  = showString     "#"
+  showsPrec _p TokBraOpen               = showString     "("
+  showsPrec _p TokBraClose              = showString     ")"
+  showsPrec _p TokPipe                  = showString     "|"
+  showsPrec _p TokPercent               = showString     "%"
+  showsPrec _p TokComma                 = showString     ","
+  showsPrec _p TokQuote                 = showString     "' or \""
+  showsPrec _p (TokName      s)         = showString     s
+  showsPrec _p (TokFreeText  s)         = showString     s
+  showsPrec _p TokNull                  = showString     "(null)"
+  showsPrec _p (TokError     s)         = showString     s
 
 --trim, revtrim :: String -> String
 --trim    = f . f         where f = reverse . dropWhile isSpace
@@ -243,7 +243,7 @@ xmlAny w p s@('<':ss)
     | "!["  `prefixes` ss = emit TokSectionOpen p: skip 3 p s (xmlSection w)
     | "!"   `prefixes` ss = emit TokSpecialOpen p:
                                      skip 2 p s (xmlSpecial (InTag "<!...>":w))
-    | "/"   `prefixes` ss = emit TokEndOpen p: 
+    | "/"   `prefixes` ss = emit TokEndOpen p:
                                     skip 2 p s (xmlTag (InTag "</...>":tale w))
     | otherwise           = emit TokAnyOpen p:
                                  skip 1 p s (xmlTag (InTag "<...>":NotInTag:w))

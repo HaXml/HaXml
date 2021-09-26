@@ -89,12 +89,12 @@ variables = [ v:[] | v <- ['a'..'y']]
 
 ---- simple pretty-printing ----
 
-format :: Int		-- current position on page
-       -> Int		-- maximum width of page
-       -> Int		-- amount to indent when a newline is emitted
-       -> String	-- text to precede first value
-       -> String	-- text to precede subsequent values
-       -> [String]	-- list of values to format
+format :: Int           -- current position on page
+       -> Int           -- maximum width of page
+       -> Int           -- amount to indent when a newline is emitted
+       -> String        -- text to precede first value
+       -> String        -- text to precede subsequent values
+       -> [String]      -- list of values to format
         -> String
 format _cur _max _ind _s0 _s1 []     = ""
 format  cur  max  ind  s0  s1 (x:xs)

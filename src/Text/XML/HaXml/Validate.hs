@@ -36,11 +36,11 @@ lookupFM fm k = lookup k fm
 
 -- gather appropriate information out of the DTD
 data SimpleDTD = SimpleDTD
-    { elements   :: FiniteMap QName ContentSpec	-- content model of elem
+    { elements   :: FiniteMap QName ContentSpec -- content model of elem
     , attributes :: FiniteMap (QName,QName) AttType -- type of (elem,attr)
-    , required   :: FiniteMap QName [QName]	-- required attributes of elem
-    , ids        :: [(QName,QName)]	-- all (element,attr) with ID type
-    , idrefs     :: [(QName,QName)]	-- all (element,attr) with IDREF type
+    , required   :: FiniteMap QName [QName]     -- required attributes of elem
+    , ids        :: [(QName,QName)]     -- all (element,attr) with ID type
+    , idrefs     :: [(QName,QName)]     -- all (element,attr) with IDREF type
     }
 
 simplifyDTD :: DocTypeDecl -> SimpleDTD
@@ -67,7 +67,7 @@ simplifyDTD (DTD _ _ decls) =
                      , AttList (AttListDecl name attdefs) <- decls
                      , elem == name
                      , AttDef attr (TokenizedType ID) _ <- attdefs ]
-      , idrefs     = []	-- not implemented
+      , idrefs     = [] -- not implemented
       }
 
 -- simple auxiliary to avoid lots of if-then-else with empty else clauses.
@@ -97,7 +97,7 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
 
     valid (Elem name attrs contents) =
         -- is the element defined in the DTD?
-        let spec = lookupFM (elements dtd) name in 
+        let spec = lookupFM (elements dtd) name in
         (isNothing spec) `gives` ("Element <"++qname name++"> not known.")
         -- is each attribute mentioned only once?
         ++ (let dups = duplicates (map (qname . fst) attrs) in
@@ -191,7 +191,7 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
     checkCP elm cp@(Choice cps None) ns =
         let next = choice elm ns cps in
         if null next then (cpError elm cp, ns)
-        else ([], head next)	-- choose the first alternative with no errors
+        else ([], head next)    -- choose the first alternative with no errors
     checkCP _      (Choice _   Query) [] = ([],[])
     checkCP elm    (Choice cps Query) ns =
         let next = choice elm ns cps in

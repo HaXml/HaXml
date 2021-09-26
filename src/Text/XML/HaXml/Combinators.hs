@@ -56,7 +56,7 @@ import Text.XML.HaXml.Namespaces
 import Data.Maybe (fromMaybe)
 
 infixl 6 `with`, `without`
-infixr 5 `o`, `oo`, `union`, `andThen`		-- , `orelse`
+infixr 5 `o`, `oo`, `union`, `andThen`          -- , `orelse`
 infixl 5 />, </, |>|
 infixr 4 `when`, `guards`
 infixr 3 ?>, :>
@@ -184,7 +184,7 @@ f `o` g = concatMap f . g
 -- rather than one filter using the result of the other.
 --   (Has a more general type than just CFilter.)
 union :: (a->[b]) -> (a->[b]) -> (a->[b])
-union = lift (++)		-- in Haskell 98:   union = lift List.union
+union = lift (++)               -- in Haskell 98:   union = lift List.union
   where
     lift :: (a->b->d) -> (c->a) -> (c->b) -> c -> d
     lift f g h = \x-> f (g x) (h x)
@@ -201,10 +201,10 @@ cat fs = foldr1 union fs
 --   works over the same data as the first, but also uses the
 --   first's result.
 andThen :: (a->c) -> (c->a->b) -> (a->b)
-andThen f g = \x-> g (f x) x			-- lift g f id
+andThen f g = \x-> g (f x) x                    -- lift g f id
 
 -- | Process children using specified filters.
-childrenBy :: CFilter i -> CFilter i 
+childrenBy :: CFilter i -> CFilter i
 childrenBy f = f `o` children
 
 -- | Directional choice:
@@ -264,7 +264,7 @@ when   :: CFilter i -> CFilter i -> CFilter i
 --   otherwise the content is discarded.
 guards :: CFilter i -> CFilter i -> CFilter i
 f `when` g       = g ?> f :> keep
-g `guards` f     = g ?> f :> none	-- = f `o` (keep `with` g)
+g `guards` f     = g ?> f :> none       -- = f `o` (keep `with` g)
 
 -- | Process CHildren In Place.  The filter is applied to any children
 --   of an element content, and the element rebuilt around the results.
@@ -389,7 +389,7 @@ addAttribute _ _ _ = []
 -- > labelAllPaths = allPaths `o` initialise
 -- >   where
 -- >     initialise = annotateOne "/"
--- > 
+-- >
 -- >     allPaths :: CFilter a
 -- >     allPaths = inplace ( allPaths
 -- >                          `o`
@@ -478,7 +478,7 @@ textlabelled f = extracted text f
 -- | Label each content with some information extracted from itself.
 extracted :: (Content i->a) -> CFilter i -> LabelFilter i a
 extracted proj f = concatMap (\c->[(proj c, c)]) . f
-                                                                                
+
 
 
 {-
