@@ -3,4 +3,4 @@ module Text.XML.HaXml.Version
   ) where
 
 version :: String
-version  = "1.25.4"
+version  = "1.25.6"

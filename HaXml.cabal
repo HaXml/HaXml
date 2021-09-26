@@ -1,19 +1,16 @@
 cabal-version:  >= 1.8
 name:           HaXml
-version:        1.25.5
+version:        1.25.6
 
 license:        LGPL
 license-files:  COPYRIGHT, LICENCE-GPL, LICENCE-LGPL
 author:         Malcolm Wallace <Malcolm.Wallace@me.com>
-maintainer:     author
-homepage:       http://projects.haskell.org/HaXml/
-bug-reports:    https://github.com/haskell-infra/hackage-trustees/issues
+maintainer:     Jens Petersen <juhpetersen@gmail.com>
+homepage:       https://github.com/HaXml/HaXml
+bug-reports:    https://github.com/HaXml/HaXml/issues
 category:       Text, XML
 synopsis:       Utilities for manipulating XML documents
 description:
-        This version, 1.25.5 is a Non-Maintainer Upload (NMU).
-        Report issues to the Hackage Trustees issue tracker.
-        .
         Haskell utilities for parsing, filtering, transforming and
         generating XML documents.
 build-type:     Simple
@@ -21,7 +18,7 @@ extra-source-files: Changelog.md
 
 tested-with:
   GHC ==9.0.1
-   || ==8.10.4
+   || ==8.10.7
    || ==8.8.4
    || ==8.6.5
    || ==8.4.4
@@ -36,8 +33,8 @@ tested-with:
 
 source-repository this
   type:      git
-  location:  https://github.com/hackage-trustees/malcolm-wallace-universe.git
-  tag:       1.25.5
+  location:  https://github.com/HaXml/HaXml.git
+  tag:       v1.25.6
 
 library
   exposed-modules:
