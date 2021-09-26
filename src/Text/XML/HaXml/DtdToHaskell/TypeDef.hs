@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 -- | Defines an internal representation of Haskell data\/newtype definitions
 --   that correspond to the XML DTD types, and provides pretty-printers to
 --   convert these types into the 'Doc' type of "Text.PrettyPrint.HughesPJ".
@@ -17,6 +18,10 @@ module Text.XML.HaXml.DtdToHaskell.TypeDef
   , Name(..)
   , name, name_, name_a, name_ac, name_f, mangle, manglef
   ) where
+
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ((<>))
+#endif
 
 import Data.Char (isLower, isUpper, toLower, toUpper, isDigit)
 import Data.List (intersperse)

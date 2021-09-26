@@ -12,10 +12,11 @@ import Text.XML.HaXml.Schema.NameConversion
 import Text.XML.HaXml.Schema.Parse (xsd)
 
 import qualified Data.Map as Map
+import Data.Semigroup (Semigroup (..))
 import Data.Map (Map)
 import Data.List (foldl')
 import Data.Maybe (fromMaybe,fromJust,isNothing,isJust)
-import Data.Monoid
+import Data.Monoid (Monoid (..))
 
 -- | Transform a Schema by lifting all locally-defined anonymous types to
 --   the top-level, naming them, and planting a referend at their original
@@ -540,12 +541,15 @@ consolidate (Occurs min max) (UnorderedMaxLength,_,n) =
 
 instance Monoid Occurs where
     mempty = Occurs Nothing Nothing
-    (Occurs Nothing  Nothing)  `mappend` o  = o
-    (Occurs (Just z) Nothing)  `mappend` (Occurs min max)
+    mappend = (<>)
+
+instance Semigroup Occurs where
+    (Occurs Nothing  Nothing)  <> o  = o
+    (Occurs (Just z) Nothing)  <> (Occurs min max)
                                         = Occurs (Just $ maybe z (*z) min) max
-    (Occurs Nothing  (Just x)) `mappend` (Occurs min max)
+    (Occurs Nothing  (Just x)) <> (Occurs min max)
                                         = Occurs min (Just $ maybe x (*x) max)
-    (Occurs (Just z) (Just x)) `mappend` (Occurs min max)
+    (Occurs (Just z) (Just x)) <> (Occurs min max)
                                         = Occurs (Just $ maybe z (*z) min)
                                                  (Just $ maybe x (*x) max)
 

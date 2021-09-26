@@ -2,7 +2,8 @@ module Text.XML.HaXml.Schema.XSDTypeModel
   ( module Text.XML.HaXml.Schema.XSDTypeModel
   ) where
 
-import Data.Monoid hiding (Any)
+import Data.Semigroup (Semigroup (..))
+import Data.Monoid (Monoid (..))
 import Text.XML.HaXml.Types      (Name,Namespace,QName)
 
 data Schema        = Schema
@@ -56,7 +57,7 @@ data SimpleType    = Primitive  { simple_primitive   :: PrimitiveType }
                      deriving (Eq,Show)
 
 data Restriction   = RestrictSim1 { restrict_annotation :: Annotation
-                                  , restrict_base       :: Maybe QName 
+                                  , restrict_base       :: Maybe QName
                                   , restrict_r1         :: Restriction1
                                   }
                    | RestrictType { restrict_annotation :: Annotation
@@ -248,7 +249,7 @@ data PrimitiveType = String | Boolean | Decimal | Float | Double
                    | Base64Binary | HexBinary
                    | AnyURI | QName | Notation
                      deriving (Eq,Show)
-               
+
 
 data MyRestriction = Range Occurs
                    | Pattern Regexp
@@ -293,15 +294,21 @@ type TypeName      = String
 
 instance Monoid Annotation where
   mempty = NoAnnotation "Monoid.mempty <Annotation>"
-  (Documentation d) `mappend` (Documentation e) = Documentation (d++"\n"++e)
-  _                 `mappend` (Documentation e) = Documentation e
-  ann               `mappend` _                 = ann          
+  mappend = (<>)
 
--- This instance is pretty unsatisfactory, and is useful only for
+instance Semigroup Annotation where
+  (Documentation d) <> (Documentation e) = Documentation (d++"\n"++e)
+  _                 <> (Documentation e) = Documentation e
+  ann               <> _                 = ann
+
+-- | This instance is pretty unsatisfactory, and is useful only for
 -- building environments involving recursive modules.  The /mappend/
 -- method is left-biased, and the /mempty/ value contains lots of
 -- undefined values.
 instance Monoid Schema where
   mempty        = Schema{ schema_items=[] }
-  s `mappend` t = s{ schema_items = schema_items s ++ schema_items t }
+  mappend       = (<>)
+
+instance Semigroup Schema where
+  s <> t = s{ schema_items = schema_items s ++ schema_items t }
 

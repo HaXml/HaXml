@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 -- | This is a pretty-printer for turning the internal representation
 --   of generic structured XML documents into the Doc type (which can
 --   later be rendered using Text.PrettyPrint.HughesPJ.render).
@@ -21,7 +22,12 @@ module Text.XML.HaXml.Pretty
   ,   cp
   ) where
 
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding (maybe,either,(<>))
+#else
 import Prelude hiding (maybe,either)
+#endif
+
 import Data.Maybe hiding (maybe)
 import Data.List (intersperse)
 --import Char (isSpace)

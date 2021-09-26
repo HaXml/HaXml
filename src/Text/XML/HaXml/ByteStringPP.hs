@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 -- | This is a fast non-pretty-printer for turning the internal representation
 --   of generic structured XML documents into Lazy ByteStrings.
 --   Like in Text.Xml.HaXml.Pretty, there is one pp function for each type in
@@ -20,7 +21,12 @@ module Text.XML.HaXml.ByteStringPP
   ,   cp
   ) where
 
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding (maybe,either,elem,concat,(<>))
+#else
 import Prelude hiding (maybe,either,elem,concat)
+#endif
+
 import Data.Maybe hiding (maybe)
 import Data.List (intersperse)
 --import Data.ByteString.Lazy hiding (pack,map,head,any,singleton,intersperse,join)

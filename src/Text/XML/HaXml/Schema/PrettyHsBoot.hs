@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 -- | Pretty-print the internal Haskell model of XSD datatypes to a
 --   Haskell hs-boot module containing only stub type declarations.
 --   This approach is intended to work around issues of mutually recursive
@@ -9,6 +10,10 @@ module Text.XML.HaXml.Schema.PrettyHsBoot
   , ppHighLevelDecls
   , ppvList
   ) where
+
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ((<>))
+#endif
 
 import Text.XML.HaXml.Types (QName(..),Namespace(..))
 import Text.XML.HaXml.Schema.HaskellTypeModel

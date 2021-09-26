@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 -- | This is a separate pretty-printer for HTML documents, recognising
 --   some of the differences between HTML and true XML.
 
@@ -8,7 +9,12 @@ module Text.XML.HaXml.Html.Pretty
   , content
   ) where
 
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding (maybe,either,(<>))
+#else
 import Prelude hiding (maybe,either)
+#endif
+
 import Data.Maybe hiding (maybe)
 import Data.List (intersperse)
 import Data.Char (isSpace)

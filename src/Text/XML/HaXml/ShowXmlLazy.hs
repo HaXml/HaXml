@@ -1,11 +1,17 @@
+{-# LANGUAGE CPP #-}
 module Text.XML.HaXml.ShowXmlLazy (showXmlLazy) where
 
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Namespaces
 import Text.XML.HaXml.TypeMapping -- (toHType, toDTD, Tuple(), Defined, showHType)
 
-import qualified Text.XML.HaXml.XmlContent as X
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding (maybe,either,(<>))
+#else
 import Prelude hiding (maybe,either)
+#endif
+
+import qualified Text.XML.HaXml.XmlContent as X
 import Data.Maybe hiding (maybe)
 import Data.List
 

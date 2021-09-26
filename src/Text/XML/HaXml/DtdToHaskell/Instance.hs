@@ -1,6 +1,11 @@
+{-# LANGUAGE CPP #-}
 module Text.XML.HaXml.DtdToHaskell.Instance
   ( mkInstance
   ) where
+
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ((<>))
+#endif
 
 import Data.List (intersperse)
 

@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 -- | Pretty-print the internal Haskell model of XSD datatypes to a real
 --   Haskell module containing type declarations, and instances for parsing
 --   (and printing - though not yet implemented) values of those datatypes
@@ -9,6 +10,10 @@ module Text.XML.HaXml.Schema.PrettyHaskell
   , ppHighLevelDecls
   , ppvList
   ) where
+
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ((<>))
+#endif
 
 import Text.XML.HaXml.Types (QName(..),Namespace(..))
 import Text.XML.HaXml.Schema.HaskellTypeModel
