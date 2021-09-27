@@ -1,4 +1,4 @@
-cabal-version:  >= 1.8
+cabal-version:  >= 1.10
 name:           HaXml
 version:        1.25.6
 
@@ -95,61 +95,70 @@ library
   if !impl(ghc >= 8.0)
     build-depends:
       semigroups >= 0.18.5  && < 0.19
-  extensions: CPP, ExistentialQuantification
+  default-language: Haskell98
+  default-extensions: CPP, ExistentialQuantification
   nhc98-options: -K10M
 
 Executable Canonicalise
   GHC-Options: -Wall
-  Extensions:  CPP
+  Default-Language: Haskell98
+  Default-Extensions:  CPP
   Hs-Source-Dirs: src/tools
   Main-Is: Canonicalise.hs
   build-depends: base, HaXml, pretty
 
 Executable CanonicaliseLazy
   GHC-Options: -Wall
-  Extensions:  CPP
+  Default-Language: Haskell98
+  Default-Extensions:  CPP
   Hs-Source-Dirs: src/tools
   Main-Is: CanonicaliseLazy.hs
   build-depends: base, HaXml, pretty
 
 Executable Xtract
   GHC-Options: -Wall
-  Extensions:  CPP
+  Default-Language: Haskell98
+  Default-Extensions:  CPP
   Hs-Source-Dirs: src/tools
   Main-Is: Xtract.hs
   build-depends: base, HaXml, pretty
 
 Executable Validate
   GHC-Options: -Wall
-  Extensions:  CPP
+  Default-Language: Haskell98
+  Default-Extensions:  CPP
   Hs-Source-Dirs: src/tools
   Main-Is: Validate.hs
   build-depends: base, HaXml
 
 Executable MkOneOf
   GHC-Options: -Wall
-  Extensions:  CPP
+  Default-Language: Haskell98
+  Default-Extensions:  CPP
   Hs-Source-Dirs: src/tools
   Main-Is: MkOneOf.hs
   build-depends: base, HaXml
 
 Executable DtdToHaskell
   GHC-Options: -Wall
-  Extensions:  CPP
+  Default-Language: Haskell98
+  Default-Extensions:  CPP
   Hs-Source-Dirs: src/tools
   Main-Is: DtdToHaskell.hs
   build-depends: base, HaXml, pretty
 
 Executable XsdToHaskell
   GHC-Options: -Wall
-  Extensions:  CPP
+  Default-Language: Haskell98
+  Default-Extensions:  CPP
   Hs-Source-Dirs: src/tools
   Main-Is: XsdToHaskell.hs
   build-depends: base, HaXml, pretty, polyparse, directory
 
 Executable FpMLToHaskell
   GHC-Options: -Wall
-  Extensions:  CPP
+  Default-Language: Haskell98
+  Default-Extensions:  CPP
   Hs-Source-Dirs: src/tools
   Main-Is: FpMLToHaskell.hs
   build-depends: base, HaXml, pretty, polyparse, directory

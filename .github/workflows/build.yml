@@ -30,4 +30,5 @@ jobs:
       - run: cabal update
       - run: cabal build
       - run: cabal haddock
+      - run: cabal check
       - run: cabal sdist
