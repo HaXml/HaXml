@@ -17,8 +17,6 @@ import System.Directory
 import Data.List
 import Data.Maybe (fromMaybe,catMaybes)
 import Data.Function (on)
-import Data.Monoid (mconcat)
---import Either
 
 import Text.XML.HaXml            (version)
 import Text.XML.HaXml.Types
@@ -37,7 +35,7 @@ import Text.XML.HaXml.Schema.PrettyHaskell
 import qualified Text.XML.HaXml.Schema.PrettyHsBoot     as HsBoot
 import qualified Text.XML.HaXml.Schema.HaskellTypeModel as Haskell
 import Text.ParserCombinators.Poly
-import Text.PrettyPrint.HughesPJ (render,vcat)
+import Text.PrettyPrint.HughesPJ (render)
 
 fst3 :: (a,b,c) -> a
 fst3 (a,_,_) = a
@@ -67,14 +65,14 @@ argDirsToFiles = do
             exitFailure
  where
   reslash = map (\c-> case c of '.'->'/'; _->c)
-  dirOf   = concat . intersperse "/" . init . wordsBy '.'
-  wordsBy c s = let (a,b) = span (/=c) s in
-                if null b then [a] else a: wordsBy c (tail b)
+  dirOf   = concat . intersperse "/" . init . wordsBy' '.'
+  wordsBy' c s = let (a,b) = span (/=c) s in
+                if null b then [a] else a: wordsBy' c (tail b)
 
 main ::IO ()
 main = do
     (dir,files) <- argDirsToFiles
-    deps <- flip mapM files (\ (inf,outf)-> do
+    deps <- flip mapM files (\ (inf,_outf)-> do
         hPutStrLn stdout $ "Reading "++inf
         thiscontent <- readFileUTF8 (dir++"/"++inf)
         let d@Document{} = resolveAllNames qualify
@@ -171,36 +169,36 @@ bootf x = case reverse x of
 -- | Calculate dependency ordering of modules, least dependent first.
 --   Cyclic groups may occur, suitably placed in the ordering.
 ordered :: (Eq a, Eq b) => (b->a) -> (b->[a]) -> (a->Maybe b) -> [b] -> [[b]]
-ordered name deps env list =
-    let cycles    = cyclicDeps name deps env list
+ordered name' deps env list =
+    let cycles    = cyclicDeps name' deps env list
         noncyclic = map (:[]) $ list \\ concat cycles
         workqueue = noncyclic++cycles
-    in traverse [] workqueue
+    in traverse' [] workqueue
   where
-    traverse acc []     = acc
-    traverse acc (w:wq) = if all (`elem` concatMap (map name) acc)
-                                 (concatMap deps w \\ map name w)
-                          then traverse (acc++[w]) wq
-                          else traverse     acc   (wq++[w])
+    traverse' acc []     = acc
+    traverse' acc (w:wq) = if all (`elem` concatMap (map name') acc)
+                                 (concatMap deps w \\ map name' w)
+                          then traverse' (acc++[w]) wq
+                          else traverse'     acc   (wq++[w])
 
 -- | Find cyclic dependencies between modules.
 cyclicDeps :: Eq a => (b->a) -> (b->[a]) -> (a->Maybe b) -> [b] -> [[b]]
-cyclicDeps name deps env = nubBy (setEq`on`map name)
+cyclicDeps name' deps env = nubBy (setEq`on`map name')
                            . (\cs-> foldl minimal cs cs)
                            . concatMap (walk [])
   where
 --  walk :: [b] -> b -> [[b]]
-    walk acc t = if name t `elem` map name acc then [acc]
+    walk acc t = if name' t `elem` map name' acc then [acc]
                  else concatMap (walk (t:acc)) (catMaybes . map env $ deps t)
     minimal acc c = concatMap (prune c) acc
-    prune c c' = if map name c `isProperSubsetOf` map name c' then [] else [c']
+    prune c c' = if map name' c `isProperSubsetOf` map name' c' then [] else [c']
     isSubsetOf a b = all (`elem`b) a
     setEq a b            = a`isSubsetOf`b &&      b`isSubsetOf`a
     isProperSubsetOf a b = a`isSubsetOf`b && not (b`isSubsetOf`a)
 
 -- | A variation on the standard lookup function.
 lookupWith :: Eq a => (b->a) -> a -> [b] -> Maybe b
-lookupWith proj x [] = Nothing
+lookupWith _ _ [] = Nothing
 lookupWith proj x (y:ys) | proj y == x = Just y
                          | otherwise   = lookupWith proj x ys
 

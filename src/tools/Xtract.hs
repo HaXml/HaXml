@@ -1,6 +1,6 @@
 ------------------------------------------------------------
 -- The Xtract tool - an XML-grep.
------------------------------------------------------------- 
+------------------------------------------------------------
 module Main where
 import System.Environment (getArgs)
 import System.Exit        (exitWith, ExitCode(..))
@@ -29,6 +29,7 @@ escape = xmlEscapeContent stdXmlEscaper
 
 data Opts = Opts {doEscaping :: Bool, forceHtml :: Bool, printHelp :: Bool, printVersion :: Bool, beLazy :: Bool}
 
+defaultOptions :: Opts
 defaultOptions = Opts {doEscaping = True, forceHtml = False, printHelp = False, printVersion = False, beLazy = False}
 
 options :: [OptDescr (Opts -> Opts)]
@@ -48,7 +49,7 @@ options = [
 main :: IO ()
 main = do
   preArgs <- getArgs
-  let (preOpts, args, errs) = getOpt Permute options preArgs
+  let (preOpts, args, _errs) = getOpt Permute options preArgs
   let opts = foldl (flip ($)) defaultOptions preOpts
   when (printVersion opts) $ do
       putStrLn $ "part of HaXml-"++version
@@ -59,9 +60,9 @@ main = do
   when (length args < 1) $ do
       putStrLn $ usageInfo "Usage: Xtract [options] <pattern> [xmlfile ...]" options
       exitWith (ExitFailure 1)
-  let (xmlParse, htmlParse) = if beLazy opts then 
-        (Text.XML.HaXml.ParseLazy.xmlParse, Text.XML.HaXml.Html.ParseLazy.htmlParse) 
-        else 
+  let (xmlParse, htmlParse) = if beLazy opts then
+        (Text.XML.HaXml.ParseLazy.xmlParse, Text.XML.HaXml.Html.ParseLazy.htmlParse)
+        else
         (Text.XML.HaXml.Parse.xmlParse, Text.XML.HaXml.Html.Parse.htmlParse)
   let (pattern,files,esc) =
           (head args,tail args,if doEscaping opts then escape .(:[]) else (:[]))

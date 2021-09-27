@@ -29,7 +29,7 @@ import Text.XML.HaXml.Schema.TypeConversion
 import Text.XML.HaXml.Schema.PrettyHaskell
 import qualified Text.XML.HaXml.Schema.HaskellTypeModel as Haskell
 import Text.ParserCombinators.Poly
-import Text.PrettyPrint.HughesPJ (render,vcat)
+import Text.PrettyPrint.HughesPJ (render)
 
 -- sucked in from Text.XML.HaXml.Wrappers to avoid dependency on T.X.H.Html
 fix2Args :: IO (String,String)
@@ -78,7 +78,7 @@ main =
                            hPutStrLn stdout $ "\n-----------------\n"
     hFlush o
 
-  
+
 --do hPutStrLn o $ "Document contains XSD for target namespace "++
 --                 targetNamespace e
   {-
