@@ -155,10 +155,13 @@ instance SimpleType Duration where
                                                `onFail` return 0)
                                       `apply` ((parseFloat `discard` isNext 'S')
                                                `onFail` return 0)
+    simpleTypeText (Duration pos 0 0 0 0 0 0) = (if pos then "" else "-")++"P0S"
     simpleTypeText (Duration pos y m d h n s) =
-        (if pos then "" else "-")++show y++"Y"++show m++"M"++show d++"D"
-        ++"T"++show h++"H"++show n++"M"++show s++"S"
-
+        (if pos then "" else "-")++"P"++showUnit y 'Y'++showUnit m 'M'++showUnit d 'D'++showTime
+      where
+        showUnit :: (Num a,Eq a,Show a) => a -> Char -> String
+        showUnit n u = if n == 0 then "" else show n ++ [u]
+        showTime = if (h,n,s) == (0,0,0) then "" else "T"++showUnit h 'H'++showUnit n 'M'++showUnit s 'S'
 instance SimpleType DateTime where
     acceptingParser = fmap DateTime (many next)
  -- acceptingParser = fail "not implemented: simpletype parser for DateTime"
