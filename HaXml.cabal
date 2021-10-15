@@ -1,6 +1,6 @@
 cabal-version:  >= 1.10
 name:           HaXml
-version:        1.25.6
+version:        1.25.7
 
 license:        LGPL
 license-files:  COPYRIGHT, LICENCE-GPL, LICENCE-LGPL
