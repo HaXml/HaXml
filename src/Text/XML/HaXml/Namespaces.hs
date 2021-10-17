@@ -16,6 +16,7 @@ module Text.XML.HaXml.Namespaces
 import Prelude hiding (lookup)
 import Text.XML.HaXml.Types
 import Data.Map as Map (Map, insert, lookup, empty)
+import Data.Maybe (fromMaybe)
 import Data.List (isPrefixOf)
 
 -- | The null Namespace (no prefix, no URI).
@@ -57,13 +58,13 @@ printableName (QN ns n) | null (nsPrefix ns) = n
 qualify :: Maybe Namespace -> Map String Namespace -> QName -> QName
 qualify def env (N n)
         | ':'`elem`n      = let (pre,':':nm) = span (/=':') n in
-                            QN (maybe nullNamespace{nsPrefix=pre} id
+                            QN (fromMaybe nullNamespace {nsPrefix=pre}
                                       (Map.lookup pre env))
                                nm
         | Just d <- def   = QN d n
         | otherwise       = N n
 qualify _ env qn@(QN ns n)
-        | null (nsURI ns) = QN (maybe ns id (Map.lookup (nsPrefix ns) env)) n
+        | null (nsURI ns) = QN (fromMaybe ns (Map.lookup (nsPrefix ns) env)) n
         | otherwise       = qn
 
 -- | 'deQualify' has the same signature as 'qualify', but ignores the
@@ -83,13 +84,13 @@ qualifyExceptLocal Nothing    env  qn   = qualify Nothing env qn
 qualifyExceptLocal (Just def) env (N n)
         | ':'`elem`n      = let (pre,':':nm) = span (/=':') n in
                             if nsPrefix def == pre then N nm
-                            else QN (maybe nullNamespace{nsPrefix=pre} id
+                            else QN (fromMaybe nullNamespace{nsPrefix=pre}
                                           (Map.lookup pre env))
                                     nm
         | otherwise       = N n
 qualifyExceptLocal (Just def) env qn@(QN ns n)
         | def==ns         = N n
-        | null (nsURI ns) = QN (maybe ns id (Map.lookup (nsPrefix ns) env)) n
+        | null (nsURI ns) = QN (fromMaybe ns (Map.lookup (nsPrefix ns) env)) n
         | otherwise       = qn
 
 -- | The initial Namespace environment.  It always has bindings for the
@@ -100,7 +101,7 @@ initNamespaceEnv =
                                   ,nsURI="http://www.w3.org/2000/xmlns/"}
     $ Map.insert "xml"   Namespace{nsPrefix="xml"
                                   ,nsURI="http://www.w3.org/XML/1998/namespace"}
-    $ Map.empty
+      Map.empty
 
 -- | Add a fresh Namespace into the Namespace environment.  It is not
 --   permitted to rebind the prefixes 'xml' or 'xmlns', but that is not
@@ -130,7 +131,7 @@ resolveAllNames qualify (Document prolog entities elm misc) =
   where
     qualifyInDTD = qualify Nothing initNamespaceEnv
     walkProlog (Prolog xml misc0 mDTD misc1) =
-                Prolog xml misc0 (maybe Nothing (Just . walkDTD) mDTD) misc1
+                Prolog xml misc0 (fmap walkDTD mDTD) misc1
     walkDTD (DTD qn ext mds)     = DTD (qualifyInDTD qn) ext (map walkMD mds)
     --
     walkMD (Element ed)          = Element (walkED ed)
@@ -158,17 +159,17 @@ resolveAllNames qualify (Document prolog entities elm misc) =
                       Elem (qualify def' env' qn)
                            (map (\ (a,v)-> (qualify Nothing env' a, v)) attrs)
                            (map (walkContent def' env') conts)
-        where def' = foldr const def  -- like "maybe def head", but for lists
-                           (map defNamespace (matching (=="xmlns") attrs))
-              env' = foldr augmentNamespaceEnv env
-                           (map mkNamespace
-                                (matching ("xmlns:"`isPrefixOf`) attrs))
+                      -- like "maybe def head", but for lists
+        where def' = foldr (const . defNamespace) def
+                     (matching (=="xmlns") attrs)
+              env' = foldr (augmentNamespaceEnv . mkNamespace) env
+                     (matching ("xmlns:"`isPrefixOf`) attrs)
               defNamespace :: Attribute -> Maybe Namespace
               defNamespace (_ {-N "xmlns"-}, atv)
                       | null (show atv) = Nothing
                       | otherwise       = Just nullNamespace{nsURI=show atv}
               mkNamespace :: Attribute -> Namespace
-              mkNamespace (N n, atv)  = let (_,':':nm) = span (/=':') n in 
+              mkNamespace (N n, atv)  = let (_,':':nm) = span (/=':') n in
                                         Namespace{nsPrefix=nm,nsURI=show atv}
               matching :: (String->Bool) -> [Attribute] -> [Attribute]
               matching p = filter (p . printableName . fst)

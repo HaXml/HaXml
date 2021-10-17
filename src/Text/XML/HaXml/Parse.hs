@@ -1,4 +1,4 @@
-{-# OPTIONS -cpp #-}
+{-# LANGUAGE CPP #-}
 -- | A non-validating XML parser.  For the input grammar, see
 --   <http://www.w3.org/TR/REC-xml>.
 module Text.XML.HaXml.Parse
@@ -32,7 +32,7 @@ module Text.XML.HaXml.Parse
 import Prelude hiding (either,maybe,sequence)
 import qualified Prelude (either)
 import Data.Maybe hiding (maybe)
-import Data.List (intersperse)       -- debugging only
+import Data.List (intercalate)
 import Data.Char (isSpace,isDigit,isHexDigit)
 import Control.Monad hiding (sequence)
 import Numeric (readDec,readHex)
@@ -192,13 +192,13 @@ freetext = do (p,t) <- next
 
 maybe :: XParser a -> XParser (Maybe a)
 maybe p =
-    ( p >>= return . Just) `onFail`
-    ( return Nothing)
+    ( Just <$> p) `onFail`
+    return Nothing
 
 either :: XParser a -> XParser b -> XParser (Either a b)
 either p q =
-    ( p >>= return . Left) `onFail`
-    ( q >>= return . Right)
+    ( Left <$> p) `onFail`
+    ( Right <$> q)
 
 word :: String -> XParser ()
 word s = do { x <- next
@@ -216,7 +216,7 @@ posn = do { x@(p,_) <- next
           }
 
 nmtoken :: XParser NmToken
-nmtoken = (string `onFail` freetext)
+nmtoken = string `onFail` freetext
 
 failP, failBadP :: String -> XParser a
 failP msg = do { p <- posn; fail (msg++"\n    at "++show p) }
@@ -333,7 +333,7 @@ prolog = do
 xmldecl :: XParser XMLDecl
 xmldecl = do
     tok TokPIOpen
-    (word "xml" `onFail` word "XML")
+    word "xml" `onFail` word "XML"
     p <- posn
     s <- freetext
     tok TokPIClose `onFail` failBadP "missing ?> in <?xml ...?>"
@@ -349,14 +349,14 @@ xmldecl = do
 
 versioninfo :: XParser VersionInfo
 versioninfo = do
-    (word "version" `onFail` word "VERSION")
+    word "version" `onFail` word "VERSION"
     tok TokEqual
     bracket (tok TokQuote) (commit $ tok TokQuote) freetext
 
 misc :: XParser Misc
 misc =
-    oneOf' [ ("<!--comment-->",  comment >>= return . Comment)
-           , ("<?PI?>",          processinginstruction >>= return . PI)
+    oneOf' [ ("<!--comment-->",  Comment <$> comment)
+           , ("<?PI?>",          PI <$> processinginstruction)
            ]
 
 -- | Return a DOCTYPE decl, indicating a DTD.
@@ -370,16 +370,16 @@ doctypedecl = do
       es  <- maybe (bracket (tok TokSqOpen) (commit $ tok TokSqClose)
                             (many (peRef markupdecl)))
       blank (tok TokAnyClose)  `onFail` failP "missing > in DOCTYPE decl"
-      return (DTD n eid (case es of { Nothing -> []; Just e -> e }))
+      return (DTD n eid (fromMaybe [] es))
 
 -- | Return a DTD markup decl, e.g. ELEMENT, ATTLIST, etc
 markupdecl :: XParser MarkupDecl
 markupdecl =
-  oneOf' [ ("ELEMENT",  elementdecl  >>= return . Element)
-         , ("ATTLIST",  attlistdecl  >>= return . AttList)
-         , ("ENTITY",   entitydecl   >>= return . Entity)
-         , ("NOTATION", notationdecl >>= return . Notation)
-         , ("misc",     misc         >>= return . MarkupMisc)
+  oneOf' [ ("ELEMENT",  Element <$> elementdecl )
+         , ("ATTLIST",  AttList <$> attlistdecl )
+         , ("ENTITY",   Entity <$> entitydecl )
+         , ("NOTATION", Notation <$> notationdecl)
+         , ("misc",     MarkupMisc <$> misc )
          ]
     `adjustErrP`
           ("when looking for a markup decl,\n"++)
@@ -393,12 +393,12 @@ extsubset = do
 
 extsubsetdecl :: XParser ExtSubsetDecl
 extsubsetdecl =
-    ( markupdecl >>= return . ExtMarkupDecl) `onFail`
-    ( conditionalsect >>= return . ExtConditionalSect)
+    ( ExtMarkupDecl <$> markupdecl) `onFail`
+    ( ExtConditionalSect <$> conditionalsect)
 
 sddecl :: XParser SDDecl
 sddecl = do
-    (word "standalone" `onFail` word "STANDALONE")
+    word "standalone" `onFail` word "STANDALONE"
     commit $ do
       tok TokEqual `onFail` failP "missing = in 'standalone' decl"
       bracket (tok TokQuote) (commit $ tok TokQuote)
@@ -488,11 +488,11 @@ content =
      ; return (c' p)
      }
   where
-     content' = oneOf' [ ("element",   element   >>= return . CElem)
-                       , ("chardata",  chardata  >>= return . CString False)
-                       , ("reference", reference >>= return . CRef)
-                       , ("CDATA",     cdsect    >>= return . CString True)
-                       , ("misc",      misc      >>= return . CMisc)
+     content' = oneOf' [ ("element",   CElem <$> element )
+                       , ("chardata",  CString False <$> chardata )
+                       , ("reference", CRef <$> reference)
+                       , ("CDATA",     CString True <$> cdsect )
+                       , ("misc",      CMisc <$> misc )
                        ]
                   `adjustErrP` ("when looking for a content item,\n"++)
 -- (\    (element, text, reference, CDATA section, <!--comment-->, or <?PI?>")
@@ -515,8 +515,8 @@ contentspec :: XParser ContentSpec
 contentspec =
     oneOf' [ ("EMPTY",  peRef (word "EMPTY") >> return EMPTY)
            , ("ANY",    peRef (word "ANY") >> return ANY)
-           , ("mixed",  peRef mixed >>= return . Mixed)
-           , ("simple", peRef cp >>= return . ContentSpec)
+           , ("mixed",  Mixed <$> peRef mixed)
+           , ("simple", ContentSpec <$> peRef cp)
            ]
  --   `adjustErr` ("when looking for content spec,\n"++)
  --   `adjustErr` (++"\nLooking for content spec (EMPTY, ANY, mixed, etc)")
@@ -534,33 +534,33 @@ sequence = do
             (peRef cp `sepBy1` blank (tok TokComma))
 
 cp :: XParser CP
-cp = oneOf [ ( do n <- qname
-                  m <- modifier
-                  let c = TagName n m
-                  return c `debug` ("ContentSpec: name "++debugShowCP c))
-           , ( do ss <- sequence
-                  m <- modifier
-                  let c = Seq ss m
-                  return c `debug` ("ContentSpec: sequence "++debugShowCP c))
-           , ( do cs <- choice
-                  m <- modifier
-                  let c = Choice cs m
-                  return c `debug` ("ContentSpec: choice "++debugShowCP c))
+cp = oneOf [ do n <- qname
+                m <- modifier
+                let c = TagName n m
+                return c `debug` ("ContentSpec: name "++debugShowCP c)
+           , do ss <- sequence
+                m <- modifier
+                let c = Seq ss m
+                return c `debug` ("ContentSpec: sequence "++debugShowCP c)
+           , do cs <- choice
+                m <- modifier
+                let c = Choice cs m
+                return c `debug` ("ContentSpec: choice "++debugShowCP c)
            ] `adjustErr` (++"\nwhen looking for a content particle")
 
 modifier :: XParser Modifier
-modifier = oneOf [ ( tok TokStar >> return Star )
-                 , ( tok TokQuery >> return Query )
-                 , ( tok TokPlus >> return Plus )
-                 , ( return None )
+modifier = oneOf [ tok TokStar >> return Star
+                 , tok TokQuery >> return Query
+                 , tok TokPlus >> return Plus
+                 , return None
                  ]
 
 -- just for debugging
 debugShowCP :: CP -> String
 debugShowCP cp = case cp of
     TagName n m  -> printableName n++debugShowModifier m
-    Choice cps m -> '(': concat (intersperse "|" (map debugShowCP cps))++")"++debugShowModifier m
-    Seq cps m    -> '(': concat (intersperse "," (map debugShowCP cps))++")"++debugShowModifier m
+    Choice cps m -> '(': intercalate "|" (map debugShowCP cps)++")"++debugShowModifier m
+    Seq cps m    -> '(': intercalate "," (map debugShowCP cps)++")"++debugShowModifier m
 debugShowModifier :: Modifier -> String
 debugShowModifier modifier = case modifier of
     None  -> ""
@@ -575,12 +575,12 @@ mixed = do
     peRef (do tok TokHash
               word "PCDATA")
     commit $
-      oneOf [ ( do cs <- many (peRef (do tok TokPipe
-                                         peRef qname))
-                   blank (tok TokBraClose >> tok TokStar)
-                   return (PCDATAplus cs))
-            , ( blank (tok TokBraClose >> tok TokStar) >> return PCDATA)
-            , ( blank (tok TokBraClose) >> return PCDATA)
+      oneOf [ do cs <- many (peRef (do tok TokPipe
+                                       peRef qname))
+                 blank (tok TokBraClose >> tok TokStar)
+                 return (PCDATAplus cs)
+            , blank (tok TokBraClose >> tok TokStar) >> return PCDATA
+            , blank (tok TokBraClose) >> return PCDATA
             ]
         `adjustErrP` (++"\nLooking for mixed content spec (#PCDATA | ...)*\n")
 
@@ -605,21 +605,21 @@ attdef =
 atttype :: XParser AttType
 atttype =
     oneOf' [ ("CDATA",      word "CDATA" >> return StringType)
-           , ("tokenized",  tokenizedtype >>= return . TokenizedType)
-           , ("enumerated", enumeratedtype >>= return . EnumeratedType)
+           , ("tokenized",  TokenizedType <$> tokenizedtype)
+           , ("enumerated", EnumeratedType <$> enumeratedtype)
            ]
       `adjustErr` ("looking for ATTTYPE,\n"++)
  --   `adjustErr` (++"\nLooking for ATTTYPE (CDATA, tokenized, or enumerated")
 
 tokenizedtype :: XParser TokenizedType
 tokenizedtype =
-    oneOf [ ( word "ID" >> return ID)
-          , ( word "IDREF" >> return IDREF)
-          , ( word "IDREFS" >> return IDREFS)
-          , ( word "ENTITY" >> return ENTITY)
-          , ( word "ENTITIES" >> return ENTITIES)
-          , ( word "NMTOKEN" >> return NMTOKEN)
-          , ( word "NMTOKENS" >> return NMTOKENS)
+    oneOf [ word "ID" >> return ID
+          , word "IDREF" >> return IDREF
+          , word "IDREFS" >> return IDREFS
+          , word "ENTITY" >> return ENTITY
+          , word "ENTITIES" >> return ENTITIES
+          , word "NMTOKEN" >> return NMTOKEN
+          , word "NMTOKENS" >> return NMTOKENS
           ] `onFail`
     do { t <- next
        ; failP ("Expected one of"
@@ -629,8 +629,8 @@ tokenizedtype =
 
 enumeratedtype :: XParser EnumeratedType
 enumeratedtype =
-    oneOf' [ ("NOTATION",   notationtype >>= return . NotationType)
-           , ("enumerated", enumeration >>= return . Enumeration)
+    oneOf' [ ("NOTATION",   NotationType <$> notationtype)
+           , ("enumerated", Enumeration <$> enumeration)
            ]
       `adjustErr` ("looking for an enumerated or NOTATION type,\n"++)
 
@@ -719,8 +719,8 @@ reference = do
 
 {- -- following is incorrect
 reference =
-    ( charref >>= return . RefChar) `onFail`
-    ( entityref >>= return . RefEntity)
+    ( RefChar <$> charref) `onFail`
+    ( RefEntity <$> entityref)
 
 entityref :: XParser EntityRef
 entityref = do
@@ -741,8 +741,8 @@ pereference = do
 
 entitydecl :: XParser EntityDecl
 entitydecl =
-    ( gedecl >>= return . EntityGEDecl) `onFail`
-    ( pedecl >>= return . EntityPEDecl)
+    ( EntityGEDecl <$> gedecl) `onFail`
+    ( EntityPEDecl <$> pedecl)
 
 gedecl :: XParser GEDecl
 gedecl = do
@@ -767,7 +767,7 @@ pedecl = do
 
 entitydef :: XParser EntityDef
 entitydef =
-    oneOf' [ ("entityvalue", entityvalue >>= return . DefEntityValue)
+    oneOf' [ ("entityvalue", DefEntityValue <$> entityvalue)
            , ("external",    do eid <- externalid
                                 ndd <- maybe ndatadecl
                                 return (DefExternalID eid ndd))
@@ -775,32 +775,29 @@ entitydef =
 
 pedef :: XParser PEDef
 pedef =
-    oneOf' [ ("entityvalue", entityvalue >>= return . PEDefEntityValue)
-           , ("externalid",  externalid  >>= return . PEDefExternalID)
+    oneOf' [ ("entityvalue", PEDefEntityValue <$> entityvalue)
+           , ("externalid",  PEDefExternalID <$> externalid )
            ]
 
 externalid :: XParser ExternalID
 externalid =
     oneOf' [ ("SYSTEM", do word "SYSTEM"
-                           s <- systemliteral
-                           return (SYSTEM s) )
+                           SYSTEM <$> systemliteral)
            , ("PUBLIC", do word "PUBLIC"
                            p <- pubidliteral
-                           s <- systemliteral
-                           return (PUBLIC p s) )
+                           PUBLIC p <$> systemliteral)
            ]
       `adjustErr` ("looking for an external id,\n"++)
 
 ndatadecl :: XParser NDataDecl
 ndatadecl = do
     word "NDATA"
-    n <- name
-    return (NDATA n)
+    NDATA <$> name
 
 textdecl :: XParser TextDecl
 textdecl = do
     tok TokPIOpen
-    (word "xml" `onFail` word "XML")
+    word "xml" `onFail` word "XML"
     v <- maybe versioninfo
     e <- encodingdecl
     tok TokPIClose `onFail` failP "expected ?> terminating text decl"
@@ -820,7 +817,7 @@ textdecl = do
 
 encodingdecl :: XParser EncodingDecl
 encodingdecl = do
-    (word "encoding" `onFail` word "ENCODING")
+    word "encoding" `onFail` word "ENCODING"
     tok TokEqual `onFail` failBadP "expected = in 'encoding' decl"
     f <- bracket (tok TokQuote) (commit $ tok TokQuote) freetext
     return (EncodingDecl f)
@@ -837,8 +834,7 @@ notationdecl = do
 publicid :: XParser PublicID
 publicid = do
     word "PUBLIC"
-    p <- pubidliteral
-    return (PUBLICID p)
+    PUBLICID <$> pubidliteral
 
 entityvalue :: XParser EntityValue
 entityvalue = do
@@ -850,18 +846,18 @@ entityvalue = do
     -- quoted text must be rescanned for possible PERefs
     st <- stGet
     Prelude.either failBad (return . EntityValue) . fst3 $
-                (runParser (many ev) st
+                runParser (many ev) st
                          (reLexEntityValue (\s-> stringify (lookupPE s st))
                                            pn
-                                           (flattenEV (EntityValue evs))))
+                                           (flattenEV (EntityValue evs)))
   where
     stringify (Just (PEDefEntityValue ev)) = Just (flattenEV ev)
     stringify _ = Nothing
 
 ev :: XParser EV
 ev =
-    oneOf' [ ("string",    (string`onFail`freetext) >>= return . EVString)
-           , ("reference", reference >>= return . EVRef)
+    oneOf' [ ("string",    EVString <$> (string`onFail`freetext))
+           , ("reference", EVRef <$> reference)
            ]
       `adjustErr` ("looking for entity value,\n"++)
 

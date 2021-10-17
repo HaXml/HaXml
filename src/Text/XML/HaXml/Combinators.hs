@@ -77,9 +77,9 @@ type CFilter i  = Content i -> [Content i]
 -- In the algebra of combinators, @none@ is the zero, and @keep@ the identity.
 -- (They have a more general type than just CFilter.)
 keep :: a->[a]
-keep = \x->[x]
+keep x = [x]
 none :: a->[b]
-none = \x->[]
+none _ = []
 
 -- | Throw away current node, keep just the (unprocessed) children.
 children :: CFilter i
@@ -121,7 +121,7 @@ tag _ _  = []
 tagWith p x@(CElem (Elem n _ _) _) | p (printableName n)  = [x]
 tagWith _ _  = []
 
-attr n x@(CElem (Elem _ as _) _) | n `elem` (map (printableName.fst) as)  = [x]
+attr n x@(CElem (Elem _ as _) _) | n `elem` map (printableName.fst) as  = [x]
 attr _ _  = []
 
 attrval av x@(CElem (Elem _ as _) _) | av `elem` as  = [x]
@@ -144,7 +144,7 @@ find key cont c@(CElem (Elem _ as _) _) = cont (show (lookfor (N key) as)) c
 --   otherwise it applies the @yes@ filter.
 iffind :: String -> (String->CFilter i) -> CFilter i -> CFilter i
 iffind  key  yes no c@(CElem (Elem _ as _) _) =
-  case (lookup (N key) as) of
+  case lookup (N key) as of
     Nothing               -> no c
     (Just v@(AttValue _)) -> yes (show v) c
 iffind _key _yes no other = no other
@@ -201,7 +201,7 @@ cat fs = foldr1 union fs
 --   works over the same data as the first, but also uses the
 --   first's result.
 andThen :: (a->c) -> (c->a->b) -> (a->b)
-andThen f g = \x-> g (f x) x                    -- lift g f id
+andThen f g x = g (f x) x                    -- lift g f id
 
 -- | Process children using specified filters.
 childrenBy :: CFilter i -> CFilter i
@@ -241,7 +241,7 @@ et f g = (f `oo` tagged elm)
 --   @path [children, tag \"name1\", attr \"attr1\", children, tag \"name2\"]@
 --   is like the XPath query @\/name1[\@attr1]\/name2@.
 path :: [CFilter i] -> CFilter i
-path fs = foldr (flip (o)) keep fs
+path fs = foldr (flip o) keep fs
 
 
 -- RECURSIVE SEARCH
@@ -304,7 +304,7 @@ foldXml f = f `o` chip (foldXml f)
 -- | Build an element with the given tag name - its content is the results
 --   of the given list of filters.
 mkElem :: String -> [CFilter i] -> CFilter i
-mkElem h cfs = \t-> [ CElem (Elem (N h) [] (cat cfs t)) undefined ]
+mkElem h cfs t = [ CElem (Elem (N h) [] (cat cfs t)) undefined ]
 
 -- | Build an element with the given name, attributes, and content.
 mkElemAttr :: String -> [(String,CFilter i)] -> [CFilter i] -> CFilter i
@@ -463,7 +463,7 @@ tagged f = extracted name f
 attributed :: String -> CFilter i -> LabelFilter i String
 attributed key f = extracted att f
   where att (CElem (Elem _ as _) _) =
-            case (lookup (N key) as) of
+            case lookup (N key) as of
               Nothing  -> ""
               (Just v@(AttValue _)) -> show v
         att _ = ""

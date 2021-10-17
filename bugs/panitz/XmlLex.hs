@@ -264,7 +264,7 @@ xmlSection = blank xmlSection0
       | "INCLUDE"  `prefixes` s  = emit (TokSection INCLUDEx) p:    k w p s 7
       | "IGNORE"   `prefixes` s  = emit (TokSection IGNOREx) p:     k w p s 6
       | "%"        `prefixes` s  = emit TokPercent p:               k w p s 1
-      | otherwise = lexerror ("expected CDATA, IGNORE, or INCLUDE") p
+      | otherwise = lexerror "expected CDATA, IGNORE, or INCLUDE" p
     accum w p s n =
       let p0 = addcol n p in
       accumulateUntil "]]>" TokSectionClose "" p0 p0 (drop n s) (blank xmlAny w)
@@ -280,9 +280,9 @@ xmlSpecial w p s
   where k n = skip n p s (blank xmlAny w)
 
 xmlName p (s:ss) k
-    | isNmstart s  = gatherName (s:[]) p (addcol 1 p) ss k
+    | isNmstart s  = gatherName [s] p (addcol 1 p) ss k
     -- | isAlphaNum s || s==':' || s=='_'  = gatherName (s:[]) p (addcol 1 p) ss k
-    | otherwise                         = lexerror ((show$ord s) ++"    expected name") p
+    | otherwise    = lexerror (show (ord s) ++"    expected name") p
   where
     gatherName acc pos p [] k =
         emit (TokName (reverse acc)) pos: k p []
@@ -296,7 +296,7 @@ xmlName p (s:ss) k
 xmlContent acc w pos p [] = if all isSpace acc then []
                             else lexerror "unexpected EOF between tags" p
 xmlContent acc w pos p (s:ss)
-    | elem s "<&"    = if all isSpace acc then xmlAny w p (s:ss)
+    | s `elem` "<&"  = if all isSpace acc then xmlAny w p (s:ss)
                        else emit (TokFreeText (revtrim acc)) pos: xmlAny w p (s:ss)
     | isSpace s      = xmlContent (s:acc) w pos (white s p) ss
     | otherwise      = xmlContent (s:acc) w pos (addcol 1 p) ss
@@ -309,4 +309,3 @@ xmlContent acc w pos p (s:ss)
 --ident tok p s ss k =
 --    let (name,s0) = span (\c-> isAlphaNum c || c `elem` "`-_#.'/\\") s
 --    in emit (tok name) p: skip (length name) p s ss k
-

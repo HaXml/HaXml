@@ -13,7 +13,7 @@
 --   This unified class interface replaces two previous (somewhat similar)
 --   classes: Haskell2Xml and Xml2Haskell.  There was no real reason to have
 --   separate classes depending on how you originally defined your datatypes.
---   However, some instances for basic types like lists will depend on which 
+--   However, some instances for basic types like lists will depend on which
 --   direction you are using.  See Text.XML.HaXml.XmlContent and
 --   Text.XML.HaXml.XmlContent.Haskell.
 
@@ -67,7 +67,7 @@ module Text.XML.HaXml.XmlContent.Parser
   , ANYContent(..)
   ) where
 
---import System.IO
+import Control.Monad (void)
 import Data.Maybe (catMaybes)
 import Data.Char  (chr, isSpace)
 
@@ -609,7 +609,7 @@ toAttrFrStr n v = Just (N n, str2attr v)
 str2attr :: String -> AttValue
 str2attr s =
     let f t =
-          let (l,r) = span (\c-> not (elem c "\"&<>'")) t
+          let (l,r) = span (`notElem` "\"&<>'") t
           in if null r then [Left l]
              else Left l: Right (g (head r)): f (tail r)
         g '"'  = RefEntity "quot"
@@ -652,8 +652,8 @@ data ANYContent = forall a . (XmlContent a, Show a) => ANYContent a
                 | UnConverted [Content Posn]
 
 instance Show ANYContent where
-    show (UnConverted c) = "UnConverted " ++ (show $ map verbatim c)
-    show (ANYContent a)  = "ANYContent " ++ (show a)
+    show (UnConverted c) = "UnConverted " ++ show (map verbatim c)
+    show (ANYContent a)  = "ANYContent " ++ show a
 
 instance Eq ANYContent where
     a == b = show a == show b
@@ -673,14 +673,14 @@ instance (HTypeable a) => HTypeable (List1 a) where
                      hx = toHType x
 instance (XmlContent a) => XmlContent (List1 a) where
     toContents (NonEmpty xs) = concatMap toContents xs
-    parseContents = fmap NonEmpty $ many1 parseContents
+    parseContents = NonEmpty <$> many1 parseContents
 
 instance HTypeable ANYContent where
     toHType _      = Prim "ANYContent" "ANY"
 instance XmlContent ANYContent where
     toContents (ANYContent a)  = toContents a
-    toContents (UnConverted s) = map (fmap (const ())) s
-    parseContents = P (\cs -> Success [] (UnConverted cs))
+    toContents (UnConverted s) = map void s
+    parseContents = P (Success [] . UnConverted)
 
 ------------------------------------------------------------------------
 --

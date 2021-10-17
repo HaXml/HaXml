@@ -137,14 +137,14 @@ htmlprint = Pretty.cat . map cprint . foldrefs
                     --  ( Pretty.text "</"  Pretty.<>
                     --    Pretty.text n     Pretty.<>
                     --    Pretty.text ">" )
-                        Pretty.fcat [ ( Pretty.text "<"               Pretty.<>
-                                        Pretty.text (printableName n) Pretty.<>
-                                        attrs as                      Pretty.<>
-                                        Pretty.text ">")
+                        Pretty.fcat [ Pretty.text "<"               Pretty.<>
+                                      Pretty.text (printableName n) Pretty.<>
+                                      attrs as                      Pretty.<>
+                                      Pretty.text ">"
                                     , Pretty.nest 4 (htmlprint cs)
-                                    , ( Pretty.text "</"              Pretty.<>
-                                        Pretty.text (printableName n) Pretty.<>
-                                        Pretty.text ">" )
+                                    , Pretty.text "</"              Pretty.<>
+                                      Pretty.text (printableName n) Pretty.<>
+                                      Pretty.text ">"
                                     ]
 
   attrs = Pretty.cat . map attribute
@@ -171,6 +171,5 @@ htmlprint = Pretty.cat . map cprint . foldrefs
 
   keepUntil p xs = select p ([],xs)
       where select _ (ls,[])     = (ls,[])
-            select q (ls,(y:ys)) | q y       = (ls,y:ys)
-                                 | otherwise = select q (y:ls,ys)
-
+            select q (ls,y:ys) | q y       = (ls,y:ys)
+                               | otherwise = select q (y:ls,ys)

@@ -20,18 +20,18 @@ import Text.ParserCombinators.Parsec
 -- TESTING (QuickCheck) --
 
 instance Arbitrary Posn where
-  arbitrary = return $ noPos
+  arbitrary = return noPos
 
 -- Helper functions to confer char ranges from XML spec into Haskell char ranges
-charRanges = sepBy1 charRange bar >>= return . concat
+charRanges = concat <$> sepBy1 charRange bar
   where bar = do spaces; char '|'; spaces
 charRange = do char '['; s<-num; char '-'; e<-num; char ']'; return [s..e]
             <|> do n<-num; return [n]
 num :: Parser Char
 num = do s <- many (oneOf "0123456789ABCDEFx#")
-         return $ chr $ read $ "0"++(drop 1 s)
+         return $ chr $ read $ "0"++drop 1 s
 
-fromRangeSpec str = 
+fromRangeSpec str =
   case parse charRanges "" str of
        Left e -> error $ show e
        Right x -> x
@@ -60,7 +60,7 @@ digitt = mkChrGen "[#x0030-#x0039] | [#x0660-#x0669] | [#x06F0-#x06F9] | [#x0966
 
 letterr = frequency [ (10,elements ['a'..'z'])
                     , (4,basechar)
-                    , (1,ideographic) 
+                    , (1,ideographic)
                     ]
 namechar = frequency [ (10,letterr)
                      , (9,digitt)
@@ -147,7 +147,7 @@ instance Arbitrary ElemTag where
   arbitrary = sized $ \n -> liftM2 ElemTag qname (vectorOf' n attribute)
 
 attribute :: Gen Attribute
-attribute = 
+attribute =
   do n <- qname
      attv <- arbitrary
      return (n, attv)
@@ -168,7 +168,7 @@ instance Arbitrary ContentSpec where
                     , liftM ContentSpec arbitrary
                     ]
 instance Arbitrary CP where
-  arbitrary = oneof [ liftM2 TagName qname arbitrary 
+  arbitrary = oneof [ liftM2 TagName qname arbitrary
                     , liftM2 Choice arbitrary arbitrary
                     , liftM2 Seq arbitrary arbitrary
                     ]
@@ -236,7 +236,7 @@ instance Arbitrary IgnoreSectContents where
 
 instance Arbitrary Reference where
   coarbitrary = coarbitrary
-  arbitrary = do c<-charr; return (RefChar (ord c))
+  arbitrary = RefChar . ord <$> charr
   -- frequency [ (5, liftM RefEntity name)
   --                      , (1, do c<-charr; return (RefChar (ord c))) ]
 
@@ -262,7 +262,7 @@ instance Arbitrary EntityDef where
 instance Arbitrary PEDef where
   arbitrary = oneof [ liftM PEDefEntityValue arbitrary
                     , liftM PEDefExternalID arbitrary
-                    ] 
+                    ]
 
 instance Arbitrary ExternalID where
   arbitrary = oneof [ liftM SYSTEM arbitrary
@@ -303,7 +303,7 @@ names = sized $ \n -> vectorOf' n name
 
 nmtoken = sized $ \n -> vectorOf' (n+1) namechar -- should be non-empty
 
-nmtokens = sized $ \n -> nmtoken
+nmtokens = sized $ const nmtoken
 
 instance Arbitrary AttValue where
   arbitrary = liftM AttValue arbitrary
@@ -317,7 +317,7 @@ instance Arbitrary EV where
                     ]
 
 instance Arbitrary PubidLiteral where
-  arbitrary = sized $ \n -> 
+  arbitrary = sized $ \n ->
     liftM PubidLiteral (vectorOf' n (elements (" \r\n"++['a'..'z']++['A'..'Z']++['0'..'9']++"-'()+,./:=?;!*#@$_%]")))
 
 instance Arbitrary SystemLiteral where
@@ -329,6 +329,6 @@ instance Arbitrary SystemLiteral where
 -------------
 -- Generate random XML documents
 gen :: IO (Document ())
-gen = 
-  do rnd <- newStdGen 
+gen =
+  do rnd <- newStdGen
      return $ generate 20 rnd arbitrary

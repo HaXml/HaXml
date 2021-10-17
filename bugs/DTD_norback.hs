@@ -25,10 +25,10 @@ instance XmlContent Test where
 	[CElem (Elem "test" [] (concatMap toElem a))]
 instance XmlContent Test_ where
     fromElem c0 =
-	case (fromElem c0) of
+	case fromElem c0 of
 	(Just a,rest) -> (Just (Test_One a), rest)
 	(Nothing,_) ->
-		case (fromElem c0) of
+		case fromElem c0 of
 		(Just a,rest) -> (Just (Test_Two a), rest)
 		(Nothing,_) ->
 		    (Nothing, c0)

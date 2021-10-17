@@ -20,16 +20,16 @@ instance Show (Document i) where
 
 prop_reparse :: Document Posn -> Bool
 prop_reparse d =
-  str == trace (diff) str'
+  str == trace diff str'
   where
   str = pp d
   str' = pp d'
-  d' = trace (dump) $ P.xmlParse "" $ pp d
+  d' = trace dump $ P.xmlParse "" $ pp d
   diff =
     let diffstr = zipWith clean str str'
         in if all (==' ') diffstr
               then ""
-              else "\n"++(replicate 60 'v')++"\nDIFF:\n"++diffstr++"\n"++(replicate 60 '^')
+              else "\n"++replicate 60 'v'++"\nDIFF:\n"++diffstr++"\n"++replicate 60 '^'
   clean a b | a == b = ' '
             | otherwise = a
   pp = render . PP.document

@@ -9,7 +9,7 @@ data Kenmerk = Kenmerk Kenmerk_Attrs [Kenmerk_]
 	     deriving (Eq,Show)
 data Kenmerk_Attrs = Kenmerk_Attrs
     { kenmerkKmc :: String
-    , kenmerkGewicht :: (Defaultable String)
+    , kenmerkGewicht :: Defaultable String
     } deriving (Eq,Show)
 data Kenmerk_ = Kenmerk_Str String
 	      | Kenmerk_Begin Begin
@@ -35,19 +35,19 @@ instance XmlAttributes Kenmerk_Attrs where
 	  { kenmerkKmc = definiteA fromAttrToStr "kenmerk" "kmc" as
 	  , kenmerkGewicht = defaultA fromAttrToStr "1" "gewicht" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ toAttrFrStr "kmc" (kenmerkKmc v)
 	, defaultToAttr toAttrFrStr "gewicht" (kenmerkGewicht v)
 	]
 instance XmlContent Kenmerk_ where
     fromElem c0 =
-	case (fromText c0) of
+	case fromText c0 of
 	(Just a,rest) -> (Just (Kenmerk_Str a), rest)
 	(Nothing,_) ->
-		case (fromElem c0) of
+		case fromElem c0 of
 		(Just a,rest) -> (Just (Kenmerk_Begin a), rest)
 		(Nothing,_) ->
-			case (fromElem c0) of
+			case fromElem c0 of
 			(Just a,rest) -> (Just (Kenmerk_Eind a), rest)
 			(Nothing,_) ->
 			    (Nothing, c0)

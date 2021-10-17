@@ -21,20 +21,20 @@ type DFilter i = Content i -> Content i -> [Content i]
 
 -- | lift an ordinary content filter to a double filter.
 local,global :: CFilter i -> DFilter i
-local  f = \_xml  sub-> f sub
-global f = \ xml _sub-> f xml
+local  f _xml sub = f sub
+global f xml _sub = f xml
 
 -- | drop a double filter to an ordinary content filter.
 --   (permitting interior access to document root)
 dfilter :: DFilter i -> CFilter i
-dfilter f = \xml-> f xml xml
+dfilter f xml = f xml xml
 
 -- | drop a double filter to an ordinary content filter.
 --   (Where interior access to the document root is not needed, the
 --    retaining pointer to the outer element can be pruned away.
 --   'cfilter' is more space-efficient than 'dfilter' in this situation.)
 cfilter :: DFilter i -> CFilter i
-cfilter f = \xml -> f undefined xml
+cfilter f = f undefined
 --cfilter f = \xml-> flip f xml
 --                          (case xml of
 --                             CElem (Elem n as cs) i -> CElem (Elem n [] []) i
@@ -42,12 +42,12 @@ cfilter f = \xml -> f undefined xml
 
 -- | lift a CFilter combinator to a DFilter combinator
 liftLocal, liftGlobal :: (CFilter i->CFilter i) -> (DFilter i->DFilter i)
-liftLocal  ff = \df-> \xml  sub-> (ff (df xml)) sub
-liftGlobal ff = \df-> \xml _sub-> (ff (df xml)) xml
+liftLocal  ff df xml  sub = ff (df xml) sub
+liftGlobal ff df xml _sub = ff (df xml) xml
 
 -- | lifted composition over double filters.
 o :: DFilter i -> DFilter i -> DFilter i
-g `o` f = \xml-> concatMap (g xml) . (f xml)
+g `o` f = \xml-> concatMap (g xml) . f xml
 
 -- | lifted choice.
 (|>|) :: (a->b->[c]) -> (a->b->[c]) -> (a->b->[c])
@@ -67,8 +67,8 @@ f `without` g = \xml-> filter     (null.g xml) . f xml
 
 -- | lifted unit and zero.
 keep, none :: DFilter i
-keep = \_xml  sub-> [sub]       -- local C.keep
-none = \_xml _sub-> []  -- local C.none
+keep _xml  sub = [sub]       -- local C.keep
+none _xml _sub = []          -- local C.none
 
 children, elm, txt :: DFilter i
 children = local C.children
@@ -76,11 +76,11 @@ elm      = local C.elm
 txt      = local C.txt
 
 applypred :: CFilter i -> DFilter i -> CFilter i
-applypred f p = \xml-> (const f `with` p) xml xml
+applypred f p xml = (const f `with` p) xml xml
 
 iffind :: String -> (String -> DFilter i) -> DFilter i -> DFilter i
 iffind  key  yes no xml c@(CElem (Elem _ as _) _) =
-  case (lookup (N key) as) of
+  case lookup (N key) as of
     Nothing -> no xml c
     (Just v@(AttValue _)) -> yes (show v) xml c
 iffind _key _yes no xml other = no xml other
@@ -90,7 +90,7 @@ ifTxt  yes _no xml c@(CString _ s _) = yes s xml c
 ifTxt _yes  no xml c                 = no xml c
 
 cat :: [a->b->[c]] -> (a->b->[c])
-cat fs = \xml sub-> concat [ f xml sub | f <- fs ]
+cat fs xml sub = concat [ f xml sub | f <- fs ]
 
 (/>) :: DFilter i -> DFilter i -> DFilter i
 f /> g = g `o` children `o` f

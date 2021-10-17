@@ -28,10 +28,10 @@ fix2Args = do
   args <- getArgs
   when ("--version" `elem` args) $ do
       putStrLn $ "part of HaXml-"++version
-      exitWith ExitSuccess
+      exitSuccess
   when ("--help" `elem` args) $ do
-      putStrLn $ "See http://haskell.org/HaXml"
-      exitWith ExitSuccess
+      putStrLn "See http://haskell.org/HaXml"
+      exitSuccess
   case length args of
     0 -> return ("-",     "-")
     1 -> return (args!!0, "-")
@@ -50,9 +50,10 @@ main =
     else openFile outf WriteMode ) >>= \o->
   let (DTD name _ markup) = (getDtd . dtdParse inf) content
       decls = (nub . dtd2TypeDef) markup
-      realname = if outf/="-" then mangle (trim outf)
-                 else if null (localName name) then mangle (trim inf)
-                 else mangle (localName name)
+      realname
+        | outf /= "-" = mangle (trim outf)
+        | null (localName name) = mangle (trim inf)
+        | otherwise = mangle (localName name)
   in
   do hPutStrLn o ("module "++realname
                   ++" where\n\nimport Text.XML.HaXml.XmlContent"
@@ -69,7 +70,7 @@ main =
 
 getDtd :: Maybe t -> t
 getDtd (Just dtd) = dtd
-getDtd (Nothing)  = error "No DTD in this document"
+getDtd Nothing    = error "No DTD in this document"
 
 trim :: [Char] -> [Char]
 trim name | '/' `elem` name  = (trim . tail . dropWhile (/='/')) name

@@ -18,11 +18,11 @@ instance (XmlContent a)
     => XmlContent (OneOf1 a)
   where
     parseContents =
-        (choice OneOf1
-        $ fail "OneOf1")
+        choice OneOf1
+        $ fail "OneOf1"
     toContents (OneOf1 x) = toContents x
 
-foldOneOf1 :: (a->z) -> 
+foldOneOf1 :: (a->z) ->
                OneOf1 a
                -> z
 foldOneOf1 a (OneOf1 z) = a z
@@ -46,12 +46,12 @@ instance (XmlContent a,XmlContent b)
     => XmlContent (OneOf2 a b)
   where
     parseContents =
-        (choice OneOf2 $ choice TwoOf2
-        $ fail "OneOf2")
+        choice OneOf2 $ choice TwoOf2
+        $ fail "OneOf2"
     toContents (OneOf2 x) = toContents x
     toContents (TwoOf2 x) = toContents x
 
-foldOneOf2 :: (a->z) -> (b->z) -> 
+foldOneOf2 :: (a->z) -> (b->z) ->
                OneOf2 a b
                -> z
 foldOneOf2 a b (OneOf2 z) = a z
@@ -70,13 +70,13 @@ instance (XmlContent a,XmlContent b,XmlContent c)
     => XmlContent (OneOf3 a b c)
   where
     parseContents =
-        (choice OneOf3 $ choice TwoOf3 $ choice ThreeOf3
-        $ fail "OneOf3")
+        choice OneOf3 $ choice TwoOf3 $ choice ThreeOf3
+        $ fail "OneOf3"
     toContents (OneOf3 x) = toContents x
     toContents (TwoOf3 x) = toContents x
     toContents (ThreeOf3 x) = toContents x
 
-foldOneOf3 :: (a->z) -> (b->z) -> (c->z) -> 
+foldOneOf3 :: (a->z) -> (b->z) -> (c->z) ->
                OneOf3 a b c
                -> z
 foldOneOf3 a b c (OneOf3 z) = a z
@@ -96,14 +96,14 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d)
     => XmlContent (OneOf4 a b c d)
   where
     parseContents =
-        (choice OneOf4 $ choice TwoOf4 $ choice ThreeOf4 $ choice FourOf4
-        $ fail "OneOf4")
+        choice OneOf4 $ choice TwoOf4 $ choice ThreeOf4 $ choice FourOf4
+        $ fail "OneOf4"
     toContents (OneOf4 x) = toContents x
     toContents (TwoOf4 x) = toContents x
     toContents (ThreeOf4 x) = toContents x
     toContents (FourOf4 x) = toContents x
 
-foldOneOf4 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> 
+foldOneOf4 :: (a->z) -> (b->z) -> (c->z) -> (d->z) ->
                OneOf4 a b c d
                -> z
 foldOneOf4 a b c d (OneOf4 z) = a z
@@ -124,16 +124,16 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e)
     => XmlContent (OneOf5 a b c d e)
   where
     parseContents =
-        (choice OneOf5 $ choice TwoOf5 $ choice ThreeOf5 $ choice FourOf5
+        choice OneOf5 $ choice TwoOf5 $ choice ThreeOf5 $ choice FourOf5
         $ choice FiveOf5
-        $ fail "OneOf5")
+        $ fail "OneOf5"
     toContents (OneOf5 x) = toContents x
     toContents (TwoOf5 x) = toContents x
     toContents (ThreeOf5 x) = toContents x
     toContents (FourOf5 x) = toContents x
     toContents (FiveOf5 x) = toContents x
 
-foldOneOf5 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> 
+foldOneOf5 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) ->
                OneOf5 a b c d e
                -> z
 foldOneOf5 a b c d e (OneOf5 z) = a z
@@ -157,9 +157,9 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     => XmlContent (OneOf6 a b c d e f)
   where
     parseContents =
-        (choice OneOf6 $ choice TwoOf6 $ choice ThreeOf6 $ choice FourOf6
+        choice OneOf6 $ choice TwoOf6 $ choice ThreeOf6 $ choice FourOf6
         $ choice FiveOf6 $ choice SixOf6
-        $ fail "OneOf6")
+        $ fail "OneOf6"
     toContents (OneOf6 x) = toContents x
     toContents (TwoOf6 x) = toContents x
     toContents (ThreeOf6 x) = toContents x
@@ -167,7 +167,7 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (FiveOf6 x) = toContents x
     toContents (SixOf6 x) = toContents x
 
-foldOneOf6 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
+foldOneOf6 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) ->
                OneOf6 a b c d e f
                -> z
 foldOneOf6 a b c d e f (OneOf6 z) = a z
@@ -193,9 +193,9 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     => XmlContent (OneOf7 a b c d e f g)
   where
     parseContents =
-        (choice OneOf7 $ choice TwoOf7 $ choice ThreeOf7 $ choice FourOf7
+        choice OneOf7 $ choice TwoOf7 $ choice ThreeOf7 $ choice FourOf7
         $ choice FiveOf7 $ choice SixOf7 $ choice SevenOf7
-        $ fail "OneOf7")
+        $ fail "OneOf7"
     toContents (OneOf7 x) = toContents x
     toContents (TwoOf7 x) = toContents x
     toContents (ThreeOf7 x) = toContents x
@@ -204,8 +204,8 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (SixOf7 x) = toContents x
     toContents (SevenOf7 x) = toContents x
 
-foldOneOf7 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
-               (g->z) -> 
+foldOneOf7 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) ->
+               (g->z) ->
                OneOf7 a b c d e f g
                -> z
 foldOneOf7 a b c d e f g (OneOf7 z) = a z
@@ -232,9 +232,9 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     => XmlContent (OneOf8 a b c d e f g h)
   where
     parseContents =
-        (choice OneOf8 $ choice TwoOf8 $ choice ThreeOf8 $ choice FourOf8
+        choice OneOf8 $ choice TwoOf8 $ choice ThreeOf8 $ choice FourOf8
         $ choice FiveOf8 $ choice SixOf8 $ choice SevenOf8 $ choice EightOf8
-        $ fail "OneOf8")
+        $ fail "OneOf8"
     toContents (OneOf8 x) = toContents x
     toContents (TwoOf8 x) = toContents x
     toContents (ThreeOf8 x) = toContents x
@@ -244,8 +244,8 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (SevenOf8 x) = toContents x
     toContents (EightOf8 x) = toContents x
 
-foldOneOf8 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
-               (g->z) -> (h->z) -> 
+foldOneOf8 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) ->
+               (g->z) -> (h->z) ->
                OneOf8 a b c d e f g h
                -> z
 foldOneOf8 a b c d e f g h (OneOf8 z) = a z
@@ -273,10 +273,10 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     => XmlContent (OneOf9 a b c d e f g h i)
   where
     parseContents =
-        (choice OneOf9 $ choice TwoOf9 $ choice ThreeOf9 $ choice FourOf9
+        choice OneOf9 $ choice TwoOf9 $ choice ThreeOf9 $ choice FourOf9
         $ choice FiveOf9 $ choice SixOf9 $ choice SevenOf9 $ choice EightOf9
         $ choice NineOf9
-        $ fail "OneOf9")
+        $ fail "OneOf9"
     toContents (OneOf9 x) = toContents x
     toContents (TwoOf9 x) = toContents x
     toContents (ThreeOf9 x) = toContents x
@@ -287,8 +287,8 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (EightOf9 x) = toContents x
     toContents (NineOf9 x) = toContents x
 
-foldOneOf9 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
-               (g->z) -> (h->z) -> (i->z) -> 
+foldOneOf9 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) ->
+               (g->z) -> (h->z) -> (i->z) ->
                OneOf9 a b c d e f g h i
                -> z
 foldOneOf9 a b c d e f g h i (OneOf9 z) = a z
@@ -317,10 +317,10 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     => XmlContent (OneOf10 a b c d e f g h i j)
   where
     parseContents =
-        (choice OneOf10 $ choice TwoOf10 $ choice ThreeOf10 $ choice FourOf10
+        choice OneOf10 $ choice TwoOf10 $ choice ThreeOf10 $ choice FourOf10
         $ choice FiveOf10 $ choice SixOf10 $ choice SevenOf10
         $ choice EightOf10 $ choice NineOf10 $ choice TenOf10
-        $ fail "OneOf10")
+        $ fail "OneOf10"
     toContents (OneOf10 x) = toContents x
     toContents (TwoOf10 x) = toContents x
     toContents (ThreeOf10 x) = toContents x
@@ -332,8 +332,8 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (NineOf10 x) = toContents x
     toContents (TenOf10 x) = toContents x
 
-foldOneOf10 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
-               (g->z) -> (h->z) -> (i->z) -> (j->z) -> 
+foldOneOf10 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) ->
+               (g->z) -> (h->z) -> (i->z) -> (j->z) ->
                OneOf10 a b c d e f g h i j
                -> z
 foldOneOf10 a b c d e f g h i j (OneOf10 z) = a z
@@ -366,11 +366,11 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     => XmlContent (OneOf11 a b c d e f g h i j k)
   where
     parseContents =
-        (choice OneOf11 $ choice TwoOf11 $ choice ThreeOf11 $ choice FourOf11
+        choice OneOf11 $ choice TwoOf11 $ choice ThreeOf11 $ choice FourOf11
         $ choice FiveOf11 $ choice SixOf11 $ choice SevenOf11
         $ choice EightOf11 $ choice NineOf11 $ choice TenOf11
         $ choice ElevenOf11
-        $ fail "OneOf11")
+        $ fail "OneOf11"
     toContents (OneOf11 x) = toContents x
     toContents (TwoOf11 x) = toContents x
     toContents (ThreeOf11 x) = toContents x
@@ -383,8 +383,8 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (TenOf11 x) = toContents x
     toContents (ElevenOf11 x) = toContents x
 
-foldOneOf11 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
-               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> 
+foldOneOf11 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) ->
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) ->
                OneOf11 a b c d e f g h i j k
                -> z
 foldOneOf11 a b c d e f g h i j k (OneOf11 z) = a z
@@ -418,11 +418,11 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     => XmlContent (OneOf12 a b c d e f g h i j k l)
   where
     parseContents =
-        (choice OneOf12 $ choice TwoOf12 $ choice ThreeOf12 $ choice FourOf12
+        choice OneOf12 $ choice TwoOf12 $ choice ThreeOf12 $ choice FourOf12
         $ choice FiveOf12 $ choice SixOf12 $ choice SevenOf12
         $ choice EightOf12 $ choice NineOf12 $ choice TenOf12
         $ choice ElevenOf12 $ choice TwelveOf12
-        $ fail "OneOf12")
+        $ fail "OneOf12"
     toContents (OneOf12 x) = toContents x
     toContents (TwoOf12 x) = toContents x
     toContents (ThreeOf12 x) = toContents x
@@ -436,8 +436,8 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (ElevenOf12 x) = toContents x
     toContents (TwelveOf12 x) = toContents x
 
-foldOneOf12 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
-               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) -> 
+foldOneOf12 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) ->
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) ->
                OneOf12 a b c d e f g h i j k l
                -> z
 foldOneOf12 a b c d e f g h i j k l (OneOf12 z) = a z
@@ -472,11 +472,11 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     => XmlContent (OneOf13 a b c d e f g h i j k l m)
   where
     parseContents =
-        (choice OneOf13 $ choice TwoOf13 $ choice ThreeOf13 $ choice FourOf13
+        choice OneOf13 $ choice TwoOf13 $ choice ThreeOf13 $ choice FourOf13
         $ choice FiveOf13 $ choice SixOf13 $ choice SevenOf13
         $ choice EightOf13 $ choice NineOf13 $ choice TenOf13
         $ choice ElevenOf13 $ choice TwelveOf13 $ choice ThirteenOf13
-        $ fail "OneOf13")
+        $ fail "OneOf13"
     toContents (OneOf13 x) = toContents x
     toContents (TwoOf13 x) = toContents x
     toContents (ThreeOf13 x) = toContents x
@@ -491,9 +491,9 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (TwelveOf13 x) = toContents x
     toContents (ThirteenOf13 x) = toContents x
 
-foldOneOf13 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
-               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) -> 
-               (m->z) -> 
+foldOneOf13 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) ->
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) ->
+               (m->z) ->
                OneOf13 a b c d e f g h i j k l m
                -> z
 foldOneOf13 a b c d e f g h i j k l m (OneOf13 z) = a z
@@ -529,12 +529,12 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     => XmlContent (OneOf14 a b c d e f g h i j k l m n)
   where
     parseContents =
-        (choice OneOf14 $ choice TwoOf14 $ choice ThreeOf14 $ choice FourOf14
+        choice OneOf14 $ choice TwoOf14 $ choice ThreeOf14 $ choice FourOf14
         $ choice FiveOf14 $ choice SixOf14 $ choice SevenOf14
         $ choice EightOf14 $ choice NineOf14 $ choice TenOf14
         $ choice ElevenOf14 $ choice TwelveOf14 $ choice ThirteenOf14
         $ choice FourteenOf14
-        $ fail "OneOf14")
+        $ fail "OneOf14"
     toContents (OneOf14 x) = toContents x
     toContents (TwoOf14 x) = toContents x
     toContents (ThreeOf14 x) = toContents x
@@ -550,9 +550,9 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (ThirteenOf14 x) = toContents x
     toContents (FourteenOf14 x) = toContents x
 
-foldOneOf14 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
-               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) -> 
-               (m->z) -> (n->z) -> 
+foldOneOf14 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) ->
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) ->
+               (m->z) -> (n->z) ->
                OneOf14 a b c d e f g h i j k l m n
                -> z
 foldOneOf14 a b c d e f g h i j k l m n (OneOf14 z) = a z
@@ -590,12 +590,12 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     => XmlContent (OneOf15 a b c d e f g h i j k l m n o)
   where
     parseContents =
-        (choice OneOf15 $ choice TwoOf15 $ choice ThreeOf15 $ choice FourOf15
+        choice OneOf15 $ choice TwoOf15 $ choice ThreeOf15 $ choice FourOf15
         $ choice FiveOf15 $ choice SixOf15 $ choice SevenOf15
         $ choice EightOf15 $ choice NineOf15 $ choice TenOf15
         $ choice ElevenOf15 $ choice TwelveOf15 $ choice ThirteenOf15
         $ choice FourteenOf15 $ choice FifteenOf15
-        $ fail "OneOf15")
+        $ fail "OneOf15"
     toContents (OneOf15 x) = toContents x
     toContents (TwoOf15 x) = toContents x
     toContents (ThreeOf15 x) = toContents x
@@ -612,9 +612,9 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (FourteenOf15 x) = toContents x
     toContents (FifteenOf15 x) = toContents x
 
-foldOneOf15 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
-               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) -> 
-               (m->z) -> (n->z) -> (o->z) -> 
+foldOneOf15 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) ->
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) ->
+               (m->z) -> (n->z) -> (o->z) ->
                OneOf15 a b c d e f g h i j k l m n o
                -> z
 foldOneOf15 a b c d e f g h i j k l m n o (OneOf15 z) = a z
@@ -655,12 +655,12 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     => XmlContent (OneOf16 a b c d e f g h i j k l m n o p)
   where
     parseContents =
-        (choice OneOf16 $ choice TwoOf16 $ choice ThreeOf16 $ choice FourOf16
+        choice OneOf16 $ choice TwoOf16 $ choice ThreeOf16 $ choice FourOf16
         $ choice FiveOf16 $ choice SixOf16 $ choice SevenOf16
         $ choice EightOf16 $ choice NineOf16 $ choice TenOf16
         $ choice ElevenOf16 $ choice TwelveOf16 $ choice ThirteenOf16
         $ choice FourteenOf16 $ choice FifteenOf16 $ choice SixteenOf16
-        $ fail "OneOf16")
+        $ fail "OneOf16"
     toContents (OneOf16 x) = toContents x
     toContents (TwoOf16 x) = toContents x
     toContents (ThreeOf16 x) = toContents x
@@ -678,9 +678,9 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (FifteenOf16 x) = toContents x
     toContents (SixteenOf16 x) = toContents x
 
-foldOneOf16 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
-               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) -> 
-               (m->z) -> (n->z) -> (o->z) -> (p->z) -> 
+foldOneOf16 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) ->
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) ->
+               (m->z) -> (n->z) -> (o->z) -> (p->z) ->
                OneOf16 a b c d e f g h i j k l m n o p
                -> z
 foldOneOf16 a b c d e f g h i j k l m n o p (OneOf16 z) = a z
@@ -722,13 +722,13 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     => XmlContent (OneOf17 a b c d e f g h i j k l m n o p q)
   where
     parseContents =
-        (choice OneOf17 $ choice TwoOf17 $ choice ThreeOf17 $ choice FourOf17
+        choice OneOf17 $ choice TwoOf17 $ choice ThreeOf17 $ choice FourOf17
         $ choice FiveOf17 $ choice SixOf17 $ choice SevenOf17
         $ choice EightOf17 $ choice NineOf17 $ choice TenOf17
         $ choice ElevenOf17 $ choice TwelveOf17 $ choice ThirteenOf17
         $ choice FourteenOf17 $ choice FifteenOf17 $ choice SixteenOf17
         $ choice SeventeenOf17
-        $ fail "OneOf17")
+        $ fail "OneOf17"
     toContents (OneOf17 x) = toContents x
     toContents (TwoOf17 x) = toContents x
     toContents (ThreeOf17 x) = toContents x
@@ -747,9 +747,9 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (SixteenOf17 x) = toContents x
     toContents (SeventeenOf17 x) = toContents x
 
-foldOneOf17 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
-               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) -> 
-               (m->z) -> (n->z) -> (o->z) -> (p->z) -> (q->z) -> 
+foldOneOf17 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) ->
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) ->
+               (m->z) -> (n->z) -> (o->z) -> (p->z) -> (q->z) ->
                OneOf17 a b c d e f g h i j k l m n o p q
                -> z
 foldOneOf17 a b c d e f g h i j k l m n o p q (OneOf17 z) = a z
@@ -792,13 +792,13 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     => XmlContent (OneOf18 a b c d e f g h i j k l m n o p q r)
   where
     parseContents =
-        (choice OneOf18 $ choice TwoOf18 $ choice ThreeOf18 $ choice FourOf18
+        choice OneOf18 $ choice TwoOf18 $ choice ThreeOf18 $ choice FourOf18
         $ choice FiveOf18 $ choice SixOf18 $ choice SevenOf18
         $ choice EightOf18 $ choice NineOf18 $ choice TenOf18
         $ choice ElevenOf18 $ choice TwelveOf18 $ choice ThirteenOf18
         $ choice FourteenOf18 $ choice FifteenOf18 $ choice SixteenOf18
         $ choice SeventeenOf18 $ choice EighteenOf18
-        $ fail "OneOf18")
+        $ fail "OneOf18"
     toContents (OneOf18 x) = toContents x
     toContents (TwoOf18 x) = toContents x
     toContents (ThreeOf18 x) = toContents x
@@ -818,9 +818,9 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (SeventeenOf18 x) = toContents x
     toContents (EighteenOf18 x) = toContents x
 
-foldOneOf18 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
-               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) -> 
-               (m->z) -> (n->z) -> (o->z) -> (p->z) -> (q->z) -> (r->z) -> 
+foldOneOf18 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) ->
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) ->
+               (m->z) -> (n->z) -> (o->z) -> (p->z) -> (q->z) -> (r->z) ->
                OneOf18 a b c d e f g h i j k l m n o p q r
                -> z
 foldOneOf18 a b c d e f g h i j k l m n o p q r (OneOf18 z) = a z
@@ -865,13 +865,13 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     => XmlContent (OneOf19 a b c d e f g h i j k l m n o p q r s)
   where
     parseContents =
-        (choice OneOf19 $ choice TwoOf19 $ choice ThreeOf19 $ choice FourOf19
+        choice OneOf19 $ choice TwoOf19 $ choice ThreeOf19 $ choice FourOf19
         $ choice FiveOf19 $ choice SixOf19 $ choice SevenOf19
         $ choice EightOf19 $ choice NineOf19 $ choice TenOf19
         $ choice ElevenOf19 $ choice TwelveOf19 $ choice ThirteenOf19
         $ choice FourteenOf19 $ choice FifteenOf19 $ choice SixteenOf19
         $ choice SeventeenOf19 $ choice EighteenOf19 $ choice NineteenOf19
-        $ fail "OneOf19")
+        $ fail "OneOf19"
     toContents (OneOf19 x) = toContents x
     toContents (TwoOf19 x) = toContents x
     toContents (ThreeOf19 x) = toContents x
@@ -892,10 +892,10 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (EighteenOf19 x) = toContents x
     toContents (NineteenOf19 x) = toContents x
 
-foldOneOf19 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
-               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) -> 
-               (m->z) -> (n->z) -> (o->z) -> (p->z) -> (q->z) -> (r->z) -> 
-               (s->z) -> 
+foldOneOf19 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) ->
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) ->
+               (m->z) -> (n->z) -> (o->z) -> (p->z) -> (q->z) -> (r->z) ->
+               (s->z) ->
                OneOf19 a b c d e f g h i j k l m n o p q r s
                -> z
 foldOneOf19 a b c d e f g h i j k l m n o p q r s (OneOf19 z) = a z
@@ -941,14 +941,14 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     => XmlContent (OneOf20 a b c d e f g h i j k l m n o p q r s t)
   where
     parseContents =
-        (choice OneOf20 $ choice TwoOf20 $ choice ThreeOf20 $ choice FourOf20
+        choice OneOf20 $ choice TwoOf20 $ choice ThreeOf20 $ choice FourOf20
         $ choice FiveOf20 $ choice SixOf20 $ choice SevenOf20
         $ choice EightOf20 $ choice NineOf20 $ choice TenOf20
         $ choice ElevenOf20 $ choice TwelveOf20 $ choice ThirteenOf20
         $ choice FourteenOf20 $ choice FifteenOf20 $ choice SixteenOf20
         $ choice SeventeenOf20 $ choice EighteenOf20 $ choice NineteenOf20
         $ choice TwentyOf20
-        $ fail "OneOf20")
+        $ fail "OneOf20"
     toContents (OneOf20 x) = toContents x
     toContents (TwoOf20 x) = toContents x
     toContents (ThreeOf20 x) = toContents x
@@ -970,10 +970,10 @@ instance (XmlContent a,XmlContent b,XmlContent c,XmlContent d,XmlContent e
     toContents (NineteenOf20 x) = toContents x
     toContents (TwentyOf20 x) = toContents x
 
-foldOneOf20 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) -> 
-               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) -> 
-               (m->z) -> (n->z) -> (o->z) -> (p->z) -> (q->z) -> (r->z) -> 
-               (s->z) -> (t->z) -> 
+foldOneOf20 :: (a->z) -> (b->z) -> (c->z) -> (d->z) -> (e->z) -> (f->z) ->
+               (g->z) -> (h->z) -> (i->z) -> (j->z) -> (k->z) -> (l->z) ->
+               (m->z) -> (n->z) -> (o->z) -> (p->z) -> (q->z) -> (r->z) ->
+               (s->z) -> (t->z) ->
                OneOf20 a b c d e f g h i j k l m n o p q r s t
                -> z
 foldOneOf20 a b c d e f g h i j k l m n o p q r s

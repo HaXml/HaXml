@@ -58,7 +58,7 @@ class Verbatim a where
     verbatim :: a -> String
 
 instance (Verbatim a) => Verbatim [a] where
-    verbatim  = concat . (map verbatim)
+    verbatim  = concatMap verbatim
 
 instance Verbatim Char where
     verbatim c = [c]
@@ -77,10 +77,10 @@ instance Verbatim (Content i) where
 
 instance Verbatim (Element i) where
     verbatim (Elem nam att [])   = "<" ++ qname nam
-                                   ++ (concat . (map verbAttr)) att
+                                   ++ concatMap verbAttr att
                                    ++ "/>"
     verbatim (Elem nam att cont) = "<" ++ qname nam
-                                   ++ (concat . (map verbAttr)) att
+                                   ++ concatMap verbAttr att
                                    ++ ">" ++ verbatim cont ++ "</"
                                    ++ qname nam ++ ">"
 
@@ -99,4 +99,3 @@ instance Verbatim AttValue where
 
 verbAttr :: Attribute -> String
 verbAttr (n, AttValue v) = " " ++ qname n ++ "=\"" ++ verbatim v ++ "\""
-

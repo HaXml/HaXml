@@ -238,11 +238,10 @@ xtag = oneOf
     [ do s <- string
          symbol "*"
          return (local (C.tagWith (s `isPrefixOf`)))
-    , do s <- string
-         return (local (C.tag s))
+    , local . C.tag <$> string
     , do symbol "*"
          s <- string
-         return (local (C.tagWith (((reverse s) `isPrefixOf`) . reverse)))
+         return (local (C.tagWith ((reverse s `isPrefixOf`) . reverse)))
     , do symbol "*"
          return (local C.elm)
     ]
@@ -251,13 +250,13 @@ xtag = oneOf
 xquery :: [DFilter i->DFilter i] -> DFilter i -> XParser (DFilter i)
 xquery cxt q1 = oneOf
     [ do symbol "/"
-         ( do symbol "@"
-              attr <- string
-              return (D.iffind attr (\s->local (C.literal s)) D.none `D.o` q1)
-           `onFail`
-           tquery ((q1 D./>):cxt) )
+         do symbol "@"
+            attr <- string
+            return (D.iffind attr (local . C.literal) D.none `D.o` q1)
+         `onFail`
+         tquery ((q1 D./>):cxt)
     , do symbol "//"
-         tquery ((\q2-> (liftLocal C.multi) q2
+         tquery ((\q2-> liftLocal C.multi q2
                             `D.o` local C.children `D.o` q1):cxt)
     , do symbol "+"
          q2 <- tquery cxt
@@ -324,24 +323,24 @@ vattribute (q,a,iffn) = oneOf
        quote
        s2 <- string
        quote
-       return ((iffn (\s1->if cmp s1 s2 then D.keep else D.none) D.none)
+       return (iffn (\s1->if cmp s1 s2 then D.keep else D.none) D.none
                `D.o` q)
   , do cmp <- op
        (q2,iffn2) <- wattribute -- q2 unused?  is this a mistake?
-       return ((iffn (\s1-> iffn2 (\s2-> if cmp s1 s2 then D.keep else D.none)
+       return (iffn (\s1-> iffn2 (\s2-> if cmp s1 s2 then D.keep else D.none)
                                   D.none)
-                     D.none) `D.o` q)
+                     D.none `D.o` q)
   , do cmp <- nop
        n <- number
-       return ((iffn (\s->if cmp (read s) n then D.keep else D.none) D.none)
+       return (iffn (\s->if cmp (read s) n then D.keep else D.none) D.none
                `D.o` q)
   , do cmp <- nop
        (q2,iffn2) <- wattribute -- q2 unused?  is this a mistake?
-       return ((iffn (\s1-> iffn2 (\s2-> if cmp (read s1) (read s2) then D.keep
+       return (iffn (\s1-> iffn2 (\s2-> if cmp (read s1) (read s2) then D.keep
                                                                     else D.none)
                                   D.none)
-                     D.none) `D.o` q)
-  , do return ((a `D.o` q))
+                     D.none `D.o` q)
+  , do return (a `D.o` q)
   ]
 
 wattribute :: XParser (DFilter i, (String->DFilter i)->DFilter i->DFilter i)
@@ -368,8 +367,7 @@ iindex =
 simpleindex :: XParser ([a]->[a])
 simpleindex = oneOf
     [ do n <- number
-         r <- rrange n
-         return r
+         rrange n
     , do symbol "$"
          return (C.keep . last)
     ]

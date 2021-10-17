@@ -11,12 +11,11 @@ main =
   fix2Args >>= \(infile,outfile)->
   do putStrLn ("reading "++infile)
      value <- fReadXml infile
-     putStrLn ("checking value's type and album title")
+     putStrLn "checking value's type and album title"
      putStrLn (let (Album title _ _ _ _ _ _ _) = value in
-               if title==(Title "Time Out") then "ok" else "failed")
+               if title==Title "Time Out" then "ok" else "failed")
      putStrLn ("writing "++outfile)
      v <- (let (Album _ b c d e f g h) = value in
            return (Album (Title "unknown") b c d e f g h))
      fWriteXml outfile v
-     putStrLn ("Done.")
-
+     putStrLn "Done."

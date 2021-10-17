@@ -23,15 +23,14 @@ p ||| q = \v -> p v || q v
 
 -- | Qualify an ordinary name with the XSD namespace.
 xsd :: Name -> QName
-xsd name = QN Namespace{nsPrefix="xsd",nsURI="http://www.w3.org/2001/XMLSchema"}
-              name
+xsd = QN Namespace{nsPrefix="xsd",nsURI="http://www.w3.org/2001/XMLSchema"}
 
 -- | Predicate for comparing against an XSD-qualified name.  (Also accepts
 --   unqualified names, but this is probably a bit too lax.  Doing it right
 --   would require checking to see whether the current schema module's default
 --   namespace is XSD or not.)
 xsdTag :: String -> Content Posn -> Bool
-xsdTag tag (CElem (Elem qn _ _) _)  =  qn == xsd tag || qn == (N tag)
+xsdTag tag (CElem (Elem qn _ _) _)  =  qn == xsd tag || qn == N tag
 xsdTag _   _                        =  False
 
 -- | We need a Parser monad for reading from a sequence of generic XML
@@ -124,7 +123,7 @@ attribute qn (P p) (Elem n as _) = P $ \inp->
                                              ++printableName qn++"=\""
                                              ++show atv++"\": "++msg
                       Success [] v  -> Success [] v
-                      Success xs _  -> Committed $ 
+                      Success xs _  -> Committed $
                                        Failure xs $
                                              "Attribute parsing excess text: "
                                              ++printableName qn++"=\""
@@ -157,7 +156,7 @@ tidy inp (Success _ v) = Success inp v
 --   me the prefix corresponding to the targetNamespace.
 targetPrefix :: Maybe TargetNamespace -> [Namespace] -> Maybe String
 targetPrefix Nothing    _   = Nothing
-targetPrefix (Just uri) nss = fmap nsPrefix $ lookupBy ((==uri).nsURI) nss
+targetPrefix (Just uri) nss = nsPrefix <$> lookupBy ((==uri).nsURI) nss
 
 -- | An auxiliary you might expect to find in Data.List
 lookupBy :: (a->Bool) -> [a] -> Maybe a
@@ -207,14 +206,13 @@ annotation = do
 definiteAnnotation :: XsdParser Annotation
 definiteAnnotation = do
     e <- xsdElement "annotation"
-    ( fmap Documentation $ interiorWith (xsdTag "documentation")
-                                        (allChildren text)  e
-      ) `onFail` (
-      fmap AppInfo $ interiorWith (xsdTag "documentation")
-                                        (allChildren text)  e
-      ) `onFail` (
+    ( Documentation <$> interiorWith (xsdTag "documentation")
+                                        (allChildren text)  e)
+      `onFail`
+      (AppInfo <$> interiorWith (xsdTag "documentation")
+                                        (allChildren text)  e)
+      `onFail`
       return (NoAnnotation "failed to parse")
-      )
 
 -- | Parse a FormDefault attribute.
 qform :: TextParser QForm
@@ -243,7 +241,7 @@ schemaItem :: (String->String->QName) -> XsdParser SchemaItem
 schemaItem qual = oneOf'
        [ ("xsd:include",        include)
        , ("xsd:import",         import_)
-       , ("xsd:redefine",       (redefine qual))
+       , ("xsd:redefine",       redefine qual)
        , ("xsd:annotation",     fmap Annotation     definiteAnnotation)
          --
        , ("xsd:simpleType",     fmap Simple           (simpleType qual))
@@ -256,7 +254,7 @@ schemaItem qual = oneOf'
 -- sigh
        , ("xs:include",        include)
        , ("xs:import",         import_)
-       , ("xs:redefine",       (redefine qual))
+       , ("xs:redefine",       redefine qual)
        , ("xs:annotation",     fmap Annotation     definiteAnnotation)
          --
        , ("xs:simpleType",     fmap Simple           (simpleType qual))
@@ -333,7 +331,7 @@ simpleType q = do
     restriction1 a b = return (RestrictSim1 a b)
                             `apply` (return Restriction1 `apply` particle q)
     restrictType a b = return (RestrictType a b)
-                            `apply` (optional (simpleType q))
+                            `apply` optional (simpleType q)
                             `apply` many1 aFacet
 
 aFacet :: XsdParser Facet
@@ -385,7 +383,7 @@ complexItem q =
                 `apply` (attribute (N "mixed") bool e `onFail` return False)
                 `apply` interiorWith (not.xsdTag "annotation") stuff e
     ) `onFail` (
-      do fmap ThisType $ particleAttrs q
+      do ThisType <$> particleAttrs q
     )
   where
     stuff :: XsdParser (Either Restriction1 Extension)
@@ -532,9 +530,9 @@ attributeDecl q =
                     `onFail`
                     fmap Right (attribute (N "ref") (qname q) e))
            `apply` (attribute (N "use") use e `onFail` return Optional)
-           `apply` (optional (attribute (N "default") (fmap Left string) e
+           `apply` optional (attribute (N "default") (fmap Left string) e
                               `onFail`
-                              attribute (N "fixed") (fmap Right string) e))
+                              attribute (N "fixed") (fmap Right string) e)
            `apply` (attribute (xsd "form") qform e `onFail` return Unqualified)
            `apply` interiorWith (xsdTag "simpleType")
                                 (optional (simpleType q)) e
@@ -543,8 +541,8 @@ attributeDecl q =
 -- | Parse an occurrence range from attributes of given element.
 occurs :: Element Posn -> XsdParser Occurs
 occurs e = return Occurs
-               `apply` (optional $ attribute (N "minOccurs") parseDec e)
-               `apply` (optional $ attribute (N "maxOccurs") maxDec e)
+               `apply` optional (attribute (N "minOccurs") parseDec e)
+               `apply` optional (attribute (N "maxOccurs") maxDec e)
   where
     maxDec = parseDec
              `onFail`
@@ -611,7 +609,7 @@ uri = string
 
 -- | Text parser for an arbitrary string consisting of possibly multiple tokens.
 string :: TextParser String
-string = fmap concat $ many (space `onFail` word)
+string = concat <$> many (space `onFail` word)
 
 space :: TextParser String
 space = many1 $ satisfy isSpace
@@ -648,12 +646,12 @@ processContents =
 -- | Parse an attribute value that should be a QName.
 qname :: (String->String->QName) -> TextParser QName
 qname q = do a <- word
-             ( do ":" <- word
-                  b   <- many (satisfy (/=':'))
-                  return (q a b)
+             (do ":" <- word
+                 b   <- many (satisfy (/=':'))
+                 return (q a b)
                `onFail`
                do cs <- many next
-                  return (N (a++cs)) )
+                  return (N (a++cs)))
 
 -- | Parse an attribute value that should be a simple Name.
 name :: TextParser Name

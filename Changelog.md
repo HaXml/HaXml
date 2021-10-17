@@ -1,4 +1,5 @@
 ## 1.25.7 (2021-10-15)
+- many hlint fixes
 - fix the rendering of time durations (#1)
 
 ## 1.25.6 (2021-09-26)

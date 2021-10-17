@@ -12,8 +12,8 @@ data Album = Album Title Artist (Maybe Recording) Coverart
 newtype Title = Title String 		deriving (Eq,Show)
 newtype Artist = Artist String 		deriving (Eq,Show)
 data Recording = Recording
-    { recordingDate :: (Maybe String)
-    , recordingPlace :: (Maybe String)
+    { recordingDate :: Maybe String
+    , recordingPlace :: Maybe String
     } deriving (Eq,Show)
 data Coverart = Coverart Coverart_Attrs (Maybe Location)
 	      deriving (Eq,Show)
@@ -21,15 +21,15 @@ data Coverart_Attrs = Coverart_Attrs
     { coverartStyle :: String
     } deriving (Eq,Show)
 data Location = Location
-    { locationThumbnail :: (Maybe String)
-    , locationFullsize :: (Maybe String)
+    { locationThumbnail :: Maybe String
+    , locationFullsize :: Maybe String
     } deriving (Eq,Show)
 data Catalogno = Catalogno
     { catalognoLabel :: String
     , catalognoNumber :: String
-    , catalognoFormat :: (Maybe Catalogno_Format)
-    , catalognoReleasedate :: (Maybe String)
-    , catalognoCountry :: (Maybe String)
+    , catalognoFormat :: Maybe Catalogno_Format
+    , catalognoReleasedate :: Maybe String
+    , catalognoCountry :: Maybe String
     } deriving (Eq,Show)
 data Catalogno_Format = Catalogno_Format_CD  |  Catalogno_Format_LP
 			 |  Catalogno_Format_MiniDisc
@@ -41,13 +41,13 @@ data Player = Player
     } deriving (Eq,Show)
 data Track = Track
     { trackTitle :: String
-    , trackCredit :: (Maybe String)
-    , trackTiming :: (Maybe String)
+    , trackCredit :: Maybe String
+    , trackTiming :: Maybe String
     } deriving (Eq,Show)
 data Notes = Notes Notes_Attrs [Notes_]
 	   deriving (Eq,Show)
 data Notes_Attrs = Notes_Attrs
-    { notesAuthor :: (Maybe String)
+    { notesAuthor :: Maybe String
     } deriving (Eq,Show)
 data Notes_ = Notes_Str String
 	    | Notes_Albumref Albumref
@@ -61,7 +61,7 @@ data Albumref_Attrs = Albumref_Attrs
 data Trackref = Trackref Trackref_Attrs String
 	      deriving (Eq,Show)
 data Trackref_Attrs = Trackref_Attrs
-    { trackrefLink :: (Maybe String)
+    { trackrefLink :: Maybe String
     } deriving (Eq,Show)
 
 
@@ -123,7 +123,7 @@ instance XmlAttributes Recording where
 	  { recordingDate = possibleA fromAttrToStr "date" as
 	  , recordingPlace = possibleA fromAttrToStr "place" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "date" (recordingDate v)
 	, maybeToAttr toAttrFrStr "place" (recordingPlace v)
 	]
@@ -141,7 +141,7 @@ instance XmlAttributes Coverart_Attrs where
 	Coverart_Attrs
 	  { coverartStyle = definiteA fromAttrToStr "coverart" "style" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ toAttrFrStr "style" (coverartStyle v)
 	]
 instance XmlContent Location where
@@ -157,7 +157,7 @@ instance XmlAttributes Location where
 	  { locationThumbnail = possibleA fromAttrToStr "thumbnail" as
 	  , locationFullsize = possibleA fromAttrToStr "fullsize" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "thumbnail" (locationThumbnail v)
 	, maybeToAttr toAttrFrStr "fullsize" (locationFullsize v)
 	]
@@ -177,7 +177,7 @@ instance XmlAttributes Catalogno where
 	  , catalognoReleasedate = possibleA fromAttrToStr "releasedate" as
 	  , catalognoCountry = possibleA fromAttrToStr "country" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ toAttrFrStr "label" (catalognoLabel v)
 	, toAttrFrStr "number" (catalognoNumber v)
 	, maybeToAttr toAttrFrTyp "format" (catalognoFormat v)
@@ -217,7 +217,7 @@ instance XmlAttributes Player where
 	  { playerName = definiteA fromAttrToStr "player" "name" as
 	  , playerInstrument = definiteA fromAttrToStr "player" "instrument" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ toAttrFrStr "name" (playerName v)
 	, toAttrFrStr "instrument" (playerInstrument v)
 	]
@@ -235,7 +235,7 @@ instance XmlAttributes Track where
 	  , trackCredit = possibleA fromAttrToStr "credit" as
 	  , trackTiming = possibleA fromAttrToStr "timing" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ toAttrFrStr "title" (trackTitle v)
 	, maybeToAttr toAttrFrStr "credit" (trackCredit v)
 	, maybeToAttr toAttrFrStr "timing" (trackTiming v)
@@ -254,18 +254,18 @@ instance XmlAttributes Notes_Attrs where
 	Notes_Attrs
 	  { notesAuthor = possibleA fromAttrToStr "author" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "author" (notesAuthor v)
 	]
 instance XmlContent Notes_ where
     fromElem c0 =
-	case (fromText c0) of
+	case fromText c0 of
 	(Just a,rest) -> (Just (Notes_Str a), rest)
 	(Nothing,_) ->
-		case (fromElem c0) of
+		case fromElem c0 of
 		(Just a,rest) -> (Just (Notes_Albumref a), rest)
 		(Nothing,_) ->
-			case (fromElem c0) of
+			case fromElem c0 of
 			(Just a,rest) -> (Just (Notes_Trackref a), rest)
 			(Nothing,_) ->
 			    (Nothing, c0)
@@ -288,7 +288,7 @@ instance XmlAttributes Albumref_Attrs where
 	Albumref_Attrs
 	  { albumrefLink = definiteA fromAttrToStr "albumref" "link" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ toAttrFrStr "link" (albumrefLink v)
 	]
 instance XmlContent Trackref where
@@ -305,7 +305,7 @@ instance XmlAttributes Trackref_Attrs where
 	Trackref_Attrs
 	  { trackrefLink = possibleA fromAttrToStr "link" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "link" (trackrefLink v)
 	]
 

@@ -202,11 +202,11 @@ toDTD ht =
   DTD (toplevel ht) Nothing (macrosFirst (reverse (h2d True [] [] [ht])))
   where
     macrosFirst :: [MarkupDecl] -> [MarkupDecl]
-    macrosFirst decls = concat [p, p'] where (p, p') = partition f decls
-                                             f (Entity _) = True
-                                             f _ = False
+    macrosFirst decls = p ++ p' where (p, p') = partition f decls
+                                      f (Entity _) = True
+                                      f _ = False
     toplevel ht@(Defined _ _ _) = N $ showHType ht "-XML"
-    toplevel ht@_               = N $ showHType ht ""
+    toplevel ht                 = N $ showHType ht ""
     c0 = False
     h2d :: Bool -> [HType] -> [Constr] -> [HType] -> [MarkupDecl]
     -- toplevel?   history    history   remainingwork     result
@@ -261,13 +261,13 @@ showHType (Tuple hts) = showString "tuple" . shows (length hts)
 showHType (Prim _ t)  = showString t
 showHType String      = showString "string"
 showHType (Defined s fv _)
-                      = showString s . ((length fv > 0) ? (showChar '-'))
+                      = showString s . ((length fv > 0) ? showChar '-')
                         . foldr (.) id (intersperse (showChar '-')
                                                     (map showHType fv))
 
 flatConstr :: Constr -> ShowS
 flatConstr (Constr s fv _)
-        = showString s . ((length fv > 0) ? (showChar '-'))
+        = showString s . ((length fv > 0) ? showChar '-')
           . foldr (.) id (intersperse (showChar '-') (map showHType fv))
 
 outerHtExpr :: HType -> CP
@@ -279,7 +279,7 @@ outerHtExpr ht              = innerHtExpr ht None
 
 innerHtExpr :: HType -> Modifier -> CP
 innerHtExpr (Prim _ t)  m = TagName (N t) m
-innerHtExpr (Tuple hts) m = Seq (map (\c-> innerHtExpr c None) hts) m
+innerHtExpr (Tuple hts) m = Seq (map (`innerHtExpr` None) hts) m
 innerHtExpr ht@(Defined _ _ _) m = -- CPPE (showHType ht "") (outerHtExpr ht)
                                    TagName (N ('%': showHType ht ";")) m
                                                         --  ***HACK!!!***

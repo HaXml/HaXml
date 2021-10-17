@@ -7,172 +7,172 @@ import Text.XML.HaXml.OneOfN
 {-Type decls-}
 
 data Smil = Smil
-    { smilId :: (Maybe String)
-    , smilClass :: (Maybe String)
-    , smilTitle :: (Maybe String)
-    , smilXml'lang :: (Maybe String)
-    , smilXmlns :: (Defaultable String)
+    { smilId :: Maybe String
+    , smilClass :: Maybe String
+    , smilTitle :: Maybe String
+    , smilXml'lang :: Maybe String
+    , smilXmlns :: Defaultable String
     } deriving (Eq,Show)
 data Head = Head
-    { headId :: (Maybe String)
-    , headClass :: (Maybe String)
-    , headTitle :: (Maybe String)
-    , headXml'lang :: (Maybe String)
+    { headId :: Maybe String
+    , headClass :: Maybe String
+    , headTitle :: Maybe String
+    , headXml'lang :: Maybe String
     } deriving (Eq,Show)
 data Body = Body
-    { bodyId :: (Maybe String)
-    , bodyClass :: (Maybe String)
-    , bodyTitle :: (Maybe String)
-    , bodyXml'lang :: (Maybe String)
+    { bodyId :: Maybe String
+    , bodyClass :: Maybe String
+    , bodyTitle :: Maybe String
+    , bodyXml'lang :: Maybe String
     } deriving (Eq,Show)
 data Animate = Animate
-    { animateId :: (Maybe String)
-    , animateClass :: (Maybe String)
-    , animateTitle :: (Maybe String)
-    , animateXml'lang :: (Maybe String)
-    , animateCustomTest :: (Maybe String)
-    , animateSystemBitrate :: (Maybe String)
-    , animateSystemCaptions :: (Maybe Animate_SystemCaptions)
-    , animateSystemLanguage :: (Maybe String)
-    , animateSystemOverdubOrSubtitle :: (Maybe Animate_SystemOverdubOrSubtitle)
-    , animateSystemRequired :: (Maybe String)
-    , animateSystemScreenSize :: (Maybe String)
-    , animateSystemScreenDepth :: (Maybe String)
-    , animateSystemAudioDesc :: (Maybe Animate_SystemAudioDesc)
-    , animateSystemOperatingSystem :: (Maybe String)
-    , animateSystemCPU :: (Maybe String)
-    , animateSystemComponent :: (Maybe String)
-    , animateSystem_bitrate :: (Maybe String)
-    , animateSystem_captions :: (Maybe Animate_System_captions)
-    , animateSystem_language :: (Maybe String)
-    , animateSystem_overdub_or_caption :: (Maybe Animate_System_overdub_or_caption)
-    , animateSystem_required :: (Maybe String)
-    , animateSystem_screen_size :: (Maybe String)
-    , animateSystem_screen_depth :: (Maybe String)
-    , animateDur :: (Maybe String)
-    , animateRepeatCount :: (Maybe String)
-    , animateRepeatDur :: (Maybe String)
-    , animateBegin :: (Maybe String)
-    , animateEnd :: (Maybe String)
+    { animateId :: Maybe String
+    , animateClass :: Maybe String
+    , animateTitle :: Maybe String
+    , animateXml'lang :: Maybe String
+    , animateCustomTest :: Maybe String
+    , animateSystemBitrate :: Maybe String
+    , animateSystemCaptions :: Maybe Animate_SystemCaptions
+    , animateSystemLanguage :: Maybe String
+    , animateSystemOverdubOrSubtitle :: Maybe Animate_SystemOverdubOrSubtitle
+    , animateSystemRequired :: Maybe String
+    , animateSystemScreenSize :: Maybe String
+    , animateSystemScreenDepth :: Maybe String
+    , animateSystemAudioDesc :: Maybe Animate_SystemAudioDesc
+    , animateSystemOperatingSystem :: Maybe String
+    , animateSystemCPU :: Maybe String
+    , animateSystemComponent :: Maybe String
+    , animateSystem_bitrate :: Maybe String
+    , animateSystem_captions :: Maybe Animate_System_captions
+    , animateSystem_language :: Maybe String
+    , animateSystem_overdub_or_caption :: Maybe Animate_System_overdub_or_caption
+    , animateSystem_required :: Maybe String
+    , animateSystem_screen_size :: Maybe String
+    , animateSystem_screen_depth :: Maybe String
+    , animateDur :: Maybe String
+    , animateRepeatCount :: Maybe String
+    , animateRepeatDur :: Maybe String
+    , animateBegin :: Maybe String
+    , animateEnd :: Maybe String
     , animateAttributeName :: String
-    , animateAttributeType :: (Maybe String)
-    , animateValues :: (Maybe String)
-    , animateFrom :: (Maybe String)
-    , animateTo :: (Maybe String)
-    , animateBy :: (Maybe String)
-    , animateCalcMode :: (Defaultable Animate_CalcMode)
-    , animateAdditive :: (Defaultable Animate_Additive)
-    , animateAccumulate :: (Defaultable Animate_Accumulate)
+    , animateAttributeType :: Maybe String
+    , animateValues :: Maybe String
+    , animateFrom :: Maybe String
+    , animateTo :: Maybe String
+    , animateBy :: Maybe String
+    , animateCalcMode :: Defaultable Animate_CalcMode
+    , animateAdditive :: Defaultable Animate_Additive
+    , animateAccumulate :: Defaultable Animate_Accumulate
     } deriving (Eq,Show)
-data Animate_SystemCaptions = Animate_SystemCaptions_On  | 
+data Animate_SystemCaptions = Animate_SystemCaptions_On  |
 			      Animate_SystemCaptions_Off
 			    deriving (Eq,Show)
 data Animate_SystemOverdubOrSubtitle = Animate_SystemOverdubOrSubtitle_Overdub
 				        |  Animate_SystemOverdubOrSubtitle_Subtitle
 				     deriving (Eq,Show)
-data Animate_SystemAudioDesc = Animate_SystemAudioDesc_On  | 
+data Animate_SystemAudioDesc = Animate_SystemAudioDesc_On  |
 			       Animate_SystemAudioDesc_Off
 			     deriving (Eq,Show)
-data Animate_System_captions = Animate_System_captions_On  | 
+data Animate_System_captions = Animate_System_captions_On  |
 			       Animate_System_captions_Off
 			     deriving (Eq,Show)
 data Animate_System_overdub_or_caption = Animate_System_overdub_or_caption_Overdub
 					  |  Animate_System_overdub_or_caption_Caption
 				       deriving (Eq,Show)
-data Animate_CalcMode = Animate_CalcMode_Discrete  | 
+data Animate_CalcMode = Animate_CalcMode_Discrete  |
 			Animate_CalcMode_Linear  |  Animate_CalcMode_Paced
 		      deriving (Eq,Show)
-data Animate_Additive = Animate_Additive_Replace  | 
+data Animate_Additive = Animate_Additive_Replace  |
 			Animate_Additive_Sum
 		      deriving (Eq,Show)
-data Animate_Accumulate = Animate_Accumulate_None  | 
+data Animate_Accumulate = Animate_Accumulate_None  |
 			  Animate_Accumulate_Sum
 			deriving (Eq,Show)
 data Set = Set
-    { setId :: (Maybe String)
-    , setClass :: (Maybe String)
-    , setTitle :: (Maybe String)
-    , setXml'lang :: (Maybe String)
-    , setCustomTest :: (Maybe String)
-    , setSystemBitrate :: (Maybe String)
-    , setSystemCaptions :: (Maybe Set_SystemCaptions)
-    , setSystemLanguage :: (Maybe String)
-    , setSystemOverdubOrSubtitle :: (Maybe Set_SystemOverdubOrSubtitle)
-    , setSystemRequired :: (Maybe String)
-    , setSystemScreenSize :: (Maybe String)
-    , setSystemScreenDepth :: (Maybe String)
-    , setSystemAudioDesc :: (Maybe Set_SystemAudioDesc)
-    , setSystemOperatingSystem :: (Maybe String)
-    , setSystemCPU :: (Maybe String)
-    , setSystemComponent :: (Maybe String)
-    , setSystem_bitrate :: (Maybe String)
-    , setSystem_captions :: (Maybe Set_System_captions)
-    , setSystem_language :: (Maybe String)
-    , setSystem_overdub_or_caption :: (Maybe Set_System_overdub_or_caption)
-    , setSystem_required :: (Maybe String)
-    , setSystem_screen_size :: (Maybe String)
-    , setSystem_screen_depth :: (Maybe String)
-    , setDur :: (Maybe String)
-    , setRepeatCount :: (Maybe String)
-    , setRepeatDur :: (Maybe String)
-    , setBegin :: (Maybe String)
-    , setEnd :: (Maybe String)
+    { setId :: Maybe String
+    , setClass :: Maybe String
+    , setTitle :: Maybe String
+    , setXml'lang :: Maybe String
+    , setCustomTest :: Maybe String
+    , setSystemBitrate :: Maybe String
+    , setSystemCaptions :: Maybe Set_SystemCaptions
+    , setSystemLanguage :: Maybe String
+    , setSystemOverdubOrSubtitle :: Maybe Set_SystemOverdubOrSubtitle
+    , setSystemRequired :: Maybe String
+    , setSystemScreenSize :: Maybe String
+    , setSystemScreenDepth :: Maybe String
+    , setSystemAudioDesc :: Maybe Set_SystemAudioDesc
+    , setSystemOperatingSystem :: Maybe String
+    , setSystemCPU :: Maybe String
+    , setSystemComponent :: Maybe String
+    , setSystem_bitrate :: Maybe String
+    , setSystem_captions :: Maybe Set_System_captions
+    , setSystem_language :: Maybe String
+    , setSystem_overdub_or_caption :: Maybe Set_System_overdub_or_caption
+    , setSystem_required :: Maybe String
+    , setSystem_screen_size :: Maybe String
+    , setSystem_screen_depth :: Maybe String
+    , setDur :: Maybe String
+    , setRepeatCount :: Maybe String
+    , setRepeatDur :: Maybe String
+    , setBegin :: Maybe String
+    , setEnd :: Maybe String
     , setAttributeName :: String
-    , setAttributeType :: (Maybe String)
-    , setTo :: (Maybe String)
+    , setAttributeType :: Maybe String
+    , setTo :: Maybe String
     } deriving (Eq,Show)
-data Set_SystemCaptions = Set_SystemCaptions_On  | 
+data Set_SystemCaptions = Set_SystemCaptions_On  |
 			  Set_SystemCaptions_Off
 			deriving (Eq,Show)
 data Set_SystemOverdubOrSubtitle = Set_SystemOverdubOrSubtitle_Overdub
 				    |  Set_SystemOverdubOrSubtitle_Subtitle
 				 deriving (Eq,Show)
-data Set_SystemAudioDesc = Set_SystemAudioDesc_On  | 
+data Set_SystemAudioDesc = Set_SystemAudioDesc_On  |
 			   Set_SystemAudioDesc_Off
 			 deriving (Eq,Show)
-data Set_System_captions = Set_System_captions_On  | 
+data Set_System_captions = Set_System_captions_On  |
 			   Set_System_captions_Off
 			 deriving (Eq,Show)
 data Set_System_overdub_or_caption = Set_System_overdub_or_caption_Overdub
 				      |  Set_System_overdub_or_caption_Caption
 				   deriving (Eq,Show)
 data AnimateMotion = AnimateMotion
-    { animateMotionId :: (Maybe String)
-    , animateMotionClass :: (Maybe String)
-    , animateMotionTitle :: (Maybe String)
-    , animateMotionXml'lang :: (Maybe String)
-    , animateMotionCustomTest :: (Maybe String)
-    , animateMotionSystemBitrate :: (Maybe String)
-    , animateMotionSystemCaptions :: (Maybe AnimateMotion_SystemCaptions)
-    , animateMotionSystemLanguage :: (Maybe String)
-    , animateMotionSystemOverdubOrSubtitle :: (Maybe AnimateMotion_SystemOverdubOrSubtitle)
-    , animateMotionSystemRequired :: (Maybe String)
-    , animateMotionSystemScreenSize :: (Maybe String)
-    , animateMotionSystemScreenDepth :: (Maybe String)
-    , animateMotionSystemAudioDesc :: (Maybe AnimateMotion_SystemAudioDesc)
-    , animateMotionSystemOperatingSystem :: (Maybe String)
-    , animateMotionSystemCPU :: (Maybe String)
-    , animateMotionSystemComponent :: (Maybe String)
-    , animateMotionSystem_bitrate :: (Maybe String)
-    , animateMotionSystem_captions :: (Maybe AnimateMotion_System_captions)
-    , animateMotionSystem_language :: (Maybe String)
-    , animateMotionSystem_overdub_or_caption :: (Maybe AnimateMotion_System_overdub_or_caption)
-    , animateMotionSystem_required :: (Maybe String)
-    , animateMotionSystem_screen_size :: (Maybe String)
-    , animateMotionSystem_screen_depth :: (Maybe String)
-    , animateMotionDur :: (Maybe String)
-    , animateMotionRepeatCount :: (Maybe String)
-    , animateMotionRepeatDur :: (Maybe String)
-    , animateMotionBegin :: (Maybe String)
-    , animateMotionEnd :: (Maybe String)
-    , animateMotionValues :: (Maybe String)
-    , animateMotionFrom :: (Maybe String)
-    , animateMotionTo :: (Maybe String)
-    , animateMotionBy :: (Maybe String)
-    , animateMotionCalcMode :: (Defaultable AnimateMotion_CalcMode)
-    , animateMotionAdditive :: (Defaultable AnimateMotion_Additive)
-    , animateMotionAccumulate :: (Defaultable AnimateMotion_Accumulate)
-    , animateMotionOrigin :: (Defaultable AnimateMotion_Origin)
+    { animateMotionId :: Maybe String
+    , animateMotionClass :: Maybe String
+    , animateMotionTitle :: Maybe String
+    , animateMotionXml'lang :: Maybe String
+    , animateMotionCustomTest :: Maybe String
+    , animateMotionSystemBitrate :: Maybe String
+    , animateMotionSystemCaptions :: Maybe AnimateMotion_SystemCaptions
+    , animateMotionSystemLanguage :: Maybe String
+    , animateMotionSystemOverdubOrSubtitle :: Maybe AnimateMotion_SystemOverdubOrSubtitle
+    , animateMotionSystemRequired :: Maybe String
+    , animateMotionSystemScreenSize :: Maybe String
+    , animateMotionSystemScreenDepth :: Maybe String
+    , animateMotionSystemAudioDesc :: Maybe AnimateMotion_SystemAudioDesc
+    , animateMotionSystemOperatingSystem :: Maybe String
+    , animateMotionSystemCPU :: Maybe String
+    , animateMotionSystemComponent :: Maybe String
+    , animateMotionSystem_bitrate :: Maybe String
+    , animateMotionSystem_captions :: Maybe AnimateMotion_System_captions
+    , animateMotionSystem_language :: Maybe String
+    , animateMotionSystem_overdub_or_caption :: Maybe AnimateMotion_System_overdub_or_caption
+    , animateMotionSystem_required :: Maybe String
+    , animateMotionSystem_screen_size :: Maybe String
+    , animateMotionSystem_screen_depth :: Maybe String
+    , animateMotionDur :: Maybe String
+    , animateMotionRepeatCount :: Maybe String
+    , animateMotionRepeatDur :: Maybe String
+    , animateMotionBegin :: Maybe String
+    , animateMotionEnd :: Maybe String
+    , animateMotionValues :: Maybe String
+    , animateMotionFrom :: Maybe String
+    , animateMotionTo :: Maybe String
+    , animateMotionBy :: Maybe String
+    , animateMotionCalcMode :: Defaultable AnimateMotion_CalcMode
+    , animateMotionAdditive :: Defaultable AnimateMotion_Additive
+    , animateMotionAccumulate :: Defaultable AnimateMotion_Accumulate
+    , animateMotionOrigin :: Defaultable AnimateMotion_Origin
     } deriving (Eq,Show)
 data AnimateMotion_SystemCaptions = AnimateMotion_SystemCaptions_On
 				     |  AnimateMotion_SystemCaptions_Off
@@ -189,55 +189,55 @@ data AnimateMotion_System_captions = AnimateMotion_System_captions_On
 data AnimateMotion_System_overdub_or_caption = AnimateMotion_System_overdub_or_caption_Overdub
 					        |  AnimateMotion_System_overdub_or_caption_Caption
 					     deriving (Eq,Show)
-data AnimateMotion_CalcMode = AnimateMotion_CalcMode_Discrete  | 
+data AnimateMotion_CalcMode = AnimateMotion_CalcMode_Discrete  |
 			      AnimateMotion_CalcMode_Linear  |  AnimateMotion_CalcMode_Paced
 			    deriving (Eq,Show)
-data AnimateMotion_Additive = AnimateMotion_Additive_Replace  | 
+data AnimateMotion_Additive = AnimateMotion_Additive_Replace  |
 			      AnimateMotion_Additive_Sum
 			    deriving (Eq,Show)
-data AnimateMotion_Accumulate = AnimateMotion_Accumulate_None  | 
+data AnimateMotion_Accumulate = AnimateMotion_Accumulate_None  |
 				AnimateMotion_Accumulate_Sum
 			      deriving (Eq,Show)
 data AnimateMotion_Origin = AnimateMotion_Origin_Default
 			  deriving (Eq,Show)
 data AnimateColor = AnimateColor
-    { animateColorId :: (Maybe String)
-    , animateColorClass :: (Maybe String)
-    , animateColorTitle :: (Maybe String)
-    , animateColorXml'lang :: (Maybe String)
-    , animateColorCustomTest :: (Maybe String)
-    , animateColorSystemBitrate :: (Maybe String)
-    , animateColorSystemCaptions :: (Maybe AnimateColor_SystemCaptions)
-    , animateColorSystemLanguage :: (Maybe String)
-    , animateColorSystemOverdubOrSubtitle :: (Maybe AnimateColor_SystemOverdubOrSubtitle)
-    , animateColorSystemRequired :: (Maybe String)
-    , animateColorSystemScreenSize :: (Maybe String)
-    , animateColorSystemScreenDepth :: (Maybe String)
-    , animateColorSystemAudioDesc :: (Maybe AnimateColor_SystemAudioDesc)
-    , animateColorSystemOperatingSystem :: (Maybe String)
-    , animateColorSystemCPU :: (Maybe String)
-    , animateColorSystemComponent :: (Maybe String)
-    , animateColorSystem_bitrate :: (Maybe String)
-    , animateColorSystem_captions :: (Maybe AnimateColor_System_captions)
-    , animateColorSystem_language :: (Maybe String)
-    , animateColorSystem_overdub_or_caption :: (Maybe AnimateColor_System_overdub_or_caption)
-    , animateColorSystem_required :: (Maybe String)
-    , animateColorSystem_screen_size :: (Maybe String)
-    , animateColorSystem_screen_depth :: (Maybe String)
-    , animateColorDur :: (Maybe String)
-    , animateColorRepeatCount :: (Maybe String)
-    , animateColorRepeatDur :: (Maybe String)
-    , animateColorBegin :: (Maybe String)
-    , animateColorEnd :: (Maybe String)
+    { animateColorId :: Maybe String
+    , animateColorClass :: Maybe String
+    , animateColorTitle :: Maybe String
+    , animateColorXml'lang :: Maybe String
+    , animateColorCustomTest :: Maybe String
+    , animateColorSystemBitrate :: Maybe String
+    , animateColorSystemCaptions :: Maybe AnimateColor_SystemCaptions
+    , animateColorSystemLanguage :: Maybe String
+    , animateColorSystemOverdubOrSubtitle :: Maybe AnimateColor_SystemOverdubOrSubtitle
+    , animateColorSystemRequired :: Maybe String
+    , animateColorSystemScreenSize :: Maybe String
+    , animateColorSystemScreenDepth :: Maybe String
+    , animateColorSystemAudioDesc :: Maybe AnimateColor_SystemAudioDesc
+    , animateColorSystemOperatingSystem :: Maybe String
+    , animateColorSystemCPU :: Maybe String
+    , animateColorSystemComponent :: Maybe String
+    , animateColorSystem_bitrate :: Maybe String
+    , animateColorSystem_captions :: Maybe AnimateColor_System_captions
+    , animateColorSystem_language :: Maybe String
+    , animateColorSystem_overdub_or_caption :: Maybe AnimateColor_System_overdub_or_caption
+    , animateColorSystem_required :: Maybe String
+    , animateColorSystem_screen_size :: Maybe String
+    , animateColorSystem_screen_depth :: Maybe String
+    , animateColorDur :: Maybe String
+    , animateColorRepeatCount :: Maybe String
+    , animateColorRepeatDur :: Maybe String
+    , animateColorBegin :: Maybe String
+    , animateColorEnd :: Maybe String
     , animateColorAttributeName :: String
-    , animateColorAttributeType :: (Maybe String)
-    , animateColorValues :: (Maybe String)
-    , animateColorFrom :: (Maybe String)
-    , animateColorTo :: (Maybe String)
-    , animateColorBy :: (Maybe String)
-    , animateColorCalcMode :: (Defaultable AnimateColor_CalcMode)
-    , animateColorAdditive :: (Defaultable AnimateColor_Additive)
-    , animateColorAccumulate :: (Defaultable AnimateColor_Accumulate)
+    , animateColorAttributeType :: Maybe String
+    , animateColorValues :: Maybe String
+    , animateColorFrom :: Maybe String
+    , animateColorTo :: Maybe String
+    , animateColorBy :: Maybe String
+    , animateColorCalcMode :: Defaultable AnimateColor_CalcMode
+    , animateColorAdditive :: Defaultable AnimateColor_Additive
+    , animateColorAccumulate :: Defaultable AnimateColor_Accumulate
     } deriving (Eq,Show)
 data AnimateColor_SystemCaptions = AnimateColor_SystemCaptions_On
 				    |  AnimateColor_SystemCaptions_Off
@@ -254,420 +254,420 @@ data AnimateColor_System_captions = AnimateColor_System_captions_On
 data AnimateColor_System_overdub_or_caption = AnimateColor_System_overdub_or_caption_Overdub
 					       |  AnimateColor_System_overdub_or_caption_Caption
 					    deriving (Eq,Show)
-data AnimateColor_CalcMode = AnimateColor_CalcMode_Discrete  | 
+data AnimateColor_CalcMode = AnimateColor_CalcMode_Discrete  |
 			     AnimateColor_CalcMode_Linear  |  AnimateColor_CalcMode_Paced
 			   deriving (Eq,Show)
-data AnimateColor_Additive = AnimateColor_Additive_Replace  | 
+data AnimateColor_Additive = AnimateColor_Additive_Replace  |
 			     AnimateColor_Additive_Sum
 			   deriving (Eq,Show)
-data AnimateColor_Accumulate = AnimateColor_Accumulate_None  | 
+data AnimateColor_Accumulate = AnimateColor_Accumulate_None  |
 			       AnimateColor_Accumulate_Sum
 			     deriving (Eq,Show)
 data Switch = Switch
-    { switchId :: (Maybe String)
-    , switchClass :: (Maybe String)
-    , switchTitle :: (Maybe String)
-    , switchXml'lang :: (Maybe String)
+    { switchId :: Maybe String
+    , switchClass :: Maybe String
+    , switchTitle :: Maybe String
+    , switchXml'lang :: Maybe String
     } deriving (Eq,Show)
 data Meta = Meta
-    { metaContent :: (Maybe String)
+    { metaContent :: Maybe String
     , metaName :: String
     } deriving (Eq,Show)
 data Metadata = Metadata
-    { metadataId :: (Maybe String)
-    , metadataClass :: (Maybe String)
-    , metadataTitle :: (Maybe String)
-    , metadataXml'lang :: (Maybe String)
+    { metadataId :: Maybe String
+    , metadataClass :: Maybe String
+    , metadataTitle :: Maybe String
+    , metadataXml'lang :: Maybe String
     } deriving (Eq,Show)
 data Layout = Layout
-    { layoutId :: (Maybe String)
-    , layoutClass :: (Maybe String)
-    , layoutTitle :: (Maybe String)
-    , layoutXml'lang :: (Maybe String)
-    , layoutType :: (Defaultable String)
+    { layoutId :: Maybe String
+    , layoutClass :: Maybe String
+    , layoutTitle :: Maybe String
+    , layoutXml'lang :: Maybe String
+    , layoutType :: Defaultable String
     } deriving (Eq,Show)
 data Region = Region
-    { regionId :: (Maybe String)
-    , regionClass :: (Maybe String)
-    , regionTitle :: (Maybe String)
-    , regionXml'lang :: (Maybe String)
-    , regionHeight :: (Defaultable String)
-    , regionWidth :: (Defaultable String)
-    , regionClose :: (Defaultable Region_Close)
-    , regionOpen :: (Defaultable Region_Open)
-    , regionBackgroundColor :: (Maybe String)
-    , regionBackground_color :: (Maybe String)
-    , regionBottom :: (Defaultable String)
-    , regionLeft :: (Defaultable String)
-    , regionRight :: (Defaultable String)
-    , regionTop :: (Defaultable String)
-    , regionZ_index :: (Maybe String)
-    , regionShowBackground :: (Defaultable Region_ShowBackground)
-    , regionFit :: (Defaultable Region_Fit)
+    { regionId :: Maybe String
+    , regionClass :: Maybe String
+    , regionTitle :: Maybe String
+    , regionXml'lang :: Maybe String
+    , regionHeight :: Defaultable String
+    , regionWidth :: Defaultable String
+    , regionClose :: Defaultable Region_Close
+    , regionOpen :: Defaultable Region_Open
+    , regionBackgroundColor :: Maybe String
+    , regionBackground_color :: Maybe String
+    , regionBottom :: Defaultable String
+    , regionLeft :: Defaultable String
+    , regionRight :: Defaultable String
+    , regionTop :: Defaultable String
+    , regionZ_index :: Maybe String
+    , regionShowBackground :: Defaultable Region_ShowBackground
+    , regionFit :: Defaultable Region_Fit
     } deriving (Eq,Show)
-data Region_Close = Region_Close_Never  | 
+data Region_Close = Region_Close_Never  |
 		    Region_Close_WhenNotActive
 		  deriving (Eq,Show)
 data Region_Open = Region_Open_Always  |  Region_Open_WhenActive
 		 deriving (Eq,Show)
-data Region_ShowBackground = Region_ShowBackground_Always  | 
+data Region_ShowBackground = Region_ShowBackground_Always  |
 			     Region_ShowBackground_WhenActive
 			   deriving (Eq,Show)
-data Region_Fit = Region_Fit_Hidden  |  Region_Fit_Fill  | 
+data Region_Fit = Region_Fit_Hidden  |  Region_Fit_Fill  |
 		  Region_Fit_Meet  |  Region_Fit_Scroll  |  Region_Fit_Slice
 		deriving (Eq,Show)
 data Root_layout = Root_layout
-    { root_layoutId :: (Maybe String)
-    , root_layoutClass :: (Maybe String)
-    , root_layoutTitle :: (Maybe String)
-    , root_layoutXml'lang :: (Maybe String)
-    , root_layoutHeight :: (Defaultable String)
-    , root_layoutWidth :: (Defaultable String)
-    , root_layoutClose :: (Defaultable Root_layout_Close)
-    , root_layoutOpen :: (Defaultable Root_layout_Open)
-    , root_layoutBackgroundColor :: (Maybe String)
-    , root_layoutBackground_color :: (Maybe String)
+    { root_layoutId :: Maybe String
+    , root_layoutClass :: Maybe String
+    , root_layoutTitle :: Maybe String
+    , root_layoutXml'lang :: Maybe String
+    , root_layoutHeight :: Defaultable String
+    , root_layoutWidth :: Defaultable String
+    , root_layoutClose :: Defaultable Root_layout_Close
+    , root_layoutOpen :: Defaultable Root_layout_Open
+    , root_layoutBackgroundColor :: Maybe String
+    , root_layoutBackground_color :: Maybe String
     } deriving (Eq,Show)
-data Root_layout_Close = Root_layout_Close_Never  | 
+data Root_layout_Close = Root_layout_Close_Never  |
 			 Root_layout_Close_WhenNotActive
 		       deriving (Eq,Show)
-data Root_layout_Open = Root_layout_Open_Always  | 
+data Root_layout_Open = Root_layout_Open_Always  |
 			Root_layout_Open_WhenActive
 		      deriving (Eq,Show)
 data Ref = Ref
-    { refId :: (Maybe String)
-    , refClass :: (Maybe String)
-    , refTitle :: (Maybe String)
-    , refXml'lang :: (Maybe String)
+    { refId :: Maybe String
+    , refClass :: Maybe String
+    , refTitle :: Maybe String
+    , refXml'lang :: Maybe String
     } deriving (Eq,Show)
 data Audio = Audio
-    { audioId :: (Maybe String)
-    , audioClass :: (Maybe String)
-    , audioTitle :: (Maybe String)
-    , audioXml'lang :: (Maybe String)
+    { audioId :: Maybe String
+    , audioClass :: Maybe String
+    , audioTitle :: Maybe String
+    , audioXml'lang :: Maybe String
     } deriving (Eq,Show)
 data Img = Img
-    { imgId :: (Maybe String)
-    , imgClass :: (Maybe String)
-    , imgTitle :: (Maybe String)
-    , imgXml'lang :: (Maybe String)
+    { imgId :: Maybe String
+    , imgClass :: Maybe String
+    , imgTitle :: Maybe String
+    , imgXml'lang :: Maybe String
     } deriving (Eq,Show)
 data Video = Video
-    { videoId :: (Maybe String)
-    , videoClass :: (Maybe String)
-    , videoTitle :: (Maybe String)
-    , videoXml'lang :: (Maybe String)
+    { videoId :: Maybe String
+    , videoClass :: Maybe String
+    , videoTitle :: Maybe String
+    , videoXml'lang :: Maybe String
     } deriving (Eq,Show)
 data Text = Text
-    { textId :: (Maybe String)
-    , textClass :: (Maybe String)
-    , textTitle :: (Maybe String)
-    , textXml'lang :: (Maybe String)
+    { textId :: Maybe String
+    , textClass :: Maybe String
+    , textTitle :: Maybe String
+    , textXml'lang :: Maybe String
     } deriving (Eq,Show)
 data Textstream = Textstream
-    { textstreamId :: (Maybe String)
-    , textstreamClass :: (Maybe String)
-    , textstreamTitle :: (Maybe String)
-    , textstreamXml'lang :: (Maybe String)
+    { textstreamId :: Maybe String
+    , textstreamClass :: Maybe String
+    , textstreamTitle :: Maybe String
+    , textstreamXml'lang :: Maybe String
     } deriving (Eq,Show)
 data Animation = Animation
-    { animationId :: (Maybe String)
-    , animationClass :: (Maybe String)
-    , animationTitle :: (Maybe String)
-    , animationXml'lang :: (Maybe String)
+    { animationId :: Maybe String
+    , animationClass :: Maybe String
+    , animationTitle :: Maybe String
+    , animationXml'lang :: Maybe String
     } deriving (Eq,Show)
 data Transition = Transition
-    { transitionId :: (Maybe String)
-    , transitionClass :: (Maybe String)
-    , transitionTitle :: (Maybe String)
-    , transitionXml'lang :: (Maybe String)
-    , transitionType :: (Maybe Transition_Type)
-    , transitionSubtype :: (Maybe Transition_Subtype)
-    , transitionHorzRepeat :: (Defaultable String)
-    , transitionVertRepeat :: (Defaultable String)
-    , transitionBorderWidth :: (Defaultable String)
-    , transitionBorderColor :: (Defaultable String)
-    , transitionFadeColor :: (Defaultable String)
-    , transitionCoordinated :: (Defaultable Transition_Coordinated)
-    , transitionClibBoundary :: (Defaultable Transition_ClibBoundary)
-    , transitionDur :: (Maybe String)
-    , transitionStartProgress :: (Defaultable String)
-    , transitionEndProgress :: (Defaultable String)
-    , transitionDirection :: (Defaultable Transition_Direction)
+    { transitionId :: Maybe String
+    , transitionClass :: Maybe String
+    , transitionTitle :: Maybe String
+    , transitionXml'lang :: Maybe String
+    , transitionType :: Maybe Transition_Type
+    , transitionSubtype :: Maybe Transition_Subtype
+    , transitionHorzRepeat :: Defaultable String
+    , transitionVertRepeat :: Defaultable String
+    , transitionBorderWidth :: Defaultable String
+    , transitionBorderColor :: Defaultable String
+    , transitionFadeColor :: Defaultable String
+    , transitionCoordinated :: Defaultable Transition_Coordinated
+    , transitionClibBoundary :: Defaultable Transition_ClibBoundary
+    , transitionDur :: Maybe String
+    , transitionStartProgress :: Defaultable String
+    , transitionEndProgress :: Defaultable String
+    , transitionDirection :: Defaultable Transition_Direction
     } deriving (Eq,Show)
-data Transition_Type = Transition_Type_BarWipe  | 
-		       Transition_Type_BoxWipe  |  Transition_Type_FourBoxWipe  | 
-		       Transition_Type_BarnDoorWipe  |  Transition_Type_DiagonalWipe  | 
-		       Transition_Type_BowTieWipe  |  Transition_Type_MiscDiagonalWipe  | 
-		       Transition_Type_VeeWipe  |  Transition_Type_BarnVeeWipe  | 
-		       Transition_Type_ZigZagWipe  |  Transition_Type_BarnZigZagWipe  | 
-		       Transition_Type_MiscShapeWipe  |  Transition_Type_TriangleWipe  | 
-		       Transition_Type_ArrowHeadWipe  |  Transition_Type_PentagonWipe  | 
-		       Transition_Type_HexagonWipe  |  Transition_Type_EllipseWipe  | 
-		       Transition_Type_EyeWipe  |  Transition_Type_RoundRectWipe  | 
-		       Transition_Type_StarWipe  |  Transition_Type_ClockWipe  | 
+data Transition_Type = Transition_Type_BarWipe  |
+		       Transition_Type_BoxWipe  |  Transition_Type_FourBoxWipe  |
+		       Transition_Type_BarnDoorWipe  |  Transition_Type_DiagonalWipe  |
+		       Transition_Type_BowTieWipe  |  Transition_Type_MiscDiagonalWipe  |
+		       Transition_Type_VeeWipe  |  Transition_Type_BarnVeeWipe  |
+		       Transition_Type_ZigZagWipe  |  Transition_Type_BarnZigZagWipe  |
+		       Transition_Type_MiscShapeWipe  |  Transition_Type_TriangleWipe  |
+		       Transition_Type_ArrowHeadWipe  |  Transition_Type_PentagonWipe  |
+		       Transition_Type_HexagonWipe  |  Transition_Type_EllipseWipe  |
+		       Transition_Type_EyeWipe  |  Transition_Type_RoundRectWipe  |
+		       Transition_Type_StarWipe  |  Transition_Type_ClockWipe  |
 		       Transition_Type_PinWheelWipe  |  Transition_Type_SingleSweepWipe
-		        |  Transition_Type_FanWipe  |  Transition_Type_DoubleFanWipe  | 
+		        |  Transition_Type_FanWipe  |  Transition_Type_DoubleFanWipe  |
 		       Transition_Type_DoubleSweepWipe  |  Transition_Type_SaloonDoorWipe
 		        |  Transition_Type_WindshieldWipe  |  Transition_Type_SnakeWipe
-		        |  Transition_Type_SpiralWipe  | 
-		       Transition_Type_ParallelSnakesWipe  | 
-		       Transition_Type_BoxSnakesWipe  |  Transition_Type_WaterfallWipe  | 
-		       Transition_Type_PushWipe  |  Transition_Type_SlideWipe  | 
+		        |  Transition_Type_SpiralWipe  |
+		       Transition_Type_ParallelSnakesWipe  |
+		       Transition_Type_BoxSnakesWipe  |  Transition_Type_WaterfallWipe  |
+		       Transition_Type_PushWipe  |  Transition_Type_SlideWipe  |
 		       Transition_Type_Fade
 		     deriving (Eq,Show)
-data Transition_Subtype = Transition_Subtype_Bottom  | 
+data Transition_Subtype = Transition_Subtype_Bottom  |
 			  Transition_Subtype_BottomCenter  |  Transition_Subtype_BottomLeft
-			   |  Transition_Subtype_BottomLeftClockwise  | 
-			  Transition_Subtype_BottomLeftCounterClockwise  | 
-			  Transition_Subtype_BottomLeftDiagonal  | 
-			  Transition_Subtype_BottomRight  | 
-			  Transition_Subtype_BottomRightClockwise  | 
-			  Transition_Subtype_BottomRightCounterClockwise  | 
-			  Transition_Subtype_BottomRightDiagonal  | 
-			  Transition_Subtype_CenterRight  |  Transition_Subtype_CenterTop  | 
+			   |  Transition_Subtype_BottomLeftClockwise  |
+			  Transition_Subtype_BottomLeftCounterClockwise  |
+			  Transition_Subtype_BottomLeftDiagonal  |
+			  Transition_Subtype_BottomRight  |
+			  Transition_Subtype_BottomRightClockwise  |
+			  Transition_Subtype_BottomRightCounterClockwise  |
+			  Transition_Subtype_BottomRightDiagonal  |
+			  Transition_Subtype_CenterRight  |  Transition_Subtype_CenterTop  |
 			  Transition_Subtype_Circle  |  Transition_Subtype_ClockwiseBottom
-			   |  Transition_Subtype_ClockwiseBottomRight  | 
-			  Transition_Subtype_ClockwiseLeft  | 
-			  Transition_Subtype_ClockwiseNine  | 
-			  Transition_Subtype_ClockwiseRight  | 
-			  Transition_Subtype_ClockwiseSix  | 
-			  Transition_Subtype_ClockwiseThree  | 
-			  Transition_Subtype_ClockwiseTop  | 
-			  Transition_Subtype_ClockwiseTopLeft  | 
+			   |  Transition_Subtype_ClockwiseBottomRight  |
+			  Transition_Subtype_ClockwiseLeft  |
+			  Transition_Subtype_ClockwiseNine  |
+			  Transition_Subtype_ClockwiseRight  |
+			  Transition_Subtype_ClockwiseSix  |
+			  Transition_Subtype_ClockwiseThree  |
+			  Transition_Subtype_ClockwiseTop  |
+			  Transition_Subtype_ClockwiseTopLeft  |
 			  Transition_Subtype_ClockwiseTwelve  |  Transition_Subtype_CornersIn
-			   |  Transition_Subtype_CornersOut  | 
-			  Transition_Subtype_CounterClockwiseBottomLeft  | 
-			  Transition_Subtype_CounterClockwiseTopRight  | 
-			  Transition_Subtype_Crossfade  | 
-			  Transition_Subtype_DiagonalBottomLeft  | 
-			  Transition_Subtype_DiagonalBottomLeftOpposite  | 
-			  Transition_Subtype_DiagonalTopLeft  | 
-			  Transition_Subtype_DiagonalTopLeftOpposite  | 
+			   |  Transition_Subtype_CornersOut  |
+			  Transition_Subtype_CounterClockwiseBottomLeft  |
+			  Transition_Subtype_CounterClockwiseTopRight  |
+			  Transition_Subtype_Crossfade  |
+			  Transition_Subtype_DiagonalBottomLeft  |
+			  Transition_Subtype_DiagonalBottomLeftOpposite  |
+			  Transition_Subtype_DiagonalTopLeft  |
+			  Transition_Subtype_DiagonalTopLeftOpposite  |
 			  Transition_Subtype_Diamond  |  Transition_Subtype_DoubleBarnDoor
 			   |  Transition_Subtype_DoubleDiamond  |  Transition_Subtype_Down
-			   |  Transition_Subtype_FadeFromColor  | 
-			  Transition_Subtype_FadeToColor  | 
-			  Transition_Subtype_FanInHorizontal  | 
-			  Transition_Subtype_FanInVertical  | 
-			  Transition_Subtype_FanOutHorizontal  | 
+			   |  Transition_Subtype_FadeFromColor  |
+			  Transition_Subtype_FadeToColor  |
+			  Transition_Subtype_FanInHorizontal  |
+			  Transition_Subtype_FanInVertical  |
+			  Transition_Subtype_FanOutHorizontal  |
 			  Transition_Subtype_FanOutVertical  |  Transition_Subtype_FivePoint
-			   |  Transition_Subtype_FourBlade  | 
-			  Transition_Subtype_FourBoxHorizontal  | 
+			   |  Transition_Subtype_FourBlade  |
+			  Transition_Subtype_FourBoxHorizontal  |
 			  Transition_Subtype_FourBoxVertical  |  Transition_Subtype_FourPoint
 			   |  Transition_Subtype_FromBottom  |  Transition_Subtype_FromLeft
-			   |  Transition_Subtype_FromRight  |  Transition_Subtype_FromTop  | 
-			  Transition_Subtype_Heart  |  Transition_Subtype_Horizontal  | 
-			  Transition_Subtype_HorizontalLeft  | 
-			  Transition_Subtype_HorizontalLeftSame  | 
-			  Transition_Subtype_HorizontalRight  | 
-			  Transition_Subtype_HorizontalRightSame  | 
-			  Transition_Subtype_HorizontalTopLeftOpposite  | 
-			  Transition_Subtype_HorizontalTopRightOpposite  | 
-			  Transition_Subtype_Keyhole  |  Transition_Subtype_Left  | 
+			   |  Transition_Subtype_FromRight  |  Transition_Subtype_FromTop  |
+			  Transition_Subtype_Heart  |  Transition_Subtype_Horizontal  |
+			  Transition_Subtype_HorizontalLeft  |
+			  Transition_Subtype_HorizontalLeftSame  |
+			  Transition_Subtype_HorizontalRight  |
+			  Transition_Subtype_HorizontalRightSame  |
+			  Transition_Subtype_HorizontalTopLeftOpposite  |
+			  Transition_Subtype_HorizontalTopRightOpposite  |
+			  Transition_Subtype_Keyhole  |  Transition_Subtype_Left  |
 			  Transition_Subtype_LeftCenter  |  Transition_Subtype_LeftToRight
-			   |  Transition_Subtype_OppositeHorizontal  | 
-			  Transition_Subtype_OppositeVertical  | 
-			  Transition_Subtype_ParallelDiagonal  | 
-			  Transition_Subtype_ParallelDiagonalBottomLeft  | 
-			  Transition_Subtype_ParallelDiagonalTopLeft  | 
-			  Transition_Subtype_ParallelVertical  | 
-			  Transition_Subtype_Rectangle  |  Transition_Subtype_Right  | 
-			  Transition_Subtype_RightCenter  |  Transition_Subtype_SixPoint  | 
-			  Transition_Subtype_Top  |  Transition_Subtype_TopCenter  | 
+			   |  Transition_Subtype_OppositeHorizontal  |
+			  Transition_Subtype_OppositeVertical  |
+			  Transition_Subtype_ParallelDiagonal  |
+			  Transition_Subtype_ParallelDiagonalBottomLeft  |
+			  Transition_Subtype_ParallelDiagonalTopLeft  |
+			  Transition_Subtype_ParallelVertical  |
+			  Transition_Subtype_Rectangle  |  Transition_Subtype_Right  |
+			  Transition_Subtype_RightCenter  |  Transition_Subtype_SixPoint  |
+			  Transition_Subtype_Top  |  Transition_Subtype_TopCenter  |
 			  Transition_Subtype_TopLeft  |  Transition_Subtype_TopLeftClockwise
-			   |  Transition_Subtype_TopLeftCounterClockwise  | 
-			  Transition_Subtype_TopLeftDiagonal  | 
-			  Transition_Subtype_TopLeftHorizontal  | 
+			   |  Transition_Subtype_TopLeftCounterClockwise  |
+			  Transition_Subtype_TopLeftDiagonal  |
+			  Transition_Subtype_TopLeftHorizontal  |
 			  Transition_Subtype_TopLeftVertical  |  Transition_Subtype_TopRight
-			   |  Transition_Subtype_TopRightClockwise  | 
-			  Transition_Subtype_TopRightCounterClockwise  | 
-			  Transition_Subtype_TopRightDiagonal  | 
-			  Transition_Subtype_TopToBottom  | 
-			  Transition_Subtype_TwoBladeHorizontal  | 
-			  Transition_Subtype_TwoBladeVertical  | 
+			   |  Transition_Subtype_TopRightClockwise  |
+			  Transition_Subtype_TopRightCounterClockwise  |
+			  Transition_Subtype_TopRightDiagonal  |
+			  Transition_Subtype_TopToBottom  |
+			  Transition_Subtype_TwoBladeHorizontal  |
+			  Transition_Subtype_TwoBladeVertical  |
 			  Transition_Subtype_TwoBoxBottom  |  Transition_Subtype_TwoBoxLeft
 			   |  Transition_Subtype_TwoBoxRight  |  Transition_Subtype_TwoBoxTop
-			   |  Transition_Subtype_Up  |  Transition_Subtype_Vertical  | 
-			  Transition_Subtype_VerticalBottomLeftOpposite  | 
-			  Transition_Subtype_VerticalBottomSame  | 
-			  Transition_Subtype_VerticalLeft  | 
-			  Transition_Subtype_VerticalRight  | 
-			  Transition_Subtype_VerticalTopLeftOpposite  | 
+			   |  Transition_Subtype_Up  |  Transition_Subtype_Vertical  |
+			  Transition_Subtype_VerticalBottomLeftOpposite  |
+			  Transition_Subtype_VerticalBottomSame  |
+			  Transition_Subtype_VerticalLeft  |
+			  Transition_Subtype_VerticalRight  |
+			  Transition_Subtype_VerticalTopLeftOpposite  |
 			  Transition_Subtype_VerticalTopSame
 			deriving (Eq,Show)
-data Transition_Coordinated = Transition_Coordinated_True  | 
+data Transition_Coordinated = Transition_Coordinated_True  |
 			      Transition_Coordinated_False
 			    deriving (Eq,Show)
-data Transition_ClibBoundary = Transition_ClibBoundary_Parent  | 
+data Transition_ClibBoundary = Transition_ClibBoundary_Parent  |
 			       Transition_ClibBoundary_Children
 			     deriving (Eq,Show)
-data Transition_Direction = Transition_Direction_Forward  | 
+data Transition_Direction = Transition_Direction_Forward  |
 			    Transition_Direction_Reverse
 			  deriving (Eq,Show)
 data TransitionFilter = TransitionFilter
-    { transitionFilterId :: (Maybe String)
-    , transitionFilterClass :: (Maybe String)
-    , transitionFilterTitle :: (Maybe String)
-    , transitionFilterXml'lang :: (Maybe String)
-    , transitionFilterType :: (Maybe TransitionFilter_Type)
-    , transitionFilterSubtype :: (Maybe TransitionFilter_Subtype)
-    , transitionFilterHorzRepeat :: (Defaultable String)
-    , transitionFilterVertRepeat :: (Defaultable String)
-    , transitionFilterBorderWidth :: (Defaultable String)
-    , transitionFilterBorderColor :: (Defaultable String)
-    , transitionFilterFadeColor :: (Defaultable String)
-    , transitionFilterCoordinated :: (Defaultable TransitionFilter_Coordinated)
-    , transitionFilterClibBoundary :: (Defaultable TransitionFilter_ClibBoundary)
-    , transitionFilterDur :: (Maybe String)
-    , transitionFilterRepeatCount :: (Maybe String)
-    , transitionFilterRepeatDur :: (Maybe String)
-    , transitionFilterBegin :: (Maybe String)
-    , transitionFilterEnd :: (Maybe String)
-    , transitionFilterValues :: (Maybe String)
-    , transitionFilterFrom :: (Maybe String)
-    , transitionFilterTo :: (Maybe String)
-    , transitionFilterBy :: (Maybe String)
-    , transitionFilterCalcMode :: (Defaultable TransitionFilter_CalcMode)
+    { transitionFilterId :: Maybe String
+    , transitionFilterClass :: Maybe String
+    , transitionFilterTitle :: Maybe String
+    , transitionFilterXml'lang :: Maybe String
+    , transitionFilterType :: Maybe TransitionFilter_Type
+    , transitionFilterSubtype :: Maybe TransitionFilter_Subtype
+    , transitionFilterHorzRepeat :: Defaultable String
+    , transitionFilterVertRepeat :: Defaultable String
+    , transitionFilterBorderWidth :: Defaultable String
+    , transitionFilterBorderColor :: Defaultable String
+    , transitionFilterFadeColor :: Defaultable String
+    , transitionFilterCoordinated :: Defaultable TransitionFilter_Coordinated
+    , transitionFilterClibBoundary :: Defaultable TransitionFilter_ClibBoundary
+    , transitionFilterDur :: Maybe String
+    , transitionFilterRepeatCount :: Maybe String
+    , transitionFilterRepeatDur :: Maybe String
+    , transitionFilterBegin :: Maybe String
+    , transitionFilterEnd :: Maybe String
+    , transitionFilterValues :: Maybe String
+    , transitionFilterFrom :: Maybe String
+    , transitionFilterTo :: Maybe String
+    , transitionFilterBy :: Maybe String
+    , transitionFilterCalcMode :: Defaultable TransitionFilter_CalcMode
     } deriving (Eq,Show)
-data TransitionFilter_Type = TransitionFilter_Type_BarWipe  | 
+data TransitionFilter_Type = TransitionFilter_Type_BarWipe  |
 			     TransitionFilter_Type_BoxWipe  |  TransitionFilter_Type_FourBoxWipe
-			      |  TransitionFilter_Type_BarnDoorWipe  | 
-			     TransitionFilter_Type_DiagonalWipe  | 
-			     TransitionFilter_Type_BowTieWipe  | 
-			     TransitionFilter_Type_MiscDiagonalWipe  | 
+			      |  TransitionFilter_Type_BarnDoorWipe  |
+			     TransitionFilter_Type_DiagonalWipe  |
+			     TransitionFilter_Type_BowTieWipe  |
+			     TransitionFilter_Type_MiscDiagonalWipe  |
 			     TransitionFilter_Type_VeeWipe  |  TransitionFilter_Type_BarnVeeWipe
-			      |  TransitionFilter_Type_ZigZagWipe  | 
-			     TransitionFilter_Type_BarnZigZagWipe  | 
-			     TransitionFilter_Type_MiscShapeWipe  | 
-			     TransitionFilter_Type_TriangleWipe  | 
-			     TransitionFilter_Type_ArrowHeadWipe  | 
-			     TransitionFilter_Type_PentagonWipe  | 
-			     TransitionFilter_Type_HexagonWipe  | 
+			      |  TransitionFilter_Type_ZigZagWipe  |
+			     TransitionFilter_Type_BarnZigZagWipe  |
+			     TransitionFilter_Type_MiscShapeWipe  |
+			     TransitionFilter_Type_TriangleWipe  |
+			     TransitionFilter_Type_ArrowHeadWipe  |
+			     TransitionFilter_Type_PentagonWipe  |
+			     TransitionFilter_Type_HexagonWipe  |
 			     TransitionFilter_Type_EllipseWipe  |  TransitionFilter_Type_EyeWipe
-			      |  TransitionFilter_Type_RoundRectWipe  | 
+			      |  TransitionFilter_Type_RoundRectWipe  |
 			     TransitionFilter_Type_StarWipe  |  TransitionFilter_Type_ClockWipe
-			      |  TransitionFilter_Type_PinWheelWipe  | 
-			     TransitionFilter_Type_SingleSweepWipe  | 
-			     TransitionFilter_Type_FanWipe  | 
-			     TransitionFilter_Type_DoubleFanWipe  | 
-			     TransitionFilter_Type_DoubleSweepWipe  | 
-			     TransitionFilter_Type_SaloonDoorWipe  | 
-			     TransitionFilter_Type_WindshieldWipe  | 
-			     TransitionFilter_Type_SnakeWipe  | 
-			     TransitionFilter_Type_SpiralWipe  | 
-			     TransitionFilter_Type_ParallelSnakesWipe  | 
-			     TransitionFilter_Type_BoxSnakesWipe  | 
-			     TransitionFilter_Type_WaterfallWipe  | 
+			      |  TransitionFilter_Type_PinWheelWipe  |
+			     TransitionFilter_Type_SingleSweepWipe  |
+			     TransitionFilter_Type_FanWipe  |
+			     TransitionFilter_Type_DoubleFanWipe  |
+			     TransitionFilter_Type_DoubleSweepWipe  |
+			     TransitionFilter_Type_SaloonDoorWipe  |
+			     TransitionFilter_Type_WindshieldWipe  |
+			     TransitionFilter_Type_SnakeWipe  |
+			     TransitionFilter_Type_SpiralWipe  |
+			     TransitionFilter_Type_ParallelSnakesWipe  |
+			     TransitionFilter_Type_BoxSnakesWipe  |
+			     TransitionFilter_Type_WaterfallWipe  |
 			     TransitionFilter_Type_PushWipe  |  TransitionFilter_Type_SlideWipe
 			      |  TransitionFilter_Type_Fade
 			   deriving (Eq,Show)
-data TransitionFilter_Subtype = TransitionFilter_Subtype_Bottom  | 
-				TransitionFilter_Subtype_BottomCenter  | 
-				TransitionFilter_Subtype_BottomLeft  | 
-				TransitionFilter_Subtype_BottomLeftClockwise  | 
-				TransitionFilter_Subtype_BottomLeftCounterClockwise  | 
-				TransitionFilter_Subtype_BottomLeftDiagonal  | 
-				TransitionFilter_Subtype_BottomRight  | 
-				TransitionFilter_Subtype_BottomRightClockwise  | 
-				TransitionFilter_Subtype_BottomRightCounterClockwise  | 
-				TransitionFilter_Subtype_BottomRightDiagonal  | 
-				TransitionFilter_Subtype_CenterRight  | 
-				TransitionFilter_Subtype_CenterTop  | 
-				TransitionFilter_Subtype_Circle  | 
-				TransitionFilter_Subtype_ClockwiseBottom  | 
-				TransitionFilter_Subtype_ClockwiseBottomRight  | 
-				TransitionFilter_Subtype_ClockwiseLeft  | 
-				TransitionFilter_Subtype_ClockwiseNine  | 
-				TransitionFilter_Subtype_ClockwiseRight  | 
-				TransitionFilter_Subtype_ClockwiseSix  | 
-				TransitionFilter_Subtype_ClockwiseThree  | 
-				TransitionFilter_Subtype_ClockwiseTop  | 
-				TransitionFilter_Subtype_ClockwiseTopLeft  | 
-				TransitionFilter_Subtype_ClockwiseTwelve  | 
-				TransitionFilter_Subtype_CornersIn  | 
-				TransitionFilter_Subtype_CornersOut  | 
-				TransitionFilter_Subtype_CounterClockwiseBottomLeft  | 
-				TransitionFilter_Subtype_CounterClockwiseTopRight  | 
-				TransitionFilter_Subtype_Crossfade  | 
-				TransitionFilter_Subtype_DiagonalBottomLeft  | 
-				TransitionFilter_Subtype_DiagonalBottomLeftOpposite  | 
-				TransitionFilter_Subtype_DiagonalTopLeft  | 
-				TransitionFilter_Subtype_DiagonalTopLeftOpposite  | 
-				TransitionFilter_Subtype_Diamond  | 
-				TransitionFilter_Subtype_DoubleBarnDoor  | 
-				TransitionFilter_Subtype_DoubleDiamond  | 
-				TransitionFilter_Subtype_Down  | 
-				TransitionFilter_Subtype_FadeFromColor  | 
-				TransitionFilter_Subtype_FadeToColor  | 
-				TransitionFilter_Subtype_FanInHorizontal  | 
-				TransitionFilter_Subtype_FanInVertical  | 
-				TransitionFilter_Subtype_FanOutHorizontal  | 
-				TransitionFilter_Subtype_FanOutVertical  | 
-				TransitionFilter_Subtype_FivePoint  | 
-				TransitionFilter_Subtype_FourBlade  | 
-				TransitionFilter_Subtype_FourBoxHorizontal  | 
-				TransitionFilter_Subtype_FourBoxVertical  | 
-				TransitionFilter_Subtype_FourPoint  | 
-				TransitionFilter_Subtype_FromBottom  | 
-				TransitionFilter_Subtype_FromLeft  | 
-				TransitionFilter_Subtype_FromRight  | 
+data TransitionFilter_Subtype = TransitionFilter_Subtype_Bottom  |
+				TransitionFilter_Subtype_BottomCenter  |
+				TransitionFilter_Subtype_BottomLeft  |
+				TransitionFilter_Subtype_BottomLeftClockwise  |
+				TransitionFilter_Subtype_BottomLeftCounterClockwise  |
+				TransitionFilter_Subtype_BottomLeftDiagonal  |
+				TransitionFilter_Subtype_BottomRight  |
+				TransitionFilter_Subtype_BottomRightClockwise  |
+				TransitionFilter_Subtype_BottomRightCounterClockwise  |
+				TransitionFilter_Subtype_BottomRightDiagonal  |
+				TransitionFilter_Subtype_CenterRight  |
+				TransitionFilter_Subtype_CenterTop  |
+				TransitionFilter_Subtype_Circle  |
+				TransitionFilter_Subtype_ClockwiseBottom  |
+				TransitionFilter_Subtype_ClockwiseBottomRight  |
+				TransitionFilter_Subtype_ClockwiseLeft  |
+				TransitionFilter_Subtype_ClockwiseNine  |
+				TransitionFilter_Subtype_ClockwiseRight  |
+				TransitionFilter_Subtype_ClockwiseSix  |
+				TransitionFilter_Subtype_ClockwiseThree  |
+				TransitionFilter_Subtype_ClockwiseTop  |
+				TransitionFilter_Subtype_ClockwiseTopLeft  |
+				TransitionFilter_Subtype_ClockwiseTwelve  |
+				TransitionFilter_Subtype_CornersIn  |
+				TransitionFilter_Subtype_CornersOut  |
+				TransitionFilter_Subtype_CounterClockwiseBottomLeft  |
+				TransitionFilter_Subtype_CounterClockwiseTopRight  |
+				TransitionFilter_Subtype_Crossfade  |
+				TransitionFilter_Subtype_DiagonalBottomLeft  |
+				TransitionFilter_Subtype_DiagonalBottomLeftOpposite  |
+				TransitionFilter_Subtype_DiagonalTopLeft  |
+				TransitionFilter_Subtype_DiagonalTopLeftOpposite  |
+				TransitionFilter_Subtype_Diamond  |
+				TransitionFilter_Subtype_DoubleBarnDoor  |
+				TransitionFilter_Subtype_DoubleDiamond  |
+				TransitionFilter_Subtype_Down  |
+				TransitionFilter_Subtype_FadeFromColor  |
+				TransitionFilter_Subtype_FadeToColor  |
+				TransitionFilter_Subtype_FanInHorizontal  |
+				TransitionFilter_Subtype_FanInVertical  |
+				TransitionFilter_Subtype_FanOutHorizontal  |
+				TransitionFilter_Subtype_FanOutVertical  |
+				TransitionFilter_Subtype_FivePoint  |
+				TransitionFilter_Subtype_FourBlade  |
+				TransitionFilter_Subtype_FourBoxHorizontal  |
+				TransitionFilter_Subtype_FourBoxVertical  |
+				TransitionFilter_Subtype_FourPoint  |
+				TransitionFilter_Subtype_FromBottom  |
+				TransitionFilter_Subtype_FromLeft  |
+				TransitionFilter_Subtype_FromRight  |
 				TransitionFilter_Subtype_FromTop  |  TransitionFilter_Subtype_Heart
-				 |  TransitionFilter_Subtype_Horizontal  | 
-				TransitionFilter_Subtype_HorizontalLeft  | 
-				TransitionFilter_Subtype_HorizontalLeftSame  | 
-				TransitionFilter_Subtype_HorizontalRight  | 
-				TransitionFilter_Subtype_HorizontalRightSame  | 
-				TransitionFilter_Subtype_HorizontalTopLeftOpposite  | 
-				TransitionFilter_Subtype_HorizontalTopRightOpposite  | 
+				 |  TransitionFilter_Subtype_Horizontal  |
+				TransitionFilter_Subtype_HorizontalLeft  |
+				TransitionFilter_Subtype_HorizontalLeftSame  |
+				TransitionFilter_Subtype_HorizontalRight  |
+				TransitionFilter_Subtype_HorizontalRightSame  |
+				TransitionFilter_Subtype_HorizontalTopLeftOpposite  |
+				TransitionFilter_Subtype_HorizontalTopRightOpposite  |
 				TransitionFilter_Subtype_Keyhole  |  TransitionFilter_Subtype_Left
-				 |  TransitionFilter_Subtype_LeftCenter  | 
-				TransitionFilter_Subtype_LeftToRight  | 
-				TransitionFilter_Subtype_OppositeHorizontal  | 
-				TransitionFilter_Subtype_OppositeVertical  | 
-				TransitionFilter_Subtype_ParallelDiagonal  | 
-				TransitionFilter_Subtype_ParallelDiagonalBottomLeft  | 
-				TransitionFilter_Subtype_ParallelDiagonalTopLeft  | 
-				TransitionFilter_Subtype_ParallelVertical  | 
-				TransitionFilter_Subtype_Rectangle  | 
-				TransitionFilter_Subtype_Right  | 
-				TransitionFilter_Subtype_RightCenter  | 
+				 |  TransitionFilter_Subtype_LeftCenter  |
+				TransitionFilter_Subtype_LeftToRight  |
+				TransitionFilter_Subtype_OppositeHorizontal  |
+				TransitionFilter_Subtype_OppositeVertical  |
+				TransitionFilter_Subtype_ParallelDiagonal  |
+				TransitionFilter_Subtype_ParallelDiagonalBottomLeft  |
+				TransitionFilter_Subtype_ParallelDiagonalTopLeft  |
+				TransitionFilter_Subtype_ParallelVertical  |
+				TransitionFilter_Subtype_Rectangle  |
+				TransitionFilter_Subtype_Right  |
+				TransitionFilter_Subtype_RightCenter  |
 				TransitionFilter_Subtype_SixPoint  |  TransitionFilter_Subtype_Top
-				 |  TransitionFilter_Subtype_TopCenter  | 
-				TransitionFilter_Subtype_TopLeft  | 
-				TransitionFilter_Subtype_TopLeftClockwise  | 
-				TransitionFilter_Subtype_TopLeftCounterClockwise  | 
-				TransitionFilter_Subtype_TopLeftDiagonal  | 
-				TransitionFilter_Subtype_TopLeftHorizontal  | 
-				TransitionFilter_Subtype_TopLeftVertical  | 
-				TransitionFilter_Subtype_TopRight  | 
-				TransitionFilter_Subtype_TopRightClockwise  | 
-				TransitionFilter_Subtype_TopRightCounterClockwise  | 
-				TransitionFilter_Subtype_TopRightDiagonal  | 
-				TransitionFilter_Subtype_TopToBottom  | 
-				TransitionFilter_Subtype_TwoBladeHorizontal  | 
-				TransitionFilter_Subtype_TwoBladeVertical  | 
-				TransitionFilter_Subtype_TwoBoxBottom  | 
-				TransitionFilter_Subtype_TwoBoxLeft  | 
-				TransitionFilter_Subtype_TwoBoxRight  | 
+				 |  TransitionFilter_Subtype_TopCenter  |
+				TransitionFilter_Subtype_TopLeft  |
+				TransitionFilter_Subtype_TopLeftClockwise  |
+				TransitionFilter_Subtype_TopLeftCounterClockwise  |
+				TransitionFilter_Subtype_TopLeftDiagonal  |
+				TransitionFilter_Subtype_TopLeftHorizontal  |
+				TransitionFilter_Subtype_TopLeftVertical  |
+				TransitionFilter_Subtype_TopRight  |
+				TransitionFilter_Subtype_TopRightClockwise  |
+				TransitionFilter_Subtype_TopRightCounterClockwise  |
+				TransitionFilter_Subtype_TopRightDiagonal  |
+				TransitionFilter_Subtype_TopToBottom  |
+				TransitionFilter_Subtype_TwoBladeHorizontal  |
+				TransitionFilter_Subtype_TwoBladeVertical  |
+				TransitionFilter_Subtype_TwoBoxBottom  |
+				TransitionFilter_Subtype_TwoBoxLeft  |
+				TransitionFilter_Subtype_TwoBoxRight  |
 				TransitionFilter_Subtype_TwoBoxTop  |  TransitionFilter_Subtype_Up
-				 |  TransitionFilter_Subtype_Vertical  | 
-				TransitionFilter_Subtype_VerticalBottomLeftOpposite  | 
-				TransitionFilter_Subtype_VerticalBottomSame  | 
-				TransitionFilter_Subtype_VerticalLeft  | 
-				TransitionFilter_Subtype_VerticalRight  | 
-				TransitionFilter_Subtype_VerticalTopLeftOpposite  | 
+				 |  TransitionFilter_Subtype_Vertical  |
+				TransitionFilter_Subtype_VerticalBottomLeftOpposite  |
+				TransitionFilter_Subtype_VerticalBottomSame  |
+				TransitionFilter_Subtype_VerticalLeft  |
+				TransitionFilter_Subtype_VerticalRight  |
+				TransitionFilter_Subtype_VerticalTopLeftOpposite  |
 				TransitionFilter_Subtype_VerticalTopSame
 			      deriving (Eq,Show)
 data TransitionFilter_Coordinated = TransitionFilter_Coordinated_True
-				     |  TransitionFilter_Coordinated_False
+				  | TransitionFilter_Coordinated_False
 				  deriving (Eq,Show)
 data TransitionFilter_ClibBoundary = TransitionFilter_ClibBoundary_Parent
-				      |  TransitionFilter_ClibBoundary_Children
+				   | TransitionFilter_ClibBoundary_Children
 				   deriving (Eq,Show)
 data TransitionFilter_CalcMode = TransitionFilter_CalcMode_Discrete
-				  |  TransitionFilter_CalcMode_Linear  | 
-				 TransitionFilter_CalcMode_Paced
+			       | TransitionFilter_CalcMode_Linear
+			       | TransitionFilter_CalcMode_Paced
 			       deriving (Eq,Show)
 
 
@@ -689,7 +689,7 @@ instance XmlAttributes Smil where
 	  , smilXml'lang = possibleA fromAttrToStr "xml:lang" as
 	  , smilXmlns = defaultA fromAttrToStr "http://www.w3.org/TR/REC-smil/SMIL20" "xmlns" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (smilId v)
 	, maybeToAttr toAttrFrStr "class" (smilClass v)
 	, maybeToAttr toAttrFrStr "title" (smilTitle v)
@@ -711,7 +711,7 @@ instance XmlAttributes Head where
 	  , headTitle = possibleA fromAttrToStr "title" as
 	  , headXml'lang = possibleA fromAttrToStr "xml:lang" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (headId v)
 	, maybeToAttr toAttrFrStr "class" (headClass v)
 	, maybeToAttr toAttrFrStr "title" (headTitle v)
@@ -732,7 +732,7 @@ instance XmlAttributes Body where
 	  , bodyTitle = possibleA fromAttrToStr "title" as
 	  , bodyXml'lang = possibleA fromAttrToStr "xml:lang" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (bodyId v)
 	, maybeToAttr toAttrFrStr "class" (bodyClass v)
 	, maybeToAttr toAttrFrStr "title" (bodyTitle v)
@@ -786,7 +786,7 @@ instance XmlAttributes Animate where
 	  , animateAdditive = defaultA fromAttrToTyp Animate_Additive_Replace "additive" as
 	  , animateAccumulate = defaultA fromAttrToTyp Animate_Accumulate_None "accumulate" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (animateId v)
 	, maybeToAttr toAttrFrStr "class" (animateClass v)
 	, maybeToAttr toAttrFrStr "title" (animateTitle v)
@@ -941,7 +941,7 @@ instance XmlAttributes Set where
 	  , setAttributeType = possibleA fromAttrToStr "attributeType" as
 	  , setTo = possibleA fromAttrToStr "to" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (setId v)
 	, maybeToAttr toAttrFrStr "class" (setClass v)
 	, maybeToAttr toAttrFrStr "title" (setTitle v)
@@ -1066,7 +1066,7 @@ instance XmlAttributes AnimateMotion where
 	  , animateMotionAccumulate = defaultA fromAttrToTyp AnimateMotion_Accumulate_None "accumulate" as
 	  , animateMotionOrigin = defaultA fromAttrToTyp AnimateMotion_Origin_Default "origin" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (animateMotionId v)
 	, maybeToAttr toAttrFrStr "class" (animateMotionClass v)
 	, maybeToAttr toAttrFrStr "title" (animateMotionTitle v)
@@ -1233,7 +1233,7 @@ instance XmlAttributes AnimateColor where
 	  , animateColorAdditive = defaultA fromAttrToTyp AnimateColor_Additive_Replace "additive" as
 	  , animateColorAccumulate = defaultA fromAttrToTyp AnimateColor_Accumulate_None "accumulate" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (animateColorId v)
 	, maybeToAttr toAttrFrStr "class" (animateColorClass v)
 	, maybeToAttr toAttrFrStr "title" (animateColorTitle v)
@@ -1361,7 +1361,7 @@ instance XmlAttributes Switch where
 	  , switchTitle = possibleA fromAttrToStr "title" as
 	  , switchXml'lang = possibleA fromAttrToStr "xml:lang" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (switchId v)
 	, maybeToAttr toAttrFrStr "class" (switchClass v)
 	, maybeToAttr toAttrFrStr "title" (switchTitle v)
@@ -1380,7 +1380,7 @@ instance XmlAttributes Meta where
 	  { metaContent = possibleA fromAttrToStr "content" as
 	  , metaName = definiteA fromAttrToStr "meta" "name" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "content" (metaContent v)
 	, toAttrFrStr "name" (metaName v)
 	]
@@ -1399,7 +1399,7 @@ instance XmlAttributes Metadata where
 	  , metadataTitle = possibleA fromAttrToStr "title" as
 	  , metadataXml'lang = possibleA fromAttrToStr "xml:lang" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (metadataId v)
 	, maybeToAttr toAttrFrStr "class" (metadataClass v)
 	, maybeToAttr toAttrFrStr "title" (metadataTitle v)
@@ -1421,7 +1421,7 @@ instance XmlAttributes Layout where
 	  , layoutXml'lang = possibleA fromAttrToStr "xml:lang" as
 	  , layoutType = defaultA fromAttrToStr "text/smil-basic-layout" "type" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (layoutId v)
 	, maybeToAttr toAttrFrStr "class" (layoutClass v)
 	, maybeToAttr toAttrFrStr "title" (layoutTitle v)
@@ -1456,7 +1456,7 @@ instance XmlAttributes Region where
 	  , regionShowBackground = defaultA fromAttrToTyp Region_ShowBackground_Always "showBackground" as
 	  , regionFit = defaultA fromAttrToTyp Region_Fit_Hidden "fit" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (regionId v)
 	, maybeToAttr toAttrFrStr "class" (regionClass v)
 	, maybeToAttr toAttrFrStr "title" (regionTitle v)
@@ -1538,7 +1538,7 @@ instance XmlAttributes Root_layout where
 	  , root_layoutBackgroundColor = possibleA fromAttrToStr "backgroundColor" as
 	  , root_layoutBackground_color = possibleA fromAttrToStr "background-color" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (root_layoutId v)
 	, maybeToAttr toAttrFrStr "class" (root_layoutClass v)
 	, maybeToAttr toAttrFrStr "title" (root_layoutTitle v)
@@ -1583,7 +1583,7 @@ instance XmlAttributes Ref where
 	  , refTitle = possibleA fromAttrToStr "title" as
 	  , refXml'lang = possibleA fromAttrToStr "xml:lang" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (refId v)
 	, maybeToAttr toAttrFrStr "class" (refClass v)
 	, maybeToAttr toAttrFrStr "title" (refTitle v)
@@ -1604,7 +1604,7 @@ instance XmlAttributes Audio where
 	  , audioTitle = possibleA fromAttrToStr "title" as
 	  , audioXml'lang = possibleA fromAttrToStr "xml:lang" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (audioId v)
 	, maybeToAttr toAttrFrStr "class" (audioClass v)
 	, maybeToAttr toAttrFrStr "title" (audioTitle v)
@@ -1625,7 +1625,7 @@ instance XmlAttributes Img where
 	  , imgTitle = possibleA fromAttrToStr "title" as
 	  , imgXml'lang = possibleA fromAttrToStr "xml:lang" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (imgId v)
 	, maybeToAttr toAttrFrStr "class" (imgClass v)
 	, maybeToAttr toAttrFrStr "title" (imgTitle v)
@@ -1646,7 +1646,7 @@ instance XmlAttributes Video where
 	  , videoTitle = possibleA fromAttrToStr "title" as
 	  , videoXml'lang = possibleA fromAttrToStr "xml:lang" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (videoId v)
 	, maybeToAttr toAttrFrStr "class" (videoClass v)
 	, maybeToAttr toAttrFrStr "title" (videoTitle v)
@@ -1667,7 +1667,7 @@ instance XmlAttributes Text where
 	  , textTitle = possibleA fromAttrToStr "title" as
 	  , textXml'lang = possibleA fromAttrToStr "xml:lang" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (textId v)
 	, maybeToAttr toAttrFrStr "class" (textClass v)
 	, maybeToAttr toAttrFrStr "title" (textTitle v)
@@ -1688,7 +1688,7 @@ instance XmlAttributes Textstream where
 	  , textstreamTitle = possibleA fromAttrToStr "title" as
 	  , textstreamXml'lang = possibleA fromAttrToStr "xml:lang" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (textstreamId v)
 	, maybeToAttr toAttrFrStr "class" (textstreamClass v)
 	, maybeToAttr toAttrFrStr "title" (textstreamTitle v)
@@ -1709,7 +1709,7 @@ instance XmlAttributes Animation where
 	  , animationTitle = possibleA fromAttrToStr "title" as
 	  , animationXml'lang = possibleA fromAttrToStr "xml:lang" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (animationId v)
 	, maybeToAttr toAttrFrStr "class" (animationClass v)
 	, maybeToAttr toAttrFrStr "title" (animationTitle v)
@@ -1743,7 +1743,7 @@ instance XmlAttributes Transition where
 	  , transitionEndProgress = defaultA fromAttrToStr "1.0" "endProgress" as
 	  , transitionDirection = defaultA fromAttrToTyp Transition_Direction_Forward "direction" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (transitionId v)
 	, maybeToAttr toAttrFrStr "class" (transitionClass v)
 	, maybeToAttr toAttrFrStr "title" (transitionTitle v)
@@ -2105,7 +2105,7 @@ instance XmlAttributes TransitionFilter where
 	  , transitionFilterBy = possibleA fromAttrToStr "by" as
 	  , transitionFilterCalcMode = defaultA fromAttrToTyp TransitionFilter_CalcMode_Linear "calcMode" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "id" (transitionFilterId v)
 	, maybeToAttr toAttrFrStr "class" (transitionFilterClass v)
 	, maybeToAttr toAttrFrStr "title" (transitionFilterTitle v)

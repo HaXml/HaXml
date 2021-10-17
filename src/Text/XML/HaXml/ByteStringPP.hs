@@ -157,8 +157,8 @@ carryelem (Elem n as []) c
                            text "<" <> qname n <+> fsep (Prelude.map attribute as)
                          , text "/>")
 carryelem (Elem n as cs) c
---  | any isText cs    =  ( c <> element e, empty)
-    | otherwise        =  let (cs0,d0) = carryscan carrycontent cs (text ">")
+{-  | any isText cs    =  ( c <> element e, empty)
+    | otherwise -}     =  let (cs0,d0) = carryscan carrycontent cs (text ">")
                           in
                           ( c <>
                             text "<" <> qname n <+> fsep (Prelude.map attribute as) $$
@@ -327,11 +327,11 @@ ev (EVString s)                = text s
 ev (EVRef r)                   = reference r
 pubidliteral :: PubidLiteral -> ByteString
 pubidliteral (PubidLiteral s)
-    | toWord8 '"' `elem` (pack s) = text "'" <> text s <> text "'"
+    | toWord8 '"' `elem` pack s = text "'" <> text s <> text "'"
     | otherwise                = text "\"" <> text s <> text "\""
 systemliteral :: SystemLiteral -> ByteString
 systemliteral (SystemLiteral s)
-    | toWord8 '"' `elem` (pack s) = text "'" <> text s <> text "'"
+    | toWord8 '"' `elem` pack s = text "'" <> text s <> text "'"
     | otherwise                = text "\"" <> text s <> text "\""
 chardata, cdsect :: [Char] -> ByteString
 chardata s                     = {-if all isSpace s then empty else-} text s
@@ -345,5 +345,5 @@ toWord8 = toEnum . fromEnum
 
 containsDoubleQuote :: [EV] -> Bool
 containsDoubleQuote evs = any csq evs
-    where csq (EVString s) = toWord8 '"' `elem` (pack s)
+    where csq (EVString s) = toWord8 '"' `elem` pack s
           csq _            = False

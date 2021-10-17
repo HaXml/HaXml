@@ -102,12 +102,12 @@ data ComplexType   = ComplexType
                      deriving (Eq,Show)
 data ComplexItem   = SimpleContent
                        { ci_annotation :: Annotation
-                       , ci_stuff      :: (Either Restriction1 Extension)
+                       , ci_stuff      :: Either Restriction1 Extension
                        }
                    | ComplexContent
                        { ci_annotation :: Annotation
                        , ci_mixed      :: Bool
-                       , ci_stuff      :: (Either Restriction1 Extension)
+                       , ci_stuff      :: Either Restriction1 Extension
                        }
                    | ThisType
                        { ci_thistype   :: ParticleAttrs
@@ -311,4 +311,3 @@ instance Monoid Schema where
 
 instance Semigroup Schema where
   s <> t = s{ schema_items = schema_items s ++ schema_items t }
-

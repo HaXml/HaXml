@@ -17,7 +17,7 @@ data Person_Attrs = Person_Attrs
 newtype FathersName = FathersName String 		deriving (Eq,Show)
 newtype MothersName = MothersName String 		deriving (Eq,Show)
 data Male = Male
-    { maleSrc :: (Maybe String)
+    { maleSrc :: Maybe String
     , maleAlt :: Alt
     } deriving (Eq,Show)
 data Alt = A  |  B
@@ -65,7 +65,7 @@ instance XmlAttributes Person_Attrs where
 	Person_Attrs
 	  { personId = definiteA fromAttrToTyp "Person" "id" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ toAttrFrTyp "id" (personId v)
 	]
 instance XmlContent FathersName where
@@ -96,7 +96,7 @@ instance XmlAttributes Male where
 	  { maleSrc = possibleA fromAttrToStr "src" as
 	  , maleAlt = definiteA fromAttrToTyp "Male" "alt" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeA toAttrFrStr "src" (maleSrc v)
 	, toAttrFrTyp "alt" (maleAlt v)
 	]

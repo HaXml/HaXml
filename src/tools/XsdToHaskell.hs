@@ -37,10 +37,10 @@ fix2Args = do
   args <- getArgs
   when ("--version" `elem` args) $ do
       putStrLn $ "part of HaXml-"++version
-      exitWith ExitSuccess
+      exitSuccess
   when ("--help" `elem` args) $ do
-      putStrLn $ "See http://haskell.org/HaXml"
-      exitWith ExitSuccess
+      putStrLn "See http://haskell.org/HaXml"
+      exitSuccess
   case length args of
     0 -> return ("-",     "-")
     1 -> return (args!!0, "-")
@@ -64,18 +64,18 @@ main =
   in do
     case runParser schema [docContent (posInNewCxt inf Nothing) d] of
         (Left msg,_) ->    hPutStrLn stderr msg
-        (Right v,[]) -> do hPutStrLn stdout $ "Parse Success!"
-                           hPutStrLn stdout $ "\n-----------------\n"
-                           hPutStrLn stdout $ show v
-                           hPutStrLn stdout $ "\n-----------------\n"
+        (Right v,[]) -> do putStrLn "Parse Success!"
+                           putStrLn "\n-----------------\n"
+                           putStrLn $ show v
+                           putStrLn "\n-----------------\n"
                            let decls = convert (mkEnvironment inf v emptyEnv) v
                                haskl = Haskell.mkModule inf v decls
                                doc   = ppModule simpleNameConverter haskl
                            hPutStrLn o $ render doc
-        (Right v,_)  -> do hPutStrLn stdout $ "Parse incomplete!"
-                           hPutStrLn stdout $ "\n-----------------\n"
-                           hPutStrLn stdout $ show v
-                           hPutStrLn stdout $ "\n-----------------\n"
+        (Right v,_)  -> do putStrLn "Parse incomplete!"
+                           putStrLn "\n-----------------\n"
+                           putStrLn $ show v
+                           putStrLn "\n-----------------\n"
     hFlush o
 
 
@@ -115,9 +115,8 @@ trim name | '/' `elem` name  = (trim . tail . dropWhile (/='/')) name
 targetNamespace :: Element i -> String
 targetNamespace (Elem qn attrs _) =
     if qn /= xsdSchema then "ERROR! top element not an xsd:schema tag"
-    else case lookup (N "targetNamespace") attrs of
-           Nothing -> "ERROR! no targetNamespace specified"
-           Just atv -> show atv
+    else maybe "ERROR! no targetNamespace specified" show
+         (lookup (N "targetNamespace") attrs)
 
 xsdSchema :: QName
 xsdSchema = QN (nullNamespace{nsURI="http://www.w3.org/2001/XMLSchema"})

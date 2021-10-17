@@ -105,8 +105,7 @@ avoidKeywords s
 --   e.g. fpml-dividend-swaps-4-7.xsd      becomes FpML.V47.Swaps.Dividend
 --   but  fpml-posttrade-execution-4-7.xsd becomes FpML.V47.PostTrade.Execution
 fpml :: String -> String
-fpml = concat
-         . intersperse "."    -- put the dots in
+fpml = intercalate "."        -- put the dots in
          . ("Data":)          -- root of the Haskell module namespace
          . rearrange          -- hierarchy shuffling, dependent on names
          . map cap            -- make into nice module names
@@ -177,7 +176,7 @@ fpmlNameConverter = simpleNameConverter
 
     local               = Prelude.last . hierarchy
 
-    mkVarId   ("id")    = "ID"
+    mkVarId   "id"      = "ID"
     mkVarId   (v:vs)    = toLower v: map escape vs
     mkConId   (v:vs)    = toUpper v: map escape vs
 
@@ -185,7 +184,7 @@ fpmlNameConverter = simpleNameConverter
               | length t <  35 = concatMap shortenWord (splitWords t)
               | otherwise      = map toLower (head t: filter isUpper (tail t))
     splitWords "" = []
-    splitWords (u:s)  = let (w,rest) = span (not . (\c->isUpper c || c=='_')) s
+    splitWords (u:s)  = let (w,rest) = break (\c->isUpper c || c=='_') s
                         in (u:w) : splitWords rest
 
     shortenWord "Request"     = "Req" -- some special cases
@@ -220,4 +219,3 @@ fpmlNameConverter = simpleNameConverter
                                                   | otherwise -> pref++[c]
 
     isVowel = (`elem` "aeiouy")
-

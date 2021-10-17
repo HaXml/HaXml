@@ -69,9 +69,9 @@ instance Show StructType where
                                     . foldr1 (.) (intersperse (showChar '|')
                                                               (map shows ss))
                                     . showChar ')'
-    showsPrec _ (Any)             = showString "ANY"
-    showsPrec _ (StringMixed)     = showString "#PCDATA"
-    showsPrec _ (String)          = showString "#PCDATA"
+    showsPrec _ Any               = showString "ANY"
+    showsPrec _ StringMixed       = showString "#PCDATA"
+    showsPrec _ String            = showString "#PCDATA"
     showsPrec _ (Defined (Name n _)) = showString n
 
 

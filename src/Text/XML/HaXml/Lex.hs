@@ -282,7 +282,7 @@ xmlAny w p ('\'':ss) = emit TokQuote p:   textOrRefUntil "'" TokQuote "" p1
                                              where p1 = addcol 1 p
 xmlAny w p s
     | isSpace (head s)     = blank xmlAny w p s
-    | isAlphaNum (head s) || (head s)`elem`":_"
+    | isAlphaNum (head s) || head s`elem`":_"
                            = xmlName p s "some kind of name" (blank xmlAny w)
     | otherwise            = lexerror ("unrecognised token: "++take 4 s) p
 
@@ -301,7 +301,7 @@ xmlSection = blank xmlSection0
       let p0 = addcol n p in
       textUntil "]]>" TokSectionClose "" p0 p0 (drop n s) (blank xmlAny w)
     k w p s n =
-      skip n p s (xmlAny ({-InTag "<![section[ ... ]]>": -}w))
+      skip n p s (xmlAny {-InTag "<![section[ ... ]]>": -}w)
 
 xmlSpecial w p s
     | "DOCTYPE"  `prefixes` s = emit (TokSpecial DOCTYPEx)  p: k 7
@@ -316,7 +316,7 @@ xmlSpecial w p s
 
 xmlName :: Posn -> [Char] -> [Char] -> (Posn->[Char]->[Token]) -> [Token]
 xmlName p (s:ss) cxt k
-    | isAlphaNum s || s==':' || s=='_'  = gatherName (s:[]) p (addcol 1 p) ss k
+    | isAlphaNum s || s==':' || s=='_'  = gatherName [s] p (addcol 1 p) ss k
     | otherwise   = lexerror ("expected a "++cxt++", but got char "++show s) p
   where
     gatherName acc pos p [] k =
@@ -332,7 +332,7 @@ xmlContent :: [Char] -> [Where] -> Posn -> Posn -> [Char] -> [Token]
 xmlContent acc _w _pos p [] = if all isSpace acc then []
                             else lexerror "unexpected EOF between tags" p
 xmlContent acc  w  pos p (s:ss)
-    | elem s "<&"    = {- if all isSpace acc then xmlAny w p (s:ss) else -}
+    | s `elem` "<&"  = {- if all isSpace acc then xmlAny w p (s:ss) else -}
                        emit (TokFreeText (reverse acc)) pos: xmlAny w p (s:ss)
     | isSpace s      = xmlContent (s:acc) w pos (white s p) ss
     | otherwise      = xmlContent (s:acc) w pos (addcol 1 p) ss

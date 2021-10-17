@@ -54,14 +54,14 @@ main =
     ( case arg1 of
          "-w"-> return (stdout,WriteMode)
          "-r"-> return (stdin,ReadMode)
-         _   -> fail ("Usage: <app> [-r|-w] <xmlfile>") ) >>= \(std,mode)->
+         _   -> fail "Usage: <app> [-r|-w] <xmlfile>" ) >>= \(std,mode)->
     ( if arg2=="-" then return std
       else openFile arg2 mode ) >>= \f->
     ( case arg0 of
          "1" -> checkValue f mode value1
          "2" -> checkValue f mode value2
          "3" -> checkValue f mode value3
-         _   -> fail ("Usage: <app> [-r|-w] <xmlfile>") )
+         _   -> fail "Usage: <app> [-r|-w] <xmlfile>" )
 
 checkValue f mode value =
     case mode of
@@ -86,7 +86,7 @@ instance (Haskell2Xml a) => Haskell2Xml (MyType a) where
       where
 	(ConsA aa ab) = v
 	(ConsB ac) = v
-	(a) = toHType ab
+	a = toHType ab
     fromContents (CElem (Elem constr [] cs):etc)
 	| "ConsA" `isPrefixOf` constr =
 	    (\(aa,cs00)-> (\(ab,_)-> (ConsA aa ab, etc)) (fromContents cs00))
@@ -96,8 +96,6 @@ instance (Haskell2Xml a) => Haskell2Xml (MyType a) where
     fromContents (CElem (Elem constr _ _):etc) =
         error ("expected ConsA or ConsB, got "++constr)
     toContents v@(ConsA aa ab) =
-	[mkElemC (showConstr 0 (toHType v)) (concat [toContents aa,
-						     toContents ab])]
+	[mkElemC (showConstr 0 (toHType v)) (toContents aa ++ toContents ab)]
     toContents v@(ConsB ac) =
 	[mkElemC (showConstr 1 (toHType v)) (toContents ac)]
-

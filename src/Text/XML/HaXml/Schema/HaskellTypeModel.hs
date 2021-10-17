@@ -189,7 +189,6 @@ mkModule name schema decls =
           xsdinclude _                 = False
           xsdimport  (XSDImport _ _ _) = True
           xsdimport  _                 = False
-          xsdQualification nss = fmap (XName . N . nsPrefix) $
+          xsdQualification nss = XName . N . nsPrefix <$>
                                       lookupBy ((==xsd).nsURI) nss
               where xsd = "http://www.w3.org/2001/XMLSchema"
-

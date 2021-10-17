@@ -66,7 +66,7 @@ ppFwdConId nx = ppHName . fwdconid nx
 
 ppJoinConId, ppFieldId :: NameConverter -> XName -> XName -> Doc
 ppJoinConId nx p q = ppHName (conid nx p) <> text "_" <> ppHName (conid nx q)
-ppFieldId   nx     = \t-> ppHName . fieldid nx t
+ppFieldId   nx t   = ppHName . fieldid nx t
 
 -- | Convert a whole document from HaskellTypeModel to Haskell source text.
 ppModule :: NameConverter -> Module -> Doc
@@ -227,7 +227,7 @@ ppHighLevelDecl nx (Group t es comm) = PP.empty
 --  $$ text "data" <+> ppConId nx t <+> text "="
 --                 <+> ppConId nx t <+> hsep (map (ppConId nx . elem_type) es)
 
--- Possibly we want to declare a really more restrictive type, e.g. 
+-- Possibly we want to declare a really more restrictive type, e.g.
 --    to remove optionality, (Maybe Foo) -> (Foo), [Foo] -> Foo
 --    consequently the "restricts" method should do a proper translation,
 --    not merely an unwrapping.
@@ -350,7 +350,7 @@ ppSuperExtension nx super (grandSuper:_) (t,Just mod) =  -- fwddecl
     text "-- instance Extension" <+> ppUnqConId nx t <+> ppConId nx grandSuper
     $$ text "--   will be declared in module" <+> ppModId nx mod
 ppSuperExtension nx super grandSupers (t,Nothing) =
-    vcat (map (ppSuper t) (map reverse . drop 2 . inits $ super: grandSupers))
+    vcat (map (ppSuper t . reverse) (drop 2 . inits $ super: grandSupers))
   where
     ppSuper :: XName -> [XName] -> Doc
     ppSuper t gss@(gs:_) =
@@ -382,7 +382,7 @@ ppFieldElement nx t e@Text{}    i = ppFieldId nx t (XName $ N $"text"++show i)
 ppElemTypeName :: NameConverter -> (Doc->Doc) -> Element -> Doc
 ppElemTypeName nx brack e@Element{} =
     ppTypeModifier (elem_modifier e) brack $ ppConId nx (elem_type e)
-ppElemTypeName nx brack e@OneOf{}   = 
+ppElemTypeName nx brack e@OneOf{}   =
     brack $ ppTypeModifier (elem_modifier e) parens $
     text "OneOf" <> text (show (length (elem_oneOf e)))
      <+> hsep (map ppSeq (elem_oneOf e))
@@ -440,7 +440,6 @@ uniqueify = go []
         | otherwise = e: go (show (elem_name e): seen) es
     go seen (e:es)  = e : go seen es
     new pred (XName (N n))     = XName $ N $ head $
-                                 dropWhile pred [(n++show i) | i <- [2..]]
+                                 dropWhile pred [n++show i | i <- [2..]]
     new pred (XName (QN ns n)) = XName $ QN ns $ head $
-                                 dropWhile pred [(n++show i) | i <- [2..]]
-
+                                 dropWhile pred [n++show i | i <- [2..]]

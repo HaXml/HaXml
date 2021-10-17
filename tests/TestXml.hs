@@ -161,7 +161,7 @@ doXmlValidate filepath filedata =
 
 parseGESubDocument :: String -> String -> Document
 parseGESubDocument filepath filedata =
-    subContent . either docErrorContent id $ (xmlParse' filepath filedata)
+    subContent . either docErrorContent id $ xmlParse' filepath filedata
     where
         subContent doc@(Document p s e) =
             docReplaceContent (subExtGenEntities s) doc
@@ -174,14 +174,14 @@ testEq :: (Eq a, Show a) => String -> a -> a -> Test
 testEq lab a1 a2 =
     TestCase ( assertEqual ("testEq:"++lab) a1 a2 )
 
-assertParseOK :: String -> Bool -> (Either String Document) -> Assertion
+assertParseOK :: String -> Bool -> Either String Document -> Assertion
 assertParseOK lab ok result =
-    if ok then assertEqual lab "OK"     (either id              (const "OK") result)
+    if ok then assertEqual lab "OK"     (fromLeft "OK" result)
           else assertEqual lab "error"  (either (const "error") (const "OK") result)
 
 assertValid :: String -> Bool -> [String] -> Assertion
 assertValid lab ok [] =
-    assertEqual lab (if ok then [] else ["error"]) []
+    assertEqual lab ["error" | not ok] []
 assertValid lab ok result =
     assertEqual lab (if ok then [] else result) result
 
@@ -257,7 +257,7 @@ testXmlQNames lab filepathI qns = TestCase $
         ; assertEqual lab qns docqns
         }
     where
-        elemQNs (CElem (Elem en _ ats _)) = en:(map attrQN ats)
+        elemQNs (CElem (Elem en _ ats _)) = en:map attrQN ats
         elemQNs _                         = []
         attrQN  (an,_)                    = an
 
@@ -285,7 +285,7 @@ testXmlBase lab filepathI qns = TestCase $
         ; assertEqual lab qns docqns
         }
     where
-        elemQNs (CElem (Elem en ei ats _)) = en:baseQN ei:(map attrQN ats)
+        elemQNs (CElem (Elem en ei ats _)) = en:baseQN ei:map attrQN ats
         elemQNs _                          = []
         baseQN                             = makeQN . eiBase
         attrQN  (an,_)                     = an
@@ -309,7 +309,7 @@ testXmlLang lab filepathI qns = TestCase $
         }
     where
         elemQNs (CElem (Elem en ei ats _)) = en:baseQN ei:langQN ei
-                                             :(map attrQN ats)
+                                             :map attrQN ats
         elemQNs _                          = []
         baseQN                             = makeQN . eiBase
         langQN                             = makeQN . eiLang
@@ -328,7 +328,7 @@ testAttributes lab filepathI qns = TestCase $
         ; assertEqual lab qns docqns
         }
     where
-        elemAttrs (CElem (Elem en ei ats _)) = (map attrVal ats)
+        elemAttrs (CElem (Elem en ei ats _)) = map attrVal ats
         elemAttrs _                          = []
         attrVal (_,AttValue [Left av])       = av
         attrVal (_,av)                       = "Bad attr: "++show av
@@ -841,9 +841,9 @@ xmlSymData :: String -> String -> IO String
 xmlSymData p f =
     do  { let filepath = p++f
         ; filedata <- catch (readFile filepath)  (error ("Failed reading file "++filepath))
-        ; let p = (xmlParse' filepath filedata)
+        ; let p = xmlParse' filepath filedata
         ; let r = case p of
-                (Left  err) -> ("Error: "++err)
+                (Left  err) -> "Error: "++err
                 (Right (Document pro sym root)) ->
                     show (length sym) ++ "\n**\n" ++ concatMap ((++"\n") . showste) sym ++ "\n**\n"
         ; putStrLn r
@@ -852,7 +852,7 @@ xmlSymData p f =
     where
         showste (nam,entdef) = nam++": "++showent entdef++"\n"
         showent (DefEntityValue (EntityValue evs)) = concatMap (("\n  "++) . showev) evs
-        showent (DefExternalID bas eid _ )         = ("\n  External base="++bas++", eid="++showeid eid)
+        showent (DefExternalID bas eid _ )         = "\n  External base="++bas++", eid="++showeid eid
         showeid (SYSTEM   (SystemLiteral uri))     = uri
         showeid (PUBLIC _ (SystemLiteral uri))     = uri
         showev  (EVString str)                     = str
@@ -863,9 +863,9 @@ xmlDocData :: String -> String -> IO String
 xmlDocData p f =
     do  { let filepath = p++f
         ; filedata <- catch (readFile filepath)  (error ("Failed reading file "++filepath))
-        ; let p = (xmlParse' filepath filedata)
+        ; let p = xmlParse' filepath filedata
         ; let r = case p of
-                (Left  err) -> ("Error: "++err)
+                (Left  err) -> "Error: "++err
                 (Right doc) -> (show . document) doc
         ; putStrLn r
         ; return r
@@ -875,9 +875,9 @@ xmlSubData :: String -> String -> IO String
 xmlSubData p f =
     do  { let filepath = p++f
         ; filedata <- catch (readFile filepath)  (error ("Failed reading file "++filepath))
-        ; let p = (xmlParse' filepath filedata)
+        ; let p = xmlParse' filepath filedata
         ; let r = case p of
-                (Left  err) -> ("Error: "++err)
+                (Left  err) -> "Error: "++err
                 (Right doc) -> (show . document) (subContent doc)
         ; putStrLn r
         ; return r

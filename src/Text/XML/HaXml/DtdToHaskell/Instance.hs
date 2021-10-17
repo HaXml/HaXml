@@ -61,7 +61,7 @@ mkInstance (DataDef False n fs [(n0,sts)]) =
              nest 4 (text "{ e@(Elem _"<+> frpat <+> text "_) <- element [\""
                              <> ppXName n <> text "\"]"
                      $$ text "; interior e $"
-                           <+> (mkParseConstr frattr (n0,sts))
+                           <+> mkParseConstr frattr (n0,sts)
                      $$ text "} `adjustErr` (\"in <" <> ppXName n
                                                      <> text ">, \"++)")
            )
@@ -88,7 +88,7 @@ mkInstance (DataDef True n [] [(n0,sts)]) =
 mkInstance (DataDef False n fs cs) =
     let _ = nameSupply cs
         (frpat, frattr, topat, toattr) = attrpats fs
-        _ = if null fs then False else True
+        _ = not (null fs)
     in
     text "instance HTypeable" <+> ppHName n <+> text "where" $$
     nest 4 ( text "toHType x = Defined \"" <> ppXName n <> text "\" [] []" )
@@ -115,7 +115,7 @@ mkInstance (DataDef False n fs cs) =
 mkInstance (DataDef True n fs cs) =
     let _ = nameSupply cs
         (_, frattr, _, _) = attrpats fs
-        mixattrs = if null fs then False else True
+        mixattrs = not (null fs)
     in
     text "instance HTypeable" <+> ppHName n <+> text "where" $$
     nest 4 ( text "toHType x = Defined \"" <> ppXName n <> text "\" [] []" )
@@ -244,9 +244,9 @@ mkParseContents st =
             (List1 _)         -> ap <+> text "parseContents"
             (Tuple _)         -> ap <+> text "parseContents"
             (OneOf _)         -> ap <+> text "parseContents"
-            (StringMixed)     -> ap <+> text "text"
-            (String)          -> ap <+> text "(text `onFail` return \"\")"
-            (Any)             -> ap <+> text "parseContents"
+            StringMixed       -> ap <+> text "text"
+            String            -> ap <+> text "(text `onFail` return \"\")"
+            Any               -> ap <+> text "parseContents"
             (Defined _)       -> ap <+> text "parseContents"
             (Defaultable _ _) -> ap <+> text "nyi_fromElem_Defaultable"
 
@@ -265,9 +265,9 @@ mkToElem sts vs =
         (List1 _)         -> text "toContents" <+> v
         (Tuple _)         -> text "toContents" <+> v
         (OneOf _)         -> text "toContents" <+> v
-        (StringMixed)     -> text "toText" <+> v
-        (String)          -> text "toText" <+> v
-        (Any)             -> text "toContents" <+> v
+        StringMixed       -> text "toText" <+> v
+        String            -> text "toText" <+> v
+        Any               -> text "toContents" <+> v
         (Defined _)       -> text "toContents" <+> v
         (Defaultable _ _) -> text "nyi_toElem_Defaultable" <+> v
 
@@ -280,8 +280,8 @@ mkCpat n i vs = ppHName n <+> i <+> fsep vs
 
 nameSupply :: [b] -> [Doc]
 nameSupply  ss = take (length ss) (map char ['a'..'z']
-                                  ++ map text [ a:n:[] | n <- ['0'..'9']
-                                                       , a <- ['a'..'z'] ])
+                                  ++ [ text [a,n] | n <- ['0'..'9']
+                                                  , a <- ['a'..'z'] ])
 -- nameSupply2 ss = take (length ss) [ text ('c':v:[]) | v <- ['a'..]]
 
 mkTranslate :: [Name] -> Doc
@@ -399,4 +399,3 @@ mkToMult tag attrpat attrexp (n,sts) =
     text "toContents" <+> parens (mkCpat n attrpat vs) <+> text "="
     $$ nest 4 (text "[CElem (Elem (N \"" <> ppXName tag <> text "\")"<+> attrexp
               <+> parens (mkToElem sts vs) <+> text ") ()]")
-

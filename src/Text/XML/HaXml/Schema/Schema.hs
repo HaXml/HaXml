@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, MultiParamTypeClasses, FunctionalDependencies,
+{-# LANGUAGE CPP, FunctionalDependencies,
              TypeSynonymInstances, ExistentialQuantification #-}
 module Text.XML.HaXml.Schema.Schema
   ( SchemaType(..)
@@ -32,6 +32,7 @@ module Text.XML.HaXml.Schema.Schema
   , addXMLAttributes
   ) where
 
+import Control.Monad (void)
 import Text.ParserCombinators.Poly
 import Text.Parse
 
@@ -40,7 +41,6 @@ import Text.XML.HaXml.Posn
 import Text.XML.HaXml.Namespaces (printableName)
 import Text.XML.HaXml.XmlContent.Parser hiding (Document,Reference)
 import Text.XML.HaXml.Schema.XSDTypeModel (Occurs(..))
-import Text.XML.HaXml.Schema.PrimitiveTypes
 import Text.XML.HaXml.Schema.PrimitiveTypes as Prim
 import Text.XML.HaXml.OneOfN
 import Text.XML.HaXml.Verbatim
@@ -147,7 +147,7 @@ toXMLText text =
     [CString False text ()]
 
 toXMLAnyElement :: AnyElement -> [Content ()]
-toXMLAnyElement (UnconvertedANY c) = [fmap (const ()) c]
+toXMLAnyElement (UnconvertedANY c) = [void c]
 --toXMLAnyElement (ANYSchemaType x)  = [c]
 
 toXMLAttribute :: (SimpleType a) => String -> a -> [Attribute]
@@ -204,7 +204,7 @@ instance SimpleType FpMLNumber where
 
 -- Ensure that all primitive/simple types can also be used as elements.
 
-#define SchemaInstance(TYPE)  instance SchemaType TYPE where { parseSchemaType s = do { e <- element [s]; interior e $ parseSimpleType; }; schemaTypeToXML s x = toXMLElement s [] [toXMLText (simpleTypeText x)] }
+#define SchemaInstance(TYPE)  instance SchemaType TYPE where { parseSchemaType s = do { e <- element [s]; interior e parseSimpleType; }; schemaTypeToXML s x = toXMLElement s [] [toXMLText (simpleTypeText x)] }
 
 SchemaInstance(XsdString)
 SchemaInstance(Prim.Boolean)
@@ -249,4 +249,3 @@ SchemaInstance(Prim.UnsignedInt)
 SchemaInstance(Prim.UnsignedShort)
 SchemaInstance(Prim.UnsignedByte)
 SchemaInstance(Prim.PositiveInteger)
-

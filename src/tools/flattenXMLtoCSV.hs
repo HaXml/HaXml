@@ -1,6 +1,6 @@
 ------------------------------------------------------------
 -- The Xtract tool - an XML-grep.
------------------------------------------------------------- 
+------------------------------------------------------------
 module Main where
 import System.Environment (getArgs)
 import System.Exit        (exitWith, ExitCode(..))
@@ -23,10 +23,10 @@ main =
   getArgs >>= \args->
   when ("--version" `elem` args) $ do
       putStrLn $ "part of HaXml-"++version
-      exitWith ExitSuccess
+      exitSuccess
   when ("--help" `elem` args) $ do
-      putStrLn $ "See http://haskell.org/HaXml"
-      exitWith ExitSuccess
+      putStrLn "See http://haskell.org/HaXml"
+      exitSuccess
 
   if length args < 4 then do
     putStrLn "Usage: flattenXMLtoCSV file.xml file.csv tag innertag [innertag ...]  "
@@ -37,7 +37,7 @@ main =
     -- to be found nested inside the specified outer 'tag'.  Each outer 'tag'
     -- found therefore forms a row of the csv output.
     writeFile (csv ofile) . ppCSVTable
-                          . ((map (mkCSVField 0 0) patterns):)
+                          . (map (mkCSVField 0 0) patterns:)
                           . map (\o-> map (\i-> mkCSVField 0 0
                                                 . verbatim
                                                 . unescape
@@ -64,4 +64,3 @@ checkOne []              = ""
 checkOne [CString _ x _] = x
 checkOne _               = verbatim
 -}
-

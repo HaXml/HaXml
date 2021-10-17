@@ -175,7 +175,7 @@ instance XmlContent Double where
 instance XmlContent Char where
     -- NOT in a string
     toContents c   = [CElem (Elem (N "char") [mkAttr "value" [c]] []) ()]
-    parseContents = do { (Elem _ [(N "value",(AttValue [Left [c]]))] [])
+    parseContents = do { (Elem _ [(N "value",AttValue [Left [c]])] [])
                              <- element ["char"]
                        ; return c
                        }
@@ -216,7 +216,7 @@ instance XmlContent a => XmlContent [a] where
             (CRef r pos: cs)
                    -> Failure cs ("Expected a <list-...>, but found a ref "
                                   ++verbatim r++" at\n"++ show pos)
-            (_:cs) -> ((\ (P p)-> p) parseContents) cs  -- skip comments etc.
+            (_:cs) -> (\ (P p)-> p) parseContents cs  -- skip comments etc.
             []     -> Failure [] "Ran out of input XML whilst secondary parsing"
         )
 
@@ -239,9 +239,9 @@ instance (XmlContent a, XmlContent b) => XmlContent (Either a b) where
     toContents v@(Right ab) =
         [mkElemC (showConstr 1 (toHType v)) (toContents ab)]
     parseContents =
-        (inElementWith (flip isPrefixOf) "Left"  $ fmap Left  parseContents)
+        inElementWith (flip isPrefixOf) "Left"  (fmap Left  parseContents)
           `onFail`
-        (inElementWith (flip isPrefixOf) "Right" $ fmap Right parseContents)
+        inElementWith (flip isPrefixOf) "Right" (fmap Right parseContents)
 
 --    do{ e@(Elem t [] _) <- element ["Left","Right"]
 --      ; case t of

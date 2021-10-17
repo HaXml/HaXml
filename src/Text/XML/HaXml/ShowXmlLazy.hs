@@ -146,8 +146,8 @@ carryelem (Elem n as []) c
                            text "<" <> qname n <+> fsep (map attribute as)
                          , text "/>")
 carryelem (Elem n as cs) c
---  | any isText cs    =  ( c <> element e, empty)
-    | otherwise        =  let (cs0,d0) = carryscan carrycontent cs (text ">")
+{-  | any isText cs    =  ( c <> element e, empty)
+    | otherwise -}     =  let (cs0,d0) = carryscan carrycontent cs (text ">")
                           in
                           ( c <>
                             text "<" <> qname n <+> fsep (map attribute as) $$
@@ -333,4 +333,3 @@ containsDoubleQuote :: [EV] -> Bool
 containsDoubleQuote evs = any csq evs
     where csq (EVString s) = '"' `elem` s
           csq _            = False
-

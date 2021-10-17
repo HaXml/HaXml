@@ -15,7 +15,7 @@ import Control.Monad
 import Control.Exception as E
 import System.Directory
 import Data.List
-import Data.Maybe (fromMaybe,catMaybes)
+import Data.Maybe (fromMaybe,mapMaybe)
 import Data.Function (on)
 
 import Text.XML.HaXml            (version)
@@ -46,12 +46,12 @@ argDirsToFiles = do
   args <- getArgs
   when ("--version" `elem` args) $ do
       putStrLn $ "part of HaXml-"++version
-      exitWith ExitSuccess
+      exitSuccess
   when ("--help" `elem` args) $ do
-      putStrLn $ "Usage: FpMLToHaskell xsdDir haskellDir"
-      putStrLn $ "    -- The results go into haskelldir/Data/FpML/file0.hs etc"
-      putStrLn $ "See http://haskell.org/HaXml"
-      exitWith ExitSuccess
+      putStrLn "Usage: FpMLToHaskell xsdDir haskellDir"
+      putStrLn "    -- The results go into haskelldir/Data/FpML/file0.hs etc"
+      putStrLn "See http://haskell.org/HaXml"
+      exitSuccess
   case args of
     [xsddir,hdir]-> do
             files <- fmap (filter (".xsd" `isSuffixOf`))
@@ -59,21 +59,21 @@ argDirsToFiles = do
             let newdirs = map (\file->hdir++"/"++dirOf (fpml file)) files
             mapM_ (\newdir -> do createDirectoryIfMissing True newdir) newdirs
             return (xsddir
-                   ,map (\f-> (f, hdir++"/"++(reslash (fpml f))++".hs")) files)
+                   ,map (\f-> (f, hdir++"/"++reslash (fpml f)++".hs")) files)
     _ -> do prog <- getProgName
             putStrLn ("Usage: "++prog++" xsdDir haskellDir")
             exitFailure
  where
   reslash = map (\c-> case c of '.'->'/'; _->c)
-  dirOf   = concat . intersperse "/" . init . wordsBy' '.'
+  dirOf   = intercalate "/" . init . wordsBy' '.'
   wordsBy' c s = let (a,b) = span (/=c) s in
                 if null b then [a] else a: wordsBy' c (tail b)
 
 main ::IO ()
 main = do
     (dir,files) <- argDirsToFiles
-    deps <- flip mapM files (\ (inf,_outf)-> do
-        hPutStrLn stdout $ "Reading "++inf
+    deps <- forM files (\ (inf,_outf)-> do
+        putStrLn $ "Reading "++inf
         thiscontent <- readFileUTF8 (dir++"/"++inf)
         let d@Document{} = resolveAllNames qualify
                            . either (error . ("not XML:\n"++)) id
@@ -83,11 +83,11 @@ main = do
             (Left msg,_) -> do hPutStrLn stderr msg
                                return ([], undefined)
             (Right v,[]) ->    return (Env.gatherImports v, v)
-            (Right v,_)  -> do hPutStrLn stdout $ "Parse incomplete!"
-                               hPutStrLn stdout $ inf
-                               hPutStrLn stdout $ "\n-----------------\n"
-                               hPutStrLn stdout $ show v
-                               hPutStrLn stdout $ "\n-----------------\n"
+            (Right v,_)  -> do putStrLn "Parse incomplete!"
+                               putStrLn inf
+                               putStrLn "\n-----------------\n"
+                               putStrLn $ show v
+                               putStrLn "\n-----------------\n"
                                return ([],v)
         )
     let filedeps :: [[((FilePath,FilePath),([(FilePath,Maybe String)],Schema))]]
@@ -97,9 +97,9 @@ main = do
                             (zip files deps)
         -- a single supertype environment, closed over all modules
         supertypeEnv :: Environment
-        supertypeEnv = foldr (\fs e->
-                              foldr (\((inf,_),(_,v))-> mkEnvironment inf v)
-                                    e fs)
+        supertypeEnv = foldr (flip (foldr
+                                    (\ ((inf, _), (_, v)) ->
+                                       mkEnvironment inf v)))
                              emptyEnv filedeps
         adjust :: Environment -> Environment
         adjust env = env{ env_extendty = env_extendty supertypeEnv
@@ -135,15 +135,13 @@ main = do
                                                (\d-> fst3 $
                                                      fromMaybe (error "FME") $
                                                      lookup d environs)
-                            in flip map cyclic
-                                    (\((inf,outf),(_,v))->
-                                      (inf,(adjust $ mkEnvironment inf v
-                                                   $ jointEnv
-                                           ,outf
-                                           ,v)
-                                      )
-                                    )
-    flip mapM_ environs (\ (inf,(env,outf,v))-> do
+                            in flip map cyclic $
+                               \((inf,outf),(_,v))->
+                                 (inf,(adjust $ mkEnvironment inf v jointEnv
+                                      ,outf
+                                      ,v)
+                                 )
+    forM_ environs (\ (inf,(env,outf,v))-> do
         o  <- openFile outf WriteMode
         hb <- openFile (bootf outf) WriteMode
         hSetEncoding o  utf8
@@ -152,9 +150,9 @@ main = do
             haskell = Haskell.mkModule inf v decls
             doc     = ppModule fpmlNameConverter haskell
             docboot = HsBoot.ppModule fpmlNameConverter haskell
-        hPutStrLn stdout $ "Writing "++outf
+        putStrLn $ "Writing "++outf
         hPutStrLn o $ render doc
-        hPutStrLn stdout $ "Writing "++(bootf outf)
+        putStrLn $ "Writing "++bootf outf
         hPutStrLn hb $ render docboot
         hFlush o
         hFlush hb
@@ -189,9 +187,9 @@ cyclicDeps name' deps env = nubBy (setEq`on`map name')
   where
 --  walk :: [b] -> b -> [[b]]
     walk acc t = if name' t `elem` map name' acc then [acc]
-                 else concatMap (walk (t:acc)) (catMaybes . map env $ deps t)
+                 else concatMap (walk (t:acc)) (mapMaybe env $ deps t)
     minimal acc c = concatMap (prune c) acc
-    prune c c' = if map name' c `isProperSubsetOf` map name' c' then [] else [c']
+    prune c c' = [c' | not (map name' c `isProperSubsetOf` map name' c')]
     isSubsetOf a b = all (`elem`b) a
     setEq a b            = a`isSubsetOf`b &&      b`isSubsetOf`a
     isProperSubsetOf a b = a`isSubsetOf`b && not (b`isSubsetOf`a)
@@ -206,9 +204,8 @@ lookupWith proj x (y:ys) | proj y == x = Just y
 targetNamespace :: Element i -> String
 targetNamespace (Elem qn attrs _) =
     if qn /= xsdSchema then "ERROR! top element not an xsd:schema tag"
-    else case lookup (N "targetNamespace") attrs of
-           Nothing -> "ERROR! no targetNamespace specified"
-           Just atv -> show atv
+    else maybe "ERROR! no targetNamespace specified" show
+         (lookup (N "targetNamespace") attrs)
 
 -- | The XSD Namespace.
 xsdSchema :: QName
@@ -220,4 +217,4 @@ readFileUTF8 :: FilePath -> IO String
 readFileUTF8 file = do
     h <- openFile file ReadMode
     (do hSetEncoding h utf8
-        hGetContents h) `E.onException` (hClose h)
+        hGetContents h) `E.onException` hClose h

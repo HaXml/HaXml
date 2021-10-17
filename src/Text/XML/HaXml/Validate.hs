@@ -11,7 +11,7 @@ import Text.XML.HaXml.Namespaces
 import Text.XML.HaXml.Combinators (multi,tag,iffind,literal,none,o)
 import Text.XML.HaXml.XmlContent (attr2str)
 import Data.Maybe (fromMaybe,isNothing,fromJust)
-import Data.List (intersperse,nub,(\\))
+import Data.List (intercalate,nub,(\\))
 import Data.Char (isSpace)
 
 #if __GLASGOW_HASKELL__ >= 604 || __NHC__ >= 118 || defined(__HUGS__)
@@ -98,12 +98,12 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
     valid (Elem name attrs contents) =
         -- is the element defined in the DTD?
         let spec = lookupFM (elements dtd) name in
-        (isNothing spec) `gives` ("Element <"++qname name++"> not known.")
+        isNothing spec `gives` ("Element <"++qname name++"> not known.")
         -- is each attribute mentioned only once?
         ++ (let dups = duplicates (map (qname . fst) attrs) in
             not (null dups) `gives`
                ("Element <"++qname name++"> has duplicate attributes: "
-                ++concat (intersperse "," dups)++"."))
+                ++intercalate "," dups++"."))
         -- does each attribute belong to this element?  value is in range?
         ++ concatMap (checkAttr name) attrs
         -- are all required attributes present?
@@ -124,7 +124,7 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
             EnumeratedType e ->
               case e of
                 Enumeration es ->
-                    (not (attval `Prelude.elem` es)) `gives`
+                    (attval `notElem` es) `gives`
                           ("Value \""++attval++"\" of attribute \""
                            ++qname attr++"\" in element <"++qname elm
                            ++"> is not in the required enumeration range: "
@@ -133,7 +133,7 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
             _ -> []
 
     checkRequired elm attrs req =
-        (not (req `Prelude.elem` map fst attrs)) `gives`
+        (req `notElem` map fst attrs) `gives`
             ("Element <"++qname elm++"> requires the attribute \""++qname req
              ++"\" but it is missing.")
 
@@ -151,7 +151,7 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
                                   ++"elements beyond its content spec."])
 
     checkMixed  elm  permitted (CElem (Elem name _ _) _)
-        | not (name `Prelude.elem` permitted) =
+        | name `notElem` permitted =
             ["Element <"++qname elm++"> contains an element <"++qname name
              ++"> but should not."]
     checkMixed _elm _permitted _ = []
@@ -260,7 +260,7 @@ partialValidate dtd' elem = valid elem ++ checkIDs elem
             badIds  = duplicates (map (\(CString _ s _)->s) idElems)
         in not (null badIds) `gives`
                ("These attribute values of type ID are not unique: "
-                ++concat (intersperse "," badIds)++".")
+                ++intercalate "," badIds++".")
 
 
 cpError :: QName -> CP -> [String]
@@ -270,9 +270,9 @@ cpError elm cp =
 
 display :: CP -> String
 display (TagName name mod) = qname name ++ modifier mod
-display (Choice cps mod)   = "(" ++ concat (intersperse "|" (map display cps))
+display (Choice cps mod)   = "(" ++ intercalate "|" (map display cps)
                              ++ ")" ++ modifier mod
-display (Seq cps mod)      = "(" ++ concat (intersperse "," (map display cps))
+display (Seq cps mod)      = "(" ++ intercalate "," (map display cps)
                              ++ ")" ++ modifier mod
 
 modifier :: Modifier -> String
@@ -282,7 +282,7 @@ modifier Star  = "*"
 modifier Plus  = "+"
 
 duplicates :: Eq a => [a] -> [a]
-duplicates xs = xs \\ (nub xs)
+duplicates xs = xs \\ nub xs
 
 qname :: QName -> String
 qname n = printableName n

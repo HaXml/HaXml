@@ -61,11 +61,11 @@ saxelementopen :: XParser SaxElement
 saxelementopen = do
         tok TokAnyOpen
         (ElemTag (N n) as) <- elemtag  -- no QN ever generated during parsing
-        (( do tok TokEndClose
-              return (SaxElementTag n as)) `onFail`
-         ( do tok TokAnyClose
-              return (SaxElementOpen n as))
-         `onFail` fail "missing > or /> in element tag")
+        ( do tok TokEndClose
+             return (SaxElementTag n as)) `onFail`
+          ( do tok TokAnyClose
+               return (SaxElementOpen n as))
+          `onFail` fail "missing > or /> in element tag"
 
 saxelementclose :: XParser SaxElement
 saxelementclose = do
@@ -75,19 +75,19 @@ saxelementclose = do
         return (SaxElementClose n)
 
 saxcomment :: XParser SaxElement
-saxcomment = comment >>= return . SaxComment
+saxcomment = SaxComment <$> comment
 
 saxchardata :: XParser SaxElement
 saxchardata =
-  (cdsect >>= return . SaxCharData)
+  (SaxCharData <$>cdsect)
   `onFail`
-  (chardata >>= return . SaxCharData)
+  (SaxCharData <$>chardata)
 
 saxreference :: XParser SaxElement
-saxreference = reference >>= return . SaxReference
+saxreference = SaxReference <$> reference
 
 saxdoctypedecl :: XParser SaxElement
-saxdoctypedecl = doctypedecl >>= return . SaxDocTypeDecl
+saxdoctypedecl = SaxDocTypeDecl <$> doctypedecl
 
 saxprocessinginstruction :: XParser SaxElement
 saxprocessinginstruction = fmap SaxProcessingInstruction processinginstruction

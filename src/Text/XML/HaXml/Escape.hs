@@ -111,16 +111,13 @@ escapeElement xmlEscaper (Elem name attributes content) =
       (escapeContent xmlEscaper content)
 
 escapeAttributes :: XmlEscaper -> [Attribute] -> [Attribute]
-escapeAttributes xmlEscaper atts =
-   map
-      (\ (name,av) -> (name,escapeAttValue xmlEscaper av))
-      atts
+escapeAttributes xmlEscaper =
+   map (\ (name,av) -> (name,escapeAttValue xmlEscaper av))
 
 escapeAttValue :: XmlEscaper -> AttValue -> AttValue
 escapeAttValue xmlEscaper (AttValue attValList) =
    AttValue (
-      concat (
-         map
+      concatMap
             (\ av -> case av of
                Right _ -> [av]
                Left s ->
@@ -134,13 +131,11 @@ escapeAttValue xmlEscaper (AttValue attValList) =
                      s
                )
             attValList
-         )
       )
 
 escapeContent :: XmlEscaper -> [Content i] -> [Content i]
-escapeContent xmlEscaper contents =
-   concat
-      (map
+escapeContent xmlEscaper =
+   concatMap
           (\ content -> case content of
              (CString b str i) ->
                 map
@@ -154,8 +149,6 @@ escapeContent xmlEscaper contents =
              (CElem element i) -> [CElem (escapeElement xmlEscaper element) i]
              _ -> [content]
              )
-          contents
-          )
 
 mkEscape :: XmlEscaper -> Char -> Reference
 mkEscape (XmlEscaper {toEscape = toescape}) ch =
@@ -184,10 +177,8 @@ unEscapeElement xmlEscaper (Elem name attributes content) =
       (unEscapeContent xmlEscaper content)
 
 unEscapeAttributes :: XmlEscaper -> [Attribute] -> [Attribute]
-unEscapeAttributes xmlEscaper atts =
-   map
-      (\ (name,av) -> (name,unEscapeAttValue xmlEscaper av))
-      atts
+unEscapeAttributes xmlEscaper =
+   map (\ (name,av) -> (name,unEscapeAttValue xmlEscaper av))
 
 unEscapeAttValue :: XmlEscaper -> AttValue -> AttValue
 unEscapeAttValue xmlEscaper (AttValue attValList) =
@@ -203,7 +194,7 @@ unEscapeAttValue xmlEscaper (AttValue attValList) =
       )
 
 unEscapeContent :: XmlEscaper -> [Content i] -> [Content i]
-unEscapeContent xmlEscaper content =
+unEscapeContent xmlEscaper =
    map
       (\ cntnt -> case cntnt of
          CRef ref i -> case unEscapeChar xmlEscaper ref of
@@ -212,7 +203,6 @@ unEscapeContent xmlEscaper content =
          CElem element i -> CElem (unEscapeElement xmlEscaper element) i
          _ -> cntnt
          )
-      content
 
 unEscapeChar :: XmlEscaper -> Reference -> Maybe Char
 unEscapeChar xmlEscaper ref =
@@ -230,25 +220,23 @@ compressElement (Elem name attributes content) =
    Elem name (compressAttributes attributes) (compressContent content)
 
 compressAttributes :: [(QName,AttValue)] -> [(QName,AttValue)]
-compressAttributes atts =
-   map
-      (\ (name,av) -> (name,compressAttValue av))
-      atts
+compressAttributes =
+   map (\ (name,av) -> (name,compressAttValue av))
 
 compressAttValue :: AttValue -> AttValue
 compressAttValue (AttValue l) = AttValue (compress l)
    where
       compress :: [Either String Reference] -> [Either String Reference]
       compress [] = []
-      compress (Right ref : es) = Right ref : (compress es)
-      compress ( (ls@(Left s1)) : es) =
+      compress (Right ref : es) = Right ref : compress es
+      compress ( ls@(Left s1) : es) =
          case compress es of
             (Left s2 : es2) -> Left (s1 ++ s2) : es2
             es2 -> ls : es2
 
 compressContent :: [Content i] -> [Content i]
 compressContent [] = []
-compressContent ((csb@(CString b1 s1 i1)) : cs) =
+compressContent (csb@(CString b1 s1 i1) : cs) =
    case compressContent cs of
       (CString b2 s2 _) : cs2
           | b1 == b2
@@ -288,4 +276,3 @@ mkXmlEscaper escapes isescape =
       fromEscape = listToFM (map (\ (c,str) -> (str,c)) escapes),
       isEscape = isescape
       }
-

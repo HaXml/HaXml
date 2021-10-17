@@ -58,7 +58,7 @@ import Data.Bits (Bits, shiftL, shiftR, (.&.), (.|.))
 import Data.List (unfoldr)
 
 toUTF8 :: String -> String
-toUTF8 s = (map (chr. fromIntegral) $ encode s)
+toUTF8 s = map (chr. fromIntegral) $ encode s
 fromUTF8 :: String -> (String, [(Error, Int)])
 fromUTF8 s = decode (map (fromIntegral . ord) s)
 
@@ -140,21 +140,21 @@ encodeOne_onebyte cp = [cp]
 -- 00000yyyyyxxxxxx -> 110yyyyy 10xxxxxx
 
 encodeOne_twobyte :: Word16 -> [Word8]
-encodeOne_twobyte cp = [(0xC0.|.ys), (0x80.|.xs)]
+encodeOne_twobyte cp = [0xC0.|.ys, 0x80.|.xs]
     where
     xs, ys :: Word8
     ys = fromIntegral (shiftR cp 6)
-    xs = (fromIntegral cp) .&. 0x3F
+    xs = fromIntegral cp .&. 0x3F
 
 
 -- zzzzyyyyyyxxxxxx -> 1110zzzz 10yyyyyy 10xxxxxx
 
 encodeOne_threebyte :: Word16 -> [Word8]
-encodeOne_threebyte cp = [(0xE0.|.zs), (0x80.|.ys), (0x80.|.xs)]
+encodeOne_threebyte cp = [0xE0.|.zs, 0x80.|.ys, 0x80.|.xs]
     where
     xs, ys, zs :: Word8
-    xs = (fromIntegral cp) .&. 0x3F
-    ys = (fromIntegral (shiftR cp 6)) .&. 0x3F
+    xs = fromIntegral cp .&. 0x3F
+    ys = fromIntegral (shiftR cp 6) .&. 0x3F
     zs = fromIntegral (shiftR cp 12)
 
 
@@ -164,9 +164,9 @@ encodeOne_fourbyte :: Word32 -> [Word8]
 encodeOne_fourbyte cp = [0xF0.|.us, 0x80.|.zs, 0x80.|.ys, 0x80.|.xs]
     where
     xs, ys, zs, us :: Word8
-    xs = (fromIntegral cp) .&. 0x3F
-    ys = (fromIntegral (shiftR cp 6)) .&. 0x3F
-    zs = (fromIntegral (shiftR cp 12)) .&. 0x3F
+    xs = fromIntegral cp .&. 0x3F
+    ys = fromIntegral (shiftR cp 6) .&. 0x3F
+    zs = fromIntegral (shiftR cp 12) .&. 0x3F
     us = fromIntegral (shiftR cp 18)
 
 
@@ -265,11 +265,11 @@ cpToChar = chr . fromIntegral
 -- 110yyyyy 10xxxxxx -> 00000yyyyyxxxxxx
 
 decodeOne_twobyte :: [Word8] -> (Either Error Char, Int, [Word8])
-decodeOne_twobyte (_:[])
+decodeOne_twobyte [_]
     = (Left (Truncated 1 2), 1, [])
 decodeOne_twobyte (b1:b2:bs)
     | b1 < 0xC2            = (Left (NonShortest 2 1), 2, bs)
-    | first_bits_not_10 b2 = (Left (InvalidLaterByte 1), 1, (b2:bs))
+    | first_bits_not_10 b2 = (Left (InvalidLaterByte 1), 1, b2:bs)
     | otherwise            = (Right (cpToChar result), 2, bs)
     where
     xs, ys, result :: Word32
@@ -282,8 +282,8 @@ decodeOne_twobyte[] = error "UTF8.decodeOne_twobyte: No input (can't happen)"
 -- 1110zzzz 10yyyyyy 10xxxxxx -> zzzzyyyyyyxxxxxx
 
 decodeOne_threebyte :: [Word8] -> (Either Error Char, Int, [Word8])
-decodeOne_threebyte (_:[])   = threebyte_truncated 1
-decodeOne_threebyte (_:_:[]) = threebyte_truncated 2
+decodeOne_threebyte [_]   = threebyte_truncated 1
+decodeOne_threebyte [_,_] = threebyte_truncated 2
 decodeOne_threebyte bs@(b1:b2:b3:rest)
     | first_bits_not_10 b2
         = (Left (InvalidLaterByte 1), 1, drop 1 bs)
@@ -313,9 +313,9 @@ threebyte_truncated n = (Left (Truncated n 3), n, [])
 -- 11110uuu 10zzzzzz 10yyyyyy 10xxxxxx -> 000uuuzzzzzzyyyyyyxxxxxx
 
 decodeOne_fourbyte :: [Word8] -> (Either Error Char, Int, [Word8])
-decodeOne_fourbyte (_:[])     = fourbyte_truncated 1
-decodeOne_fourbyte (_:_:[])   = fourbyte_truncated 2
-decodeOne_fourbyte (_:_:_:[]) = fourbyte_truncated 3
+decodeOne_fourbyte [_]     = fourbyte_truncated 1
+decodeOne_fourbyte [_,_]   = fourbyte_truncated 2
+decodeOne_fourbyte [_,_,_] = fourbyte_truncated 3
 decodeOne_fourbyte bs@(b1:b2:b3:b4:rest)
     | first_bits_not_10 b2
         = (Left (InvalidLaterByte 1), 1, drop 1 bs)

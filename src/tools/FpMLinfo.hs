@@ -44,10 +44,10 @@ argDirsToFiles = do
   args <- getArgs
   when ("--version" `elem` args) $ do
       putStrLn $ "part of HaXml-"++version
-      exitWith ExitSuccess
+      exitSuccess
   when ("--help" `elem` args) $ do
-      putStrLn $ "Usage: FpMLinfo xsdDir"
-      exitWith ExitSuccess
+      putStrLn "Usage: FpMLinfo xsdDir"
+      exitSuccess
   case args of
     [xsddir]-> do
             files <- fmap (filter (".xsd" `isSuffixOf`))
@@ -58,14 +58,14 @@ argDirsToFiles = do
             exitFailure
  where
   reslash = map (\c-> case c of '.'->'/'; _->c)
-  dirOf   = concat . intersperse "/" . init . wordsBy '.'
+  dirOf   = intercalate "/" . init . wordsBy '.'
   wordsBy c s = let (a,b) = span (/=c) s in
                 if null b then [a] else a: wordsBy c (tail b)
 
 main ::IO ()
 main = do
     (dir,files) <- argDirsToFiles
-    deps <- flip mapM files (\ inf-> do
+    deps <- forM files (\ inf-> do
         hPutStrLn stderr $ "Reading "++inf
         thiscontent <- readFile (dir++"/"++inf)
         let d@Document{} = resolveAllNames qualify
@@ -76,23 +76,23 @@ main = do
             (Left msg,_) -> do hPutStrLn stderr msg
                                return ([], undefined)
             (Right v,[]) ->    return (Env.gatherImports v, v)
-            (Right v,_)  -> do hPutStrLn stdout $ "Parse incomplete!"
-                               hPutStrLn stdout $ inf
-                               hPutStrLn stdout $ "\n-----------------\n"
-                               hPutStrLn stdout $ show v
-                               hPutStrLn stdout $ "\n-----------------\n"
+            (Right v,_)  -> do putStrLn "Parse incomplete!"
+                               putStrLn inf
+                               putStrLn "\n-----------------\n"
+                               putStrLn $ show v
+                               putStrLn "\n-----------------\n"
                                return ([],v)
         )
 
     let filedeps :: [[(FilePath,([(FilePath,Maybe String)],Schema))]]
-        filedeps  = ordered (\ (inf,_)-> inf)
+        filedeps  = ordered fst
                             (\ (_,(ds,_))-> map fst ds)
                             (\x-> lookupWith fst x (zip files deps))
                             (zip files deps)
         -- a single supertype environment, closed over all modules
         supertypeEnv :: Environment
-        supertypeEnv = foldr (\fs e->
-                              foldr (\(inf,(_,v))-> mkEnvironment inf v) e fs)
+        supertypeEnv = foldr (flip (foldr
+                                    (\ (inf, (_, v)) -> mkEnvironment inf v)))
                              emptyEnv filedeps
 
         adjust :: Environment -> Environment
@@ -129,39 +129,38 @@ main = do
                                                      fromMaybe (error "FME") $
                                                      lookup d environs)
                             in flip map cyclic
-                                    (\(inf,(_,v))->
-                                      (inf,(adjust $ mkEnvironment inf v
-                                                   $ jointEnv
-                                           ,v)
-                                      )
-                                    )
-                    )
+                               (\(inf,(_,v))->
+                                  (inf,(adjust $ mkEnvironment inf v jointEnv
+                                       ,v)
+                                  )
+                               )
+                                            )
 
-    putStrLn $ "Supertype environment:\n----------------------"
+    putStrLn "Supertype environment:\n----------------------"
     putStrLn . display . env_extendty $ supertypeEnv
     putStrLn ""
-    putStrLn $ "Substitution group environment:\n------------------------------"
+    putStrLn "Substitution group environment:\n------------------------------"
     putStrLn . display . env_substGrp $ supertypeEnv
     putStrLn ""
-    putStrLn $ "Type containment relation:\n--------------------------"
+    putStrLn "Type containment relation:\n--------------------------"
     putStrLn . unlines . Prelude.map (\k-> printableName k++": "++
                                            (unwords . nub . map printableName
                                              . contains supertypeEnv $ k))
              . Map.keys . env_type $ supertypeEnv
     putStrLn ""
-    putStrLn $ "Type cycles:\n------------"
+    putStrLn "Type cycles:\n------------"
     putStrLn . unlines . map unwords . cycles $ supertypeEnv
     putStrLn ""
-    putStrLn $ "Module dependency ordering:\n---------------------------"
+    putStrLn "Module dependency ordering:\n---------------------------"
     putStrLn . unlines
              . concatMap (map (\(inf,(deps,_)) ->
                                  inf++": "++unwords (map fst deps)))
              $ filedeps
 
     putStrLn ""
-    putStrLn $ "Module cycles:\n--------------"
+    putStrLn "Module cycles:\n--------------"
     putStrLn . unlines . map (unwords . map fst)
-             . cyclicDeps (\(inf,_)->inf)
+             . cyclicDeps fst
                           (\(_,(ds,_))->map fst ds)
                           (\x-> lookupWith fst x (zip files deps))
              $ zip files deps
@@ -195,7 +194,7 @@ contains env qn =
 
   where
     simple s@Primitive{}  = (:[]) . N . show . simple_primitive $ s
-    simple s@Restricted{} = maybe [] (:[]) . restrict_base . simple_restriction
+    simple s@Restricted{} = maybeToList . restrict_base . simple_restriction
                                                                    $ s
     simple s@ListOf{}     = either simple (const []) . simple_type $ s
     simple s@UnionOf{}    = concatMap simple (simple_union s)
@@ -209,7 +208,7 @@ contains env qn =
     elementEtc (HasGroup   g) = group g
     elementEtc (HasCS     cs) = choiceOrSeq cs
     elementEtc (HasAny     _) = []
-    elementDecl = either (maybe [] (:[]) . theType)
+    elementDecl = either (maybeToList . theType)
                          (:[])
                  . elem_nameOrRef
 
@@ -219,11 +218,13 @@ cycles env =
     concatMap (map (map printableName) . walk []) . Map.keys . env_type $ env
   where
     walk :: [QName] -> QName -> [[QName]]
-    walk acc t = if not (null acc) && t == head acc then [acc]
-                 else if t `elem` acc then [N "*": acc]
-                 else let uses = contains env t in
-                      if null uses then []
-                      else concatMap (walk (acc++[t])) uses
+    walk acc t
+      | not (null acc) && t == head acc = [acc]
+      | t `elem` acc = [N "*" : acc]
+      | otherwise = let uses = contains env t
+                    in if null uses
+                       then []
+                       else concatMap (walk (acc ++ [t])) uses
 
 -- | Munge filename for instances.
 insts :: FilePath -> FilePath
@@ -255,9 +256,9 @@ cyclicDeps name deps env = nubBy (setEq`on`map name)
   where
 --  walk :: [b] -> b -> [[b]]
     walk acc t = if name t `elem` map name acc then [acc]
-                 else concatMap (walk (t:acc)) (catMaybes . map env $ deps t)
+                 else concatMap (walk (t:acc)) (mapMaybe env $ deps t)
     minimal acc c = concatMap (prune c) acc
-    prune c c' = if map name c `isProperSubsetOf` map name c' then [] else [c']
+    prune c c' = [c' | not (map name c `isProperSubsetOf` map name c')]
     isSubsetOf a b = all (`elem`b) a
     setEq a b            = a`isSubsetOf`b &&      b`isSubsetOf`a
     isProperSubsetOf a b = a`isSubsetOf`b && not (b`isSubsetOf`a)
@@ -273,12 +274,10 @@ lookupWith proj x (y:ys) | proj y == x = Just y
 targetNamespace :: Element i -> String
 targetNamespace (Elem qn attrs _) =
     if qn /= xsdSchema then "ERROR! top element not an xsd:schema tag"
-    else case lookup (N "targetNamespace") attrs of
-           Nothing -> "ERROR! no targetNamespace specified"
-           Just atv -> show atv
+    else maybe "ERROR! no targetNamespace specified" show
+         (lookup (N "targetNamespace") attrs)
 
 -- | The XSD Namespace.
 xsdSchema :: QName
 xsdSchema = QN (nullNamespace{nsURI="http://www.w3.org/2001/XMLSchema"})
                "schema"
-

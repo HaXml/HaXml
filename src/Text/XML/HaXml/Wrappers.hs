@@ -33,10 +33,10 @@ fix2Args = do
   args <- getArgs
   when ("--version" `elem` args) $ do
       putStrLn $ "part of HaXml-" ++ version
-      exitWith ExitSuccess
+      exitSuccess
   when ("--help" `elem` args) $ do
-      putStrLn $ "See http://projects.haskell.org/HaXml"
-      exitWith ExitSuccess
+      putStrLn "See http://projects.haskell.org/HaXml"
+      exitSuccess
   case length args of
     0 -> return ("-",     "-")
     1 -> return (args!!0, "-")
@@ -66,7 +66,7 @@ processXmlWith f = do
   hFlush o
 
   where
-    onContent :: FilePath -> (CFilter Posn) -> Document Posn -> Document Posn
+    onContent :: FilePath -> CFilter Posn -> Document Posn -> Document Posn
     onContent file filter (Document p s e m) =
         case filter (CElem e (posInNewCxt file Nothing)) of
             [CElem e' _] -> Document p s e' m

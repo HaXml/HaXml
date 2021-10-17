@@ -1,7 +1,7 @@
 module Main where
 
 import Prelude hiding (max)
-import System.Exit        (exitWith,ExitCode(..))
+import System.Exit        (exitSuccess)
 import System.Environment (getArgs)
 import Data.Char          (isDigit)
 import System.IO          (hFlush,stdout)
@@ -13,19 +13,19 @@ main = do
     args <- getArgs
     when ("--version" `elem` args) $ do
         putStrLn $ "part of HaXml-"++version
-        exitWith ExitSuccess
+        exitSuccess
     when ("--help" `elem` args) $ do
-        putStrLn $ "See http://haskell.org/HaXml"
-        exitWith ExitSuccess
+        putStrLn "See http://haskell.org/HaXml"
+        exitSuccess
     case length args of
       1 -> do n <- saferead (head args)
               putStrLn ("module Text.XML.HaXml."++constructor 1 n++" where\n")
-              putStrLn ("import Text.XML.HaXml.XmlContent\n")
+              putStrLn "import Text.XML.HaXml.XmlContent\n"
               putStrLn (mkOneOf n)
       2 -> do n <- saferead (args!!0)
               m <- saferead (args!!1)
-              putStrLn ("module Text.XML.HaXml.OneOfN where\n")
-              putStrLn ("import Text.XML.HaXml.XmlContent\n")
+              putStrLn "module Text.XML.HaXml.OneOfN where\n"
+              putStrLn "import Text.XML.HaXml.XmlContent\n"
               mapM_ (putStrLn . mkOneOf) [n..m]
       _ -> error "Usage: MkOneOf n [m]"
     hFlush stdout
@@ -74,8 +74,7 @@ constructor :: Int -> Int -> String
 constructor n m = ordinal n ++"Of" ++ show m
 
 ordinal :: Int -> String
-ordinal n | n <= 20   = ordinals!!n
-ordinal n | otherwise = "Choice"++show n
+ordinal n = if n <= 20 then ordinals!!n else "Choice"++show n
 
 ordinals :: [String]
 ordinals = ["Zero","One","Two","Three","Four","Five","Six","Seven","Eight"
@@ -84,8 +83,8 @@ ordinals = ["Zero","One","Two","Three","Four","Five","Six","Seven","Eight"
 
 ---- variable names ----
 variables :: [String]
-variables = [ v:[] | v <- ['a'..'y']]
-            ++ [ v:w:[] | v <- ['a'..'z'], w <- ['a'..'z']]
+variables = [ [v] | v <- ['a'..'y']]
+            ++ [ [v,w] | v <- ['a'..'z'], w <- ['a'..'z']]
 
 ---- simple pretty-printing ----
 
@@ -106,6 +105,7 @@ format  cur  max  ind  s0  s1 (x:xs)
 
 ---- safe integer parsing ----
 saferead :: String -> IO Int
-saferead s | all isDigit s = return (read s)
-saferead s | otherwise     = error ("expected a number on the commandline, "
-                                    ++"but got \""++s++"\" instead")
+saferead s = if all isDigit s
+             then return (read s)
+             else error ("expected a number on the commandline, "
+                          ++"but got \""++s++"\" instead")

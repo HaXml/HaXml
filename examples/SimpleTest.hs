@@ -22,7 +22,7 @@ instance Haskell2Xml a => Haskell2Xml (MyType a) where
                     ]
               where (ConsA _ a) = v
     toContents v@(ConsA n a) = [mkElemC (showConstr 0 (toHType v))
-                                  (concat [toContents n, toContents a])]
+                                  (toContents n ++ toContents a)]
     toContents v@(ConsB s) = [mkElemC (showConstr 1 (toHType v)) (toContents s)]
     fromContents (CElem (Elem constr [] cs) : etc)
       | "ConsA-" `isPrefixOf` constr =
@@ -40,4 +40,3 @@ value2  = (ConsA 2 [42,0], ConsB "hello world")
 main = putStrLn
          (if value2 == (fst . fromContents . toContents) value2 then "success"
           else "failure")
-        

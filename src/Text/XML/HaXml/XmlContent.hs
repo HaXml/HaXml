@@ -4,7 +4,7 @@
 --
 --   If you are starting with an XML DTD, use HaXml's tool DtdToHaskell
 --   to generate both the Haskell types and the corresponding instances.
---   
+--
 --   If you are starting with a set of Haskell datatypes, use DrIFT to
 --   derive instances of this class for you:
 --       http:\/\/repetae.net\/john\/computer\/haskell\/DrIFT
@@ -168,7 +168,7 @@ instance XmlContent a => XmlContent [a] where
     parseContents = let result = runParser p [] -- for type of result only
                         p = case (toHType . head . (\ (Right x)->x) . fst)
                                  result of
-                              (Prim "Char" _) -> fmap (map xFromChar) $ text
+                              (Prim "Char" _) -> map xFromChar <$> text
                               _ -> many parseContents
                     in p
         -- comments, PIs, etc, are skipped in the individual element parser.

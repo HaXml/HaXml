@@ -43,7 +43,7 @@ typeLift s = s{ schema_items =
                                                     -> (e:)
                                                   _ -> id
                   _                          -> id
-              ) $
+              )
               ( case elem_content e of
                   Nothing        -> []
                   Just (Left  _) -> []
@@ -98,7 +98,7 @@ convert env s = concatMap item (schema_items s)
   where
     item (Include loc ann)    = [XSDInclude (xname loc) (comment ann)]
     item (Import uri loc ann) = [XSDImport  (xname loc)
-                                            (fmap xname $
+                                            (xname <$>
                                              Map.lookup uri (env_namespace env))
                                             (comment ann)]
     item (Redefine _ _)       = [] -- ignoring redefinitions for now
@@ -155,14 +155,14 @@ convert env s = concatMap item (schema_items s)
               squeeze xs []             = Just xs
 
     complex ct =
-      let nx  = N $ fromMaybe ("errorMissingName") (complex_name ct)
+      let nx  = N $ fromMaybe "errorMissingName" (complex_name ct)
           n   = XName nx
       in singleton $
       case complex_content ct of
         c@SimpleContent{}  ->
             case ci_stuff c of
                 Left r  ->
-                    RestrictSimpleType n ({-simple-}xname $ "Unimplemented") []
+                    RestrictSimpleType n ({-simple-}xname "Unimplemented") []
                                      (comment (complex_annotation ct
                                               `mappend` ci_annotation c))
                 Right e ->
@@ -176,7 +176,7 @@ convert env s = concatMap item (schema_items s)
         c@ComplexContent{} ->
             case ci_stuff c of
                 Left r  ->
-                    RestrictComplexType n ({-complex-}xname $ "Can'tBeRight")
+                    RestrictComplexType n ({-complex-}xname "Can'tBeRight")
                                      (comment (complex_annotation ct
                                               `mappend` ci_annotation c))
                 Right e ->
@@ -211,10 +211,10 @@ convert env s = concatMap item (schema_items s)
                     in
                     ExtendComplexType n
                         ({-supertype-}XName $ extension_base e)
-                        ({-supertype elems-}oldEs)
-                        ({-supertype attrs-}oldAs)
-                        ({-elems-}es)
-                        ({-attrs-}as)
+                        {-supertype elems-}oldEs
+                        {-supertype attrs-}oldAs
+                        {-elems-}es
+                        {-attrs-}as
                         ({-fwddecl-}if myLoc/=supLoc then Just (xname supLoc)
                                                      else Nothing)
                         ({-abstract supertype-}
@@ -229,14 +229,15 @@ convert env s = concatMap item (schema_items s)
                                  `mappend` extension_annotation e))
         c@ThisType{} | complex_abstract ct ->
             let myLoc  = fromMaybe "NUL"
-                                   (Map.lookup nx (env_typeloc env)) in
+                         (Map.lookup nx (env_typeloc env)) in
             ElementsAttrsAbstract n
                           {-all instance types: -}
-                          (map (\ (x,loc)->(XName x,if loc/=myLoc
-                                                    then Just (xname loc)
-                                                    else Nothing))
-                               $ fromMaybe []
-                               $ Map.lookup nx (env_extendty env))
+                          (case Map.lookup nx (env_extendty env) of
+                             Nothing -> []
+                             Just xs -> map (\ (x,loc)->(XName x,if loc/=myLoc
+                                                          then Just (xname loc)
+                                                          else Nothing)) xs
+                          )
                           (comment (complex_annotation ct))
         c@ThisType{} | otherwise ->
             let (es,as) = particleAttrs (ci_thistype c)
@@ -256,8 +257,8 @@ convert env s = concatMap item (schema_items s)
                        --I'm pretty sure a topElementDecl can't be abstract...
                          let (es,as) = contentInfo (elem_content ed) in
                          [ ElementsAttrs ({-name-}xname $ theName n)
-                                         ({-elems-}es)
-                                         ({-attrs-}as)
+                                         {-elems-}es
+                                         {-attrs-}as
                                          (comment (elem_annotation ed))
                          , ElementOfType $ elementDecl ed
                            --  Element{ elem_name = xname (theName n)
@@ -279,11 +280,13 @@ convert env s = concatMap item (schema_items s)
                          ElementAbstractOfType
                                  (XName nm)
                                  (checkXName s t)
-                                 (map (\ (x,loc)->(XName x,if loc/=myLoc
-                                                           then Just (xname loc)
-                                                           else Nothing))
-                                     $ fromMaybe []
-                                     $ Map.lookup nm (env_substGrp env))
+                                 (case Map.lookup nm (env_substGrp env) of
+                                    Nothing -> []
+                                    Just xs ->
+                                      map (\ (x,loc)->(XName x,
+                                                       if loc/=myLoc
+                                                       then Just (xname loc)
+                                                       else Nothing)) xs)
                                  (comment (elem_annotation ed))
                        Just t | otherwise ->
                          singleton $ ElementOfType $ elementDecl ed
@@ -342,10 +345,10 @@ convert env s = concatMap item (schema_items s)
                             Left st@Primitive{}   -> xname "SomethingPrimitive"
                             Left st@Restricted{}  -> (\x-> maybe x xname
                                                           (simple_name st)) $
-                                                     (maybe (xname "GiveUp")
-                                                            XName $
-                                                      restrict_base $
-                                                      simple_restriction st)
+                                                     maybe (xname "GiveUp")
+                                                           XName
+                                                      (restrict_base $
+                                                       simple_restriction st)
                             Left st@ListOf{}      -> xname "SomethingListy"
                             Left st@UnionOf{}     -> xname "SomethingUnionLike"
                             Right c@ComplexType{} -> maybe (localTypeExp ed{elem_content=Nothing})
@@ -354,13 +357,13 @@ convert env s = concatMap item (schema_items s)
                     | otherwise =
                           case elem_nameOrRef ed of
                             Left n  -> xname $ theName n
-                            Right _ -> xname $ "unknownElement"
+                            Right _ -> xname "unknownElement"
 
     attributeDecl :: XSD.AttributeDecl -> [Haskell.Attribute]
     attributeDecl ad = case attr_nameOrRef ad of
         Left  n   -> singleton $
                      Attribute (xname $ theName n)
-                               (maybe (maybe (xname $ "String")
+                               (maybe (maybe (xname "String")
                                            -- guess at an attribute typename?
                                            --(error "XSD.attributeDecl->")
                                              nameOfSimple
@@ -385,7 +388,7 @@ convert env s = concatMap item (schema_items s)
 
     group :: XSD.Group -> [Haskell.Decl]
     group g = case group_nameOrRef g of
-        Left  n   -> let ({-highs,-}es) = choiceOrSeq (fromMaybe (error "XSD.group")
+        Left  n   -> let {-highs,-}es = choiceOrSeq (fromMaybe (error "XSD.group")
                                                              (group_stuff g))
                      in {-highs ++-} singleton $
                            Haskell.Group (xname n)
@@ -435,10 +438,10 @@ convert env s = concatMap item (schema_items s)
     -- If an ANY element is part of a choice, ensure it is the last part.
     anyToEnd :: [[Haskell.Element]] -> [[Haskell.Element]]
     anyToEnd = go Nothing
-      where go _ (e@[AnyElem{}]:[]) = e:[]
+      where go _ [e@[AnyElem{}]] = [e]
             go _ (e@[AnyElem{}]:es) = go (Just e) es
             go Nothing  []        = []
-            go (Just e) []        = e:[]
+            go (Just e) []        = [e]
             go m (e:es)           = e:go m es
 
     contentInfo :: Maybe (Either SimpleType ComplexType)
@@ -496,27 +499,23 @@ mkRestrict (RestrictType _ _ _ facets) =
                                           ,OrderedBoundsMinExcl
                                           ,OrderedBoundsMaxIncl
                                           ,OrderedBoundsMaxExcl] ]
-     in if null occurs then []
-        else [Haskell.RangeR (foldl consolidate (Occurs Nothing Nothing) occurs)
-                             (comment $ foldr mappend mempty
-                                              [ ann | (_,ann,_) <- occurs])]
+     in [Haskell.RangeR (foldl consolidate (Occurs Nothing Nothing) occurs)
+          (comment $ mconcat [ ann | (_,ann,_) <- occurs]) | null occurs]
     ) ++
     [ Haskell.Pattern v (comment ann)
               | (Facet UnorderedPattern ann v _) <- facets ]
     ++
     (let enum = [ (v,comment ann)
                 | (Facet UnorderedEnumeration ann v _) <- facets ]
-     in if null enum then []
-                     else [Haskell.Enumeration enum]
+     in [Haskell.Enumeration enum | null enum]
     ) ++
     (let occurs = [ (f,ann,v)  | (Facet f ann v _) <- facets
                                , f `elem` [UnorderedLength
                                           ,UnorderedMaxLength
                                           ,UnorderedMinLength] ]
-     in if null occurs then []
-        else [Haskell.StrLength
-                 (foldl consolidate (Occurs Nothing Nothing) occurs)
-                 (comment $ foldr mappend mempty [ ann | (_,ann,_) <- occurs])]
+     in [Haskell.StrLength
+          (foldl consolidate (Occurs Nothing Nothing) occurs)
+          (comment $ mconcat [ ann | (_,ann,_) <- occurs]) | null occurs]
     )
 
 singleton :: a -> [a]
@@ -527,11 +526,11 @@ consolidate :: Occurs -> (FacetType,Annotation,String) -> Occurs
 consolidate (Occurs min max) (OrderedBoundsMinIncl,_,n) =
              Occurs (Just (read n)) max
 consolidate (Occurs min max) (OrderedBoundsMinExcl,_,n) =
-             Occurs (Just ((read n)+1)) max
+             Occurs (Just (read n +1)) max
 consolidate (Occurs min max) (OrderedBoundsMaxIncl,_,n) =
              Occurs min (Just (read n))
 consolidate (Occurs min max) (OrderedBoundsMaxExcl,_,n) =
-             Occurs min (Just ((read n)-1))
+             Occurs min (Just (read n -1))
 consolidate (Occurs min max) (UnorderedLength,_,n) =
              Occurs (Just (read n)) (Just (read n))
 consolidate (Occurs min max) (UnorderedMinLength,_,n) =

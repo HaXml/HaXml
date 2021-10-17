@@ -114,7 +114,7 @@ closes :: String -> String -> Bool
 "form"  `closes` "form"      = True
 "label" `closes` "label"     = True
 _       `closes` "option"    = True
-"thead" `closes` t     | t `elem` ["colgroup"]          = True
+"thead" `closes` t     | t == "colgroup"                = True
 "tfoot" `closes` t     | t `elem` ["thead","colgroup"]  = True
 "tbody" `closes` t     | t `elem` ["tbody","tfoot","thead","colgroup"] = True
 "colgroup" `closes` "colgroup"  = True
@@ -154,13 +154,13 @@ freetext = do (p,t) <- next
 
 maybe :: HParser a -> HParser (Maybe a)
 maybe p =
-    ( p >>= return . Just) `onFail`
-    ( return Nothing)
+    (Just <$> p) `onFail`
+    return Nothing
 
 either :: HParser a -> HParser b -> HParser (Either a b)
 either p q =
-    ( p >>= return . Left) `onFail`
-    ( q >>= return . Right)
+    (Left <$> p) `onFail`
+    (Right <$> q)
 
 word :: String -> HParser ()
 word s = do { x <- next
@@ -178,7 +178,7 @@ posn = do { x@(p,_) <- next
           } `onFail` return noPos
 
 nmtoken :: HParser NmToken
-nmtoken = (string `onFail` freetext)
+nmtoken = string `onFail` freetext
 
 failP, failBadP :: String -> HParser a
 failP msg    = do { p <- posn; fail (msg++"\n    at "++show p) }
@@ -198,12 +198,12 @@ document :: HParser (Document Posn)
 document = do
     return Document
         `apply` (prolog `adjustErr` ("unrecognisable XML prolog\n"++))
-        `apply` (return emptyST)
+        `apply` return emptyST
         `apply` (do ht <- many1 (element (N "HTML document"))
                     return (case map snd ht of
                                 [e] -> e
                                 es  -> Elem (N "html") [] (map mkCElem es)))
-        `apply` (many misc)
+        `apply` many misc
   where mkCElem e = CElem e noPos
 
 comment :: HParser Comment
@@ -235,7 +235,7 @@ prolog = do
 xmldecl :: HParser XMLDecl
 xmldecl = do
     tok TokPIOpen
-    (word "xml" `onFail` word "XML")
+    word "xml" `onFail` word "XML"
     p <- posn
     s <- freetext
     tok TokPIClose `onFail` failBadP "missing ?> in <?xml ...?>"
@@ -249,14 +249,14 @@ xmldecl = do
 
 versioninfo :: HParser VersionInfo
 versioninfo = do
-    (word "version" `onFail` word "VERSION")
+    word "version" `onFail` word "VERSION"
     tok TokEqual
     bracket (tok TokQuote) (commit $ tok TokQuote) freetext
 
 misc :: HParser Misc
 misc =
-    oneOf' [ ("<!--comment-->", comment >>= return . Comment)
-           , ("<?PI?>",         processinginstruction >>= return . PI)
+    oneOf' [ ("<!--comment-->", Comment <$> comment)
+           , ("<?PI?>",         PI <$> processinginstruction)
            ]
 
 
@@ -277,11 +277,11 @@ doctypedecl = do
 
 --markupdecl :: HParser MarkupDecl
 --markupdecl =
---    ( elementdecl >>= return . Element) `onFail`
---    ( attlistdecl >>= return . AttList) `onFail`
---    ( entitydecl >>= return . Entity) `onFail`
---    ( notationdecl >>= return . Notation) `onFail`
---    ( misc >>= return . MarkupMisc) `onFail`
+--    (Element <$> elementdecl) `onFail`
+--    (AttList <$> attlistdecl) `onFail`
+--    (Entity <$> entitydecl) `onFail`
+--    (Notation <$> notationdecl) `onFail`
+--    (MarkupMisc <$> misc) `onFail`
 --    PEREF(MarkupPE,markupdecl)
 --
 --extsubset :: HParser ExtSubset
@@ -292,13 +292,13 @@ doctypedecl = do
 --
 --extsubsetdecl :: HParser ExtSubsetDecl
 --extsubsetdecl =
---    ( markupdecl >>= return . ExtMarkupDecl) `onFail`
---    ( conditionalsect >>= return . ExtConditionalSect) `onFail`
+--    (ExtMarkupDecl <$> markupdecl) `onFail`
+--    (ExtConditionalSect <$> conditionalsect) `onFail`
 --    PEREF(ExtPEReference,extsubsetdecl)
 
 sddecl :: HParser SDDecl
 sddecl = do
-    (word "standalone" `onFail` word "STANDALONE")
+    word "standalone" `onFail` word "STANDALONE"
     commit $ do
       tok TokEqual `onFail` failP "missing = in 'standalone' decl"
       bracket (tok TokQuote) (commit $ tok TokQuote)
@@ -322,7 +322,7 @@ element (N ctx) =
     (ElemTag (N e) avs) <- elemtag
     ( if e `closes` ctx then
          -- insert the missing close-tag, fail forward, and reparse.
-         ( do debug ("/")
+         ( do debug "/"
               unparse ([TokEndOpen, TokName ctx, TokAnyClose,
                         TokAnyOpen, TokName e] ++ reformatAttrs avs)
               return ([], Elem (N "null") [] []))
@@ -342,9 +342,9 @@ element (N ctx) =
               debug (e++"[+]")
               return ([], Elem (N e) avs []))
       else
-        (( do tok TokEndClose
-              debug (e++"[]")
-              return ([], Elem (N e) avs [])) `onFail`
+        ( do tok TokEndClose
+             debug (e++"[]")
+             return ([], Elem (N e) avs [])) `onFail`
          ( do tok TokAnyClose `onFail` failP "missing > or /> in element tag"
               debug (e++"[")
               return (\ interior-> let (stack,contained) = interior
@@ -364,8 +364,8 @@ element (N ctx) =
                         else
                           do unparse [TokEndOpen, TokName n, TokAnyClose]
                              debug "-"
-                             return (((e,avs):s), cs)))
-         ) `onFail` failP ("failed to repair non-matching tags in context: "++ctx)))
+                             return ((e,avs):s, cs)))
+         ) `onFail` failP ("failed to repair non-matching tags in context: "++ctx))
 
 closeInner :: Name -> [(Name,[Attribute])] -> [(Name,[Attribute])]
 closeInner c ts =
@@ -378,12 +378,12 @@ unparse ts = do p <- posn
                 reparse (zip (repeat p) ts)
 
 reformatAttrs :: [(QName, AttValue)] -> [TokenT]
-reformatAttrs avs = concatMap f0 avs
+reformatAttrs = concatMap f0
     where f0 (N a, v@(AttValue _)) = [TokName a, TokEqual, TokQuote,
                                        TokFreeText (show v), TokQuote]
 
 reformatTags :: [(Name, [(QName, AttValue)])] -> [TokenT]
-reformatTags ts = concatMap f0 ts
+reformatTags = concatMap f0
     where f0 (t,avs) = [TokAnyOpen, TokName t]++reformatAttrs avs
                          ++[TokAnyClose]
 
@@ -409,7 +409,7 @@ attribute = do
     (N n) <- qname
     v <- (do tok TokEqual
              attvalue) `onFail`
-         (return (AttValue [Left "TRUE"]))
+         return (AttValue [Left "TRUE"])
     return (N (map toLower n), v)
 
 --elementdecl :: HParser ElementDecl
@@ -425,8 +425,8 @@ attribute = do
 --contentspec =
 --    ( word "EMPTY" >> return EMPTY) `onFail`
 --    ( word "ANY" >> return ANY) `onFail`
---    ( mixed >>= return . Mixed) `onFail`
---    ( cp >>= return . ContentSpec) `onFail`
+--    (Mixed <$> mixed) `onFail`
+--    (ContentSpec <$> cp) `onFail`
 --    PEREF(ContentPE,contentspec)
 --
 --choice :: HParser [CP]
@@ -493,8 +493,8 @@ attribute = do
 --atttype :: HParser AttType
 --atttype =
 --    ( word "CDATA" >> return StringType) `onFail`
---    ( tokenizedtype >>= return . TokenizedType) `onFail`
---    ( enumeratedtype >>= return . EnumeratedType)
+--    (TokenizedType <$> tokenizedtype) `onFail`
+--    (EnumeratedType <$> enumeratedtype)
 --
 --tokenizedtype :: HParser TokenizedType
 --tokenizedtype =
@@ -508,8 +508,8 @@ attribute = do
 --
 --enumeratedtype :: HParser EnumeratedType
 --enumeratedtype =
---    ( notationtype >>= return . NotationType) `onFail`
---    ( enumeration >>= return . Enumeration)
+--    (NotationType <$> notationtype) `onFail`
+--    (Enumeration <$> enumeration)
 --
 --notationtype :: HParser NotationType
 --notationtype = do
@@ -556,7 +556,7 @@ attribute = do
 --    return (IgnoreSectContents i is)
 --
 --ignore :: HParser Ignore
---ignore = freetext >>= return . Ignore
+--ignore = Ignore <$> freetext
 
 reference :: HParser Reference
 reference = do
@@ -571,8 +571,8 @@ reference = do
 {-
 reference :: HParser Reference
 reference =
-    ( charref >>= return . RefChar) `onFail`
-    ( entityref >>= return . RefEntity)
+    (RefChar <$> charref) `onFail`
+    (RefEntity <$> entityref)
 
 entityref :: HParser EntityRef
 entityref = do
@@ -594,8 +594,8 @@ charref = do
 --
 --entitydecl :: HParser EntityDecl
 --entitydecl =
---    ( gedecl >>= return . EntityGEDecl) `onFail`
---    ( pedecl >>= return . EntityPEDecl)
+--    (EntityGEDecl <$> gedecl) `onFail`
+--    (EntityPEDecl <$> pedecl)
 --
 --gedecl :: HParser GEDecl
 --gedecl = do
@@ -618,24 +618,24 @@ charref = do
 --
 --entitydef :: HParser EntityDef
 --entitydef =
---    ( entityvalue >>= return . DefEntityValue) `onFail`
+--    (DefEntityValue <$> entityvalue) `onFail`
 --    ( do eid <- externalid
 --         ndd <- maybe ndatadecl
 --         return (DefExternalID eid ndd))
 --
 --pedef :: HParser PEDef
 --pedef =
---    ( entityvalue >>= return . PEDefEntityValue) `onFail`
---    ( externalid >>= return . PEDefExternalID)
+--    (PEDefEntityValue <$> entityvalue) `onFail`
+--    (PEDefExternalID <$> externalid)
 
 externalid :: HParser ExternalID
 externalid =
     ( do word "SYSTEM"
-         s <- systemliteral
-         return (SYSTEM s)) `onFail`
+         SYSTEM <$> systemliteral
+    ) `onFail`
     ( do word "PUBLIC"
          p <- pubidliteral
-         s <- (systemliteral `onFail` return (SystemLiteral ""))
+         s <- systemliteral `onFail` return (SystemLiteral "")
          return (PUBLIC p s))
 
 --ndatadecl :: HParser NDataDecl
@@ -667,7 +667,7 @@ externalid =
 
 encodingdecl :: HParser EncodingDecl
 encodingdecl = do
-    (word "encoding" `onFail` word "ENCODING")
+    word "encoding" `onFail` word "ENCODING"
     tok TokEqual `onFail` failBadP "expected = in 'encoding' decl"
     f <- bracket (tok TokQuote) (commit $ tok TokQuote) freetext
     return (EncodingDecl f)
@@ -694,9 +694,9 @@ encodingdecl = do
 
 --ev :: HParser EV
 --ev =
---    ( freetext >>= return . EVString) `onFail`
+--    (EVString <$> freetext) `onFail`
 -- -- PEREF(EVPERef,ev) `onFail`
---    ( reference >>= return . EVRef)
+--    (EVRef <$> reference)
 
 attvalue :: HParser AttValue
 attvalue =
@@ -724,4 +724,4 @@ pubidliteral = do
     return (PubidLiteral s)             -- note: need to fold &...; escapes
 
 chardata :: HParser CharData
-chardata = freetext -- >>= return . CharData
+chardata = freetext -- <&> CharData

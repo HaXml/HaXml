@@ -34,8 +34,7 @@ instance Haskell2XmlNew Person where
 		do { aa <- parseContents
 		   ; ab <- parseContents
 		   ; ac <- parseContents
-		   ; ad <- parseContents
-		   ; return (Person aa ab ac ad)
+		   ; Person aa ab ac <$> parseContents
 		   }
 	}
     toContents v@(Person aa ab ac ad) =
@@ -93,8 +92,7 @@ instance Haskell2XmlNew Rating where
 	  _ | "Rating" `isPrefixOf` t -> interior e $
 		do { aa <- parseContents
 		   ; ab <- parseContents
-		   ; ac <- parseContents
-		   ; return (Rating aa ab ac)
+		   ; Rating aa ab <$> parseContents
 		   }
 	}
     toContents v@(Rating aa ab ac) =

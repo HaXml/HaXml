@@ -9,7 +9,7 @@ module Text.XML.HaXml.DtdToHaskell.Convert
   ( dtd2TypeDef
   ) where
 
-import Data.List (intersperse,nub)
+import Data.List (intercalate,nub)
 
 import Text.XML.HaXml.Types hiding (Name)
 import Text.XML.HaXml.DtdToHaskell.TypeDef
@@ -25,8 +25,8 @@ data Record = R [AttDef] ContentSpec
 ---- Apparently multiple ATTLIST decls for the same element are permitted,
 ---- although only one ELEMENT decl for it is allowed.
 dtd2TypeDef :: [MarkupDecl] -> [TypeDef]
-dtd2TypeDef mds =
-  (concatMap convert . reverse . database []) mds
+dtd2TypeDef =
+  concatMap convert . reverse . database []
   where
   database db [] = db
   database db (m:ms) =
@@ -94,16 +94,16 @@ mkData [ts] fs aux n  = [DataDef aux n fs [(n, ts)]]
 mkData tss  fs aux n  = [DataDef aux n fs (map (mkConstr n) tss)]
   where
     mkConstr m ts = (mkConsName m ts, ts)
-    mkConsName (Name x m) sts = Name x (m++concat (intersperse "_" (map flatten sts)))
+    mkConsName (Name x m) sts = Name x (m++intercalate "_" (map flatten sts))
     flatten (Maybe st)   = {-"Maybe_" ++ -} flatten st
     flatten (List st)    = {-"List_" ++ -} flatten st
     flatten (List1 st)   = {-"List1_" ++ -} flatten st
     flatten (Tuple sts)  = {-"Tuple" ++ show (length sts) ++ "_" ++ -}
-                            concat (intersperse "_" (map flatten sts))
+                            intercalate "_" (map flatten sts)
     flatten StringMixed  = "Str"
     flatten String       = "Str"
     flatten (OneOf sts)  = {-"OneOf" ++ show (length sts) ++ "_" ++ -}
-                            concat (intersperse "_" (map flatten sts))
+                            intercalate "_" (map flatten sts)
     flatten Any          = "Any"
     flatten (Defined (Name _ m))  = m
 
@@ -132,4 +132,3 @@ mkAttrField (N e) (AttDef (N n) typ req) = (name_f e n, mkType typ req)
     mkType (EnumeratedType _) IMPLIED  = Maybe (Defined (name_a e n))
     mkType (EnumeratedType _) (DefaultTo v@(AttValue _) _) =
                 Defaultable (Defined (name_a e n)) (hName (name_ac e n (show v)))
-

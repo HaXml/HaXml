@@ -13,5 +13,4 @@ main =
     else readFile inf )            >>= \content->
   ( if outf=="-" then return stdout
     else openFile outf WriteMode ) >>= \o->
-  mapM_ ( hPutStrLn o . show ) (xmlLex inf content)
-
+  mapM_ ( hPrint o ) (xmlLex inf content)

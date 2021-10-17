@@ -67,11 +67,10 @@ ppCommentForChoice pos outer nested =
                                                       ++paragraph 52 s)
                                                  seq)
                         [1..]
-              $ map (map safeComment)
-              $ nested
+              $ map (map safeComment) nested
     safeComment Text = "mixed text"
     safeComment e@Element{} = fromMaybe (xname $ elem_name e) (elem_comment e)
-    safeComment e@_         = fromMaybe ("unknown") (elem_comment e)
+    safeComment e           = fromMaybe "unknown" (elem_comment e)
     xname (XName (N x))     = x
     xname (XName (QN ns x)) = nsPrefix ns++":"++x
 
@@ -96,7 +95,7 @@ ppFwdConId nx = ppHName . fwdconid nx
 
 ppJoinConId, ppFieldId :: NameConverter -> XName -> XName -> Doc
 ppJoinConId nx p q = ppHName (conid nx p) <> text "_" <> ppHName (conid nx q)
-ppFieldId   nx     = \t-> ppHName . fieldid nx t
+ppFieldId   nx t   = ppHName . fieldid nx t
 
 -- | Convert a whole document from HaskellTypeModel to Haskell source text.
 ppModule :: NameConverter -> Module -> Doc
@@ -484,7 +483,7 @@ ppHighLevelDecl nx e@(ElementAbstractOfType n t substgrp comm)
 --              = (text "-- element" <> ppUnqConId nx n) <+> text "::"
 --                    <+> text "XMLParser" <+> ppConId nx t
 --              $$ text "--     declared in Instances module"
-    | otherwise = ppComment Before comm
+{-  | otherwise-} = ppComment Before comm
                 $$ (text "element" <> ppUnqConId nx n) <+> text "::"
                     <+> text "XMLParser" <+> ppConId nx t
                 $$ (text "element" <> ppUnqConId nx n) <+> text "="
@@ -721,14 +720,14 @@ ppSuperExtension nx super grandSupers (t,Just mod) =  -- fwddecl
     <+> text "will be declared later in module" <+> ppModId nx mod
     $$ ppSuperExtension nx super grandSupers (t,Nothing)
 ppSuperExtension nx super grandSupers (t,Nothing) =
-    vcat (map (ppSuper t) (map reverse . drop 2 . inits $ super: grandSupers))
+    vcat (map (ppSuper t . reverse) (drop 2 . inits $ super: grandSupers))
   where
     ppSuper :: XName -> [XName] -> Doc
     ppSuper t gss@(gs:_) =
         text "instance Extension" <+> ppUnqConId nx t <+> ppConId nx gs
                                   <+> text "where"
         $$ nest 4 (text "supertype" <+>
-                      (ppvList "=" "." "" coerce (zip (tail gss++[t]) gss)))
+                      ppvList "=" "." "" coerce (zip (tail gss++[t]) gss))
     coerce (a,b) = text "(supertype ::" <+> ppUnqConId nx a
                                         <+> text "->"
                                         <+> ppConId nx b <> text ")"
@@ -878,6 +877,6 @@ uniqueify = go []
         | otherwise = e: go (show (elem_name e): seen) es
     go seen (e:es)  = e : go seen es
     new pred (XName (N n))     = XName $ N $ head $
-                                 dropWhile pred [(n++show i) | i <- [2..]]
+                                 dropWhile pred [n++show i | i <- [2..]]
     new pred (XName (QN ns n)) = XName $ QN ns $ head $
-                                 dropWhile pred [(n++show i) | i <- [2..]]
+                                 dropWhile pred [n++show i | i <- [2..]]

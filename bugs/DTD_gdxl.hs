@@ -18,8 +18,8 @@ data Gdxl = Gdxl Gdxl_Attrs [Sequencematch]
 		 [Graphdelta] (Maybe Xlinkdelta)
 	  deriving (Eq,Show)
 data Gdxl_Attrs = Gdxl_Attrs
-    { gdxlSourcedoc :: (Maybe String)
-    , gdxlTargetdoc :: (Maybe String)
+    { gdxlSourcedoc :: Maybe String
+    , gdxlTargetdoc :: Maybe String
     } deriving (Eq,Show)
 data Typedelta = Typedelta (Maybe Xlinkdelta)
 			   (Maybe Hrefdelta)
@@ -34,11 +34,11 @@ data Hrefdelta = Hrefdelta
     , hrefdeltaOldlink :: String
     } deriving (Eq,Show)
 data Hrefdelta_Hrefmode = Hrefdelta_Hrefmode_Absolute
-			   |  Hrefdelta_Hrefmode_Local  | 
+			   |  Hrefdelta_Hrefmode_Local  |
 			  Hrefdelta_Hrefmode_Relative
 			deriving (Eq,Show)
 data Sequencematch = Sequencematch
-    { sequencematchLength :: (Defaultable String)
+    { sequencematchLength :: Defaultable String
     , sequencematchOldstart :: String
     , sequencematchNewstart :: String
     } deriving (Eq,Show)
@@ -60,10 +60,10 @@ data Booldelta = Booldelta
     { booldeltaOldbool :: Booldelta_Oldbool
     , booldeltaNewbool :: Booldelta_Newbool
     } deriving (Eq,Show)
-data Booldelta_Oldbool = Booldelta_Oldbool_True  | 
+data Booldelta_Oldbool = Booldelta_Oldbool_True  |
 			 Booldelta_Oldbool_False
 		       deriving (Eq,Show)
-data Booldelta_Newbool = Booldelta_Newbool_True  | 
+data Booldelta_Newbool = Booldelta_Newbool_True  |
 			 Booldelta_Newbool_False
 		       deriving (Eq,Show)
 data Skip = Skip 		deriving (Eq,Show)
@@ -72,14 +72,14 @@ data Edgemodedelta = Edgemodedelta
     , edgemodedeltaNewem :: Edgemodedelta_Newem
     } deriving (Eq,Show)
 data Edgemodedelta_Oldem = Edgemodedelta_Oldem_Directed
-			    |  Edgemodedelta_Oldem_Undirected  | 
-			   Edgemodedelta_Oldem_Defaultdirected  | 
-			   Edgemodedelta_Oldem_Defaultundirected
+			 | Edgemodedelta_Oldem_Undirected
+			 | Edgemodedelta_Oldem_Defaultdirected
+			 | Edgemodedelta_Oldem_Defaultundirected
 			 deriving (Eq,Show)
 data Edgemodedelta_Newem = Edgemodedelta_Newem_Directed
-			    |  Edgemodedelta_Newem_Undirected  | 
-			   Edgemodedelta_Newem_Defaultdirected  | 
-			   Edgemodedelta_Newem_Defaultundirected
+			 | Edgemodedelta_Newem_Undirected
+			 | Edgemodedelta_Newem_Defaultdirected
+			 | Edgemodedelta_Newem_Defaultundirected
 			 deriving (Eq,Show)
 data Nodedelta = Nodedelta (Maybe Typedelta)
 			   Attributedelta [Sequencematch] [Graphdelta]
@@ -106,16 +106,16 @@ data Relenddelta = Relenddelta Attributedelta
 			       (OneOf2 Orderingdelta Skip) (Maybe Orderingdelta)
 		 deriving (Eq,Show)
 data Directiondelta = Directiondelta
-    { directiondeltaOlddirection :: (Maybe Directiondelta_Olddirection)
-    , directiondeltaNewdirection :: (Maybe Directiondelta_Newdirection)
+    { directiondeltaOlddirection :: Maybe Directiondelta_Olddirection
+    , directiondeltaNewdirection :: Maybe Directiondelta_Newdirection
     } deriving (Eq,Show)
 data Directiondelta_Olddirection = Directiondelta_Olddirection_In
-				    |  Directiondelta_Olddirection_Out  | 
-				   Directiondelta_Olddirection_None
+				 | Directiondelta_Olddirection_Out
+				 | Directiondelta_Olddirection_None
 				 deriving (Eq,Show)
 data Directiondelta_Newdirection = Directiondelta_Newdirection_In
-				    |  Directiondelta_Newdirection_Out  | 
-				   Directiondelta_Newdirection_None
+				 | Directiondelta_Newdirection_Out
+				 | Directiondelta_Newdirection_None
 				 deriving (Eq,Show)
 newtype Attributedelta = Attributedelta [Attributedelta_] 		deriving (Eq,Show)
 data Attributedelta_ = Attributedelta_Reduce Reduce
@@ -125,12 +125,12 @@ data Attributedelta_ = Attributedelta_Reduce Reduce
 data Reduce = Reduce Reduce_Attrs [Attrdelta]
 	    deriving (Eq,Show)
 data Reduce_Attrs = Reduce_Attrs
-    { reduceNewname :: (Maybe String)
+    { reduceNewname :: Maybe String
     } deriving (Eq,Show)
 data Extend = Extend Extend_Attrs [Attrdelta]
 	    deriving (Eq,Show)
 data Extend_Attrs = Extend_Attrs
-    { extendOldname :: (Maybe String)
+    { extendOldname :: Maybe String
     } deriving (Eq,Show)
 data Attrdelta = Attrdelta Attrdelta_Attrs
 			   (Maybe Typedelta) (Maybe Attributedelta)
@@ -144,8 +144,8 @@ data Change = Change (Maybe Namedelta)
 		     (Maybe Iddelta) (Maybe Kinddelta) (Maybe Valuedelta)
 	    deriving (Eq,Show)
 data Kinddelta = Kinddelta
-    { kinddeltaOldkind :: (Maybe String)
-    , kinddeltaNewkind :: (Maybe String)
+    { kinddeltaOldkind :: Maybe String
+    , kinddeltaNewkind :: Maybe String
     } deriving (Eq,Show)
 data Valuedelta = ValuedeltaNewvalue Newvalue
 		| ValuedeltaLocdelta Locdelta
@@ -186,7 +186,7 @@ data Namedelta = Namedelta
     , namedeltaNewname :: String
     } deriving (Eq,Show)
 data Altdelta = Altdelta (Maybe Altchange)
-			 [Sequencematch] [(OneOf2 Valuedelta Accumdelta)]
+			 [Sequencematch] [OneOf2 Valuedelta Accumdelta]
 	      deriving (Eq,Show)
 data Altchange = Altchange
     { altchangeOldalt :: String
@@ -196,15 +196,15 @@ data Accumdelta = Accumdelta Accumdelta_Attrs
 			     [Sequencematch] [Valuedelta]
 		deriving (Eq,Show)
 data Accumdelta_Attrs = Accumdelta_Attrs
-    { accumdeltaAccumkind :: (Defaultable Accumdelta_Accumkind)
+    { accumdeltaAccumkind :: Defaultable Accumdelta_Accumkind
     } deriving (Eq,Show)
 data Accumdelta_Accumkind = Accumdelta_Accumkind_Unch
-			     |  Accumdelta_Accumkind_Seq2set  | 
-			    Accumdelta_Accumkind_Seq2bag  | 
-			    Accumdelta_Accumkind_Set2seq  | 
-			    Accumdelta_Accumkind_Set2bag  | 
-			    Accumdelta_Accumkind_Bag2seq  | 
-			    Accumdelta_Accumkind_Bag2set
+			  | Accumdelta_Accumkind_Seq2set
+			  | Accumdelta_Accumkind_Seq2bag
+			  | Accumdelta_Accumkind_Set2seq
+			  | Accumdelta_Accumkind_Set2bag
+			  | Accumdelta_Accumkind_Bag2seq
+			  | Accumdelta_Accumkind_Bag2set
 			  deriving (Eq,Show)
 
 
@@ -230,7 +230,7 @@ instance XmlAttributes Gdxl_Attrs where
 	  { gdxlSourcedoc = possibleA fromAttrToStr "sourcedoc" as
 	  , gdxlTargetdoc = possibleA fromAttrToStr "targetdoc" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "sourcedoc" (gdxlSourcedoc v)
 	, maybeToAttr toAttrFrStr "targetdoc" (gdxlTargetdoc v)
 	]
@@ -257,7 +257,7 @@ instance XmlAttributes Xlinkdelta where
 	  { xlinkdeltaOldxlink = definiteA fromAttrToStr "xlinkdelta" "oldxlink" as
 	  , xlinkdeltaNewxlink = definiteA fromAttrToStr "xlinkdelta" "newxlink" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ toAttrFrStr "oldxlink" (xlinkdeltaOldxlink v)
 	, toAttrFrStr "newxlink" (xlinkdeltaNewxlink v)
 	]
@@ -274,7 +274,7 @@ instance XmlAttributes Hrefdelta where
 	  , hrefdeltaNewlink = definiteA fromAttrToStr "hrefdelta" "newlink" as
 	  , hrefdeltaOldlink = definiteA fromAttrToStr "hrefdelta" "oldlink" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ toAttrFrTyp "hrefmode" (hrefdeltaHrefmode v)
 	, toAttrFrStr "newlink" (hrefdeltaNewlink v)
 	, toAttrFrStr "oldlink" (hrefdeltaOldlink v)
@@ -303,7 +303,7 @@ instance XmlAttributes Sequencematch where
 	  , sequencematchOldstart = definiteA fromAttrToStr "sequencematch" "oldstart" as
 	  , sequencematchNewstart = definiteA fromAttrToStr "sequencematch" "newstart" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ defaultToAttr toAttrFrStr "length" (sequencematchLength v)
 	, toAttrFrStr "oldstart" (sequencematchOldstart v)
 	, toAttrFrStr "newstart" (sequencematchNewstart v)
@@ -352,7 +352,7 @@ instance XmlAttributes Iddelta where
 	  { iddeltaOldid = definiteA fromAttrToStr "iddelta" "oldid" as
 	  , iddeltaNewid = definiteA fromAttrToStr "iddelta" "newid" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ toAttrFrStr "oldid" (iddeltaOldid v)
 	, toAttrFrStr "newid" (iddeltaNewid v)
 	]
@@ -368,7 +368,7 @@ instance XmlAttributes Roledelta where
 	  { roledeltaOldrole = definiteA fromAttrToStr "roledelta" "oldrole" as
 	  , roledeltaNewrole = definiteA fromAttrToStr "roledelta" "newrole" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ toAttrFrStr "oldrole" (roledeltaOldrole v)
 	, toAttrFrStr "newrole" (roledeltaNewrole v)
 	]
@@ -384,7 +384,7 @@ instance XmlAttributes Booldelta where
 	  { booldeltaOldbool = definiteA fromAttrToTyp "booldelta" "oldbool" as
 	  , booldeltaNewbool = definiteA fromAttrToTyp "booldelta" "newbool" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ toAttrFrTyp "oldbool" (booldeltaOldbool v)
 	, toAttrFrTyp "newbool" (booldeltaNewbool v)
 	]
@@ -424,7 +424,7 @@ instance XmlAttributes Edgemodedelta where
 	  { edgemodedeltaOldem = definiteA fromAttrToTyp "edgemodedelta" "oldem" as
 	  , edgemodedeltaNewem = definiteA fromAttrToTyp "edgemodedelta" "newem" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ toAttrFrTyp "oldem" (edgemodedeltaOldem v)
 	, toAttrFrTyp "newem" (edgemodedeltaNewem v)
 	]
@@ -516,7 +516,7 @@ instance XmlAttributes Orderingdelta where
 	  { orderingdeltaOldorder = definiteA fromAttrToStr "orderingdelta" "oldorder" as
 	  , orderingdeltaNeworder = definiteA fromAttrToStr "orderingdelta" "neworder" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ toAttrFrStr "oldorder" (orderingdeltaOldorder v)
 	, toAttrFrStr "neworder" (orderingdeltaNeworder v)
 	]
@@ -578,7 +578,7 @@ instance XmlAttributes Directiondelta where
 	  { directiondeltaOlddirection = possibleA fromAttrToTyp "olddirection" as
 	  , directiondeltaNewdirection = possibleA fromAttrToTyp "newdirection" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrTyp "olddirection" (directiondeltaOlddirection v)
 	, maybeToAttr toAttrFrTyp "newdirection" (directiondeltaNewdirection v)
 	]
@@ -614,13 +614,13 @@ instance XmlContent Attributedelta where
 	[CElem (Elem "attributedelta" [] (concatMap toElem a))]
 instance XmlContent Attributedelta_ where
     fromElem c0 =
-	case (fromElem c0) of
+	case fromElem c0 of
 	(Just a,rest) -> (Just (Attributedelta_Reduce a), rest)
 	(Nothing,_) ->
-		case (fromElem c0) of
+		case fromElem c0 of
 		(Just a,rest) -> (Just (Attributedelta_Change a), rest)
 		(Nothing,_) ->
-			case (fromElem c0) of
+			case fromElem c0 of
 			(Just a,rest) -> (Just (Attributedelta_Extend a), rest)
 			(Nothing,_) ->
 			    (Nothing, c0)
@@ -641,7 +641,7 @@ instance XmlAttributes Reduce_Attrs where
 	Reduce_Attrs
 	  { reduceNewname = possibleA fromAttrToStr "newname" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "newname" (reduceNewname v)
 	]
 instance XmlContent Extend where
@@ -657,7 +657,7 @@ instance XmlAttributes Extend_Attrs where
 	Extend_Attrs
 	  { extendOldname = possibleA fromAttrToStr "oldname" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "oldname" (extendOldname v)
 	]
 instance XmlContent Attrdelta where
@@ -685,7 +685,7 @@ instance XmlAttributes Attrdelta_Attrs where
 	Attrdelta_Attrs
 	  { attrdeltaName = definiteA fromAttrToStr "attrdelta" "name" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ toAttrFrStr "name" (attrdeltaName v)
 	]
 instance XmlContent Change where
@@ -721,34 +721,34 @@ instance XmlAttributes Kinddelta where
 	  { kinddeltaOldkind = possibleA fromAttrToStr "oldkind" as
 	  , kinddeltaNewkind = possibleA fromAttrToStr "newkind" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ maybeToAttr toAttrFrStr "oldkind" (kinddeltaOldkind v)
 	, maybeToAttr toAttrFrStr "newkind" (kinddeltaNewkind v)
 	]
 instance XmlContent Valuedelta where
     fromElem (CElem (Elem "valuedelta" [] c0):rest) =
-	case (fromElem c0) of
+	case fromElem c0 of
 	(Just a,_) -> (Just (ValuedeltaNewvalue a), rest)
 	(Nothing,_) ->
-		case (fromElem c0) of
+		case fromElem c0 of
 		(Just a,_) -> (Just (ValuedeltaLocdelta a), rest)
 		(Nothing,_) ->
-			case (fromElem c0) of
+			case fromElem c0 of
 			(Just a,_) -> (Just (ValuedeltaBooldelta a), rest)
 			(Nothing,_) ->
-				case (fromElem c0) of
+				case fromElem c0 of
 				(Just a,_) -> (Just (ValuedeltaIntdelta a), rest)
 				(Nothing,_) ->
-					case (fromElem c0) of
+					case fromElem c0 of
 					(Just a,_) -> (Just (ValuedeltaFloatdelta a), rest)
 					(Nothing,_) ->
-						case (fromElem c0) of
+						case fromElem c0 of
 						(Just a,_) -> (Just (ValuedeltaStringdelta a), rest)
 						(Nothing,_) ->
-							case (fromElem c0) of
+							case fromElem c0 of
 							(Just a,_) -> (Just (ValuedeltaAltdelta a), rest)
 							(Nothing,_) ->
-								case (fromElem c0) of
+								case fromElem c0 of
 								(Just a,_) -> (Just (ValuedeltaGraphdelta a), rest)
 								(Nothing,_) ->
 								    (Nothing, c0)
@@ -773,25 +773,25 @@ instance XmlContent Newvalue where
 	[CElem (Elem "newvalue" [] (toElem a ++ toElem b))]
 instance XmlContent Value where
     fromElem (CElem (Elem "value" [] c0):rest) =
-	case (fromElem c0) of
+	case fromElem c0 of
 	(Just a,_) -> (Just (ValueLocdelta a), rest)
 	(Nothing,_) ->
-		case (fromElem c0) of
+		case fromElem c0 of
 		(Just a,_) -> (Just (ValueBooldelta a), rest)
 		(Nothing,_) ->
-			case (fromElem c0) of
+			case fromElem c0 of
 			(Just a,_) -> (Just (ValueIntdelta a), rest)
 			(Nothing,_) ->
-				case (fromElem c0) of
+				case fromElem c0 of
 				(Just a,_) -> (Just (ValueFloatdelta a), rest)
 				(Nothing,_) ->
-					case (fromElem c0) of
+					case fromElem c0 of
 					(Just a,_) -> (Just (ValueStringdelta a), rest)
 					(Nothing,_) ->
-						case (fromElem c0) of
+						case fromElem c0 of
 						(Just a,_) -> (Just (ValueAltdelta a), rest)
 						(Nothing,_) ->
-							case (fromElem c0) of
+							case fromElem c0 of
 							(Just a,_) -> (Just (ValueGraphdelta a), rest)
 							(Nothing,_) ->
 							    (Nothing, c0)
@@ -826,7 +826,7 @@ instance XmlAttributes Intdelta where
 	  { intdeltaOldint = definiteA fromAttrToStr "intdelta" "oldint" as
 	  , intdeltaNewint = definiteA fromAttrToStr "intdelta" "newint" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ toAttrFrStr "oldint" (intdeltaOldint v)
 	, toAttrFrStr "newint" (intdeltaNewint v)
 	]
@@ -842,7 +842,7 @@ instance XmlAttributes Floatdelta where
 	  { floatdeltaOldfloat = definiteA fromAttrToStr "floatdelta" "oldfloat" as
 	  , floatdeltaNewfloat = definiteA fromAttrToStr "floatdelta" "newfloat" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ toAttrFrStr "oldfloat" (floatdeltaOldfloat v)
 	, toAttrFrStr "newfloat" (floatdeltaNewfloat v)
 	]
@@ -858,7 +858,7 @@ instance XmlAttributes Stringdelta where
 	  { stringdeltaOldstring = definiteA fromAttrToStr "stringdelta" "oldstring" as
 	  , stringdeltaNewstring = definiteA fromAttrToStr "stringdelta" "newstring" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ toAttrFrStr "oldstring" (stringdeltaOldstring v)
 	, toAttrFrStr "newstring" (stringdeltaNewstring v)
 	]
@@ -874,7 +874,7 @@ instance XmlAttributes Namedelta where
 	  { namedeltaOldname = definiteA fromAttrToStr "namedelta" "oldname" as
 	  , namedeltaNewname = definiteA fromAttrToStr "namedelta" "newname" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ toAttrFrStr "oldname" (namedeltaOldname v)
 	, toAttrFrStr "newname" (namedeltaNewname v)
 	]
@@ -903,7 +903,7 @@ instance XmlAttributes Altchange where
 	  { altchangeOldalt = definiteA fromAttrToStr "altchange" "oldalt" as
 	  , altchangeNewalt = definiteA fromAttrToStr "altchange" "newalt" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ toAttrFrStr "oldalt" (altchangeOldalt v)
 	, toAttrFrStr "newalt" (altchangeNewalt v)
 	]
@@ -923,7 +923,7 @@ instance XmlAttributes Accumdelta_Attrs where
 	Accumdelta_Attrs
 	  { accumdeltaAccumkind = defaultA fromAttrToTyp Accumdelta_Accumkind_Unch "accumkind" as
 	  }
-    toAttrs v = catMaybes 
+    toAttrs v = catMaybes
 	[ defaultToAttr toAttrFrTyp "accumkind" (accumdeltaAccumkind v)
 	]
 instance XmlAttrType Accumdelta_Accumkind where
