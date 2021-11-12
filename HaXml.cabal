@@ -2,7 +2,7 @@ cabal-version:  >= 1.10
 name:           HaXml
 version:        1.25.7
 
-license:        LGPL
+license:        LGPL-2.1
 license-files:  COPYRIGHT, LICENCE-GPL, LICENCE-LGPL
 author:         Malcolm Wallace <Malcolm.Wallace@me.com>
 maintainer:     Jens Petersen <juhpetersen@gmail.com>
