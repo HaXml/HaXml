@@ -758,9 +758,9 @@ ppFieldElement nx t e@Text{}    i = ppFieldName nx t e i
 -- | Generate a single named field (no type sig) from an element.
 ppFieldName :: NameConverter -> XName -> Element -> Int -> Doc
 ppFieldName nx t e@Element{} _ = ppFieldId nx t (elem_name e)
-ppFieldName nx t e@OneOf{}   i = ppFieldId nx t (XName $ N $"choice"++show i)
-ppFieldName nx t e@AnyElem{} i = ppFieldId nx t (XName $ N $"any"++show i)
-ppFieldName nx t e@Text{}    i = ppFieldId nx t (XName $ N $"text"++show i)
+ppFieldName nx t e@OneOf{}   i = ppFieldId nx t (XName $ N $ "choice"++show i)
+ppFieldName nx t e@AnyElem{} i = ppFieldId nx t (XName $ N $ "any"++show i)
+ppFieldName nx t e@Text{}    i = ppFieldId nx t (XName $ N $ "text"++show i)
 
 -- | What is the name of the type for an Element (or choice of Elements)?
 ppElemTypeName :: NameConverter -> (Doc->Doc) -> Element -> Doc

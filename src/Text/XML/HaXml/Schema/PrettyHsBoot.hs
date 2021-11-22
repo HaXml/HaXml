@@ -369,13 +369,13 @@ ppFieldElement :: NameConverter -> XName -> Element -> Int -> Doc
 ppFieldElement nx t e@Element{} _ = ppFieldId nx t (elem_name e)
                                         <+> text "::" <+> ppElemTypeName nx id e
                                     $$ ppComment After (elem_comment e)
-ppFieldElement nx t e@OneOf{}   i = ppFieldId nx t (XName $ N $"choice"++show i)
+ppFieldElement nx t e@OneOf{}   i = ppFieldId nx t (XName $ N $ "choice"++show i)
                                         <+> text "::" <+> ppElemTypeName nx id e
                                     $$ ppComment After (elem_comment e)
-ppFieldElement nx t e@AnyElem{} i = ppFieldId nx t (XName $ N $"any"++show i)
+ppFieldElement nx t e@AnyElem{} i = ppFieldId nx t (XName $ N $ "any"++show i)
                                         <+> text "::" <+> ppElemTypeName nx id e
                                     $$ ppComment After (elem_comment e)
-ppFieldElement nx t e@Text{}    i = ppFieldId nx t (XName $ N $"text"++show i)
+ppFieldElement nx t e@Text{}    i = ppFieldId nx t (XName $ N $ "text"++show i)
                                         <+> text "::" <+> ppElemTypeName nx id e
 
 -- | What is the name of the type for an Element (or choice of Elements)?
