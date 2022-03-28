@@ -179,7 +179,7 @@ encodeOne_fourbyte cp = [0xF0.|.us, 0x80.|.zs, 0x80.|.ys, 0x80.|.xs]
 
 -- I will first look at the decoding of a single character. The process
 -- consumes a certain number of bytes from the input. It returns the
--- remaining input and either an error and the index of its occurance in the
+-- remaining input and either an error and the index of its occurrence in the
 -- byte sequence or the decoded character.
 
 data Error
@@ -233,7 +233,7 @@ first_bits_not_10 b
 
 
 -- Erm, OK, the single-character decoding function's return type is a bit
--- longish. It is a tripel:
+-- longish. It is a triple:
 
 --  - The first component contains the decoded character or an error
 --    if the byte sequence was erroneous.

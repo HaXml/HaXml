@@ -726,7 +726,7 @@ testXmlHTTPSuite = TestList
 --  parser is refined.
 --
 --  Note:  at this time, the "Valid" XML test suite is used only for testing
---  well-formedness chacks by the parser.  Additional tests may perform validity
+--  well-formedness checks by the parser.  Additional tests may perform validity
 --  checking.
 
 jamesClarkParseSASuite =
@@ -935,7 +935,7 @@ lexent  = xmlLexEntity testPosn "abc &def; ghi %jkl; mno"
 -- Add specific Show instances for Namespace and QName.
 --
 -- Revision 1.32  2004/06/28 20:20:21  graham
--- Added new test cases for recursive substutition detection, and
+-- Added new test cases for recursive substitution detection, and
 -- document reformatting after
 -- namespace processing.
 --
@@ -991,7 +991,7 @@ lexent  = xmlLexEntity testPosn "abc &def; ghi %jkl; mno"
 -- Fixed up grammar for 'contentspec'.  Another test case passes.
 --
 -- Revision 1.18  2004/06/08 20:20:11  graham
--- Relative filename handling for external entitities now works.
+-- Relative filename handling for external entities now works.
 -- URI handling and HTTP access is coded, not fully tested.
 --
 -- Revision 1.17  2004/06/08 11:35:59  graham
@@ -1040,7 +1040,7 @@ lexent  = xmlLexEntity testPosn "abc &def; ghi %jkl; mno"
 -- Fixed up some comments and code layout.
 --
 -- Revision 1.6  2004/06/02 08:39:05  graham
--- Re-worked handling of attribute values so that entitry references
+-- Re-worked handling of attribute values so that entity references
 -- can be recognized.
 --
 -- Revision 1.5  2004/05/28 15:28:16  graham
@@ -1060,7 +1060,7 @@ lexent  = xmlLexEntity testPosn "abc &def; ghi %jkl; mno"
 -- All previous conformance tests still passed.
 --
 -- Revision 1.2  2004/05/24 12:42:37  graham
--- Create new module ExtEntity to isolate acess to external entity data.
+-- Create new module ExtEntity to isolate access to external entity data.
 -- Updated parse module to use this.  All tests passed.
 --
 -- Revision 1.1  2004/05/24 11:54:03  graham
