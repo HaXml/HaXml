@@ -22,7 +22,7 @@ import Text.XML.HaXml.DtdToHaskell.Convert  (dtd2TypeDef)
 import Text.XML.HaXml.DtdToHaskell.Instance (mkInstance)
 import Text.PrettyPrint.HughesPJ (render,vcat)
 
--- sucked in from Text.XML.HaXml.Wrappers to avod dependency on T.X.H.Html
+-- sucked in from Text.XML.HaXml.Wrappers to avoid dependency on T.X.H.Html
 fix2Args :: IO (String,String)
 fix2Args = do
   args <- getArgs

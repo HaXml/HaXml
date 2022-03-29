@@ -51,10 +51,10 @@ extender = mkChrGen "#x00B7 | #x02D0 | #x02D1 | #x0387 | #x0640 | #x0E46 | #x0EC
 punct = elements ".-_" -- Removed ':' to prevent namespace errors
 
 {-
--- Commented block contrains definitions taken from XML spec
+-- Commented block contains definitions taken from XML spec
 -- However, arbitrary instances generated with this code turn out to be
--- unreadable due to lots of funny-looking Unicode charactes.
--- So for the time being I am using oversimplifed generators (see below).
+-- unreadable due to lots of funny-looking Unicode characters.
+-- So for the time being I am using oversimplified generators (see below).
 
 digitt = mkChrGen "[#x0030-#x0039] | [#x0660-#x0669] | [#x06F0-#x06F9] | [#x0966-#x096F] | [#x09E6-#x09EF] | [#x0A66-#x0A6F] | [#x0AE6-#x0AEF] | [#x0B66-#x0B6F] | [#x0BE7-#x0BEF] | [#x0C66-#x0C6F] | [#x0CE6-#x0CEF] | [#x0D66-#x0D6F] | [#x0E50-#x0E59] | [#x0ED0-#x0ED9] | [#x0F20-#x0F29]"
 
