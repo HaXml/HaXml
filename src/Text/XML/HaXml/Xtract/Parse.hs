@@ -253,8 +253,8 @@ xquery cxt q1 = oneOf
          do symbol "@"
             attr <- string
             return (D.iffind attr (local . C.literal) D.none `D.o` q1)
-         `onFail`
-         tquery ((q1 D./>):cxt)
+          `onFail`
+          tquery ((q1 D./>):cxt)
     , do symbol "//"
          tquery ((\q2-> liftLocal C.multi q2
                             `D.o` local C.children `D.o` q1):cxt)
