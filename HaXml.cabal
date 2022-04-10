@@ -99,18 +99,8 @@ library
   default-language: Haskell98
   default-extensions: CPP, ExistentialQuantification
   nhc98-options: -K10M
-  ghc-options:         -Wall
-  if impl(ghc >= 8.0)
-    ghc-options:       -Wcompat
-                       -Widentities
-                       -Wincomplete-uni-patterns
-                       -Wincomplete-record-updates
-                       -Wredundant-constraints
   if impl(ghc >= 8.2)
     ghc-options:       -fhide-source-paths
-  if impl(ghc >= 8.4)
-    ghc-options:       -Wmissing-export-lists
-                       -Wpartial-fields
 
 Executable Canonicalise
   GHC-Options: -Wall
