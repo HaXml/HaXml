@@ -1,4 +1,4 @@
-cabal-version:  >= 1.10
+cabal-version:  1.18
 name:           HaXml
 version:        1.25.9
 
@@ -14,7 +14,7 @@ description:
         Haskell utilities for parsing, filtering, transforming and
         generating XML documents.
 build-type:     Simple
-extra-source-files: Changelog.md
+extra-doc-files: Changelog.md README
 
 tested-with:
   GHC ==9.2.1

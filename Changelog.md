@@ -1,6 +1,7 @@
 ## 1.25.9 (2022-04-10)
 - fix 1.25.7 regression in Xtract.Parse (#7 by Isaac van Bakel)
 - comment typo fixes (#6 by Eric Lindblad)
+- include README file
 
 ## 1.25.8 (2021-11-22)
 - version the License tag in HaXml.cabal as LGPL-2.1 (#3)
