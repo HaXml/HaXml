@@ -58,7 +58,7 @@ f |>| g = \xml sub-> let first = f xml sub in
 union :: (a->b->[c]) -> (a->b->[c]) -> (a->b->[c])
 union = lift (++)
   where
-    lift f g h = \x y-> f (g x y) (h x y)
+    lift f g h x y = f (g x y) (h x y)
 
 -- | lifted predicates.
 with, without :: DFilter i -> DFilter i -> DFilter i

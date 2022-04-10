@@ -3,7 +3,7 @@
 ------------------------------------------------------------
 module Main where
 import System.Environment (getArgs)
-import System.Exit        (exitWith, ExitCode(..))
+import System.Exit        (exitWith, exitSuccess, ExitCode(..))
 import System.IO
 import Data.Char          (toLower)
 import Data.List          (isSuffixOf)
@@ -53,10 +53,10 @@ main = do
   let opts = foldl (flip ($)) defaultOptions preOpts
   when (printVersion opts) $ do
       putStrLn $ "part of HaXml-"++version
-      exitWith ExitSuccess
+      exitSuccess
   when (printHelp opts) $ do
-      putStrLn $ "See http://haskell.org/HaXml"
-      exitWith ExitSuccess
+      putStrLn "See http://haskell.org/HaXml"
+      exitSuccess
   when (length args < 1) $ do
       putStrLn $ usageInfo "Usage: Xtract [options] <pattern> [xmlfile ...]" options
       exitWith (ExitFailure 1)
@@ -64,7 +64,7 @@ main = do
         (Text.XML.HaXml.ParseLazy.xmlParse, Text.XML.HaXml.Html.ParseLazy.htmlParse)
         else
         (Text.XML.HaXml.Parse.xmlParse, Text.XML.HaXml.Html.Parse.htmlParse)
-  let (pattern,files,esc) =
+  let (pat,files,esc) =
           (head args,tail args,if doEscaping opts then escape .(:[]) else (:[]))
 --      findcontents =
 --        if null files then (getContents >>= \x-> return [xmlParse "<stdin>"x])
@@ -77,11 +77,11 @@ main = do
 --  . map (vcat . map content . selection . docContent)) cs
   mapM_ (\x->   do c <- (if x=="-" then getContents else readFile x)
                    ( if isHTML x || forceHtml opts then
-                          hPutStrLn stdout . render . htmlprint
-                          . xtract (map toLower) pattern
+                          putStrLn . render . htmlprint
+                          . xtract (map toLower) pat
                           . docContent (posInNewCxt x Nothing) . htmlParse x
-                     else hPutStrLn stdout . render . vcat . map (format . esc)
-                          . xtract id pattern
+                     else putStrLn . render . vcat . map (format . esc)
+                          . xtract id pat
                           . docContent (posInNewCxt x Nothing) . xmlParse x) c
                    hFlush stdout)
           files

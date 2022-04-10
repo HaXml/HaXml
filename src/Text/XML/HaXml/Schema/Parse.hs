@@ -646,12 +646,12 @@ processContents =
 -- | Parse an attribute value that should be a QName.
 qname :: (String->String->QName) -> TextParser QName
 qname q = do a <- word
-             (do ":" <- word
-                 b   <- many (satisfy (/=':'))
-                 return (q a b)
+             do ":" <- word
+                b   <- many (satisfy (/=':'))
+                return (q a b)
                `onFail`
-               do cs <- many next
-                  return (N (a++cs)))
+                 do cs <- many next
+                    return (N (a++cs))
 
 -- | Parse an attribute value that should be a simple Name.
 name :: TextParser Name

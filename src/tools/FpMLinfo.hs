@@ -186,8 +186,8 @@ contains env qn =
                 Left (Restriction1 p) -> particle p
         Just (Right c@ComplexType{complex_content=ComplexContent{}}) ->
             case ci_stuff (complex_content c) of
-                Right e@Extension{}   -> [extension_base e]
-                                         ++ particleAttrs (extension_newstuff e)
+                Right e@Extension{}   -> extension_base e :
+                                         particleAttrs (extension_newstuff e)
                 Left (Restriction1 p) -> particle p
         Just (Right c@ComplexType{complex_content=ThisType{}})       ->
             particleAttrs . ci_thistype . complex_content $ c

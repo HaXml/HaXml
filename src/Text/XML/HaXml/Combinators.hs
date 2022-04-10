@@ -187,7 +187,7 @@ union :: (a->[b]) -> (a->[b]) -> (a->[b])
 union = lift (++)               -- in Haskell 98:   union = lift List.union
   where
     lift :: (a->b->d) -> (c->a) -> (c->b) -> c -> d
-    lift f g h = \x-> f (g x) (h x)
+    lift f g h x = f (g x) (h x)
 
 -- | Glue a list of filters together.  (A list version of union;
 --   also has a more general type than just CFilter.)
