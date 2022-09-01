@@ -103,8 +103,13 @@ element e@(Elem n as cs)
     | all isText cs    = text "<" <> qname n <+> fsep (map attribute as) <>
                          text ">" <> hcat (map content cs) <>
                          text "</" <> qname n <> text ">"
-    | otherwise        = let (d,c) = carryelem e empty
-                         in d <> c
+    | otherwise        = vcat [ text "<" <> qname n <> attributes as <> text ">"
+                              , nest 2 $ vcat (map content cs)
+                              , text "</" <> qname n <> text ">"
+                              ]
+
+attributes [] = empty
+attributes as@(_:_) = text " " <> fsep (map attribute as)
 
 isText :: Content t -> Bool
 isText (CString _ _ _) = True

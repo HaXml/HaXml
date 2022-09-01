@@ -140,11 +140,16 @@ element e@(Elem n as cs)
 --  | any isText cs    = text "<" <> text n <+> fsep (map attribute as) <>
 --                       text ">" <> hcat (map content cs) <>
 --                       text "</" <> qname n <> text ">"
-    | isText (head cs) = text "<" <> qname n <+> fsep (Prelude.map attribute as) <>
+    | isText (head cs) = text "<" <> qname n <> attributes as <>
                          text ">" <> hcat (Prelude.map content cs) <>
                          text "</" <> qname n <> text ">"
-    | otherwise        = let (d,c) = carryelem e empty
-                         in d <> c
+    | otherwise        = vcat [ text "<" <> qname n <> attributes as <> text ">"
+                              , nest 2 (vcat (Prelude.map content cs))
+                              , text "</" <> qname n <> text ">"
+                              ]
+
+attributes [] = empty
+attributes as@(_:_) = text " " <> fsep (Prelude.map attribute as)
 
 isText :: Content t -> Bool
 isText (CString _ _ _) = True
@@ -158,10 +163,11 @@ carryelem (Elem n as []) c
                          , text "/>")
 carryelem (Elem n as cs) c
 {-  | any isText cs    =  ( c <> element e, empty)
-    | otherwise -}     =  let (cs0,d0) = carryscan carrycontent cs (text ">")
+    | otherwise -}     =  let (cs0,d0) = carryscan carrycontent cs empty
                           in
                           ( c <>
-                            text "<" <> qname n <+> fsep (Prelude.map attribute as) $$
+                            text "<" <> qname n <+> fsep (Prelude.map attribute as) <> text ">" $$
+                            -- This is wrong. It includes the close tag of the previous one
                             nest 2 (vcat cs0) <> --- $$
                             d0 <> text "</" <> qname n
                           , text ">")
