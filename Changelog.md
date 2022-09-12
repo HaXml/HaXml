@@ -1,7 +1,7 @@
 ## 1.25.10 (2022-09-12)
-- allow empty text content (@TeofilC, #10)
-- allow building with GHC 9.4 (@andreasabel, #9)
-- better pretty printer formatting (@avieth, #8)
+- better pretty printer formatting #8 (Alexander Vieth)
+- allow building with GHC 9.4 #9 (Andreas Abel)
+- allow empty text content #10 (Adrian May)
 
 ## 1.25.9 (2022-04-10)
 - fix 1.25.7 regression in Xtract.Parse (#7 by Isaac van Bakel)
