@@ -1,3 +1,6 @@
+## 1.25.11 (2022-09-13)
+- revert "allow empty text content #10" to avoid haxr memory leak
+
 ## 1.25.10 (2022-09-12)
 - better pretty printer formatting #8 (Alexander Vieth)
 - allow building with GHC 9.4 #9 (Andreas Abel)
