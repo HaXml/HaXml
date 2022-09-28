@@ -70,7 +70,7 @@ class FwdDecl fd a | fd -> a
 -- | Given a TextParser for a SimpleType, make it into an XMLParser, i.e.
 --   consuming textual XML content as input rather than a String.
 parseSimpleType :: SimpleType t => XMLParser t
-parseSimpleType = do s <- text
+parseSimpleType = do s <- text `onFail` return ""
                      case runParser acceptingParser s of
                        (Left err, _) -> fail err
                        (Right v, "") -> return v
