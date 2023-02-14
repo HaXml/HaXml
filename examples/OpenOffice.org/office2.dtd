@@ -862,7 +862,7 @@
 <!ATTLIST meta:auto-reload xlink:show (replace) #IMPLIED>
 <!ATTLIST meta:auto-reload xlink:actuate (onLoad) #IMPLIED>
 <!ATTLIST meta:auto-reload xlink:href %uriReference; #IMPLIED>
-<!ATTLIST meta:auto-reload meta:delay %timeDuration; "P0S">
+<!ATTLIST meta:auto-reload meta:delay %timeDuration; "PT0S">
 
 <!ELEMENT meta:hyperlink-behaviour EMPTY>
 <!ATTLIST meta:hyperlink-behaviour office:target-frame-name %targetFrameName; #IMPLIED>
