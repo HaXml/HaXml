@@ -56,6 +56,7 @@ data Environment =  Environment
     , env_substGrp  :: Map QName [(QName,FilePath)] -- ^ substitution groups
     , env_typeloc   :: Map QName FilePath           -- ^ where type is defined
     }
+    deriving (Show, Eq)
 
 -- | An empty environment of XSD type mappings.
 emptyEnv :: Environment
