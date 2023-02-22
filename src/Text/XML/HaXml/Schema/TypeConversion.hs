@@ -398,6 +398,10 @@ convert env s = concatMap item (schema_items s)
                                                              (elem_modifier e)})
                                               es)
                                          (comment (group_annotation g))
+        Right (QN _ ref) -> case Map.lookup (N ref) (env_group env) of
+                       Nothing -> error $ "bad group reference "
+                                       ++printableName (N ref)
+                       Just g' -> group g'{ group_occurs=group_occurs g }
         Right ref -> case Map.lookup ref (env_group env) of
                   --   Nothing -> error $ "bad group reference "
                   --                      ++printableName ref
