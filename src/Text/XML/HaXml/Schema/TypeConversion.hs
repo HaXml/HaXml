@@ -27,7 +27,9 @@ typeLift s = s{ schema_items =
                     ++ map renameLocals (schema_items s) }
   where
     hoist :: ElementDecl -> [SchemaItem]
-    hoist e = flip concatMap (findE e) $
+    hoist e =
+              let only_children = filter (not . (==) e) $ findE e
+              in flip concatMap only_children $
               \e@ElementDecl{elem_nameOrRef=Left (NT{ theName=n
                                                   {-, theType=Nothing-}})}->
                   localType n (elem_content e)
