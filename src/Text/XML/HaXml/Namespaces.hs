@@ -171,6 +171,8 @@ resolveAllNames qualify (Document prolog entities elm misc) =
               mkNamespace :: Attribute -> Namespace
               mkNamespace (N n, atv)  = let (_,':':nm) = span (/=':') n in
                                         Namespace{nsPrefix=nm,nsURI=show atv}
+              mkNamespace (q@(QN (Namespace{ nsURI="" }) n), atv)  =
+                                        Namespace{nsPrefix=n,nsURI=show atv}
               matching :: (String->Bool) -> [Attribute] -> [Attribute]
               matching p = filter (p . printableName . fst)
     --
