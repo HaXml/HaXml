@@ -12,6 +12,9 @@ jobs:
     strategy:
       matrix:
         ghc: ['9.6', '9.4', '9.2', '9.0', '8.10', '8.8', '8.6', '8.4', '8.2', '8.0']
+        include:
+          - ghc: '9.6'
+            cabal-flags: '--constraint=bytestring==0.12.* --allow-newer bytestring'
     name: Haskell GHC ${{ matrix.ghc }}
     steps:
       - uses: actions/checkout@v3
@@ -28,7 +31,7 @@ jobs:
             ${{ runner.os }}-${{ matrix.ghc }}-
             ${{ runner.os }}-
       - run: cabal update
-      - run: cabal build
-      - run: cabal haddock
+      - run: cabal build   ${{ matrix.cabal-flags }}
+      - run: cabal haddock ${{ matrix.cabal-flags }}
       - run: cabal check
       - run: cabal sdist
