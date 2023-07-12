@@ -35,10 +35,14 @@ tested-with:
    || ==7.2.2
    || ==7.0.4
 
+source-repository head
+  type:      git
+  location:  https://github.com/HaXml/HaXml.git
+
 source-repository this
   type:      git
   location:  https://github.com/HaXml/HaXml.git
-  tag:       v1.25.6
+  tag:       v1.25.12
 
 library
   exposed-modules:
