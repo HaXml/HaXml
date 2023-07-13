@@ -39,11 +39,6 @@ source-repository head
   type:      git
   location:  https://github.com/HaXml/HaXml.git
 
-source-repository this
-  type:      git
-  location:  https://github.com/HaXml/HaXml.git
-  tag:       v1.25.12
-
 library
   exposed-modules:
         Text.XML.HaXml,
