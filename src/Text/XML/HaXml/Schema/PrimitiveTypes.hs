@@ -155,7 +155,7 @@ instance SimpleType Duration where
                                                `onFail` return 0)
                                       `apply` ((parseFloat `discard` isNext 'S')
                                                `onFail` return 0)
-    simpleTypeText (Duration pos 0 0 0 0 0 0) = (if pos then "" else "-")++"P0S"
+    simpleTypeText (Duration pos 0 0 0 0 0 0) = (if pos then "" else "-")++"PT0S"
     simpleTypeText (Duration pos y m d h n s) =
         (if pos then "" else "-")++"P"++showUnit y 'Y'++showUnit m 'M'++showUnit d 'D'++showTime
       where
