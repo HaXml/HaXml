@@ -1,6 +1,6 @@
 cabal-version:  1.18
 name:           HaXml
-version:        1.25.12
+version:        1.25.13
 x-revison:      1
 
 license:        LGPL-2.1

@@ -1,3 +1,8 @@
+## 1.25.13 (2023-07-13)
+- correct zero time duration P0S to PT0S (@dten, #16)
+- allow ghc-9.6 base (@andreasabel, #15)
+- allow bytestring-0.12 (@andreasabel, #18)
+
 ## 1.25.12 (2022-10-18)
 - Allow parsing empty strings, avoiding space leak #13 (Teo Camarasu)
 
