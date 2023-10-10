@@ -12,13 +12,10 @@ jobs:
     strategy:
       matrix:
         ghc: ['9.6', '9.4', '9.2', '9.0', '8.10', '8.8', '8.6', '8.4', '8.2', '8.0']
-        include:
-          - ghc: '9.6'
-            cabal-flags: '--constraint=bytestring==0.12.* --allow-newer bytestring'
     name: Haskell GHC ${{ matrix.ghc }}
     steps:
       - uses: actions/checkout@v3
-      - uses: haskell/actions/setup@v2
+      - uses: haskell-actions/setup@v2
         with:
           ghc-version: ${{ matrix.ghc }}
       - uses: actions/cache@v3
@@ -31,8 +28,8 @@ jobs:
             ${{ runner.os }}-${{ matrix.ghc }}-
             ${{ runner.os }}-
       - run: cabal update
-      - run: cabal build   ${{ matrix.cabal-flags }}
-      - run: cabal haddock ${{ matrix.cabal-flags }}
+      - run: cabal build
+      - run: cabal haddock
         if: ${{ matrix.ghc != '8.2' }}
           # Skip haddock step for GHC 8.2 since its haddock has problems with text-2.0.2
           # See https://github.com/HaXml/HaXml/issues/19
