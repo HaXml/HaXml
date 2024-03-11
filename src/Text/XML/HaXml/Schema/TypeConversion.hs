@@ -27,7 +27,9 @@ typeLift s = s{ schema_items =
                     ++ map renameLocals (schema_items s) }
   where
     hoist :: ElementDecl -> [SchemaItem]
-    hoist e = flip concatMap (findE e) $
+    hoist e =
+              let only_children = filter (not . (==) e) $ findE e
+              in flip concatMap only_children $
               \e@ElementDecl{elem_nameOrRef=Left (NT{ theName=n
                                                   {-, theType=Nothing-}})}->
                   localType n (elem_content e)
@@ -398,6 +400,10 @@ convert env s = concatMap item (schema_items s)
                                                              (elem_modifier e)})
                                               es)
                                          (comment (group_annotation g))
+        Right (QN _ ref) -> case Map.lookup (N ref) (env_group env) of
+                       Nothing -> error $ "bad group reference "
+                                       ++printableName (N ref)
+                       Just g' -> group g'{ group_occurs=group_occurs g }
         Right ref -> case Map.lookup ref (env_group env) of
                   --   Nothing -> error $ "bad group reference "
                   --                      ++printableName ref

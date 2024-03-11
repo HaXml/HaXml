@@ -292,7 +292,7 @@ redefine q = do e <- xsdElement "redefine"
 simpleType :: (String->String->QName) -> XsdParser SimpleType
 simpleType q = do
     e <- xsdElement "simpleType"
-    n <- optional (attribute (N "name") name e)
+    n <- optional (attribute (N "name") string e)
     f <- optional (attribute (N "final") final e)
     a <- interiorWith (xsdTag "annotation") annotation e
     commit $ interiorWith (not . xsdTag "annotation") (simpleItem n f a) e
@@ -652,7 +652,3 @@ qname q = do a <- word
                `onFail`
                  do cs <- many next
                     return (N (a++cs))
-
--- | Parse an attribute value that should be a simple Name.
-name :: TextParser Name
-name = word

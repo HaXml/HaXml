@@ -68,7 +68,7 @@ simpleNameConverter = NameConverter
                         | map toLower c == "integer"    = "Xsd.Integer"
                         | map toLower c == "boolean"    = "Xsd.Boolean"
                         | map toLower c == "decimal"    = "Xsd.Decimal"
-                        | otherwise = first toUpper m++"."++first toUpper (map escape c)
+                        | otherwise = first toUpper (map escape m)++"."++first toUpper (map escape c)
     mkConid more        = mkConid [concat more]
     mkVarid  [v]        = first toLower (map escape v)
     mkVarid [m,v]       = first toUpper m++"."++first toLower (map escape v)
