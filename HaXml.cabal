@@ -22,7 +22,7 @@ extra-doc-files: Changelog.md README
 
 tested-with:
   GHC ==9.8.2
-   || ==9.6.4
+   || ==9.6.6
    || ==9.4.8
    || ==9.2.8
    || ==9.0.2
