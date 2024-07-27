@@ -176,7 +176,20 @@ nottok ts = do (p,t) <- next
 -- | Return a qualified name (although the namespace qualification is not
 --   processed here; this is merely to get the correct type).
 qname :: XParser QName
-qname = fmap N name
+qname = do
+    (p,tok) <- next
+    case tok of
+        TokName s  -> case split ':' s of
+            [one] -> return $ N s
+            [ns,elem_name] -> return $ QN (Namespace ns "") elem_name
+            _ -> report fail "a name" p tok
+        TokError _ -> report failBad "a name" p tok
+        _          -> report fail "a name" p tok
+    where
+    split :: Char -> String -> [String]
+    split c xs = case break (==c) xs of
+        (ls, "") -> [ls]
+        (ls, x:rs) -> ls : split c rs
 
 -- | Return just a name, e.g. element name, attribute name.
 name :: XParser Name
