@@ -39,12 +39,14 @@ data CommentPosition = Before | After
 --   (but without escapes in comment text yet)
 ppComment :: CommentPosition -> Comment -> Doc
 ppComment _   Nothing  = empty
-ppComment pos (Just s) =
-    text "--" <+> text (case pos of Before -> "|"; After -> "^") <+> text c
-    $$
-    vcat (map (\x-> text "--  " <+> text x) cs)
+ppComment pos (Just s) = case ps of
+  (c:cs) ->
+      text "--" <+> text (case pos of Before -> "|"; After -> "^") <+> text c
+      $$
+      vcat (map (\x-> text "--  " <+> text x) cs)
+  [] -> empty
   where
-    (c:cs) = lines (paragraph 60 s)
+    ps = lines (paragraph 60 s)
 
 -- | Generate aligned haddock-style docs for choices (where each choice
 --   has its own documentation, but haddock cannot place it directly next
