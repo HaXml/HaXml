@@ -1,3 +1,16 @@
+## 1.25.14 (2024-12-12)
+- fix inaccuracies in haskell generation code (#17 from @SiriusCourses):
+  - Fix mkNamespace for case when QName is recognized at root element
+  - Fix QName parser to recognize names with namespaces
+  - Prevent multiple declarations after type lifting hoist
+  - Inject groups from reference at topElementDecl
+  - Fix bug unexcaped module name in generated haskell code
+  - Add to Environment deriving for Show and Eq for simpler debug
+  - Fix name with dashes for simpleType
+- PrettyH*: Add missing pattern match to ppComment (#24 from @e-rk)
+- Allow base-4.20 and filepath-1.5; bump CI to GHC 9.8 (#21, @andreasabel)
+- allow base-4.22 for ghc-9.12 (#23, @juhp)
+
 ## 1.25.13 (2023-07-13)
 - correct zero time duration P0S to PT0S (@dten, #16)
 - allow ghc-9.6 base (@andreasabel, #15)
