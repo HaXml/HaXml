@@ -87,7 +87,7 @@ library
         Text.XML.HaXml.Schema.Schema
   hs-source-dirs: src
   build-depends:
-    base       >= 4.3.1.0  && < 4.21,
+    base       >= 4.3.1.0  && < 4.22,
     bytestring >= 0.9.1.10 && < 0.13,
     containers >= 0.4.0.0  && <0.8,
     filepath   >= 1.2.0.0  && <1.6,
